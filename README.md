@@ -13,9 +13,9 @@
 ---
 
 ### 🧬 Featured Projects
-- **[Aion](link)** – Python interpreter that evolves through AI council deliberation
-- **[MaidMind](link)** – Modular AI assistant powered by scoped memory
-- **[RAG_Vidquest](link)** – Lecture-video QA system with semantic search
+- **[Aion](https://github.com/Sahil170595/Aion)** – Python interpreter that evolves through AI council deliberation
+- **[MaidMind](https://github.com/Sahil170595/MaidMind)** – Modular AI assistant powered by scoped memory
+- **[RAG_Vidquest](https://github.com/Sahil170595/RAG_Vidquest)** – Lecture-video QA system with semantic search
 
 ---
 
