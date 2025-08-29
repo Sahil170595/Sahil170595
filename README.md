@@ -1,23 +1,30 @@
 # Sahil Kadadekar
 
-🚀 AI Systems Engineer | LLM Architect | Mythmaker in Code  
-🧠 Building Aion (AI interpreter council), MaidMind (cognitive OS), RAG_Vidquest (edu-QA system)  
+**AI Systems Engineer | LLM Architect | Mythmaker in Code**  
+Building intelligent, modular systems at the intersection of language models, infrastructure, and UX.
 
 ---
 
-### 🔧 My Focus Areas
-- Language Model Infrastructure (RAG, LLM agents, prompt tuning)
-- Cognitive Architectures & Modular AI Systems
-- Video understanding, Retrieval, and UI/UX
+##  Focus Areas
+- **LLM Infrastructure**: RAG pipelines, multi-agent LLM systems, prompt tuning  
+- **Modular AI Architecture**: Cognitive frameworks and evolving agent systems  
+- **Video & Multimedia AI**: Semantic search, retrieval, and user interfaces
 
 ---
 
-### 🧬 Featured Projects
-- **[Aion](https://github.com/Sahil170595/Aion)** – Python interpreter that evolves through AI council deliberation
-- **[MaidMind](https://github.com/Sahil170595/MaidMind)** – Modular AI assistant powered by scoped memory
-- **[RAG_Vidquest](https://github.com/Sahil170595/RAG_Vidquest)** – Lecture-video QA system with semantic search
+##  Featured Projects
+
+| Project | Description |
+|---------|-------------|
+| **CCPhotosearchBot** | Serverless AWS-based bot for natural-language photo search using Rekognition and OpenSearch. |
+| **LumaChat** | JavaFX desktop chat client with AI assistant, secure auth, and MongoDB persistence. |
+| **DLProject** | Anomaly detection on the MVTec-AD dataset using Anomalib (PatchCore, FastFlow, STFPM) with AUROC evaluations and visualizations. |
+| **MaidMind** | Modular AI assistant with scoped memory and task-based agent logic. |
+| **Aion** | Autonomous Python interpreter evolving via multi-agent LLM patch collaborations. |
+| **RAG_Vidquest** | Lecture-video QA system using retrieval-augmented generation and multimodal search. |
 
 ---
+
 
 ### 📫 Reach Me
 - [LinkedIn](https://www.linkedin.com/in/sahilkadadekar)
