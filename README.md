@@ -25,7 +25,7 @@ Building intelligent, modular systems at the intersection of language models, in
 
 ---
 
-## SNEAKPEEK : BANTERPACKS
+## SNEAKPEEK : BANTERPACKS (Youtube demo: https://youtu.be/IPbwLB_sZ9I)
 
 Banterpacks injects dynamic, multilingual banter into live streams and games in under 80ms. Shown here with Alien: Rogue Incursion, all lines are agent-generated including TTS in real time.
 
