@@ -5,14 +5,37 @@ Building intelligent, modular systems at the intersection of language models, in
 
 ---
 
-##  Focus Areas
-- **LLM Infrastructure**: RAG pipelines, multi-agent LLM systems, prompt tuning  
-- **Modular AI Architecture**: Cognitive frameworks and evolving agent systems  
-- **Video & Multimedia AI**: Semantic search, retrieval, and user interfaces
+## 🎯 Flagship Project: Banterpacks
+
+**Dynamic banter overlay ecosystem for live streams** - A comprehensive platform spanning real-time AI, content generation, and streaming infrastructure.
+
+### Core System
+- **Real-time Overlay**: <80ms response time with STT/TTS integration
+- **AI Content Generation**: Agent-generated banter with emotion detection
+- **Multi-language Support**: Dynamic multilingual content delivery
+- **OBS Integration**: Seamless streaming workflow integration
+
+### Ecosystem Components
+- **Banterblogs**: Automated content pipeline pushing to Vercel frontend
+- **Registry System**: FastAPI service with rollout control and analytics
+- **Authoring Tools**: CLI + providers for content generation and validation
+- **Monitoring Stack**: Prometheus + Grafana observability
+
+### Technical Architecture
+- **Frontend**: React Studio, TypeScript, real-time WebSocket connections
+- **Backend**: Python FastAPI, multi-agent LLM systems, RAG pipelines
+- **Infrastructure**: Docker containers, CDN deployment, serverless functions
+- **AI Stack**: Web Speech API, emotion detection, prompt engineering
+
+**Recent Development**: 53,901 lines in latest commit - major STT/TTS integration overhaul
+
+[YouTube Demo](https://youtu.be/IPbwLB_sZ9I) | [GitHub Repository](https://github.com/Sahil170595/Banterpacks)
+
+<img width="2559" height="1417" alt="Banterpacks Demo" src="https://github.com/user-attachments/assets/7685a091-274a-4ce5-ab43-7fcec213caa2" />
 
 ---
 
-##  Featured Projects
+## 🛠️ Other Projects
 
 | Project | Description |
 |---------|-------------|
@@ -25,15 +48,16 @@ Building intelligent, modular systems at the intersection of language models, in
 
 ---
 
-## SNEAKPEEK : BANTERPACKS (Youtube demo: https://youtu.be/IPbwLB_sZ9I)
+## �� Focus Areas
+- **Real-time AI Systems**: STT/TTS integration, emotion detection, live event processing
+- **Streaming Infrastructure**: OBS integration, low-latency overlays, content delivery
+- **AI Content Generation**: Multi-agent LLM systems, automated content pipelines
+- **Full-stack Development**: React, Python, Docker, CDN deployment, monitoring
+- **LLM Infrastructure**: RAG pipelines, prompt engineering, multi-modal AI
 
-Banterpacks injects dynamic, multilingual banter into live streams and games in under 80ms. Shown here with Alien: Rogue Incursion, all lines are agent-generated including TTS in real time.
+---
 
-<img width="2559" height="1417" alt="image" src="https://github.com/user-attachments/assets/7685a091-274a-4ce5-ab43-7fcec213caa2" />
-
-
-## Publications
-
+## 📚 Publications
 
 ### 2023
 - **Digital Currency Price Prediction using Machine Learning**  
@@ -50,5 +74,13 @@ Banterpacks injects dynamic, multilingual banter into live streams and games in 
   [PDF](https://www.jetir.org/papers/JETIR2210195.pdf)
 
 [![JETIR PDF](https://img.shields.io/badge/Paper-JETIR%20(2022)-brightgreen)](https://www.jetir.org/papers/JETIR2210195.pdf)
-### 📫 Reach Me
+
+---
+
+## 📫 Reach Me
 - [LinkedIn](https://www.linkedin.com/in/sahilkadadekar)
+- [GitHub](https://github.com/Sahil170595)
+
+---
+
+*Building the future of interactive streaming, one line of code at a time.*
