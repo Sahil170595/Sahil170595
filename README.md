@@ -27,7 +27,8 @@ Building intelligent, modular systems at the intersection of language models, in
 - **Infrastructure**: Docker containers, CDN deployment, serverless functions
 - **AI Stack**: Web Speech API, emotion detection, prompt engineering
 
-**Recent Development**: 53,901 lines in latest commit - major STT/TTS integration overhaul
+**Recent Development**: Major STT/TTS integration overhaul
+*Currently building the future of AI-powered streaming. Open to collaboration on real-time AI systems and streaming infrastructure.*
 
 [YouTube Demo](https://youtu.be/IPbwLB_sZ9I) | [GitHub Repository](https://github.com/Sahil170595/Banterpacks)
 
