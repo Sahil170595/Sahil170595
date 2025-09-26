@@ -31,7 +31,14 @@ Building intelligent, modular systems at the intersection of language models, in
 - **Infrastructure**: Docker containers, CDN deployment, serverless functions
 - **AI Stack**: Web Speech API, emotion detection, prompt engineering
 
-**Recent Development**: Major STT/TTS integration overhaul
+**Recent Development**: Monitoring and logging integrated. 
+
+
+Peformance:
+
+
+<img width="1024" height="609" alt="image" src="https://github.com/user-attachments/assets/4d067d29-4d61-47bc-bae9-b0d859f03a50" />
+
 
 
 [YouTube Demo](https://youtu.be/IPbwLB_sZ9I) | [GitHub Repository](https://github.com/Sahil170595/Banterpacks)
