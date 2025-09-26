@@ -31,7 +31,10 @@ Building intelligent, modular systems at the intersection of language models, in
 - **Infrastructure**: Docker containers, CDN deployment, serverless functions
 - **AI Stack**: Web Speech API, emotion detection, prompt engineering
 
-**Recent Development**: Monitoring and logging integrated. 
+**Recent Development**: Google Oauth2 Integration. 
+
+
+<img width="2203" height="1108" alt="image" src="https://github.com/user-attachments/assets/35c6439a-7ddd-4021-8d90-5518213db4af" />
 
 
 Peformance:
