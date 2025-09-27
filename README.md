@@ -13,6 +13,10 @@ Building intelligent, modular systems at the intersection of language models, in
 
 **Dynamic banter overlay ecosystem for live streams** - A comprehensive platform spanning real-time AI, content generation, and streaming infrastructure.
 
+
+The Blog: https://banterblogs.vercel.app
+
+
 ### Core System
 - **Real-time Overlay**: <80ms response time with STT/TTS integration
 - **AI Content Generation**: Agent-generated banter with emotion detection
