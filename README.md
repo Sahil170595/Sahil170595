@@ -9,19 +9,30 @@ Building intelligent, modular systems at the intersection of language models, in
 
 ---
 
-## 🎯 Flagship Project: Banterpacks
+## 🎯 Flagship: Banterpacks
 
 **Dynamic banter overlay ecosystem for live streams** - A comprehensive platform spanning real-time AI, content generation, and streaming infrastructure.
 
 
 The Blog: https://banterblogs.vercel.app
 
+ '''
+ 
+ Currently private repo for Chimera and Bantepacks, eventual public release planned. 
+ 
+ '''
 
 ### Core System
 - **Real-time Overlay**: <80ms response time with STT/TTS integration
 - **AI Content Generation**: Agent-generated banter with emotion detection
 - **Multi-language Support**: Dynamic multilingual content delivery
 - **OBS Integration**: Seamless streaming workflow integration
+
+#### 🚀 Ecosystem Snapshot  
+- ~180k LOC across 3 repos 
+- 300+ automated tests covering auth, inference, routing  
+- Real-time inference < 120 ms on RTX 4080   
+
 
 ### Ecosystem Components
 - **Banterblogs**: Automated content pipeline pushing to Vercel frontend
