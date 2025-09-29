@@ -17,7 +17,7 @@ Building intelligent, modular systems at the intersection of language models, in
 The Blog: https://banterblogs.vercel.app
 
  ```
- Currently private repo for Chimera and Bantepacks, eventual public release planned. 
+ Currently private repo for Chimera and Banterpacks, eventual public release planned. 
  ```
 
 ### Core System
