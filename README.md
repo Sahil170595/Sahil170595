@@ -47,7 +47,11 @@ The Blog: https://banterblogs.vercel.app
 **Recent Development**: Project Chimera is a hyper-optimized, hardware-aware, local-first inference engine designed to power the next generation of personalized AI. This is the core of the Banter-Infra ecosystem. 
 
 
-<img width="2558" height="1501" alt="image" src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" />
+![Chimera Engine Profiling](
+<img width="2558" height="1501" alt="image" src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" />)
+*Profiling a quantization kernel on RTX 4080 via Nsight Compute.*
+
+
 
 
 Frontend: 
