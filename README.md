@@ -18,7 +18,6 @@ The Blog: https://banterblogs.vercel.app
 
  ```
  Currently private repo for Chimera and Bantepacks, eventual public release planned. 
- 
  ```
 
 ### Core System
