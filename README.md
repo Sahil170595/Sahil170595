@@ -50,6 +50,15 @@ The Blog: https://banterblogs.vercel.app
 ##### Chimera Engine Profiling: 
 *Profiling a quantization kernel on RTX 4080 via Nsight Compute.*
 
+Reports after optimization:
+
+
+- [Ollama Benchmark – 2025-10-01](reports/ollama/2025-10-01/ollama_benchmark_2025-10-01.md)
+
+
+TLDR: 65 percent performance boost for tasks achieved. 
+
+
 
 
 <img width="2558" height="1501" alt="image" src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" />
