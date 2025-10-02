@@ -56,7 +56,13 @@ Reports after optimization:
 - [Ollama Benchmark – 2025-10-01](reports/ollama/2025-10-01/ollama_benchmark_2025-10-01.md)
 
 
-TLDR: 65 percent performance boost for tasks achieved. 
+TLDR: 10X throughput boost on Local models.
+
+
+- [Kernel Benchmark – 2025-10-02](reports/ollama/2025-10-02/Performance_Deep_dive.md)
+
+
+TLDR: Latency improved 15X under test conditions (6.92ms to 0.07ms vis fused kernels). 
 
 
 
