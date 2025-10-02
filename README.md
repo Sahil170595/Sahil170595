@@ -27,7 +27,7 @@ The Blog: https://banterblogs.vercel.app
 - **OBS Integration**: Seamless streaming workflow integration
 
 #### 🚀 Ecosystem Snapshot  
-- ~180k LOC across 3 repos 
+- ~130k LOC across 3 repos 
 - 300+ automated tests covering auth, inference, routing  
 - Real-time inference < 120 ms on RTX 4080   
 
