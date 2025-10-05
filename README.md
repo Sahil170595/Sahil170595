@@ -141,6 +141,15 @@ Peformance:
 
 ---
 
+
+## ⚙️ Banter-Infra Metrics
+
+| ![GitHub Stats](https://github-readme-stats.vercel.app/api?username=Sahil170595&show_icons=true&theme=chartreuse-dark&bg_color=000000&title_color=39FF14&icon_color=39FF14&text_color=C0C0C0&hide_border=true&custom_title=Chimera%20%7C%20Banter-Infra%20Core%20Metrics) | ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Sahil170595&layout=compact&theme=chartreuse-dark&bg_color=000000&title_color=39FF14&text_color=C0C0C0&hide_border=true) |
+| --- | --- |
+
+![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=Sahil170595&theme=dark&background=000000&stroke=39FF14&ring=39FF14&fire=39FF14&currStreakLabel=39FF14&sideNums=C0C0C0&currStreakNum=39FF14&sideLabels=39FF14&dates=888888&hide_border=true)
+
+
 ## 📫 Reach Me
 - [LinkedIn](https://www.linkedin.com/in/sahilkadadekar)
 - [GitHub](https://github.com/Sahil170595)
