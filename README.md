@@ -44,6 +44,11 @@ The Blog: https://banterblogs.vercel.app
 - **Infrastructure**: Docker containers, CDN deployment, serverless functions
 - **AI Stack**: Web Speech API, emotion detection, prompt engineering
 
+#### CI/CD
+
+<img width="1204" height="999" alt="image" src="https://github.com/user-attachments/assets/2bd7ccce-192d-40fb-82b3-10606632f4cc" />
+
+
 **Recent Development**: Project Chimera is a hyper-optimized, hardware-aware, local-first inference engine designed to power the next generation of personalized AI. This is the core of the Banter-Infra ecosystem. 
 
 
