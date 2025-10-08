@@ -134,6 +134,8 @@ Every benchmark, optimization, and design decision is logged and published as an
 📄 **Reports:**  
 - [Ollama Benchmark – 2025-10-01](reports/ollama/2025-10-01/ollama_benchmark_2025-10-01.md)  
 - [Kernel Deep Dive – 2025-10-02](reports/ollama/2025-10-02/Performance_Deep_dive.md)
+- [Ollama Benchmark – 2025-10-08](reports/ollama/2025-10-08/Gemma3_Deepdive.md)
+- [Full Report(108 pages) – 2025-10-08](reports/ollama/2025-10-08/Technical_Report_108pages.md)
 
 > *All metrics reproducible and version-controlled through ClickHouse lineage.*
 
