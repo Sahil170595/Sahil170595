@@ -160,6 +160,55 @@ Every benchmark, optimization, and design decision is logged and published as an
 
 ---
 
+
+<h2>📸 Visual Gallery</h2>
+
+<table>
+  <tr>
+    <th>Artifact</th>
+    <th>Description</th>
+    <th>Preview</th>
+    <th>Links</th>
+  </tr>
+
+  <tr>
+    <td><strong>CI/CD Dashboard</strong></td>
+    <td>Datadog pipeline & tests overview</td>
+    <td><img alt="CI/CD Dashboard" src="https://github.com/user-attachments/assets/2bd7ccce-192d-40fb-82b3-10606632f4cc" width="360"></td>
+    <td>—</td>
+  </tr>
+
+  <tr>
+    <td><strong>Chimera Engine Profiling</strong></td>
+    <td>Nsight Compute profiling on RTX 4080</td>
+    <td><img alt="Chimera Profiling" src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" width="360"></td>
+    <td>—</td>
+  </tr>
+
+  <tr>
+    <td><strong>Frontend UI</strong></td>
+    <td>Application frontend snapshot</td>
+    <td><img alt="Frontend UI" src="https://github.com/user-attachments/assets/35c6439a-7ddd-4021-8d90-5518213db4af" width="360"></td>
+    <td>—</td>
+  </tr>
+
+  <tr>
+    <td><strong>Performance</strong></td>
+    <td>Throughput/latency view</td>
+    <td><img alt="Performance" src="https://github.com/user-attachments/assets/4d067d29-4d61-47bc-bae9-b0d859f03a50" width="360"></td>
+    <td>—</td>
+  </tr>
+
+  <tr>
+    <td><strong>Banterpacks Demo</strong></td>
+    <td>Live demo still</td>
+    <td><img alt="Banterpacks Demo" src="https://github.com/user-attachments/assets/7685a091-274a-4ce5-ab43-7fcec213caa2" width="360"></td>
+    <td><a href="https://youtu.be/IPbwLB_sZ9I">YouTube Demo</a> · <a href="https://github.com/Sahil170595/Banterpacks">Repository</a></td>
+  </tr>
+</table>
+
+
+
 ## 🛠️ Other Projects
 
 | Project | Description |
