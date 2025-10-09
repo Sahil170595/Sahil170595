@@ -130,12 +130,16 @@ Every benchmark, optimization, and design decision is logged and published as an
 **Quantization Kernel Profiling (RTX 4080):**
 - Baseline latency: 6.92 ms → Optimized: **0.07 ms (≈15× faster)**  
 - Sustained throughput gain: **10× local baseline**
+- Single Inference Performance gain substantial.
+- Agentic Workflow TTFT: **~65 percent over baseline.** 
 
 📄 **Reports:**  
 - [Ollama Benchmark – 2025-10-01](reports/ollama/2025-10-01/ollama_benchmark_2025-10-01.md)  
 - [Kernel Deep Dive – 2025-10-02](reports/ollama/2025-10-02/Performance_Deep_dive.md)
 - [Ollama Benchmark – 2025-10-08](reports/ollama/2025-10-08/Gemma3_Deepdive.md)
 - [Full Report(108 pages) – 2025-10-08](reports/ollama/2025-10-08/Technical_Report_108pages.md)
+- [Single Agent Performance Report – 2025-10-09](reports/ollama/2025-10-09/Technical_Report_109.md)
+
 
 > *All metrics reproducible and version-controlled through ClickHouse lineage.*
 
