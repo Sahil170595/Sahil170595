@@ -50,8 +50,8 @@ Following [TR108's](../../reports/Technical_Report_108.md) single-agent LLM perf
 
 ### 1.3 Scope
 
-- **Model:** `gemma2:latest` (2B parameters, 26 layers)
-- **Hardware:** RTX 4070 (12GB VRAM), i9-13980HX (24 cores)
+- **Model:** `gemma3:latest` 
+- **Hardware:** RTX 4080 (12GB VRAM), i9-13980HX (24 cores)
 - **Test Matrix:** 30 configurations, 5 runs each = 150 total benchmarks
 - **Metrics:** Concurrency speedup, parallel efficiency, TTFT delta, throughput delta, resource contention frequency
 
