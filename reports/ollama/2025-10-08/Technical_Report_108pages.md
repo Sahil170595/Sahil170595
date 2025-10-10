@@ -79,18 +79,18 @@ The Chimera Heart gaming project requires real-time natural language generation 
 ```
 GPU: NVIDIA GeForce RTX 4080 Laptop
 - VRAM: 12 GB GDDR6X
-- CUDA Cores: 7424
+- CUDA Cores: 9728
 - Tensor Cores: 232 (4th Gen)
-- Memory Bandwidth: 432 GB/s
+- Memory Bandwidth: 504 GB/s
 - Power Limit: 175W (laptop configuration)
 
-CPU: Intel Core i9-13900H (13th Gen)
-- Cores: 14 (6P + 8E)
-- Threads: 20
-- Base Clock: 2.6 GHz
-- Boost Clock: 5.4 GHz
+CPU: Intel Core i9-13980HX (24 cores, 32 threads, 2.2 GHz base, 5.6 GHz boost)
+- Cores: 24 (8P + 16E)
+- Threads: 32
+- Base Clock: 2.2 GHz
+- Boost Clock: 5.6 GHz
 
-System Memory: 32 GB DDR5-4800
+System Memory: 16 GB DDR5-4800
 Operating System: Windows 11 Pro
 Ollama Version: Latest (as of Oct 2025)
 ```
@@ -548,7 +548,7 @@ Throughput Impact:
 
 3. **Memory Bandwidth Bottleneck:**
    - Larger models = more weight loading per token
-   - RTX 4080: 432 GB/s bandwidth limit
+   - RTX 4080: 504 GB/s bandwidth limit
    - Explains inverse scaling
 
 **Recommendation:** For real-time apps, prefer 1-4 GB models; quality-speed balance optimal.
