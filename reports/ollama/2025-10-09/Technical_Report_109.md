@@ -92,9 +92,9 @@ The benchmark agent performs end-to-end technical report generation by:
 ```
 GPU: NVIDIA GeForce RTX 4080 Laptop
 - VRAM: 12 GB GDDR6X
-- CUDA Cores: 7424
+- CUDA Cores: 9728
 - Tensor Cores: 232 (4th Gen)
-- Memory Bandwidth: 432 GB/s
+- Memory Bandwidth: 504 GB/s
 - Power Limit: 175W (laptop configuration)
 
 CPU: Intel Core i9-13980HX (24 cores, 32 threads, 2.2 GHz base, 5.6 GHz boost)
