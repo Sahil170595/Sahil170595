@@ -24,7 +24,7 @@ This report presents a comprehensive empirical analysis of concurrent multi-agen
 
 4. **Temperature Independence:** Temperature variation (0.6/0.8/1.0) had minimal impact on concurrency speedup (Δ<3%), with TEMP=1.0 slightly edging out lower values at 2048 context (99.25% vs 98.93% efficiency).
 
-5. **Resource Contention Patterns:** Tests with GPU=60 exhibited resource contention in 60% of baseline_vs_chimera runs, while GPU≥80 showed zero contention in chimera_homo scenarios, indicating **80 layers as the minimum threshold** for contention-free concurrent execution on RTX 4070 (12GB VRAM).
+5. **Resource Contention Patterns:** Tests with GPU=60 exhibited resource contention in 60% of baseline_vs_chimera runs, while GPU≥80 showed zero contention in chimera_homo scenarios, indicating **80 layers as the minimum threshold** for contention-free concurrent execution on RTX 4080 (12GB VRAM).
 
 ### Business Impact
 
@@ -50,7 +50,7 @@ Following [TR108's](../../reports/Technical_Report_108.md) single-agent LLM perf
 
 ### 1.3 Scope
 
-- **Model:** `gemma3:latest` 
+- **Model:** `gemma3:latest` (4.3B parameters, Q4_K_M quantization)
 - **Hardware:** RTX 4080 (12GB VRAM), i9-13980HX (24 cores)
 - **Test Matrix:** 30 configurations, 5 runs each = 150 total benchmarks
 - **Metrics:** Concurrency speedup, parallel efficiency, TTFT delta, throughput delta, resource contention frequency
@@ -63,12 +63,12 @@ Following [TR108's](../../reports/Technical_Report_108.md) single-agent LLM perf
 
 | Component | Specification |
 |-----------|---------------|
-| **GPU** | NVIDIA RTX 4070 (12GB VRAM, 7,168 CUDA cores) |
+| **GPU** | NVIDIA RTX 4080 (12GB VRAM, 9,728 CUDA cores) |
 | **CPU** | Intel Core i9-13980HX (24 cores, 32 threads, 2.2 GHz base, 5.6 GHz boost) |
 | **RAM** | 16 GB DDR5-4800 |
 | **OS** | Windows 11 Pro (Build 26100) |
 | **Ollama** | v0.1.17 (dual instances on ports 11434/11435) |
-| **Model** | gemma2:latest (2B params, FP16, ~4GB base memory) |
+| **Model** | gemma3:latest (4.3B params, Q4_K_M quantization, ~2.7GB base memory) |
 | **Python** | 3.13.0 |
 | **Framework** | Banterhearts Multi-Agent Orchestrator v2.0 |
 
@@ -146,7 +146,7 @@ Tests 1 and 2 reveal a **catastrophic failure mode** at GPU=60 layer allocation 
 - Baseline agent (Ollama defaults): ~3.5 GB VRAM (full offload, CTX=2048 internal buffer)
 - Chimera agent (GPU=60, CTX=512): ~3.2 GB VRAM
 - **Total demand: 6.7 GB** on a 12 GB card leaves only 5.3 GB headroom
-- RTX 4070's OS/driver overhead: ~2 GB
+- RTX 4080's OS/driver overhead: ~2 GB
 - **Actual free memory: 3.3 GB** — insufficient for KV cache growth during generation
 
 **Why CTX=1024 Triggers 100% Contention:**
@@ -182,13 +182,13 @@ The +223ms delta is **not contention** but rather the Chimera agent's inherent c
 Test 5 achieves 89.1% efficiency (1.781x speedup) despite GPU=120 providing more offload than GPU=80 (Test 202: 97.9%). This **inverse relationship** reveals a critical insight:
 
 **Over-Provisioning Penalty:**
-- GPU=120 allocates **all 26 layers** to the Chimera agent (120 > 26 → clamped to full offload)
+- GPU=120 allocates **all layers** to the Chimera agent (full offload)
 - This increases VRAM footprint to ~4.2 GB without throughput gains (TR108 showed diminishing returns above GPU=80)
 - The extra 0.4 GB VRAM consumption reduces available bandwidth for the baseline agent
 - Result: Baseline agent experiences **micro-stalls** (not full contention) as it competes for memory bus access
 
 **Evidence from Memory Bandwidth Saturation:**
-- GPU=80 config: 340 GB/s effective bandwidth (67% of RTX 4070's 504 GB/s)
+- GPU=80 config: 340 GB/s effective bandwidth (67% of RTX 4080's 504 GB/s)
 - GPU=120 config: 420 GB/s effective bandwidth (83% saturation)
 
 At 83% saturation, CUDA's scheduler begins introducing **fairness delays** to prevent starvation, adding ~50-100ms overhead per agent—enough to reduce efficiency from 97.9% to 89.1%.
@@ -249,7 +249,7 @@ When Agent 1 (smaller context) completes prompt evaluation before Agent 2, its K
 
 The negative delta indicates Agent 2 benefited from Agent 1's L2 cache warming. However, this only occurs when:
 1. Agent 1 finishes first (smaller context guarantees this)
-2. Combined working set fits in L2 (16 MB on RTX 4070)
+2. Combined working set fits in L2 (16 MB on RTX 4080)
 3. No context eviction occurs between agents
 
 **Critical Insight:** Heterogeneous configs can **outperform homogeneous** when carefully tuned to exploit cache hierarchy, but this is fragile—Test 8 shows it breaks down with larger contexts.
@@ -259,7 +259,7 @@ The negative delta indicates Agent 2 benefited from Agent 1's L2 cache warming. 
 Tests 11 and 12 both use GPU budgets exceeding 160 layers (120+140=260) and exhibit 89-90% efficiency despite zero contention. This reveals a **soft limit** on total GPU layer allocation:
 
 **CUDA Scheduling Overhead:**
-RTX 4070 has 46 Streaming Multiprocessors (SMs). When total offloaded layers exceed ~6× SM count (46 × 3.5 ≈ 160), CUDA's scheduler introduces **inter-agent synchronization points**:
+RTX 4080 has 46 Streaming Multiprocessors (SMs). When total offloaded layers exceed ~6× SM count (46 × 3.5 ≈ 160), CUDA's scheduler introduces **inter-agent synchronization points**:
 
 ```
 Synchronization_overhead = (total_layers / SM_count) × context_switch_penalty
@@ -272,7 +272,7 @@ With 50-100 generation cycles per agent, this accumulates to 6-12 seconds of pur
 **Test 201's 99.0% Efficiency:**
 GPU=80+80=160 layers sits *exactly* at the threshold, avoiding synchronization penalties while maximizing memory bandwidth (340 GB/s combined). The -31ms TTFT delta shows slight cache benefits without fragmentation risks.
 
-**Design Principle:** For multi-agent deployments, **total GPU layer budget should not exceed 3.5× SM count** (161 layers for RTX 4070) to maintain >95% efficiency.
+**Design Principle:** For multi-agent deployments, **total GPU layer budget should not exceed 3.5× SM count** (161 layers for RTX 4080) to maintain >95% efficiency.
 
 ### 3.3 Scenario 3: Homogeneous Chimera (Phase 1 + Phase 2)
 
@@ -336,7 +336,7 @@ As generation_time ↑ (due to larger context/output), efficiency → 100%
 
 The 2048-token context generates ~1.8× more tokens than 512 (longer, more detailed reports), **diluting the fixed 2.1s coordination overhead** from 2.2% to 0.6% of total runtime.
 
-**Critical Insight:** For concurrent agents, **prefer larger contexts**—not just for quality, but for parallel efficiency. The sweet spot is the maximum context that fits in VRAM without triggering fragmentation (2048 tokens for 2 agents on RTX 4070).
+**Critical Insight:** For concurrent agents, **prefer larger contexts**—not just for quality, but for parallel efficiency. The sweet spot is the maximum context that fits in VRAM without triggering fragmentation (2048 tokens for 2 agents on RTX 4080).
 
 #### 3.3.2 The Temperature-Throughput Coupling
 
@@ -387,7 +387,7 @@ The deficit would trigger host-device swapping, degrading efficiency to ~75% bas
 
 #### 3.3.4 Test 108: The Production Optimum
 
-Test 108's 99.25% efficiency represents the **empirical maximum** for 2-agent concurrent execution on RTX 4070:
+Test 108's 99.25% efficiency represents the **empirical maximum** for 2-agent concurrent execution on RTX 4080:
 
 **Configuration:**
 - GPU: 80 layers (full offload, 0% waste)
@@ -448,7 +448,7 @@ This overhead is **irreducible** with current architecture—representing the ph
 | GPU=80, CTX=2048 | 4.0 GB                | 8.0 GB              | 4.0 GB (33%)        |
 | GPU=120, CTX=1024| 4.2 GB                | 8.4 GB              | 3.6 GB (30%)        |
 
-**Scaling Limit:** With 8GB allocated to 2 agents (Test 108), RTX 4070's 12GB VRAM can theoretically support a **3rd agent**, but would leave <4GB headroom—likely triggering contention. For 3+ concurrent agents, context must be reduced or GPU layers decreased.
+**Scaling Limit:** With 8GB allocated to 2 agents (Test 108), RTX 4080's 12GB VRAM can theoretically support a **3rd agent**, but would leave <4GB headroom—likely triggering contention. For 3+ concurrent agents, context must be reduced or GPU layers decreased.
 
 ### 4.4 The Physics of Memory Contention
 
@@ -456,7 +456,7 @@ The 30+ second TTFT penalties in GPU=60 configs are not mere slowdowns—they re
 
 #### 4.4.1 CUDA Memory Allocation States
 
-RTX 4070's VRAM operates in three distinct allocation regimes:
+RTX 4080's VRAM operates in three distinct allocation regimes:
 
 **Regime 1: Comfortable (< 8GB total, <67% utilization)**
 - CUDA uses **eager allocation** strategy
@@ -637,7 +637,7 @@ Optimal_GPU_layers = min(
     (VRAM_available - 4.4GB) / (VRAM_per_layer × num_agents)
 )
 
-For gemma2:latest on RTX 4070 with 2 agents:
+For gemma3:latest on RTX 4080 with 2 agents:
 = min(26, (12GB - 4.4GB) / (0.15GB × 2))
 = min(26, 25.3)
 ≈ 25 layers
@@ -852,7 +852,7 @@ def test_concurrent_efficiency():
 ## 8. Future Research Directions
 
 ### 8.1 Multi-GPU Scaling
-- Test 4-8 agent deployments across 2x RTX 4070 GPUs
+- Test 4-8 agent deployments across 2x RTX 4080 GPUs
 - Investigate cross-GPU communication overhead
 - Explore model parallelism for >12GB models
 
@@ -862,7 +862,7 @@ def test_concurrent_efficiency():
 - Predictive scheduling based on workload characteristics
 
 ### 8.3 Heterogeneous Model Support
-- Mix gemma2 (2B) with llama3.1 (8B) agents
+- Mix gemma3 (4.3B) with llama3.1 (8B) agents
 - Quantization-aware multi-agent coordination
 - INT4/INT8 agent pairing for memory efficiency
 
@@ -894,7 +894,7 @@ Balanced heterogeneity (e.g., 80/80 GPU with varying context) maintains 99% effi
 
 ### Integration with TR108/TR109
 
-- **TR108** established single-agent baselines: gemma2:latest at 102.31 tok/s, 128ms TTFT
+- **TR108** established single-agent baselines: gemma3:latest at 102.31 tok/s, 128ms TTFT
 - **TR109** optimized agent workflows: identified GPU=60-80 sweet spot via parameter sweeps  
 - **TR110** extends to concurrency: validates TR109's findings hold under parallel load, with 2048-context scaling as the new frontier
 
@@ -914,7 +914,7 @@ This positions Banterhearts as a robust foundation for real-time AI content pipe
 
 ### A.1 Hardware Specifications
 
-**GPU:** NVIDIA GeForce RTX 4070  
+**GPU:** NVIDIA GeForce RTX 4080  
 - VRAM: 12 GB GDDR6X  
 - CUDA Cores: 7,168  
 - Boost Clock: 2.48 GHz  
@@ -942,13 +942,15 @@ This positions Banterhearts as a robust foundation for real-time AI content pipe
 
 ### A.3 Model Details
 
-**Model:** `gemma2:latest` (Google Gemma 2B)  
+**Model:** `gemma3:latest` (Google Gemma 4.3B)  
 - Architecture: Decoder-only Transformer  
-- Parameters: 2.506B (26 layers, 2048 hidden dim)  
-- Precision: FP16 (default Ollama)  
-- Disk Size: 1.6 GB (quantized)  
+- Parameters: 4.3B  
+- Precision: Q4_K_M (4-bit quantization)  
+- Context Length: 131,072 tokens (max)  
+- Embedding Length: 2,560  
+- Disk Size: ~2.7 GB (quantized)  
 - Memory Footprint: ~4GB (full offload, CTX=2048)  
-- Tokenizer: SentencePiece (32k vocab)
+- Tokenizer: SentencePiece
 
 ### A.4 Hardware Requirements
 
@@ -958,7 +960,7 @@ This positions Banterhearts as a robust foundation for real-time AI content pipe
 - Storage: 10GB free (models + artifacts)
 
 **Recommended (2 agents, CTX=2048):**
-- GPU: 12GB VRAM (RTX 4070/3060 12GB)
+- GPU: 12GB VRAM (RTX 4080/3060 12GB)
 - RAM: 16GB DDR4-3200+
 - Storage: 20GB NVMe SSD
 
@@ -1091,7 +1093,7 @@ Thresholds: small (0.2), medium (0.5), large (0.8)
 | 2 agents (homo) | 340 GB/s | 67% | Optimal |
 | 2 agents (hetero, imbalanced) | 420 GB/s | 83% | Near saturation |
 
-**Finding:** Homogeneous 2-agent configs leverage 67% of RTX 4070's 504 GB/s bandwidth, while imbalanced hetero configs approach saturation (83%), explaining contention in Test 8.
+**Finding:** Homogeneous 2-agent configs leverage 67% of RTX 4080's 504 GB/s bandwidth, while imbalanced hetero configs approach saturation (83%), explaining contention in Test 8.
 
 ---
 
@@ -1189,13 +1191,13 @@ graph LR
 
 To reproduce results:
 - [ ] Install Ollama 0.1.17+
-- [ ] Pull `gemma2:latest` model
+- [ ] Pull `gemma3:latest` model
 - [ ] Start 2 Ollama instances (ports 11434/11435)
 - [ ] Clone Banterhearts repo
 - [ ] Run `run_comprehensive_tests.py`
 - [ ] Compare `comprehensive_test_summary.json` metrics (±5% tolerance)
 
-**Expected Runtime:** 3-4 hours for 30 tests × 5 runs on RTX 4070
+**Expected Runtime:** 3-4 hours for 30 tests × 5 runs on RTX 4080
 
 ---
 
@@ -1236,8 +1238,8 @@ To reproduce results:
 
 **`num_gpu` (GPU Layer Allocation):**
 - Range: 0-999 (999 = "all available layers")
-- For gemma2:latest (26 layers): effective range is 0-26
-- Values >26 are clamped to 26 (full offload)
+- For gemma3:latest: values are clamped to model's actual layer count
+- Higher values trigger full GPU offload
 - Recommended: 60-120 for balance of performance and VRAM
 
 **`num_ctx` (Context Window Size):**
@@ -1308,8 +1310,8 @@ for config in configs:
 4. **Gemma Model Card:** Architecture & Performance Characteristics  
    https://ai.google.dev/gemma/docs
 
-5. **NVIDIA RTX 4070 Specifications:** Technical Reference Manual  
-   https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/
+5. **NVIDIA RTX 4080 Specifications:** Technical Reference Manual  
+   https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/
 
 6. **Welch's t-test:** Statistical Methods for Unequal Variances  
    Welch, B. L. (1947). "The generalization of 'Student's' problem when several different population variances are involved"
