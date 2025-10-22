@@ -13,7 +13,7 @@
 AI agents are evolving faster than the infrastructure that powers them. Most inference pipelines underutilize GPUs, inflate latency, and depend heavily on cloud costs.
 
 **The Solution:**  
-`Chimera` — a **self-optimizing inference engine** — bridges the gap between models and silicon.  
+*Chimera* — a **self-optimizing inference engine** — bridges the gap between models and silicon.  
 It fuses runtime introspection, hardware-aware scheduling, and kernel-level optimization to extract maximum performance from local GPUs.  
 
 **The Result:**  
