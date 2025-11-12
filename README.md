@@ -7,7 +7,7 @@
 
 ---
 
-[Latent space Episode: https://www.youtube.com/watch?v=6dSLZdvay3Q]
+Latent space Episode: https://www.youtube.com/watch?v=6dSLZdvay3Q
 
 ---
 
