@@ -7,6 +7,10 @@
 
 ---
 
+[Latent space Episode: https://www.youtube.com/watch?v=6dSLZdvay3Q]
+
+---
+
 ## 🎯 The Mission: Architecting the Agentic Future
 
 **The Problem:**  
@@ -69,7 +73,7 @@ Over **10× throughput** and **15× latency reduction** compared to standard loc
 
 ---
 
-## ⚙️ Chimera (Core Engine) [Latent space Episode: https://www.youtube.com/watch?v=6dSLZdvay3Q]
+## ⚙️ Chimera (Core Engine) 
 
 **The Heart of the System — Powers Everything Above It**
 
