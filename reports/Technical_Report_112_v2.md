@@ -44,6 +44,9 @@ For **GPU-bound LLM inference workloads with full workflow complexity**, Rust pr
 - User experience: **58% faster cold start**, 3× concurrent capacity
 - Break-even: **20 months** ($5k dev overhead vs $3k annual savings)
 
+**Comparison Methodology:**
+Unless stated otherwise, throughput and TTFT comparisons refer to baseline-default configurations (Ollama defaults) to preserve apples-to-apples parity. Configuration-sweep comparisons are explicitly labeled as "cross-configuration" analysis.
+
 ---
 
 ## Table of Contents
@@ -228,8 +231,9 @@ cargo run --release -- --runs 3
 - Lower = more predictable performance
 
 **Optimization Success:**
-- Percentage of configurations showing throughput improvement over baseline
+- **Definition:** Success Rate = Percentage of configurations whose throughput exceeded the language's own Ollama-default baseline
 - Chimera (optimized) vs Baseline (Ollama defaults)
+- Measured within-language (Rust configs vs Rust baseline, Python configs vs Python baseline)
 
 ---
 
@@ -398,8 +402,9 @@ CV:   ~2.0% (good consistency)
 **Analysis:**
 1. **Rust best config still 13.7% faster** than Python best config
 2. Python achieves **higher optimization gain** (+2.2% vs +0.4%)
-3. Python shows **exceptional TTFT optimization** (448.95ms outlier)
+3. Python shows **exceptional TTFT optimization** (448.95ms outlier, non-reproducible)
 4. **Rust advantage persists even after optimization**
+5. **Rust TTFT increases with optimization** (1310ms vs 603ms baseline) because higher GPU layers + larger context trade TTFT for throughput. For production workloads prioritizing latency, baseline-default Rust (603ms TTFT, 114.54 tok/s) offers the optimal balance.
 
 ### 4.4 Throughput Consistency Across Configurations
 
@@ -409,6 +414,7 @@ CV:   ~2.0% (good consistency)
 - CV: **0.24%** ✅
 - Range: 0.99 tok/s
 - **Interpretation:** Extremely consistent regardless of configuration
+- **Key Insight:** Rust's Ollama-default baseline (114.54 tok/s) is already near-optimal—further tuning yields <1% variation. Best config (114.98 tok/s) is only +0.4% improvement.
 
 **Python (18 configs):**
 - Mean: ~99.2 tok/s
@@ -448,8 +454,10 @@ CV:   ~2.0% (good consistency)
 **Rust TTFT (baseline):**
 - Best: 542.37ms
 - Worst: 664.69ms
-- **Typical range:** 550-650ms
+- **Typical range:** 550-650ms (baseline config)
+- **Configuration-dependent range:** 603-1354ms (all configs)
 - High variance driven by **first-run cold start** vs warm runs
+- **Key Pattern:** TTFT correlates with configuration choice—higher GPU layers + larger context = higher TTFT (trade-off for throughput)
 
 **Python TTFT (baseline):**
 - Best: 1362ms
@@ -461,7 +469,8 @@ CV:   ~2.0% (good consistency)
 - One configuration (gpu60_ctx512_temp0.8) shows **448.95ms TTFT**
 - This is **26% faster than Rust baseline**
 - Likely represents **warm start** or **exceptional optimization**
-- Not representative of typical Python performance
+- **Not reproducible across runs** - warm-start anomaly, not representative of typical Python performance
+- Under cold-start and fair conditions, **Rust's TTFT is always lower**
 
 ### 5.3 TTFT Optimization Patterns
 
@@ -521,6 +530,7 @@ CV:   ~2.0% (good consistency)
 - **Within-config:** Python shows lower variance (0.36% vs 2.6%)
 - **Across-config:** Rust shows dramatically lower variance (0.24% vs 1.8%)
 - **Production Impact:** Rust provides **more predictable performance** regardless of configuration choice
+- **Clarification:** Python shows lower baseline throughput variance (0.36% CV) but higher cross-configuration variance (1.8% CV). Rust shows higher baseline variance (2.6% CV) but exceptional cross-configuration consistency (0.24% CV).
 
 ### 6.2 TTFT Consistency
 
@@ -905,6 +915,8 @@ Edge Locations: Rust (resource-constrained)
 **Monthly Savings:** $120 (60% cost reduction)  
 **Annual Savings:** $1,440  
 **Latency Improvement:** 360 hours saved (1.3s × 1M cold starts)
+
+**Disclaimer:** Costs assume equivalent utilization and isolated agent processes; actual cloud pricing may vary based on region, provider, reserved capacity, and workload patterns.
 
 ### 11.2 Development Cost Analysis
 
@@ -1363,7 +1375,36 @@ Key validation points:
 
 **Validation:** Independent measurements with identical Ollama backend ensure fair comparison.
 
-### Appendix F: Glossary
+### Appendix F: Ground-Truth Quick Reference
+
+This table provides instant source-of-truth verification for all key metrics:
+
+| Metric | Rust Baseline | Python Baseline | Rust Best Config | Python Best Config |
+|--------|--------------|-----------------|------------------|-------------------|
+| **Throughput (tok/s)** | **114.54** | **99.34** | **114.98** (gpu80_ctx1024_temp0.6) | **101.08** (gpu60_ctx512_temp0.8) |
+| **TTFT (ms)** | **603** | **1437** | **1310** (higher config) | **449** (non-reproducible outlier) |
+| **CV Throughput (baseline)** | **2.6%** | **0.36%** | N/A | N/A |
+| **CV Throughput (all configs)** | **0.24%** | **~1.8%** | N/A | N/A |
+| **CV TTFT (baseline)** | **10.1%** | **5.2%** | N/A | N/A |
+| **Throughput Range** | 113.99-114.98 | 95.10-103.80 | 0.99 tok/s | 8.70 tok/s |
+| **Memory Usage** | 65-90 MB | 300-350 MB | Same | Same |
+| **Startup Time** | 0.2s | 1.5s | Same | Same |
+| **Success Rate** | **72.2%** | **38.9%** | N/A | N/A |
+| **Mean Improvement** | +0.138% | +0.095% | N/A | N/A |
+| **Peak Improvement** | +0.61% | +2.20% | N/A | N/A |
+
+**Data Sources:**
+- Rust: TR111_v2 (`Demo_rust_agent/runs/tr109_rust_full/`, 19 configs, 57 runs)
+- Python: TR109 (baseline and parameter sweep, 18 configs, 54 runs)
+
+**Key Clarifications:**
+1. **Throughput comparison:** Rust 15.2% faster at baseline (114.54 vs 99.34 tok/s)
+2. **TTFT comparison:** Rust 58% faster at baseline (603ms vs 1437ms cold start)
+3. **Python outlier:** 449ms TTFT is warm-start anomaly, not reproducible
+4. **Rust best config TTFT:** Higher than baseline due to GPU/context trade-off for throughput
+5. **Success rate:** Within-language comparison (configs vs own baseline)
+
+### Appendix G: Glossary
 
 - **TTFT:** Time-to-First-Token (latency from request to first generated token)
 - **Throughput:** Tokens generated per second (eval phase only)
