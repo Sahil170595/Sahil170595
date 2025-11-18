@@ -1,7 +1,9 @@
-# Banterhearts Technical Reports
+# Chimeraforge Technical Reports
 ## Comprehensive LLM Performance Research & Cross-Language Analysis
 
-This directory contains the complete research journey documenting LLM performance analysis, optimization strategies, multi-agent orchestration, and cross-language (Rust vs Python) performance evaluation in the Chimera Heart project.
+This directory contains the complete research journey documenting LLM performance analysis, optimization strategies, multi-agent orchestration, and cross-language (Rust vs Python) performance evaluation in the Chimeraforge research project.
+
+> **Note:** This is the **Chimeraforge** research repository. All technical reports are based on research conducted in this repository.
 
 ---
 
@@ -513,7 +515,8 @@ All reports include:
 
 ---
 
-**Last Updated:** 2025-11-15  
-**Maintainer:** Chimera Heart Development Team  
+**Last Updated:** 2025-11-17  
+**Repository:** Chimeraforge (Research)  
+**Maintainer:** Chimeraforge Research Team  
 **Total Reports:** 12 (7 production-ready, 5 historical)  
 **Total Benchmark Runs:** 843+ across all reports
