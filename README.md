@@ -73,51 +73,51 @@ AI agents are advancing faster than the infrastructure beneath them. Most system
 │                                                            │
 ├────────────────────────────────────────────────────────────┤
 │                                                            │
-│  ┌──────────────────────────────────────────────────────┐ │
-│  │  CHIMERA (Core Engine)                               │ │
-│  │  • Custom CUDA & Triton kernels (10–100× speedups)   │ │
-│  │  • Quantization engine (INT8/FP8/QAT)                │ │
-│  │  • Predictive GPU governors & runtime introspection  │ │
-│  │  • Kernel fusion + TensorRT paths                    │ │
-│  │  • Telemetry spine (ClickHouse lineage)              │ │
-│  │  • Houses Banterhearts (profiling + optimization)    │ │
-│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  CHIMERA (Core Engine)                               │  │
+│  │  • Custom CUDA & Triton kernels (10–100× speedups)   │  │
+│  │  • Quantization engine (INT8/FP8/QAT)                │  │
+│  │  • Predictive GPU governors & runtime introspection  │  │
+│  │  • Kernel fusion + TensorRT paths                    │  │
+│  │  • Telemetry spine (ClickHouse lineage)              │  │
+│  │  • Houses Banterhearts (profiling + optimization)    │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                           ↓                                │
-│  ┌──────────────────────────────────────────────────────┐ │
-│  │  BANTERPACKS (Real-Time Agent Runtime)               │ │
-│  │  • Local "Jarvis-as-a-Server" (<80ms loop)           │ │
-│  │  • Multi-agent orchestration (tools, events, memory) │ │
-│  │  • Low-latency streaming overlay (OBS integration)   │ │
-│  │  • Voice-powered agents (ASR/TTS pipeline)           │ │
-│  │  • Consumes Chimera-optimized model backends         │ │
-│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  BANTERPACKS (Real-Time Agent Runtime)               │  │
+│  │  • Local "Jarvis-as-a-Server" (<80ms loop)           │  │
+│  │  • Multi-agent orchestration (tools, events, memory) │  │
+│  │  • Low-latency streaming overlay (OBS integration)   │  │
+│  │  • Voice-powered agents (ASR/TTS pipeline)           │  │
+│  │  • Consumes Chimera-optimized model backends         │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                           ↓                                │
-│  ┌──────────────────────────────────────────────────────┐ │
-│  │  CHIMERAFORGE (Benchmark & Research Lab)             │ │
-│  │  • Rust vs Python agent parity harnesses             │ │
-│  │  • Single & multi-agent performance (TR108–TR115)    │ │
-│  │  • Async runtime sweeps (Tokio/Smol/async-std)       │ │
-│  │  • Dual-Ollama orchestration (true concurrency)      │ │
-│  │  • 1,100+ reproducible benchmark runs                │ │
-│  │  • Produces validated configs for Chimera/Banterpacks│ │
-│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  CHIMERAFORGE (Benchmark & Research Lab)             │  │
+│  │  • Rust vs Python agent parity harnesses             │  │
+│  │  • Single & multi-agent performance (TR108–TR115)    │  │
+│  │  • Async runtime sweeps (Tokio/Smol/async-std)       │  │
+│  │  • Dual-Ollama orchestration (true concurrency)      │  │
+│  │  • 1,100+ reproducible benchmark runs                │  │
+│  │  • Produces validated configs for Chimera/Banterpacks│  │
+│  └──────────────────────────────────────────────────────┘  │
 │                           ↓                                │
-│  ┌──────────────────────────────────────────────────────┐ │
-│  │  MUSE PROTOCOL                                       │ │
-│  │  • 6-agent pipeline (Ingest → Collect → Watch →     │ │
-│  │    Council → Publish → Translate)                    │ │
-│  │  • Correlates metrics → decisions → outcomes         │ │
-│  │  • Datadog + ClickHouse observability                │ │
-│  │  • Turns raw telemetry into structured insight       │ │
-│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  MUSE PROTOCOL                                       │  │
+│  │  • 6-agent pipeline (Ingest → Collect → Watch →      │  │
+│  │    Council → Publish → Translate)                    │  │
+│  │  • Correlates metrics → decisions → outcomes         │  │
+│  │  • Datadog + ClickHouse observability                │  │
+│  │  • Turns raw telemetry into structured insight       │  │
+│  └──────────────────────────────────────────────────────┘  │ 
 │                           ↓                                │
-│  ┌──────────────────────────────────────────────────────┐ │
-│  │  BANTERBLOGS                                         │ │
-│  │  • Next.js narrative layer                           │ │
-│  │  • Auto-publishes Muse-generated episodes            │ │
-│  │  • Visualizes benchmarks, commits, and architecture  │ │
-│  │  • Deployed on Vercel with multi-language support    │ │
-│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  BANTERBLOGS                                         │  │
+│  │  • Next.js narrative layer                           │  │
+│  │  • Auto-publishes Muse-generated episodes            │  │
+│  │  • Visualizes benchmarks, commits, and architecture  │  │
+│  │  • Deployed on Vercel with multi-language support    │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                                                            │
 └────────────────────────────────────────────────────────────┘
 ```
