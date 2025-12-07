@@ -21,40 +21,41 @@ This report represents the first comprehensive cross-backend comparison in the B
 ### Key Findings
 
 **Backend Performance Ranking (Speed → Cost → Reliability):**
-1. **transformers-gpu-compile:** **389ms** median | **$0.045/1M tokens** | **215 tok/s** 🏆 **WINNER**
-2. **transformers-gpu:** 404ms | $0.046/1M tokens | 212 tok/s 🥈
-3. **transformers-cpu-compile:** 559ms | $0.071/1M tokens | 137 tok/s 🥉
-4. **transformers-cpu:** 571ms | $0.074/1M tokens | 132 tok/s
-5. **ollama:** **3,411ms** | **$0.106/1M tokens** | 92 tok/s ⚠️ **10x SLOWER**
+1. **transformers-gpu-compile:** **389ms** mean | **$0.045/1M tokens** | **215 tok/s** 🏆 **WINNER**
+2. **transformers-gpu:** 404ms mean | $0.046/1M tokens | 212 tok/s 🥈
+3. **transformers-cpu-compile:** 559ms mean | $0.071/1M tokens | 137 tok/s 🥉
+4. **transformers-cpu:** 571ms mean | $0.074/1M tokens | 132 tok/s
+5. **ollama:** **3,411ms** mean | **$0.106/1M tokens** | 92 tok/s ⚠️ **8.8x SLOWER**
 
 **Critical Discoveries:**
-1. **GPU compilation dominates:** 389ms vs 571ms CPU (1.47x faster), $0.045 vs $0.074 (1.64x cheaper)
-2. **Ollama dramatically underperforms:** 10x slower than GPU (3,411ms vs 389ms), 2.3x more expensive
-3. **CPU compilation ineffective:** Only 0.8% improvement (p=0.826, not significant)
-4. **GPU compilation effective:** 3.7% improvement over plain GPU (p<0.05, significant)
+1. **GPU compilation dominates:** 389ms mean vs 571ms CPU (1.47x faster), $0.045 vs $0.074 (1.64x cheaper)
+2. **Ollama dramatically underperforms:** 8.8x slower than GPU-compile (3,411ms vs 389ms mean), 2.4x more expensive
+3. **CPU compilation ineffective:** Only 2% improvement on mean (p=0.826, not significant)
+4. **GPU compilation nuanced:** 3.7% faster on mean (404→389ms), but 1.9% slower on median (323→329ms)
 5. **Statistical significance:** ANOVA F=45.86, p<10⁻¹⁵ (backend choice is CRITICAL)
 
 **Revised Understanding:**
 - **Previous belief:** Ollama's optimized llama.cpp backend would compete with PyTorch
-- **Actual reality:** **GPU compilation crushes Ollama** (10x faster, 2.3x cheaper)
-- **Implication:** For production, **transformers-gpu-compile** is the only viable choice for performance-critical workloads
+- **Actual reality:** **GPU compilation crushes Ollama** (8.8x faster, 2.4x cheaper)
+- **Implication:** For production, **transformers-gpu-compile** is the only viable choice for performance-critical workloads (lowest mean latency and cost)
 
 ### Business Impact
 
 **Strategic Insights:**
-- **Production Recommendation:** **transformers-gpu-compile** for all latency-sensitive workloads
+- **Production Recommendation:** **transformers-gpu-compile** for best mean latency (389ms) and cost ($0.045/1M), though plain GPU has slightly better median (323ms vs 329ms)
 - **Cost Efficiency:** GPU compile achieves **22.1M tokens/$** vs Ollama's 9.4M tokens/$
 - **Ollama Use Case:** Only when model flexibility matters more than performance (5 models tested vs 1 HF model)
-- **Python Comparison:** GPU compile (389ms) beats Rust single-agent (114.54 tok/s ≈ 8.7ms/token) by **45x** on throughput
+- **Compile Tradeoff:** Improves mean (3.7% faster) but slightly degrades median (1.9% slower) due to outlier handling
 
 **Risk Assessment:**
-- **Ollama variance:** 634ms to 12,048ms (19x range) makes SLA guarantees impossible
+- **Ollama variance:** 634ms to 27,964ms (44x range!) makes SLA guarantees impossible
 - **ONNX/TensorRT gaps:** 546 degraded runs (18%) due to missing artifacts - infrastructure not production-ready
 - **GPU dependency:** All top performers require CUDA - no viable CPU-only solution
 - **Model size impact:** 8B models 6.3x slower than 270M (2,232ms vs 356ms on Ollama)
+- **Compile paradox:** GPU-compile has best mean (389ms) but slightly worse median (329ms vs 323ms)
 
 **Key Decision:**
-After 3,017 benchmarks across 7 backends and 6 models, the definitive answer is: **transformers-gpu-compile wins on every metric** (speed, cost, throughput). Ollama is only viable when model flexibility (Llama, Qwen, Gemma) outweighs 10x performance penalty. For production inference: **GPU compile or bust.**
+After 3,017 benchmarks across 7 backends and 6 models, the definitive answer is: **transformers-gpu-compile wins on mean latency (389ms), cost ($0.045/1M), and throughput (215 tok/s)**. Plain GPU has slightly better median (323ms vs 329ms) but worse mean (404ms). Ollama is only viable when model flexibility (Llama, Qwen, Gemma) outweighs 8.8x performance penalty. For production inference: **GPU compile for best mean, plain GPU for best median**.
 
 ---
 
@@ -119,7 +120,7 @@ This study addresses:
 **What This Report Establishes:**
 1. **Performance ceiling:** GPU compile at 389ms median (215 tok/s) is the frontier
 2. **Cost floor:** GPU compile at $0.045/1M tokens is the minimum viable cost
-3. **Ollama reality:** 10x slower, 2.3x more expensive than GPU compile
+3. **Ollama reality:** 8.8x slower, 2.35x more expensive than GPU compile
 4. **Compilation impact:** GPU compile helps (+3.7%), CPU compile doesn't (+0.8%, not significant)
 5. **Model size scaling:** 8B models 6.3x slower than 270M on Ollama
 
@@ -291,11 +292,11 @@ stress_single:   [50-word repetitive stress test]
 **By Median Latency (Lower is Better):**
 | Rank | Backend | Median (ms) | Mean (ms) | Std (ms) | Min (ms) | Max (ms) | N |
 |------|---------|------------|----------|----------|----------|----------|---|
-| 🥇 | transformers-gpu-compile | **322.7** | 389.2 | 109.4 | 276.8 | 3,325.8 | 273 |
-| 🥈 | transformers-gpu | **322.7** | 404.1 | 139.5 | 276.8 | 3,325.8 | 273 |
-| 🥉 | transformers-cpu-compile | **526.7** | 559.3 | 92.8 | 398.2 | 785.5 | 273 |
-| 4 | transformers-cpu | **530.4** | 570.6 | 94.1 | 314.5 | 842.0 | 287 |
-| 5 | ollama | **1,238.5** | 3,410.5 | 4,231.7 | 173.5 | 27,963.9 | 1,365 |
+| 🥇 | transformers-gpu | **322.7** | 404.1 | 223.9 | 276.8 | 3,325.8 | 273 |
+| 🥈 | transformers-gpu-compile | **328.7** | 389.2 | 117.8 | 277.4 | 681.8 | 273 |
+| 🥉 | transformers-cpu-compile | **526.7** | 559.3 | 103.5 | 398.2 | 785.5 | 273 |
+| 4 | transformers-cpu | **530.4** | 570.6 | 117.2 | 314.5 | 842.0 | 287 |
+| 5 | ollama | **1,238.5** | 3,410.5 | 3,874.9 | 173.5 | 27,963.9 | 1,365 |
 
 **By Throughput (Higher is Better):**
 | Rank | Backend | Tokens/s | $/1M tokens | Tokens/$ | N |
@@ -316,11 +317,11 @@ stress_single:   [50-word repetitive stress test]
 | 5 | ollama | **$0.106** | $0.035 | 9.4M | 0.027 |
 
 **Key Observations:**
-1. **GPU compile wins all metrics:** Fastest, cheapest, best throughput
-2. **GPU vs GPU-compile:** 3.7% improvement (404ms → 389ms)
-3. **GPU vs CPU:** 1.47x faster (404ms vs 571ms), 1.61x cheaper
-4. **Ollama penalty:** 10x slower (3,411ms vs 389ms), 2.36x more expensive
-5. **CPU compile ineffective:** Only 2% improvement (571ms → 559ms)
+1. **GPU-compile best mean:** Lowest mean latency (389ms), cheapest ($0.045/1M), highest throughput (215 tok/s)
+2. **GPU vs GPU-compile paradox:** Plain GPU has better median (323ms vs 329ms), but GPU-compile has better mean (389ms vs 404ms) due to lower outlier sensitivity
+3. **GPU vs CPU:** 1.41x faster (404ms vs 571ms mean), 1.61x cheaper
+4. **Ollama penalty:** 8.8x slower (3,411ms vs 389ms mean), 2.35x more expensive
+5. **CPU compile ineffective:** Only 2% improvement on mean (571ms → 559ms, p=0.826 not significant)
 
 ### 3.3 Degraded Runs Analysis
 
@@ -375,7 +376,7 @@ stress_single:   [50-word repetitive stress test]
 - **Median:** 5,832.3ms
 - **Std Dev:** 4,368.9ms (HUGE variance!)
 - **Min:** 634.3ms
-- **Max:** 12,047.9ms (19x range!)
+- **Max:** 12,047.9ms (from earlier partial analysis, superseded by full 27,964ms)
 - **Q25:** 1,128.2ms
 - **Q75:** 10,164.5ms
 - **95% CI:** [3,982.4ms, 6,938.8ms]
@@ -550,23 +551,25 @@ stress_single:   [50-word repetitive stress test]
 - **Optimization:** Kernel fusion, memory coalescing, Triton kernels
 
 **Performance:**
-- **Median:** 322.7ms (same as GPU due to rounding)
-- **Mean:** 389.2ms (3.7% faster than GPU)
+- **Median:** 328.7ms (1.9% slower than plain GPU's 322.7ms)
+- **Mean:** 389.2ms (3.7% faster than GPU's 404.1ms)
 - **Throughput:** 215.2 tok/s (HIGHEST)
 - **Cost:** $0.045/1M tokens (LOWEST)
-- **Consistency:** Good (std dev 109.4ms, 28% of mean)
-- **Improvement over GPU:** 3.7% (significant)
+- **Consistency:** Better than GPU (std dev 117.8ms vs 223.9ms)
+- **Paradox:** Best mean, slightly worse median (compile helps outliers)
 
 **Strengths:**
-- ✅ **Fastest:** 389ms mean (best overall)
+- ✅ **Best mean:** 389ms (3.7% faster than GPU's 404ms)
 - ✅ **Cheapest:** $0.045/1M tokens (best cost)
 - ✅ **Best throughput:** 215 tok/s (highest)
-- ✅ **Significant gain:** 3.7% over plain GPU (p<0.05)
+- ✅ **More consistent:** Std dev 117.8ms vs GPU's 223.9ms
+- ✅ **Better outlier handling:** Lower max (682ms vs 3,326ms)
 
 **Weaknesses:**
 - ❌ **Compilation overhead:** ~30s first-run penalty
 - ❌ **GPU required:** CUDA-capable hardware
 - ❌ **Memory:** Same as GPU (12.9GB VRAM)
+- ❌ **Median paradox:** 1.9% slower median than plain GPU (329ms vs 323ms)
 
 **Use Case:** **Production inference with GPU - RECOMMENDED**
 
@@ -643,8 +646,8 @@ stress_single:   [50-word repetitive stress test]
 - ✅ **Broad coverage:** Tested 5 models (1,365 runs)
 
 **Weaknesses:**
-- ❌ **10x slower:** 3,411ms vs 389ms GPU-compile
-- ❌ **2.3x more expensive:** $0.106 vs $0.045
+- ❌ **8.8x slower:** 3,411ms vs 389ms GPU-compile (mean)
+- ❌ **2.35x more expensive:** $0.106 vs $0.045
 - ❌ **Massive variance:** 4,232ms std dev (124% of mean!)
 - ❌ **Unpredictable:** 634ms to 27,964ms range (44x!)
 - ❌ **SLA impossible:** Can't guarantee latency
@@ -733,7 +736,7 @@ stress_single:   [50-word repetitive stress test]
 
 **Key Observations:**
 1. **GPU compile cheapest:** $0.045/1M tokens (baseline)
-2. **Ollama 2.36x more expensive:** $0.106 vs $0.045
+2. **Ollama 2.35x more expensive:** $0.106 vs $0.045 (rounded from 2.36x)
 3. **CPU 1.64x more expensive:** $0.074 vs $0.045
 4. **All use same $/hour:** $0.035 (CPU pricing assumption)
 
@@ -780,7 +783,7 @@ stress_single:   [50-word repetitive stress test]
 
 **Hypothesis 1: llama.cpp Overhead**
 - **Expected:** llama.cpp optimizations (GGML kernels, quantization) should compete with PyTorch
-- **Actual:** 10x slower than PyTorch GPU
+- **Actual:** 8.8x slower than PyTorch GPU-compile (mean)
 - **Analysis:** llama.cpp is CPU-optimized; GPU support is secondary
 - **Conclusion:** llama.cpp CPU kernels can't compete with CUDA cuBLAS/cuDNN
 
@@ -837,7 +840,7 @@ stress_single:   [50-word repetitive stress test]
 **Avoid Ollama When:**
 - ❌ **Latency critical:** Real-time inference (<1s SLA)
 - ❌ **Cost critical:** High-volume production
-- ❌ **GPU available:** PyTorch GPU-compile is 10x faster, 2.3x cheaper
+- ❌ **GPU available:** PyTorch GPU-compile is 8.8x faster, 2.35x cheaper
 - ❌ **Predictability needed:** Variance too high for SLAs
 
 ---
@@ -848,7 +851,7 @@ stress_single:   [50-word repetitive stress test]
 
 **Performance Improvement:**
 - **Mean:** 404.1ms → 389.2ms (3.7% faster)
-- **Median:** 322.7ms → 322.7ms (same due to rounding)
+- **Median:** 322.7ms → 328.7ms (1.9% slower, compile adds slight overhead)
 - **Throughput:** 211.7 tok/s → 215.2 tok/s (1.7% higher)
 - **Cost:** $0.046 → $0.045 (2.2% cheaper)
 
@@ -1021,12 +1024,12 @@ stress_single:   [50-word repetitive stress test]
 **1. GPU Compilation Dominates:**
 - **transformers-gpu-compile** wins on speed (389ms), cost ($0.045/1M tokens), and throughput (215 tok/s)
 - **3.7% faster** than plain GPU (statistically significant)
-- **10x faster** than Ollama (highly significant, p<10⁻⁹)
-- **2.3x cheaper** than Ollama
+- **8.8x faster** than Ollama on mean (highly significant, p<10⁻⁹)
+- **2.35x cheaper** than Ollama
 
 **2. Ollama Dramatically Underperforms:**
-- **10x slower** than GPU-compile (3,411ms vs 389ms)
-- **2.3x more expensive** ($0.106 vs $0.045)
+- **8.8x slower** than GPU-compile (3,411ms vs 389ms mean)
+- **2.35x more expensive** ($0.106 vs $0.045)
 - **Massive variance** (std dev 4,232ms, 124% of mean)
 - **Unpredictable** (634ms to 27,964ms range, 44x)
 - **Only use for model flexibility** (Llama, Qwen, Mistral)
@@ -1101,9 +1104,9 @@ stress_single:   [50-word repetitive stress test]
 
 **transformers-gpu-compile is the ONLY viable choice for production inference.**
 
-- ✅ **Fastest:** 389ms mean (10x faster than Ollama)
-- ✅ **Cheapest:** $0.045/1M tokens (2.3x cheaper than Ollama)
-- ✅ **Best throughput:** 215 tok/s (2.3x higher than Ollama)
+- ✅ **Fastest mean:** 389ms (8.8x faster than Ollama)
+- ✅ **Cheapest:** $0.045/1M tokens (2.35x cheaper than Ollama)
+- ✅ **Best throughput:** 215 tok/s (2.34x higher than Ollama)
 - ✅ **Statistically significant:** p<10⁻¹⁵, effect size d=1.60
 - ✅ **Production-ready:** Stable, predictable, mature ecosystem
 
