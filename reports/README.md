@@ -1,4 +1,5 @@
 # Chimeraforge Technical Reports
+
 ## Comprehensive LLM Performance Research & Cross-Language Analysis
 
 This directory contains the complete research journey documenting LLM performance analysis, optimization strategies, multi-agent orchestration, and cross-language (Rust vs Python) performance evaluation in the Chimeraforge research project.
@@ -10,29 +11,34 @@ This directory contains the complete research journey documenting LLM performanc
 ## 📊 Research Journey Overview
 
 ### Phase 1: Single-Agent Foundation (TR108-TR109)
+
 **Objective:** Establish baseline LLM performance and agent workflow optimization
 
 - **TR108:** Single-agent LLM performance analysis (Python)
 - **TR109:** Agent workflow optimization (Python)
 
 ### Phase 2: Multi-Agent Python Baseline (TR110)
+
 **Objective:** Establish Python multi-agent performance baseline
 
 - **TR110:** Concurrent multi-agent performance analysis (Python)
 
 ### Phase 3: Rust Single-Agent Implementation (TR111)
+
 **Objective:** Port Python agents to Rust and validate single-agent performance
 
 - **TR111:** Initial Rust agent (micro-benchmark) - **SUPERSEDED**
 - **TR111_v2:** ✅ **Production-grade Rust single-agent** (full workflow parity)
 
 ### Phase 4: Cross-Language Single-Agent Comparison (TR112)
+
 **Objective:** Direct Rust vs Python single-agent performance comparison
 
 - **TR112:** Initial comparison (flawed - used micro-benchmark) - **SUPERSEDED**
 - **TR112_v2:** ✅ **Comprehensive Rust vs Python comparison** (production-grade)
 
 ### Phase 5: Rust Multi-Agent Implementation (TR113-TR114)
+
 **Objective:** Port multi-agent orchestration to Rust and compare to Python
 
 - **TR113:** Rust multi-agent (single Ollama) - identified server contention issue
@@ -40,10 +46,23 @@ This directory contains the complete research journey documenting LLM performanc
 - **TR114_v2:** ✅ **Comprehensive Rust multi-agent** (dual Ollama, corrected statistics)
 
 ### Phase 6: Runtime Optimization (TR115)
+
 **Objective:** Optimize Rust async runtime for multi-agent workloads
 
 - **TR115:** Initial runtime analysis - **SUPERSEDED**
 - **TR115_v2:** ✅ **Definitive runtime optimization** (5 runtimes, 150 runs)
+
+### Phase 7: Cross-Backend Inference Benchmarking (TR117)
+
+**Objective:** Compare local-first inference backends and identify production baselines
+
+- **TR117:** ✅ **Cross-backend inference benchmark** (PyTorch eager/compile, Ollama; ONNX/TRT failures documented)
+
+### Phase 8: ONNX Runtime + TensorRT Deep Dive (TR118)
+
+**Objective:** Fix ONNX/TRT infrastructure and produce publishable, local-first results
+
+- **TR118:** ✅ **ONNX/TRT deep dive** (real ONNX export, real TRT engines, INT8 calibration, perplexity gates)
 
 ---
 
@@ -60,6 +79,8 @@ This directory contains the complete research journey documenting LLM performanc
 | **TR112_v2** | Rust vs Python Comparison | ✅ Complete | Rust: +15.2% throughput, -58% TTFT, -67% memory |
 | **TR114_v2** | Rust Multi-Agent Performance | ✅ Complete | 98.281% mean efficiency, 99.992% peak run |
 | **TR115_v2** | Rust Runtime Optimization | ✅ Complete | Tokio-default recommended (98.72% mean, 1.21pp σ) |
+| **TR117** | Cross-Backend Inference Benchmark | ✅ Complete | GPU-compile best mean; ONNX/TRT failures documented |
+| **TR118** | ONNX Runtime vs TensorRT Deep Dive | ✅ Complete | Publish-ready prefill benchmark + TRT INT8 calibration + perplexity gate |
 
 ### 📚 **Historical Reports (Superseded)**
 
@@ -77,6 +98,7 @@ This directory contains the complete research journey documenting LLM performanc
 ### **Single-Agent Performance (TR111_v2, TR112_v2)**
 
 **Rust Advantages:**
+
 - **Throughput:** 114.54 tok/s vs Python 99.34 tok/s (**+15.2%**)
 - **TTFT (cold):** 603ms vs Python 1437ms (**-58%**)
 - **Memory:** ~75 MB vs Python ~250 MB (**-67%**)
@@ -88,11 +110,13 @@ This directory contains the complete research journey documenting LLM performanc
 ### **Multi-Agent Performance (TR110, TR114_v2)**
 
 **Python Baseline (TR110):**
+
 - **Peak Config Efficiency:** 99.25% (homogeneous Chimera)
 - **Mean Efficiency:** 95.8% (all 150 runs)
 - **Contention Rate:** 10-15%
 
 **Rust Performance (TR114_v2):**
+
 - **Peak Config Efficiency:** 99.396% (chimera-hetero test011)
 - **Peak Single Run:** 99.992% (chimera-homo test108)
 - **Mean Efficiency:** 98.281% (all 135 runs) - **+2.48pp vs Python**
@@ -103,6 +127,7 @@ This directory contains the complete research journey documenting LLM performanc
 ### **Runtime Optimization (TR115_v2)**
 
 **Runtime Ranking (By Consistency):**
+
 1. **Tokio-default:** 98.72% mean, 1.21pp σ 🏆 **RECOMMENDED**
 2. **Smol-1KB:** 98.61% mean, 1.32pp σ ✅ **Alternative (smaller binary)**
 3. **Tokio-localset:** 97.95% mean, 4.03pp σ ⚠️ **Unstable (18.96pp range)**
@@ -151,6 +176,7 @@ This directory contains the complete research journey documenting LLM performanc
 ## 🔬 Report Details
 
 ### **TR108: Single-Agent LLM Performance Analysis**
+
 **File:** `Technical_Report_108.md`
 
 - **Focus:** Comprehensive LLM performance benchmarking and optimization
@@ -161,6 +187,7 @@ This directory contains the complete research journey documenting LLM performanc
 - **Status:** ✅ Complete (Publication-ready)
 
 ### **TR109: Agent Workflow Optimization**
+
 **File:** `Technical_Report_109.md`
 
 - **Focus:** Agent workflow performance vs single-inference optimization
@@ -171,6 +198,7 @@ This directory contains the complete research journey documenting LLM performanc
 - **Status:** ✅ Complete (Publication-ready)
 
 ### **TR110: Concurrent Multi-Agent Performance Analysis (Python)**
+
 **File:** `Technical_Report_110.md`
 
 - **Focus:** Parallel agent execution with resource coordination
@@ -181,6 +209,7 @@ This directory contains the complete research journey documenting LLM performanc
 - **Status:** ✅ Complete (Publication-ready)
 
 ### **TR111_v2: Rust Single-Agent Performance Analysis**
+
 **File:** `Technical_Report_111_v2.md`
 
 - **Focus:** Comprehensive Rust agent workflow performance with full Python parity
@@ -193,6 +222,7 @@ This directory contains the complete research journey documenting LLM performanc
 - **Status:** ✅ Complete (Supersedes TR111)
 
 ### **TR112_v2: Rust vs Python Agent Performance Comparison**
+
 **File:** `Technical_Report_112_v2.md`
 
 - **Focus:** Cross-language comprehensive comparison with workflow parity
@@ -204,6 +234,7 @@ This directory contains the complete research journey documenting LLM performanc
 - **Status:** ✅ Complete (Supersedes TR112)
 
 ### **TR113: Rust Multi-Agent Initial Analysis**
+
 **File:** `Technical_Report_113.md`
 
 - **Focus:** First Rust multi-agent implementation (single Ollama instance)
@@ -213,6 +244,7 @@ This directory contains the complete research journey documenting LLM performanc
 - **Status:** ✅ Complete (Historical - led to TR114)
 
 ### **TR114_v2: Rust Concurrent Multi-Agent Performance**
+
 **File:** `Technical_Report_114_v2.md`
 
 - **Focus:** Comprehensive Rust multi-agent with dual Ollama architecture
@@ -226,6 +258,7 @@ This directory contains the complete research journey documenting LLM performanc
 - **Status:** ✅ Complete (Supersedes TR114)
 
 ### **TR115_v2: Rust Async Runtime Performance Deep Dive**
+
 **File:** `Technical_Report_115_v2.md`
 
 - **Focus:** Comprehensive multi-runtime analysis for multi-agent workloads
@@ -265,6 +298,7 @@ This directory contains the complete research journey documenting LLM performanc
 **Initial Hypothesis (TR113/TR114):** Rust's single-agent advantage would disappear in multi-agent scenarios due to coordination overhead.
 
 **Actual Reality (TR114_v2):** Rust's advantages **carry over** to multi-agent:
+
 - Single-agent: +15.2% throughput
 - Multi-agent: +2.48pp mean efficiency, +0.15pp peak config
 - **Conclusion:** No paradox - Rust maintains and extends advantages
@@ -276,12 +310,14 @@ This directory contains the complete research journey documenting LLM performanc
 ### **Single-Agent Deployment**
 
 **Choose Rust if:**
+
 - ✅ Production reliability required
 - ✅ Resource efficiency critical (67% less memory)
 - ✅ Fast startup needed (83% faster)
 - ✅ Consistent performance valued (46% lower variance)
 
 **Choose Python if:**
+
 - ✅ Rapid prototyping needed
 - ✅ Development velocity prioritized
 - ✅ Ecosystem richness required
@@ -291,11 +327,13 @@ This directory contains the complete research journey documenting LLM performanc
 ### **Multi-Agent Deployment**
 
 **Architecture:**
+
 - ✅ **Dual Ollama instances** (mandatory - eliminates server contention)
 - ✅ **Heterogeneous configs** optimal (asymmetric GPU allocation)
 - ✅ **Tokio-default runtime** (best consistency: 1.21pp σ)
 
 **Configuration:**
+
 - **Best Config (TR114_v2):** GPU=120/140, CTX=512/1024 (test011) → 99.396% efficiency
 - **Balanced Config:** GPU=80, CTX=1024 (test004) → 98.984% efficiency
 - **Avoid:** GPU=120 in baseline-vs-chimera (test005: 91.60% with contention)
@@ -305,6 +343,7 @@ This directory contains the complete research journey documenting LLM performanc
 ### **Runtime Selection (TR115_v2)**
 
 **Production:**
+
 ```rust
 // Use standard Tokio - no custom configuration needed
 #[tokio::main]
@@ -314,12 +353,14 @@ async fn main() {
 ```
 
 **Why:**
+
 - ✅ Highest consistency: 1.21pp σ (vs 4.03pp for localset)
 - ✅ Best mean efficiency: 98.72% (vs 97.95% for localset)
 - ✅ Simplest deployment: No custom runtime configuration
 - ✅ Best ecosystem: Native reqwest, no bridges
 
 **Alternatives:**
+
 - **Smol-1KB:** If binary size <5MB critical (98.61% mean, 1.32pp σ, -0.11pp loss acceptable)
 - **Never use:** Async-std (50% efficiency), Smol (pathological failures)
 
@@ -330,6 +371,7 @@ async fn main() {
 ### **Infrastructure Savings (TR112_v2)**
 
 **Single-Agent:**
+
 - Memory: 67% reduction (75 MB vs 250 MB)
 - Startup: 83% faster (0.2s vs 1.5s)
 - **Cost:** ~$3,040/year savings at 1M requests/month
@@ -338,11 +380,13 @@ async fn main() {
 ### **Multi-Agent Advantages (TR114_v2)**
 
 **Performance:**
+
 - Mean efficiency: +2.48pp (98.281% vs 95.8%)
 - Contention rate: -10-14pp (0.74% vs 10-15%)
 - Consistency: -2.5pp StdDev (4.9pp vs 7.4pp)
 
 **Cost:**
+
 - 50% lower infrastructure cost (67% less memory per agent)
 - 3× concurrent capacity (lower memory footprint)
 - Reduced contention = fewer failed requests
@@ -350,6 +394,7 @@ async fn main() {
 ### **Runtime Optimization (TR115_v2)**
 
 **Impact:**
+
 - Runtime choice: Marginal (<1% between best options)
 - **Async-std cost:** 50% efficiency = **2× infrastructure cost** (avoid!)
 - **Tokio-default cost:** Same as Python (both ~99% efficiency)
@@ -404,6 +449,7 @@ TR114_v2 (Dual Ollama)            TR115_v2 (Runtime Optimization)
 ```
 
 **Key Dependencies:**
+
 - TR111_v2 → TR112_v2 (single-agent comparison)
 - TR110 → TR114_v2 (multi-agent comparison)
 - TR111_v2/TR112_v2/TR114_v2 → TR115_v2 (baseline references)
@@ -416,28 +462,34 @@ TR114_v2 (Dual Ollama)            TR115_v2 (Runtime Optimization)
 ### **Best Configurations**
 
 **Single-Agent (TR111_v2):**
+
 - **Optimal:** `gpu60_ctx256_temp0p6` (115.94 tok/s)
 - **Baseline:** Ollama defaults (114.54 tok/s)
 
 **Multi-Agent (TR114_v2):**
+
 - **Best Config:** GPU=120/140, CTX=512/1024 (test011) → 99.396% efficiency
 - **Balanced:** GPU=80, CTX=1024 (test004) → 98.984% efficiency
 
 **Runtime (TR115_v2):**
+
 - **Production:** Tokio-default (`#[tokio::main]`)
 - **Small Binary:** Smol-1KB (if size critical)
 
 ### **Performance Targets**
 
 **Single-Agent:**
+
 - Rust: 114.54 tok/s baseline, 115.94 tok/s optimal
 - Python: 99.34 tok/s baseline
 
 **Multi-Agent:**
+
 - Rust: 98.281% mean, 99.396% peak config, 99.992% peak run
 - Python: 95.8% mean, 99.25% peak config
 
 **Runtime:**
+
 - Tokio-default: 98.72% mean, 1.21pp σ (recommended)
 - Smol-1KB: 98.61% mean, 1.32pp σ (alternative)
 
@@ -465,6 +517,7 @@ TR114_v2 (Dual Ollama)            TR115_v2 (Runtime Optimization)
 ## 📊 Statistical Validation
 
 All reports include:
+
 - ✅ **Statistical rigor:** Mean, median, stddev, percentiles, CV
 - ✅ **Multiple runs:** 3-5 runs per configuration for confidence
 - ✅ **Comprehensive coverage:** 19-37 configurations per report
@@ -472,6 +525,7 @@ All reports include:
 - ✅ **Reproducibility:** Full methodology and data sources documented
 
 **Total Benchmark Runs:**
+
 - TR108: 150+ runs
 - TR109: 90 runs
 - TR110: 150 runs
@@ -486,6 +540,7 @@ All reports include:
 ## 🚀 Getting Started
 
 ### **For Researchers**
+
 1. Start with **TR108** (Python single-agent baseline)
 2. Review **TR109** (workflow optimization methodology)
 3. Study **TR110** (Python multi-agent baseline)
@@ -494,12 +549,14 @@ All reports include:
 6. Reference **TR115_v2** (runtime optimization guidance)
 
 ### **For Engineers**
+
 1. **Single-Agent:** Read **TR112_v2** for Rust vs Python comparison
 2. **Multi-Agent:** Read **TR114_v2** for deployment guidance
 3. **Runtime:** Read **TR115_v2** for production recommendations
 4. **Configuration:** Use best configs from TR111_v2 (single) and TR114_v2 (multi)
 
 ### **For Decision Makers**
+
 1. **Executive Summary:** Review "Key Findings" sections in each report
 2. **Business Impact:** See "Business Impact" sections in TR112_v2, TR114_v2
 3. **Recommendations:** See "Production Recommendations" in this README
@@ -515,7 +572,7 @@ All reports include:
 
 ---
 
-**Last Updated:** 2025-11-17  
+**Last Updated:** 2025-12-12  
 **Repository:** Chimeraforge (Research)  
 **Maintainer:** Chimeraforge Research Team  
 **Total Reports:** 12 (7 production-ready, 5 historical)  

@@ -3,8 +3,10 @@
 Artifacts for TR117 live here. The run harness is in `scripts/tr117/`, and raw outputs default to `results/tr117/runs/`.
 
 ## Reproduce
+
 1) Run the matrix (local CPU-only is fine; GPU/TRT/ORT/Ollama are auto-detected and skipped if unavailable).
    Accuracy is gated against the baseline backend.
+
 ```bash
 python scripts/tr117/run_matrix.py \
   --config scripts/tr117/configs/matrix.yaml \
@@ -13,19 +15,22 @@ python scripts/tr117/run_matrix.py \
   --ensure-optional-deps
 ```
 
-2) Aggregate to CSV:
+1) Aggregate to CSV:
+
 ```bash
 python scripts/tr117/analyze_tr117.py --runs-root results/tr117/runs --output results/tr117/metrics.csv
 ```
 
-3) Capture env/capabilities:
+1) Capture env/capabilities:
+
 ```bash
 python scripts/tr117/env_capture.py
 ```
 
-4) (Optional) Copy plots/CSV into this folder for the publish-ready report once runs are complete.
+1) (Optional) Copy plots/CSV into this folder for the publish-ready report once runs are complete.
 
 ## Notes
+
 - Harness sets `BANTER_FORCE_BACKEND` per run; ensure local models exist for the chosen backend (or expect
   echo fallback).
 - Backends are capability-gated via `runtime.detect_capabilities`; missing deps write skip markers under
