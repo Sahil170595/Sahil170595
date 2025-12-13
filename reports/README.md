@@ -62,7 +62,8 @@ This directory contains the complete research journey documenting LLM performanc
 
 **Objective:** Fix ONNX/TRT infrastructure and produce publishable, local-first results
 
-- **TR118:** ✅ **ONNX/TRT deep dive** (real ONNX export, real TRT engines, INT8 calibration, perplexity gates)
+- **TR118:** ✅ **ONNX/TRT deep dive** (test fixture model: 0.1M params, forensic document)
+- **TR118v2:** ✅ **Model scale comparative analysis** (0.1M vs 124M params, 1,210× scaling study)
 
 ---
 
