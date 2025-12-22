@@ -754,7 +754,9 @@ Test models at: 0.1M, 0.5M, **1M**, 2M, 5M, 10M, 50M, 100M params to:
 2. **Plot performance curves** (ONNX CPU advantage vs parameter count)
 3. **Establish deployment thresholds** (when to switch CPU→GPU)
 
-**TR120: KV-Cached Decode Study**
+**TR120.B: KV-Cached Decode Study**
+
+TR120’s primary track is the compile-paradox investigation; KV-cached decode is tracked as TR120.B.
 
 Re-benchmark generate mode with `use_cache=True`:
 

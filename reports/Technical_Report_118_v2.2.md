@@ -697,7 +697,9 @@ Focus on the crossover region with tighter spacing:
 - 40M, 50M, 60M, 70M, 80M, 90M params
 - Confirm crossover with repeated runs and variance bounds
 
-**TR120: KV-Cached Decode Study**
+**TR120.B: KV-Cached Decode Study**
+
+TR120’s primary track is the compile-paradox investigation; KV-cached decode is tracked as TR120.B.
 
 - Re-benchmark generate with `use_cache=True` and TRT-LLM
 - Build TRT engines with profiles that cover decode shapes
