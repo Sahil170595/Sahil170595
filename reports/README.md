@@ -63,7 +63,28 @@ This directory contains the complete research journey documenting LLM performanc
 **Objective:** Fix ONNX/TRT infrastructure and produce publishable, local-first results
 
 - **TR118:** ✅ **ONNX/TRT deep dive** (test fixture model: 0.1M params, forensic document)
-- **TR118v2:** ✅ **Model scale comparative analysis** (0.1M vs 124M params, 1,210× scaling study)
+- **TR118v2.1:** ✅ **Model scale comparative analysis** (0.1M vs 124M params, 1,210× scaling study, corrected)
+- **TR118v2.2:** ✅ **Definitive comparative analysis** (measurement rigor + pipeline validation)
+
+### Phase 9: Cost & Energy Analysis (TR119)
+
+**Objective:** Translate latency/throughput into dollars, kWh, and carbon per token
+
+- **TR119:** ✅ **Cost & energy analysis** (v1.1, multi-tier pricing, carbon footprint)
+- **TR119v1:** ✅ **Comprehensive cost/energy deep dive** (1,290 lines, artifact-backed, business impact)
+
+### Phase 10: Compile Paradox Investigation (TR120)
+
+**Objective:** Root-cause audit of why compile improves mean but degrades median latency
+
+- **TR120:** ✅ **Compile paradox root-cause audit** (1,101 lines, controlled reproduction, production fixes)
+
+### Phase 11: Model Scaling Study (TR121)
+
+**Objective:** How inference behavior changes from ~0.1M to ~20.9B parameters
+
+- **TR121:** ✅ **Model scaling study pipeline** (pipeline-complete scaffold)
+- **TR121v1:** ✅ **Comprehensive scaling analysis** (1,231 lines, three regimes, mechanistic insights, capacity planning)
 
 ---
 
@@ -82,6 +103,13 @@ This directory contains the complete research journey documenting LLM performanc
 | **TR115_v2** | Rust Runtime Optimization | ✅ Complete | Tokio-default recommended (98.72% mean, 1.21pp σ) |
 | **TR117** | Cross-Backend Inference Benchmark | ✅ Complete | GPU-compile best mean; ONNX/TRT failures documented |
 | **TR118** | ONNX Runtime vs TensorRT Deep Dive | ✅ Complete | Publish-ready prefill benchmark + TRT INT8 calibration + perplexity gate |
+| **TR118v2.1** | Model Scale Comparative Analysis | ✅ Complete | 1,210× scaling (0.1M → 124M), crossover validation, empirical refutation |
+| **TR118v2.2** | Definitive Comparative Analysis | ✅ Complete | Measurement rigor + pipeline validation, comprehensive statistical analysis |
+| **TR119** | Cost & Energy Analysis | ✅ Complete | Multi-tier pricing, carbon footprint, token economics (v1.1) |
+| **TR119v1** | Cost & Energy Deep Dive | ✅ Complete | Comprehensive analysis (1,290 lines), business impact, TCO projections |
+| **TR120** | Compile Paradox Root-Cause Audit | ✅ Complete | Controlled reproduction, shape stability insights, production guidance |
+| **TR121** | Model Scaling Study Pipeline | ✅ Complete | Pipeline infrastructure, decode sweep, boundary shift experiments |
+| **TR121v1** | Comprehensive Scaling Analysis | ✅ Complete | Three regimes, mechanistic insights, capacity planning (1,231 lines) |
 
 ### 📚 **Historical Reports (Superseded)**
 
@@ -417,7 +445,15 @@ PublishReady/reports/
 │   ├── Technical_Report_111_v2.md - Rust single-agent performance
 │   ├── Technical_Report_112_v2.md - Rust vs Python comparison
 │   ├── Technical_Report_114_v2.md - Rust multi-agent performance
-│   └── Technical_Report_115_v2.md - Rust runtime optimization
+│   ├── Technical_Report_115_v2.md - Rust runtime optimization
+│   ├── Technical_Report_117.md - Cross-backend inference benchmark
+│   ├── Technical_Report_118_v2.1.md - Model scale comparative analysis
+│   ├── Technical_Report_118_v2.2.md - Definitive comparative analysis
+│   ├── Technical_Report_119.md - Cost & energy analysis (v1.1)
+│   ├── Technical_Report_119v1.md - Cost & energy deep dive (comprehensive)
+│   ├── Technical_Report_120.md - Compile paradox root-cause audit
+│   ├── Technical_Report_121.md - Model scaling study pipeline (superseded)
+│   └── Technical_Report_121v1.md - Comprehensive scaling analysis
 │
 ├── 📚 Historical Reports (Superseded)
 │   ├── Technical_Report_111.md - Initial Rust (micro-benchmark)
@@ -573,8 +609,8 @@ All reports include:
 
 ---
 
-**Last Updated:** 2025-12-12  
+**Last Updated:** 2025-12-24  
 **Repository:** Chimeraforge (Research)  
 **Maintainer:** Chimeraforge Research Team  
-**Total Reports:** 12 (7 production-ready, 5 historical)  
-**Total Benchmark Runs:** 843+ across all reports
+**Total Reports:** 20+ (15+ production-ready, 5+ historical)  
+**Total Benchmark Runs:** 2,000+ across all reports
