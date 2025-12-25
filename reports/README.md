@@ -52,6 +52,18 @@ This directory contains the complete research journey documenting LLM performanc
 - **TR115:** Initial runtime analysis - **SUPERSEDED**
 - **TR115_v2:** ✅ **Definitive runtime optimization** (5 runtimes, 150 runs)
 
+### Phase 6.5: Cross-Model Multi-Agent Analysis (TR116)
+
+**Objective:** Isolate model choice as independent variable in multi-agent performance
+
+- **TR116:** ✅ **Cross-model benchmarks** (Qwen 2.5 vs Gemma 3 vs Llama 3.1, Rust vs Python, 60 runs)
+
+### Phase 6.6: Multi-Agent Root-Cause Analysis (TR117 Multi-Agent)
+
+**Objective:** Root-cause audit of Python ceiling, Qwen mystery, and ranking flip anomalies
+
+- **TR117 Multi-Agent:** ✅ **Root-cause analysis** (event loop instrumentation, hardware forensics, flow dynamics)
+
 ### Phase 7: Cross-Backend Inference Benchmarking (TR117)
 
 **Objective:** Compare local-first inference backends and identify production baselines
@@ -101,7 +113,9 @@ This directory contains the complete research journey documenting LLM performanc
 | **TR112_v2** | Rust vs Python Comparison | ✅ Complete | Rust: +15.2% throughput, -58% TTFT, -67% memory |
 | **TR114_v2** | Rust Multi-Agent Performance | ✅ Complete | 98.281% mean efficiency, 99.992% peak run |
 | **TR115_v2** | Rust Runtime Optimization | ✅ Complete | Tokio-default recommended (98.72% mean, 1.21pp σ) |
+| **TR116** | Cross-Model Multi-Agent Benchmarks | ✅ Complete | Gemma 3 champion (97.3% Rust), Rust +12-17pp vs Python |
 | **TR117** | Cross-Backend Inference Benchmark | ✅ Complete | GPU-compile best mean; ONNX/TRT failures documented |
+| **TR117 Multi-Agent** | Multi-Agent Root-Cause Analysis | ✅ Complete | Python ceiling (86%), Qwen mystery, ranking flip explained |
 | **TR118** | ONNX Runtime vs TensorRT Deep Dive | ✅ Complete | Publish-ready prefill benchmark + TRT INT8 calibration + perplexity gate |
 | **TR118v2.1** | Model Scale Comparative Analysis | ✅ Complete | 1,210× scaling (0.1M → 124M), crossover validation, empirical refutation |
 | **TR118v2.2** | Definitive Comparative Analysis | ✅ Complete | Measurement rigor + pipeline validation, comprehensive statistical analysis |
@@ -300,6 +314,173 @@ This directory contains the complete research journey documenting LLM performanc
 - **Production Recommendation:** Use standard `#[tokio::main]` - no custom config needed
 - **Status:** ✅ Complete (Supersedes TR115)
 
+### **TR116: Cross-Model Multi-Agent Benchmarks**
+
+**File:** `Technical_Report_116.md`
+
+- **Focus:** Cross-model analysis (Qwen 2.5 vs Gemma 3 vs Llama 3.1) in multi-agent workloads
+- **Test Matrix:** 60 multi-agent runs across 6 model-runtime combinations (3 models × 2 runtimes × 2 scenarios × 5 runs)
+- **Key Findings:**
+  - **Rust Dominates:** +12-17pp higher efficiency than Python across all models
+  - **Gemma 3 Champion:** 97.3% efficiency (Rust), 99.2% in chimera-homo (approaching theoretical max)
+  - **Qwen Coordination Overhead:** 90.0% efficiency (Rust) vs 97.3% for Gemma, suggesting heavier KV cache
+  - **Python Efficiency Ceiling:** Never exceeds 86% efficiency, while Rust hits 90-99%
+  - **Model Choice Matters More in Python:** 6.2pp spread (77.6-83.8%) vs Rust's 7.3pp (90.0-97.3%)
+- **Business Impact:**
+  - **Optimal Stack:** Rust + Gemma 3 (best efficiency)
+  - **Cost Implications:** Python + Gemma 3 = +24% cost, Python + Qwen = +33% cost
+- **Status:** ✅ Complete (12+ hours of testing)
+
+### **TR117 Multi-Agent: Root-Cause Analysis of Multi-Agent Efficiency Anomalies**
+
+**File:** `Technical_Report_117_multi_agent.md`
+
+- **Focus:** Root-cause audit of three critical anomalies from TR116: Python Ceiling, Qwen Mystery, Ranking Flip
+- **Methodology:** Three invasive research phases:
+  - **Phase 1:** Python MRI (Event Loop Instrumentation)
+  - **Phase 2:** Hardware Forensics (GPU/PCIe Profiling)
+  - **Phase 3:** Flow Dynamics (Artificial Throttling)
+- **Key Findings:**
+  - **Python Ceiling Explained:** Event loop saturation (5.33ms mean lag, p99 12.13ms) from per-token JSON parsing at ~200 events/sec
+  - **Qwen Mystery:** Software-bound (tokenizer overhead, chunk amplification), not PCIe saturation
+  - **Ranking Flip:** Slower models provide "breathing room" for event loop, but throttling reduces efficiency
+  - **TR110 Retroactive Explanation:** 99.25% efficiency achieved with slower models (~68 tok/s) in "Goldilocks Zone"
+- **Production Recommendations:**
+  - **For Python (Mitigation):** Token bucket throttling, batch HTTP chunk processing, use `uvloop`
+  - **For Production (Migration):** Rust mandatory for >100 tok/s multi-agent systems
+- **Status:** ✅ Complete (8+ hours of invasive instrumentation)
+
+### **TR117: Cross-Backend Inference Benchmark**
+
+**File:** `Technical_Report_117.md`
+
+- **Focus:** Compare local-first inference backends (PyTorch eager/compile, Ollama, ONNX Runtime, TensorRT)
+- **Test Matrix:** 3,017 runs, 2,471 successful (82%)
+- **Key Findings:**
+  - GPU-compile wins on mean latency (389ms)
+  - Plain GPU wins on median latency (323ms)
+  - ONNX/TRT reliability gaps identified (18% degraded)
+- **Hardware:** NVIDIA RTX 4080 (12GB VRAM), i9-13980HX
+- **Artifacts:** `results/tr117_tier3/` (metrics.csv, plots, analysis)
+- **Status:** ✅ Complete (with known limitations addressed in TR118)
+
+### **TR118: ONNX Runtime + TensorRT Deep Dive (Test Fixture)**
+
+**File:** `Technical_Report_118.md`
+
+- **Focus:** Validate ONNX/TRT pipeline with test fixture model (0.1M params)
+- **Test Matrix:** 360 run-level records (180/mode, 0% degraded)
+- **Key Findings:**
+  - Pipeline validated: ONNX export, TRT engine builds (FP32/FP16/INT8), perplexity gates
+  - ONNX CPU: 97× faster than PyTorch for tiny models
+- **Status:** ✅ Complete (Forensic document - superseded by TR118v2.1/v2.2)
+
+### **TR118v2.1: Model Scale Comparative Analysis**
+
+**File:** `Technical_Report_118_v2.1.md`
+
+- **Focus:** Definitive comparative analysis of ONNX Runtime and TensorRT performance scaling
+- **Test Matrix:** 360 benchmarks: 2 models × 6 backends × 6 scenarios × 5 repetitions
+- **Models:** `sshleifer/tiny-gpt2` (0.103M params) vs `gpt2` (124.4M params)
+- **Key Findings:**
+  - **The Crossover Phenomenon:** ONNX CPU goes from 21.9× faster → 0.70× slower as model scales (0.1M → 124M params)
+  - **TensorRT Perfect Scaling:** Consistent 60-75% speedup across 1,210× parameter increase
+  - **INT8 Reality Check:** 20% slower than FP16 for 124M params (not faster as expected)
+  - **Perplexity Preservation:** All backends < 0.022% delta (production-ready accuracy)
+- **Status:** ✅ Complete (1,210× scaling study, crossover validation)
+
+### **TR118v2.2: Definitive Comparative Analysis**
+
+**File:** `Technical_Report_118_v2.2.md`
+
+- **Focus:** Measurement rigor + pipeline validation with comprehensive statistical analysis
+- **Key Findings:**
+  - Complete measurement definitions (latency, throughput, formulas)
+  - Evidence-based explanations (TRT degradation root cause)
+  - Full statistical rigor (t-tests, confidence intervals, effect sizes)
+  - Comprehensive appendices (detailed performance tables, perplexity analysis)
+- **Status:** ✅ Complete (1,325 lines, frontier-grade depth)
+
+### **TR119: Cost & Energy Analysis**
+
+**File:** `Technical_Report_119.md` (v1.1)
+
+- **Focus:** Translate latency/throughput into dollars, kWh, and carbon per token
+- **Key Findings:**
+  - **Best overall:** `onnxruntime-gpu` at $0.1279 / 1M tokens (prefill mean)
+  - **Best generate:** `onnxruntime-gpu` at $1.204 / 1M tokens
+  - **Best request cost:** `onnxruntime-gpu` at $0.0001475 per request
+  - **Business impact:** ~$7.1k/year savings vs transformers-gpu, ~$57.8k/year vs transformers-cpu
+  - **Energy share:** Small (0.33-1.7% of total cost), infra cost dominates
+- **Methodology:**
+  - Multi-tier pricing: On-demand, spot, reserved
+  - Carbon footprint: Energy × carbon intensity
+  - Telemetry-backed: GPU power via NVML, CPU package power via Windows Energy Meter
+- **Status:** ✅ Complete (v1.1)
+
+### **TR119v1: Cost & Energy Deep Dive**
+
+**File:** `Technical_Report_119v1.md`
+
+- **Focus:** Comprehensive cost/energy analysis with telemetry-backed calculations and business impact
+- **Key Findings:**
+  - **Production-focused question:** "Which backend minimizes dollars per token and energy per token?"
+  - **Multi-tier pricing:** On-demand, spot, reserved pricing comparisons
+  - **Carbon footprint:** Energy × carbon intensity calculations
+  - **Business impact:** Scaled TCO projections (1B tokens/month for 12 months)
+  - **Statistical rigor:** ANOVA, pairwise comparisons, confidence intervals
+- **Status:** ✅ Complete (1,290 lines, publish-ready)
+
+### **TR120: Compile Paradox Root-Cause Audit**
+
+**File:** `Technical_Report_120.md`
+
+- **Focus:** Root-cause audit of why `torch.compile()` improves mean but degrades median latency
+- **Key Findings:**
+  - **TR117's compile paradox is misattributed:** Label didn't actually invoke `torch.compile()`
+  - **Shape instability:** Variable prompt lengths trigger repeated recompilations
+  - **Padding/bucketing fix:** Collapses compiled tail (p99: multi-ms → sub-ms)
+  - **KV-cached decode:** Different regime - Inductor improves prefill but regresses decode
+  - **Production guidance:** Gate compile on Triton, stabilize shapes, split modes
+- **Methodology:**
+  - Controlled reproduction with explicit `torch.compile()` vs eager
+  - Multiple artifact sets (Windows fallback, Triton Docker runs)
+  - Compiler evidence recording (Dynamo counters, CUDA-event timing)
+- **Status:** ✅ Complete (1,101 lines, artifact-backed)
+
+### **TR121: Model Scaling Study Pipeline**
+
+**File:** `Technical_Report_121.md`
+
+- **Focus:** Pipeline infrastructure for scaling study (5M to 20B parameters)
+- **Key Findings:**
+  - Pipeline infrastructure complete
+  - Decode sweep infrastructure
+  - Boundary shift experiments
+- **Status:** ✅ Pipeline Complete (superseded by TR121v1)
+
+### **TR121v1: Comprehensive Scaling Analysis**
+
+**File:** `Technical_Report_121v1.md`
+
+- **Focus:** How latency, throughput, and cold-start risk change from ~0.1M to ~20.9B parameters
+- **Test Matrix:** Primary run `scripts/tr121/results/20251224_002149/` (684 records), decode sweep, Gemma3 family check, boundary shift runs
+- **Key Findings:**
+  - **Three distinct regimes:**
+    1. Small-model GPU (0.1M-96M): Weak scaling (R² ~0.03-0.06) - not identifiable
+    2. CPU scaling (0.1M-96M): Predictable (prefill: ~0.281, decode: ~0.291, R² ~0.85-0.87)
+    3. Large-model serving (268M-20.9B): Strong scaling (prefill: ~0.623, decode: ~0.649, R² ~0.90-0.93)
+  - **Mechanistic insight:** GPU latency tracks `n_layer` (depth) more than parameter count
+  - **Decode dominance:** Decode fraction reaches 0.98-0.99 by 64-128 tokens
+  - **Cold-start risk:** Warmup ratios up to 194x (HF GPU prefill)
+  - **Business impact:** Capacity planning and shadow-priced cost analysis
+- **Methodology:**
+  - Phase-split measurements: Prefill, KV-cached decode, end-to-end
+  - Two-family study: HF local (5M-124M) + Ollama (270M-20B)
+  - Scaling law fits: Log-log power law per backend/mode/scenario
+  - Architecture correlation analysis: Spearman correlations for depth/width/params
+- **Status:** ✅ Complete (1,231 lines, publish-ready)
+
 ---
 
 ## 🎓 Research Evolution & Key Insights
@@ -313,6 +494,8 @@ This directory contains the complete research journey documenting LLM performanc
 5. **TR113 (Rust Multi-Agent v1):** Identified server contention bottleneck (single Ollama)
 6. **TR114_v2 (Rust Multi-Agent v2):** Proved Rust **exceeds** Python in multi-agent (+2.48pp mean)
 7. **TR115_v2 (Runtime Optimization):** Established Tokio-default as optimal runtime
+8. **TR116 (Cross-Model):** Isolated model choice impact - Gemma 3 champion, Rust +12-17pp vs Python
+9. **TR117 Multi-Agent (Root-Cause):** Explained Python ceiling (86%), Qwen mystery, ranking flip
 
 ### **Critical Discoveries**
 
@@ -320,7 +503,9 @@ This directory contains the complete research journey documenting LLM performanc
 2. **Multi-Agent:** Rust **exceeds** Python by +2.48pp mean efficiency (TR114_v2)
 3. **Runtime:** Standard Tokio achieves 98.72% mean with 1.21pp σ (TR115_v2)
 4. **Architecture:** Dual Ollama **mandatory** for multi-agent (reduces contention 63% → 0.74%)
-5. **Consistency:** Rust's lower variance (4.9pp vs 7.4pp) provides production reliability
+5. **Model Choice:** Gemma 3 champion (97.3% Rust), Rust +12-17pp vs Python across all models (TR116)
+6. **Python Ceiling:** Event loop saturation caps Python at 86% efficiency (TR117 Multi-Agent)
+7. **Consistency:** Rust's lower variance (4.9pp vs 7.4pp) provides production reliability
 
 ### **The "Paradox" That Wasn't**
 
@@ -446,7 +631,9 @@ PublishReady/reports/
 │   ├── Technical_Report_112_v2.md - Rust vs Python comparison
 │   ├── Technical_Report_114_v2.md - Rust multi-agent performance
 │   ├── Technical_Report_115_v2.md - Rust runtime optimization
+│   ├── Technical_Report_116.md - Cross-model multi-agent benchmarks
 │   ├── Technical_Report_117.md - Cross-backend inference benchmark
+│   ├── Technical_Report_117_multi_agent.md - Multi-agent root-cause analysis
 │   ├── Technical_Report_118_v2.1.md - Model scale comparative analysis
 │   ├── Technical_Report_118_v2.2.md - Definitive comparative analysis
 │   ├── Technical_Report_119.md - Cost & energy analysis (v1.1)
@@ -491,6 +678,12 @@ TR114_v2 (Dual Ollama)            TR115_v2 (Runtime Optimization)
 - TR110 → TR114_v2 (multi-agent comparison)
 - TR111_v2/TR112_v2/TR114_v2 → TR115_v2 (baseline references)
 - TR113 → TR114_v2 (identified dual Ollama requirement)
+- TR114_v2/TR115_v2 → TR116 (cross-model multi-agent analysis)
+- TR116 → TR117 Multi-Agent (root-cause analysis of anomalies)
+- TR117 → TR118 → TR118v2.1 → TR118v2.2 (ONNX/TRT pipeline evolution)
+- TR117 → TR119 → TR119v1 (cost/energy analysis)
+- TR117 → TR120 (compile paradox investigation)
+- TR117/TR118/TR120 → TR121 → TR121v1 (scaling study)
 
 ---
 
@@ -570,7 +763,15 @@ All reports include:
 - TR112_v2: 111 runs
 - TR114_v2: 135 runs
 - TR115_v2: 150 runs
-- **Total: 843+ benchmark runs** across all reports
+- TR116: 60 runs (multi-agent cross-model)
+- TR117: 3,017 runs (2,471 successful)
+- TR117 Multi-Agent: 8+ hours (invasive instrumentation)
+- TR118: 360 runs
+- TR118v2.1: 360 runs
+- TR118v2.2: 360 runs
+- TR120: 546+ runs
+- TR121v1: 684+ runs (primary) + decode sweep + boundary shifts
+- **Total: 6,000+ benchmark runs** across all reports
 
 ---
 
@@ -584,20 +785,35 @@ All reports include:
 4. Compare **TR112_v2** (Rust vs Python single-agent)
 5. Analyze **TR114_v2** (Rust multi-agent performance)
 6. Reference **TR115_v2** (runtime optimization guidance)
+7. Study **TR116** (cross-model multi-agent analysis)
+8. Investigate **TR117 Multi-Agent** (root-cause analysis)
+9. Study **TR117** (cross-backend inference benchmark)
+10. Review **TR118v2.2** (ONNX/TRT definitive analysis)
+11. Analyze **TR119v1** (cost & energy deep dive)
+12. Investigate **TR120** (compile paradox root-cause)
+13. Explore **TR121v1** (comprehensive scaling analysis)
 
 ### **For Engineers**
 
 1. **Single-Agent:** Read **TR112_v2** for Rust vs Python comparison
 2. **Multi-Agent:** Read **TR114_v2** for deployment guidance
-3. **Runtime:** Read **TR115_v2** for production recommendations
-4. **Configuration:** Use best configs from TR111_v2 (single) and TR114_v2 (multi)
+3. **Model Selection:** Read **TR116** for cross-model multi-agent performance
+4. **Python Issues:** Read **TR117 Multi-Agent** for Python ceiling root-cause
+5. **Runtime:** Read **TR115_v2** for production recommendations
+6. **Backend Selection:** Read **TR117** and **TR118v2.2** for inference backend comparison
+7. **Cost Optimization:** Read **TR119v1** for cost/energy analysis
+8. **Compile Behavior:** Read **TR120** for torch.compile() guidance
+9. **Scaling Planning:** Read **TR121v1** for capacity planning and model selection
+10. **Configuration:** Use best configs from TR111_v2 (single) and TR114_v2 (multi)
 
 ### **For Decision Makers**
 
 1. **Executive Summary:** Review "Key Findings" sections in each report
-2. **Business Impact:** See "Business Impact" sections in TR112_v2, TR114_v2
-3. **Recommendations:** See "Production Recommendations" in this README
-4. **Cost Analysis:** Review break-even analysis in TR112_v2
+2. **Business Impact:** See "Business Impact" sections in TR112_v2, TR114_v2, TR119v1, TR121v1
+3. **Cost Analysis:** Review break-even analysis in TR112_v2, cost projections in TR119v1, capacity planning in TR121v1
+4. **Backend Selection:** Review TR117, TR118v2.2 for production backend recommendations
+5. **Scaling Strategy:** Review TR121v1 for model size selection and capacity planning
+6. **Recommendations:** See "Production Recommendations" in this README
 
 ---
 
@@ -612,5 +828,5 @@ All reports include:
 **Last Updated:** 2025-12-24  
 **Repository:** Chimeraforge (Research)  
 **Maintainer:** Chimeraforge Research Team  
-**Total Reports:** 20+ (15+ production-ready, 5+ historical)  
-**Total Benchmark Runs:** 2,000+ across all reports
+**Total Reports:** 22+ (19+ production-ready, 5+ historical)  
+**Total Benchmark Runs:** 6,000+ across all reports

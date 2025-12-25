@@ -1,4 +1,4 @@
-# Technical Report 121: Model Scaling Study (TR121 v1)
+# Technical Report 121 (Superseded Draft): Model Scaling Study
 ## How inference behavior changes from ~5M to ~20B parameters (HF + Ollama)
 
 **Project:** Banterhearts LLM Performance Research  
@@ -8,6 +8,14 @@
 **Related Work:** [TR117](Technical_Report_117.md) (backend matrix), [TR118_v2.2](Technical_Report_118_v2.2.md) (pipeline rigor), [TR120](Technical_Report_120.md) (compile paradox), [TR122](../../scripts/tr122/README.md) (planned resource profiling deep dive)
 
 ---
+
+## Status (read this first)
+
+This document is retained as the original TR121 pipeline draft. It is **superseded** by the publish-ready report:
+
+- `PublishReady/reports/Technical_Report_121v1.md`
+
+If you are looking for the definitive TR121 analysis (methodology + results + business impact + artifacts), use `PublishReady/reports/Technical_Report_121v1.md`.
 
 ## Executive Summary (v1)
 
