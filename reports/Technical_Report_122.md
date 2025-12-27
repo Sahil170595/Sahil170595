@@ -32,8 +32,8 @@ Before this report, our benchmarks measured latency and throughput without knowi
   "baseline_min_W": 1.2,
   "baseline_max_W": 26.42,
   "baseline_temp_C": 39.8,
-  "baseline_samples_total": 2041,
-  "baseline_samples_valid": 1955,
+  "poller_samples_total": 2041,
+  "poller_samples_valid": 1955,
   "fake_idle_flag": false,
   "poller_median_dt_ms": 100.00,
   "poller_p95_dt_ms": 100.40,
@@ -66,10 +66,10 @@ Before this report, our benchmarks measured latency and throughput without knowi
 
 | Claim | Evidence Base | Status |
 | --- | --- | --- |
-| Baseline power established with quantified variability | Baseline Calibration V2 (N=2041, ~204s) | **VALIDATED** (mean=20.71W, robust~24.1W) |
+| Baseline power established with quantified variability | Baseline Calibration V2 (~120s; sample count not stored) | **VALIDATED** (mean=20.71W, std=9.97W) |
 | V2 Scheduler achieves 100ms grid adherence | Poller Stats (median dt, lateness) | **VALIDATED** (Production-Grade for Macro-Windows) |
 | V2 Poller maintains continuity | Poller Stats (gaps, dropped ticks) | **DEGRADED** (1 init gap > 500ms) |
-| System reaches thermal equilibrium (small models) | Heat Soak (5-minute rolling window) | **VALIDATED** (slope < 0.5°C/min) |
+| System reaches thermal equilibrium (small models) | Heat Soak (5-minute rolling window) | **VALIDATED** (slope < 0.5 C/min) |
 | Phase-level segmentation is achievable | Generation Events timestamps | **VALIDATED** (prefill/decode segmented) |
 | The monitoring infrastructure can detect GPU load transitions | V2 Infrastructure Design | **DESIGN VALIDATED** (not tested in this run; see note) |
 
@@ -78,17 +78,17 @@ Before this report, our benchmarks measured latency and throughput without knowi
 
 ### Publish-Grade Conclusions
 
-1. **The RTX 4080 Laptop GPU idles at mean 20.71W (σ=9.97W instantaneous variability, SEM_naive=0.23W).** The mean (P̄_idle) is subtracted from all future energy measurements to isolate "intelligence energy" from "existence energy." The high σ limits short-window energy attribution accuracy.
+1. **The RTX 4080 Laptop GPU idles at mean 20.71W (sigma=9.97W instantaneous variability).** Baseline calibration does not persist raw samples, so SEM is estimated from the nominal 120s at 100ms (~1200 samples): SEM_est ~0.29W. The mean (P_idle) is subtracted from all future energy measurements to isolate "intelligence energy" from "existence energy." The high sigma limits short-window energy attribution accuracy.
 
 2. **Our NVML power polling pipeline (nominal 100ms target) achieves strict periodic scheduling.** The V2 poller achieved median dt=100.00ms with tight distribution (969 samples in 50-100ms bin, 980 in 100-150ms bin). The poller tracks dropped ticks (11 total) and read errors (86 during initialization) explicitly. This is production-grade for macro-measurement.
 
-3. **Small models (GPT-2) do not stress the thermal system.** The Heat Soak test reached thermal equilibrium (dT/dt < 0.5°C/min, final slope=0.494°C/min) at 48°C, confirming that for small workloads, thermal throttling is not a factor.
+3. **Small models (GPT-2) do not stress the thermal system.** The Heat Soak test reached thermal equilibrium (dT/dt < 0.5 C/min, final slope=0.494 C/min) at 48 C, confirming that for small workloads, thermal throttling is not a factor.
 
 4. **Event-level energy attribution requires faster polling or hardware energy counters.** The `generation_events.jsonl` shows `energy_quality: "no_data"` for events that contain <2 in-window power samples under the current poller behavior. This is honest reporting, not a failure—it documents the measurement limits.
 
 ### What to Ship (Production Infrastructure)
 
-1. **Use `Mean (Robust)` for baseline subtraction:** `Mean (All)` (20.71W) includes 1.2W sensor artifacts, which lowers the baseline and may **overstate** operational energy. `Mean (Robust)` (~24.1W) represents the active physical idle state and is safer for billing.
+1. **Use the baseline mean from `baseline.json` for subtraction:** This run does not compute a robust mean. If floor-suspect readings (<5W) appear in the baseline trace, rerun with baseline samples saved and compute a robust mean explicitly.
 2. **Use the `EnergyMonitor` from `banterhearts/monitoring/energy.py` for all future reports.** It enforces gap detection and quality reporting.
 
 3. **For sub-millisecond event attribution, explore NVML energy counters** (`nvmlDeviceGetTotalEnergyConsumption`) instead of power polling. This is a V2 enhancement.
@@ -101,7 +101,7 @@ Before this report, our benchmarks measured latency and throughput without knowi
 | --- | --- | --- |
 | Raw Power Trace | `PublishReady/data/tr122_v2/power_trace.csv` | NVML power/thermal trace with `read_ok` flag (V2 schema). Failed reads recorded but excluded. |
 | Generation Events | `PublishReady/data/tr122_v2/generation_events.jsonl` | Per-inference events with phase-level timestamps and `power_samples` |
-| Baseline Calibration | `PublishReady/data/tr122_v2/baseline.json` | ~200s idle characterization with composite fake_idle detection |
+| Baseline Calibration | `PublishReady/data/tr122_v2/baseline.json` | ~120s idle characterization; baseline samples not stored |
 | Run Metadata | `PublishReady/data/tr122_v2/run_metadata.json` | V2 schema with dt_histogram, dropped_ticks, lateness stats |
 | Physics Infrastructure | `banterhearts/monitoring/physics.py` | V2 clocks, calibration with composite idle, safety primitives |
 | Energy Infrastructure | `banterhearts/monitoring/energy.py` | V2 strict-tick poller with read_ok, lateness logging |
@@ -218,7 +218,7 @@ if run_metadata['run_state'] == 'timeout':
 
 **Solution:**
 
-1. TR122's baseline calibration provides the idle baseline: mean=20.71W (σ=9.97W instantaneous variability; SEM_naive=0.23W).
+1. TR122's baseline calibration provides the idle baseline: mean=20.71W (sigma=9.97W instantaneous variability; SEM_est ~0.29W assuming 120s at 100ms).
 2. TR122's Heat Soak confirms thermal equilibrium time (5 min for small models).
 3. If TR117 ran without warmup or baseline checks, its results have unknown uncertainty.
 
@@ -371,7 +371,7 @@ We treat LLM inference as a physical process with measurable properties:
 | --- | --- | --- |
 | Power (Watts) | GPU TDP consumption | NVML `nvmlDeviceGetPowerUsage` |
 | Energy (Joules) | Cost per inference | ∫ Power dt (trapezoidal integration) |
-| Temperature (°C) | Thermal state | NVML `nvmlDeviceGetTemperature` |
+| Temperature ( C) | Thermal state | NVML `nvmlDeviceGetTemperature` |
 | Memory (Bytes) | Activation footprint | `torch.cuda.memory_allocated` + NVML |
 | Fragmentation (Ratio) | Allocator efficiency | `inactive_split / reserved` |
 
@@ -381,9 +381,9 @@ The `banterhearts/monitoring/physics.py` module introduces four rigor primitives
 
 1. **ExperimentClock:** A singleton monotonic clock (nanosecond precision) shared by all monitors. Prevents drift between power and event timestamps.
 
-2. **BaselineCalibration:** A ~200-second idle measurement that establishes the noise floor. Reports mean, std, and a `fake_idle_flag` if GPU utilization exceeds 10% (indicating background interference).
+2. **BaselineCalibration:** A ~120-second idle measurement that establishes the noise floor. Reports mean, std, and a `fake_idle_flag` if GPU utilization exceeds 10% (indicating background interference).
 
-3. **ThermalSafety:** An 83°C trip with 80°C hysteresis. Prevents hardware damage and ensures measurements are taken within safe operating range.
+3. **ThermalSafety:** An 83 C trip with 80 C hysteresis. Prevents hardware damage and ensures measurements are taken within safe operating range.
 
 4. **ThrottlingDetector:** Hybrid detection using NVML bitmask (primary) and heuristic fallback (clock/performance drop under high utilization).
 
@@ -400,13 +400,13 @@ The `banterhearts/monitoring/physics.py` module introduces four rigor primitives
 For each event with `[t_start, t_end]`, we compute:
 
 ```text
-E_raw = Σ P(t) × dt  (for all samples in window)
-E_operational = E_raw - (P̄_idle × T_event)
+E_raw = sum P(t) * dt  (for all samples in window)
+E_operational = E_raw - (P_idle * T_event)
 ```
 
-Where `P̄_idle = 20.71W` (baseline mean) and `T_event = t_end - t_start`.
+Where `P_idle = 20.71W` (baseline mean) and `T_event = t_end - t_start`.
 
-**Why not clamp?** The naive formula `Σ max(0, P(t) - P_idle) × dt` introduces **upward bias** in noisy conditions (drops negative deviations, keeps positive ones). The subtraction form is unbiased and additive across windows.
+**Why not clamp?** The naive formula `sum max(0, P(t) - P_idle) * dt` introduces **upward bias** in noisy conditions (drops negative deviations, keeps positive ones). The subtraction form is unbiased and additive across windows.
 
 **Diagnostic metric:** We optionally report `E_operational_clamped` as a non-negative sanity check, but it is not the primary energy metric.
 
@@ -430,10 +430,10 @@ The following invariants are **guaranteed by the current V2 implementation**:
 | **Timestamp bracketing** | Event timestamps bracket actual GPU work because we CUDA-sync before/after (`torch.cuda.synchronize()`). |
 | **Energy integration** | Uses trapezoidal rule with irregular `dt_s` from the power trace. |
 | **no_data gating** | Any event with <2 in-window power samples is labeled `energy_quality: "no_data"`. |
-| **Baseline subtraction** | Uses unbiased `E_raw - (P̄_idle × T_event)`, not clamped subtraction. |
+| **Baseline subtraction** | Uses unbiased `E_raw - (P_idle * T_event)`, not clamped subtraction. |
 | **Sample validity (V2)** | Each sample has `read_ok` flag; failed reads are missing. 1.2W is valid if `read_ok=True`. |
 | **Strict scheduling (V2)** | Poller uses `sleep_until(next_tick)` with lateness logging; dropped ticks counted. |
-| **Composite idle check (V2)** | `fake_idle_flag` combines util p95 + clock state changes + power outlier fraction (>2σ). |
+| **Composite idle check (V2)** | `fake_idle_flag` combines util p95 + clock state changes + power outlier fraction (>2sigma). |
 
 To ensure this report is internally consistent and reproducible, we verify the following invariants against the generated artifacts (`PublishReady/data/tr122_v2`):
 
@@ -441,10 +441,9 @@ To ensure this report is internally consistent and reproducible, we verify the f
 - **Baseline Stats:** Mean ~20.7 W, Std ~10.0 W (derived from V2 `baseline.json`).
 - **Energy Quality:** Assessing whether `power_trace` coverage is sufficient for a specific event window.
 - **Sample Quality (Taxonomy):**
-  - **OK (Used):** `read_ok=True`. Includes both >5W and <5W samples.
-  - **ROBUST (Subset):** `read_ok=True` AND value > 5W. Used for `Mean (Robust)`.
-  - **FLOOR_SUSPECT:** `read_ok=True` BUT value < 5W (likely sensor floor/cached).
-  - **IMPLAUSIBLE:** `read_ok=False` or physically impossible values.
+  - **OK (Used):** `read_ok=True`. Includes all samples in this run.
+  - **FLOOR_SUSPECT (Diagnostic):** `read_ok=True` AND value < 5W. Flagged for review; no robust mean is computed in this run.
+  - **IMPLAUSIBLE:** `read_ok=False` or physically impossible values (excluded by construction in `power_trace.csv`).
 - **Energy Gating Tiers:**
   - **NO_DATA:** < 2 samples.
   - **ESTIMATE:** Gap Fraction < 10% (Analysis-Grade).
@@ -454,9 +453,9 @@ To ensure this report is internally consistent and reproducible, we verify the f
 
 The V2 infrastructure enforces:
 
-- **Scheduling:** `median_dt` must be within 1% of target (100ms ± 1ms).
+- **Scheduling:** `median_dt` must be within 1% of target (100ms +/- 1ms).
 - **Continuity:** `gap_fraction` must be < 1% for valid energy integration.
-- **Sensor Floor:** 1.2W readings (`FLOOR_SUSPECT`) are included in `Mean (All)` but excluded from `Mean (Robust)` to bound bias.
+- **Sensor Floor:** Floor-suspect readings are included in the baseline mean in this run; robust mean is not computed.
 
 **Status:**
 
@@ -476,7 +475,7 @@ File: `power_trace.csv`
 | --- | --- | --- |
 | `t_ns` | int64 | Monotonic timestamp (nanoseconds) |
 | `power_w` | float | Instantaneous power (Watts) |
-| `temp_c` | Float | GPU temperature (°C) |
+| `temp_c` | Float | GPU temperature ( C) |
 | `sm_clock_mhz` | int | SM clock frequency |
 | `mem_clock_mhz` | int | Memory clock frequency |
 | `util_gpu` | Int | GPU Compute Utilization (%) |
@@ -512,15 +511,16 @@ File: `baseline.json`
 
 ```json
 {
-  "idle_watts_mean": 20.709,
-  "idle_watts_std": 9.965,
-  "idle_watts_mean_robust": 24.1,
-  "floor_fraction": 0.15,
+  "idle_watts_mean": 20.70964675767918,
+  "idle_watts_std": 9.965016251128894,
   "idle_temp_c": 39.8259385665529,
   "fake_idle_flag": false,
   "idle_gpu_util_p95": 0,
   "idle_watts_min": 1.2,
-  "idle_watts_max": 26.424
+  "idle_watts_max": 26.424,
+  "power_outlier_fraction": 0.0,
+  "clock_varied": false,
+  "fake_idle_reasons": ""
 }
 ```
 
@@ -530,7 +530,7 @@ File: `run_metadata.json`
 
 Key fields:
 
-- `schema_version`: 1 (for future compatibility)
+- `schema_version`: 2 (for future compatibility)
 - `run_state`: `"completed"` | `"aborted"` | `"timeout"` (what happened)
 - `end_reason`: `"equilibrium"` | `"thermal_trip"` | `"poller_degraded"` | `"timeout"` (why it ended)
 - `poller`: Contains `median_dt_ms`, `p95_dt_ms`, `max_gap_ms`, `gap_count`, `quality`
@@ -555,54 +555,42 @@ If `E_baseline` is wrong, every downstream conclusion is wrong. Yet previous rep
 
 1. Ensure no inference workloads are running.
 2. Wait for GPU to reach idle state (utilization < 5%).
-3. Poll power, temperature, and utilization for **≥120 seconds** (this run: ~204s, N=2041) with a nominal 100ms target period; record actual sample spacing via `dt_s`.
+3. Poll power, temperature, and utilization for **≥120 seconds** (this run: 120s per config; baseline sample count is not stored in artifacts) with a nominal 100ms target period; record actual sample spacing via `dt_s`.
 4. Compute statistics and flag any anomalies.
 5. Record `fake_idle_flag = true` if GPU utilization p95 > 10%.
 
-Why ~200 seconds? The RTX 4080 has multiple power states (P0, P2, P8) and can take 30-60 seconds to stabilize after activity. A 200-second window ensures we capture at least 140 seconds of true idle after any settling.
+Why 120 seconds? The RTX 4080 has multiple power states (P0, P2, P8) and can take 30-60 seconds to stabilize after activity. A 120-second window captures at least ~60 seconds of steady idle after settling; for noisier environments, extend to 200s.
 
 ### 4.3 Results
 
 | Metric | Value | Interpretation |
 | --- | --- | --- |
 | Idle Power (Mean - All) | **20.71 W** | Unbiased mean of all samples (inc. floor) |
-| Idle Power (Mean - Robust) | **~24.1 W** | Excluding `FLOOR_SUSPECT` values (<5W) |
-| Idle Power (σ, instantaneous) | **9.97 W** | Sample-to-sample variability |
+| Idle Power (sigma, instantaneous) | **9.97 W** | Sample-to-sample variability |
 | Idle Power (Min) | **1.2 W** | `FLOOR_SUSPECT` (read_ok=True, likely cached) |
 | Idle Power (Max) | **26.42 W** | Transient peak |
-| Idle Temperature | **39.8 °C** | Starting thermal state |
+| Idle Temperature | **39.8 C** | Starting thermal state |
 | Fake Idle Flag | **false** | No background GPU activity detected |
 | GPU Utilization (p95) | **0%** | Confirms true idle |
-| Sample Count (total) | **2041** | Total NVML reads during Calibration (~204s) |
-| Sample Count (valid) | **1955** | Reads with read_ok=True (95.8%) |
-| Sample Count (used) | **1955** | Samples used in mean/std
+| Baseline Duration (config) | **120 s** | Calibration window length |
+| Nominal Sample Count | **~1200** | 120s at 100ms target (sample count not stored) |
 
-### 4.6 Baseline Mixture Model Analysis
+**Note:** Baseline calibration does not persist raw samples in artifacts. Poller sample counts (total_reads=2041, read_errors=86, power_trace rows=1955) refer to the full run trace, not the baseline-only window.
+
+### 4.6 Baseline Distribution (Qualitative)
 
 ![Baseline Power Time Series](../data/tr122_v2/figures/fig1_baseline_time_series.png)
-*Figure 1: Baseline Power Time Series. Note the occasional 1.2W floor samples (red) vs the 20W idle state.*
+*Figure 1: Baseline Power Time Series. Occasional 1.2W floor samples appear against the ~20W idle state.*
 
 ![Baseline Power Histogram](../data/tr122_v2/figures/fig2_baseline_histogram.png)
-*Figure 2: Baseline Power Distribution. The bimodal nature (Floor vs Idle) is statistically distinct.*
+*Figure 2: Baseline Power Distribution. The histogram suggests a floor/idle split but does not encode mixture weights.*
 
-The baseline is best modeled as a **mixture distribution**:
+The histogram suggests a bimodal distribution (floor-suspect lows and active idle), but mixture weights are not stored in the artifacts. Treat these figures as qualitative. If you need a robust baseline, rerun with baseline sample capture and compute trimmed or mixture statistics explicitly.
 
-1. **Active Idle Mode (~24.1W):** The dominant state (~85% of samples). Represents true physical idle.
-2. **Floor Mode (~1.2W):** Sensor artifacts or deep sleep states (~15% of samples).
+**Correction Policy (this run):**
 
-**Correction Policy:**
-
-- **Mean (All) = 20.71W:** Unbiased math, but physically diluted.
-- **Mean (Robust) = ~24.1W:** The true cost of "being ready."
-- **Decision:** We use **Mean (Robust)** for billing subtraction to avoid under-counting baseline (and thus over-counting operational energy). This is the conservative, physics-grounded choice.
-
-| Power Range | Interpretation | Frequency |
-| --- | --- | --- |
-| 1-5 W | Sensor floor (read_ok=True but likely cached)* | ~15% of samples |
-| 15-25 W | Light idle (P2) | ~60% of samples |
-| 25-27 W | Transient activity (this run's max: 26.42W) | ~25% of samples |
-
-*Note on sub-5W readings: On laptop NVML, values below ~5W are **sensor-valid (read_ok=True)** but **physically suspicious** (likely representing sensor floor or cached values). We include them in baseline stats but flag via `floor_fraction` for transparency. The 1.2W floor appears in ~15% of idle samples on this platform.
+- **Mean (All) = 20.71W:** Unbiased baseline used for subtraction.
+- **Floor-suspect minima (1.2W):** Flagged as diagnostic; we do not override the mean without a stored baseline trace.
 
 The transient activity comes from:
 
@@ -616,29 +604,29 @@ The transient activity comes from:
 
 | Quantity | Symbol | Value | Meaning |
 | --- | --- | --- | --- |
-| Instantaneous variability | σ_idle | 9.97 W | Sample-to-sample fluctuation |
-| Standard error of mean | SEM_idle | 0.23 W | σ_idle / √N = 9.97 / √1955 |
-| Baseline mean | P̄_idle | 20.71 W | Well-estimated (SEM is tiny) |
+| Instantaneous variability | sigma_idle | 9.97 W | Sample-to-sample fluctuation |
+| Standard error of mean | SEM_est | 0.29 W | sigma_idle / sqrt(N_nominal) = 9.97 / sqrt(1200) |
+| Baseline mean | P_idle | 20.71 W | Well-estimated (SEM_est is small) |
 
 For energy uncertainty over a measurement window T (assuming approximately independent samples at dt = 0.1s):
 
 ```text
-σ_E_idle(T) ≈ σ_idle × √(T × dt)
+sigma_E_idle(T) approx sigma_idle * sqrt(T * dt)
 ```
 
-**Note on dt:** This approximation assumes an effective sampling interval `dt` similar to the calibration configuration. If the poller is bursty (as noted in §9.1), use `dt_eff = median(dt_samples)` or compute σ_E empirically via sliding-window integration over the baseline trace.
+**Note on dt:** This approximation assumes an effective sampling interval `dt` similar to the calibration configuration. If the poller is bursty (as noted in Section 9.1), use `dt_eff = median(dt_samples)` or compute sigma_E empirically via sliding-window integration over the baseline trace.
 
-Example calculations with σ_idle = 9.97W, dt = 0.1s:
+Example calculations with sigma_idle = 9.97W, dt = 0.1s:
 
-| Event Duration (T) | Energy Uncertainty σ_E_idle | Notes |
+| Event Duration (T) | Energy Uncertainty sigma_E_idle | Notes |
 | --- | --- | --- |
-| 100ms | ±1.00 J | √(0.1 × 0.1) = 0.1 |
-| 1s | ±3.15 J | √(1.0 × 0.1) = 0.316 |
-| 10s | ±9.97 J | √(10 × 0.1) = 1.0 |
+| 100ms | ~1.00 J | sqrt(0.1 * 0.1) = 0.1 |
+| 1s | ~3.15 J | sqrt(1.0 * 0.1) = 0.316 |
+| 10s | ~9.97 J | sqrt(10 * 0.1) = 1.0 |
 
-**Key insight:** Energy uncertainty scales with √T, not T. Short events have higher *relative* uncertainty, but the absolute error grows sublinearly.
+**Key insight:** Energy uncertainty scales with sqrt(T), not T. Short events have higher *relative* uncertainty, but the absolute error grows sublinearly.
 
-**Clarification on σ_idle:** The observed standard deviation (`9.97W`) captures the **total variance** of the system, including P-state transitions, Windows compositor bursts, and sensor noise. It is an upper bound on measurement error.
+**Clarification on sigma_idle:** The observed standard deviation (`9.97W`) captures the **total variance** of the system, including P-state transitions, Windows compositor bursts, and sensor noise. It is an upper bound on measurement error.
 
 **Statistical Note:** The SEM calculation assumes independent samples. Since power readings on Windows exhibit autocorrelation (bursts), the effective sample size ($N_{eff}$) is smaller than $N$, making the true uncertainty slightly higher. We report the standard SEM as a baseline lower bound.
 
@@ -650,7 +638,7 @@ The baseline is valid if:
 - Utilization p95 < 10% ✅
 - `power_outlier_fraction` is acceptable (captures burstiness) ✅
 
-All checks passed. This baseline (P̄_idle = 20.71W, σ_idle_observed = 9.97W) is approved for subtraction.
+All checks passed. This baseline (P_idle = 20.71W, sigma_idle_observed = 9.97W) is approved for subtraction.
 
 ---
 
@@ -708,14 +696,14 @@ Power ^
 ```
 
 - **Segment A:** Idle baseline (~20W expected)
-- **Segment B:** GPU load (4096×4096 FP32 matmul loop, ~100-150W expected)
+- **Segment B:** GPU load (4096*4096 FP32 matmul loop, ~100-150W expected)
 - **Segment C:** Return to idle
 
 **Pass criteria:** `mean(B) - mean(A) > 10W` and rise time < 300ms.
 
 ### 5.4 Why This Matters for TR122
 
-**The instrument response test is a *validation* test, not a *prerequisite* for the other experiments.** The V2 poller achieved strict scheduling (§9.1), the baseline calibration succeeded (§4.6), and the heat soak test completed (§8.4). The lack of an empirical square-wave test means we cannot claim **sensor responsiveness** in this specific report, but we can claim **infrastructure validity**.
+**The instrument response test is a *validation* test, not a *prerequisite* for the other experiments.** The V2 poller achieved strict scheduling (Section 9.1), the baseline calibration succeeded (Section 4.6), and the heat soak test completed (Section 8.4). The lack of an empirical square-wave test means we cannot claim **sensor responsiveness** in this specific report, but we can claim **infrastructure validity**.
 
 ### 5.5 TR122.A Commitment
 
@@ -757,8 +745,8 @@ Understanding this limit is critical for:
 
 Goal: Create fragmentation and observe allocator behavior.
 
-1. Allocate 100 × 4MiB tensors (400 MiB total).
-2. Free every other tensor (creating 50 × 4MiB "holes").
+1. Allocate 100 * 4MiB tensors (400 MiB total).
+2. Free every other tensor (creating 50 * 4MiB "holes").
 3. Attempt to allocate a single 8MiB tensor (should fit in 2 adjacent holes if coalesced).
 4. Measure fragmentation ratio: `inactive_split / reserved`.
 
@@ -811,7 +799,7 @@ Fragmentation occurs when:
 The Allocator Torture Test showed 0% fragmentation because:
 
 1. **PyTorch's caching allocator is smart.** It coalesces adjacent free blocks automatically.
-2. **The allocation pattern was simple.** 50 × 4MiB holes + 1 × 8MiB request = trivial for the allocator.
+2. **The allocation pattern was simple.** 50 * 4MiB holes + 1 * 8MiB request = trivial for the allocator.
 3. **Total allocation was small.** 400 MiB << 12 GB VRAM means plenty of headroom.
 
 **To stress the allocator, we would need:**
@@ -822,7 +810,7 @@ The Allocator Torture Test showed 0% fragmentation because:
 
 ### 6.7 Why We Didn't Hit OOM
 
-GPT-2-XL has a 1024-token architectural limit (`max_position_embeddings`). In this run, the measured peak VRAM usage (NVML `vram_used_mb`) was **~4.2 GB** (see §6.4). Therefore, the test reached the model's architectural limit **before** stressing VRAM on this hardware/configuration.
+GPT-2-XL has a 1024-token architectural limit (`max_position_embeddings`). In this run, the measured peak VRAM usage (NVML `vram_used_mb`) was **~4.2 GB** (see Section 6.4). Therefore, the test reached the model's architectural limit **before** stressing VRAM on this hardware/configuration.
 
 **Note:** Exact VRAM composition (weights vs KV vs activations) depends on dtype/offload/config. TR122 v1 reports the measured peak and defers component-level accounting to a follow-up that records dtype + allocator stats explicitly.
 
@@ -856,7 +844,7 @@ In theory, larger batches amortize fixed costs (model loading, kernel launch, me
 
 **Why this matters for production:**
 
-- If batch_size=4 is 2× more efficient than batch_size=1, you should never run batch_size=1 in production.
+- If batch_size=4 is 2* more efficient than batch_size=1, you should never run batch_size=1 in production.
 - If efficiency plateaus at batch_size=8, there's no point buying more VRAM for batch_size=16.
 - If efficiency drops at batch_size=32 (thermal throttling), you've found the danger zone.
 
@@ -880,7 +868,7 @@ In theory, larger batches amortize fixed costs (model loading, kernel launch, me
 For a well-behaved GPU, we expect:
 
 ```
-E(batch) = E_fixed + E_per_token × tokens_in_batch
+E(batch) = E_fixed + E_per_token * tokens_in_batch
 ```
 
 Where:
@@ -917,7 +905,7 @@ This is not a failure—it is an honest documentation of measurement limits.
 | 16 | prefill | < 50 | 0-1 | no_data |
 | 16 | decode | ~600 | 5-6 | gappy |
 
-**Note:** Because the poller is bursty (§9.1), per-event sample counts are not determined by duration alone; short events can still receive 0–1 samples if they fall inside a blocked interval.
+**Note:** Because the poller is bursty (Section 9.1), per-event sample counts are not determined by duration alone; short events can still receive 0–1 samples if they fall inside a blocked interval.
 
 ### 7.5 Why We Got "no_data"
 
@@ -938,14 +926,14 @@ Even without per-event energy, we can observe:
 
 1. **Throughput scaling:** Larger batches do increase tokens/second (measured via timestamps).
 2. **Power level:** During decode phases, power consistently hits 130-145W (observable in trace).
-3. **No throttling:** Temperature stayed below 50°C throughout (no thermal limit).
+3. **No throttling:** Temperature stayed below 50 C throughout (no thermal limit).
 
 ### 7.7 Recommendations for V2
 
 To capture the Joule Curve properly, TR122.B should:
 
 1. **Action:** Use `EnergyMonitor.start()` (V2) or `nvmlDeviceGetTotalEnergyConsumption`.
-2. **Use a larger model:** Llama-3.1-8B has ~10× longer inference times, making events measurable with current polling.
+2. **Use a larger model:** Llama-3.1-8B has ~10* longer inference times, making events measurable with current polling.
 
 3. **Use longer sequences:** Context length 4096 instead of 64 would extend event duration.
 
@@ -959,12 +947,12 @@ The current GPT-2 results prove the harness works; we just need a more demanding
 
 Every benchmark that runs for minutes (not hours) faces a hidden enemy: **thermal transients**.
 
-When a GPU starts cold (40°C), it can boost to maximum frequency. As it heats up:
+When a GPU starts cold (40 C), it can boost to maximum frequency. As it heats up:
 
 1. Boost clocks reduce (thermal throttling)
 2. Power efficiency changes (hotter silicon = more leakage)
 3. Fan noise increases (affecting user experience metrics)
-4. Eventually, a thermal ceiling is reached (83°C on this hardware)
+4. Eventually, a thermal ceiling is reached (83 C on this hardware)
 
 A benchmark that runs for 5 minutes might capture entirely different performance than the "warmed up" steady-state. The Heat Soak experiment answers: **How long until we reach thermal equilibrium?**
 
@@ -975,9 +963,9 @@ A benchmark that runs for 5 minutes might capture entirely different performance
 3. Record temperature at each inference (via NVML).
 4. Compute a rolling 5-minute temperature derivative (dT/dt).
 5. Stop when any of:
-    - `|dT/dt| < 0.5°C/min` → EQUILIBRIUM REACHED
+    - `|dT/dt| < 0.5 C/min` → EQUILIBRIUM REACHED
     - Duration > 30 minutes → TIMEOUT
-    - Temperature > 83°C → THERMAL SAFETY ABORT
+    - Temperature > 83 C → THERMAL SAFETY ABORT
 
 ### 8.3 Thermal Physics
 
@@ -991,7 +979,7 @@ Where:
 
 - `P_dissipated` = GPU power consumption (Watts)
 - `P_cooling` = Heat removed by cooling system (function of fan speed, ambient temp, heatsink area)
-- `C_thermal` = Thermal capacitance of GPU + heatsink assembly (Joules/°C)
+- `C_thermal` = Thermal capacitance of GPU + heatsink assembly (Joules/ C)
 
 At equilibrium: `P_dissipated = P_cooling`, so `dT/dt → 0`.
 
@@ -999,18 +987,18 @@ At equilibrium: `P_dissipated = P_cooling`, so `dT/dt → 0`.
 
 | Metric | Value |
 | --- | --- |
-| Starting Temperature | 42.0 °C |
-| Final Temperature | ~48 °C |
+| Starting Temperature | 42.0  C |
+| Final Temperature | ~48  C |
 | Run Duration | ~5 minutes |
 | End State | **EQUILIBRIUM** |
-| End Reason | dT/dt < 0.5°C/min |
-| Maximum dT/dt Observed | 1.2°C/min (first minute) |
+| End Reason | dT/dt < 0.5 C/min |
+| Maximum dT/dt Observed | 1.2 C/min (first minute) |
 | Thermal Safety Triggered | No |
 | Throttling Detected | No |
 
 ### 8.5 Thermal Timeline
 
-| Time (min) | Temperature (°C) | dT/dt (°C/min) | Phase |
+| Time (min) | Temperature ( C) | dT/dt ( C/min) | Phase |
 | --- | --- | --- | --- |
 | 0 | 42.0 | — | Start |
 | 1 | 42.1 | +2.3 | Initial rise |
@@ -1021,21 +1009,21 @@ At equilibrium: `P_dissipated = P_cooling`, so `dT/dt → 0`.
 *(Values are illustrative approximations from the rolling trace; see Figure 3 for exact data.)*
 
 ![Heat Soak Profile](../data/tr122_v2/figures/fig3_heat_soak.png)
-*Figure 3: Heat Soak Thermal Profile. The top orange line shows Temperature (°C); the gray line shows the rolling slope (°C/min). Stability is reached when slope stays below 0.5 (red dashed line).*
+*Figure 3: Heat Soak Thermal Profile. The top orange line shows Temperature ( C); the gray line shows the rolling slope ( C/min). Stability is reached when slope stays below 0.5 (red dashed line).*
 
 ### 8.6 Interpretation
 
 The system reached thermal equilibrium in **~5 minutes** because:
 
-1. **This workload did not drive the system near thermal limits.** The trace shows a small absolute temperature plateau (~48°C) with no detected throttling.
-2. **The chassis cooling comfortably handled the sustained workload** (as evidenced by dT/dt dropping below 0.5°C/min within the rolling window).
-3. **The total thermal rise was modest** (ΔT ≈ 6°C from start to equilibrium), so the system stabilized quickly.
+1. **This workload did not drive the system near thermal limits.** The trace shows a small absolute temperature plateau (~48 C) with no detected throttling.
+2. **The chassis cooling comfortably handled the sustained workload** (as evidenced by dT/dt dropping below 0.5 C/min within the rolling window).
+3. **The total thermal rise was modest** (Delta T approx 6 C from start to equilibrium), so the system stabilized quickly.
 
 **Margin Rule Requirement (For Production):**
-This run passed with 0.494°C/min against a 0.5°C/min threshold. For future "Publish-Grade" runs (TR122.A), we require:
+This run passed with 0.494 C/min against a 0.5 C/min threshold. For future "Publish-Grade" runs (TR122.A), we require:
 
-- `slope < 0.5°C/min` for **two consecutive** windows, OR
-- `slope < 0.4°C/min` for a sinlge window.
+- `slope < 0.5 C/min` for **two consecutive** windows, OR
+- `slope < 0.4 C/min` for a sinlge window.
 This ensures valid equilibrium even with noisy sensor readings.
 
 ### 8.7 What This Means for Benchmarking
@@ -1065,7 +1053,7 @@ Laptop GPUs:
 
 - Share a constrained thermal solution with the CPU
 - Have variable fan speeds that rise with temperature (adding noise)
-- May throttle as early as 75-80°C in some chassis
+- May throttle as early as 75-80 C in some chassis
 - Reach full thermal equilibrium in 10-20 minutes under heavy load
 
 The RTX 4080 Laptop in this test is well-cooled (gaming laptop chassis), but edge deployment scenarios (thin ultrabooks) would be worse.
@@ -1132,7 +1120,7 @@ This gap is a startup artifact and does not affect the quality of the main physi
 | Response Test | N/A (test failed) | Init errors (86 reads) | Invalid | TR122.A required |
 | VRAM Cliff | 1024 tok limit | 0% fragmentation | Limited | Architectural limit, not capacity |
 | Joule Curve | polling-limited | prefill: no_data, decode: gappy | Limited | Events too fast for 100ms poller |
-| Heat Soak | equilibrium | slope=0.494°C/min at 48°C | Valid | No thermal stress from GPT-2 |
+| Heat Soak | equilibrium | slope=0.494 C/min at 48 C | Valid | No thermal stress from GPT-2 |
 
 ### 9.4 Energy Measurement Validity Matrix
 
@@ -1144,27 +1132,27 @@ This gap is a startup artifact and does not affect the quality of the main physi
 
 ### 9.5 Uncertainty Propagation
 
-For operational energy calculation (see §4.5 for derivation):
+For operational energy calculation (see Section 4.5 for derivation):
 
 ```text
-E_operational = E_raw - (P̄_idle × T_event)
-σ_E_idle(T) ≈ σ_idle × √(T × dt)  [assuming independent samples]
+E_operational = E_raw - (P_idle * T_event)
+sigma_E_idle(T) approx sigma_idle * sqrt(T * dt)  [assuming independent samples]
 ```
 
-With σ_idle = 9.97W and dt = 0.1s:
+With sigma_idle = 9.97W and dt = 0.1s:
 
-| Event Duration (T) | Energy Uncertainty σ_E_idle | Notes |
+| Event Duration (T) | Energy Uncertainty sigma_E_idle | Notes |
 | --- | --- | --- |
-| 100ms | ±1.00 J | √ (0.1 × 0.1) = 0.1 |
-| 1s | ±3.15 J | √(1.0 × 0.1) = 0.316 |
-| 10s | ±9.97 J | √(10 × 0.1) = 1.0 |
+| 100ms | +/-1.00 J | sqrt (0.1 * 0.1) = 0.1 |
+| 1s | +/-3.15 J | sqrt(1.0 * 0.1) = 0.316 |
+| 10s | +/-9.97 J | sqrt(10 * 0.1) = 1.0 |
 
 **Reviewer Note on Independence:** The above table assumes independent samples. Real power traces exhibit autocorrelation, meaning the **effective sample size (N_eff)** is lower than the raw count N.
 
-- `SEM_eff = σ / √N_eff` where `N_eff = N × (1-r)/(1+r)` (lag-1 autocorrelation) or computed via block bootstrapping.
-- Future artifacts will include `N_eff` explicitly. For this report, we accept `SEM_naive` as a baseline lower bound.
+- `SEM_eff = sigma / sqrt(N_eff)` where `N_eff = N * (1-r)/(1+r)` (lag-1 autocorrelation) or computed via block bootstrapping.
+- Future artifacts will include `N_eff` explicitly. For this report, we accept `SEM_est (naive independence)` as a baseline lower bound.
 
-**Key insight:** Energy uncertainty scales with √T, not T. For per-event energy to be meaningful:
+**Key insight:** Energy uncertainty scales with sqrt(T), not T. For per-event energy to be meaningful:
 
 1. Events must be long enough that `SEM_eff_E_idle << E_operational`, OR
 2. Use hardware energy counters (which avoid polling entirely).
@@ -1204,11 +1192,11 @@ TR122 replaces assumptions with measurements. That is the value of this report.
 2. **Use `EnergyMonitor`** from `banterhearts/monitoring/energy.py` for all energy measurements.
 3. **Check `fake_idle_flag`** before trusting baseline. If true, investigate background processes.
 4. **Check `poller.quality`** before trusting event-level energy. If degraded, only trust aggregate energy.
-5. **Handle Floor Readings:** Publish `mean_all` (unbiased) but track `floor_fraction` as a diagnostic to detect sensor caching.
+5. **Handle Floor Readings:** Publish `mean_all` (unbiased) but track `floor-suspect rate` as a diagnostic to detect sensor caching.
 
 ### 10.2 What to Never Do
 
-1. **Do not assume idle power.** It varies by hardware, driver, and power profile. (20.71W ± 9.97W on this platform.)
+1. **Do not assume idle power.** It varies by hardware, driver, and power profile. (20.71W +/- 9.97W on this platform.)
 2. **Do not report event energy without checking `energy_quality`.** Honest uncertainty is better than false precision.
 3. **Do not run long benchmarks without Heat Soak validation.** Thermal transients contaminate measurements.
 4. **Do not bill events shorter than 300ms with a 100ms poller.** Expect `energy_quality: no_data` or `interpolated`.
@@ -1264,7 +1252,7 @@ The "degraded" continuity consistency in this run (single gap) was caused by sto
 | Guarantee | Description | status |
 | --- | --- | --- |
 | **Grid Adherence** | Samples will be spaced at 100ms intervals (median dt=100ms). | ✅ |
-| **Idle Baselines** | Energy is net of a rigorously measured baseline (N>1900 samples). | ✅ |
+| **Idle Baselines** | Energy is net of a rigorously measured baseline (~120s at 100ms; sample count not stored). | ✅ |
 | **Event Alignment** | Events < 200ms are flagged as `no_data` or `gappy`; no false precision. | ✅ |
 | **Continuity Check** | Gaps > 500ms trigger a "degraded" quality flag. | ✅ |
 | **Thermal Equilibrium** | 5-minute stability check is enforced before claiming steady state. | ✅ |
@@ -1281,7 +1269,7 @@ The "degraded" continuity consistency in this run (single gap) was caused by sto
 All tests used GPT-2 variants (124M to 1.5B parameters). These models:
 
 - Complete inference in milliseconds (too fast for event-level attribution with nominal 100ms power polling)
-- Do not thermally stress this chassis in the tested configuration (equilibrium at ~48°C; no throttling detected)
+- Do not thermally stress this chassis in the tested configuration (equilibrium at ~48 C; no throttling detected)
 - Fit comfortably in 12GB VRAM
 
 **Result:** The infrastructure is validated, but not stressed. We know the harness works, but we don't know its limits.
@@ -1313,7 +1301,7 @@ Only tested on RTX 4080 Laptop GPU. Other hardware differs in:
 
 | Hardware | Expected Difference |
 | --- | --- |
-| RTX 4090 (Desktop) | 2× TDP, faster equilibrium, no throttling |
+| RTX 4090 (Desktop) | 2* TDP, faster equilibrium, no throttling |
 | RTX 3080 Ti (Ampere) | Different power curve, higher baseline |
 | A100/H100 (Datacenter) | Much higher TDP, active cooling, different driver behavior |
 | Apple M-series | No NVML, completely different measurement approach |
@@ -1491,7 +1479,7 @@ To ensure 100% reproducibility, V2.3 runs capture:
 | Instrument Response | ❌ FAIL (init errors) | Delta | N/A (TR122.A) |
 | VRAM Cliff | ✅ PASS (Architecture-Limited) | Max Context | 1024 tok |
 | Joule Curve | ⚠️ LIMITED | Energy Quality | polling-limited (prefill: no_data; decode: gappy) |
-| Heat Soak | ✅ PASS | End State | equilibrium (slope=0.494°C/min) |
+| Heat Soak | ✅ PASS | End State | equilibrium (slope=0.494 C/min) |
 
 ### A.2 Poller Statistics
 
@@ -1577,7 +1565,7 @@ tests:
 | **Operational Energy** | Energy consumed above baseline; the "cost of intelligence." |
 | **Gap** | A period where sensor polling interval exceeded threshold (>250ms). |
 | **Gappy** | An event where >10% of duration had sensor gaps; energy is unreliable. |
-| **Thermal Equilibrium** | State where dT/dt < 0.5°C/min (temperature has stabilized). |
+| **Thermal Equilibrium** | State where dT/dt < 0.5 C/min (temperature has stabilized). |
 | **VRAM Cliff** | The context length at which VRAM is exhausted and OOM occurs. |
 | **Joule Curve** | The relationship between batch size and energy-per-token. |
 | **Heat Soak** | Extended run to reach thermal equilibrium before measurement. |
