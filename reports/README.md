@@ -98,6 +98,18 @@ This directory contains the complete research journey documenting LLM performanc
 - **TR121:** ✅ **Model scaling study pipeline** (pipeline-complete scaffold)
 - **TR121v1:** ✅ **Comprehensive scaling analysis** (1,231 lines, three regimes, mechanistic insights, capacity planning)
 
+### Phase 12: Physics of Inference (TR122)
+
+**Objective:** Establish fundamental physical constraints of LLM execution on consumer hardware
+
+- **TR122:** ✅ **Foundational characterization study** (70KB, baseline power calibration, poller scheduling, thermal equilibrium)
+
+### Phase 12.5: Conclusive Analysis (TR117-122)
+
+**Objective:** Synthesize findings across the full TR117-TR122 research arc
+
+- **Conclusive 117-122:** ✅ **Comprehensive synthesis** (208KB main report + 89KB extended appendices + 8KB whitepaper)
+
 ---
 
 ## 📋 Technical Reports Index
@@ -124,6 +136,8 @@ This directory contains the complete research journey documenting LLM performanc
 | **TR120** | Compile Paradox Root-Cause Audit | ✅ Complete | Controlled reproduction, shape stability insights, production guidance |
 | **TR121** | Model Scaling Study Pipeline | ✅ Complete | Pipeline infrastructure, decode sweep, boundary shift experiments |
 | **TR121v1** | Comprehensive Scaling Analysis | ✅ Complete | Three regimes, mechanistic insights, capacity planning (1,231 lines) |
+| **TR122** | The Physics of Inference | ✅ Complete | Baseline power (20.71W), V2 strict poller, thermal equilibrium (70KB) |
+| **Conclusive 117-122** | Synthesis Whitepaper | ✅ Complete | Full research arc synthesis (208KB + appendices) |
 
 ### 📚 **Historical Reports (Superseded)**
 
@@ -481,6 +495,37 @@ This directory contains the complete research journey documenting LLM performanc
   - Architecture correlation analysis: Spearman correlations for depth/width/params
 - **Status:** ✅ Complete (1,231 lines, publish-ready)
 
+### **TR122: The Physics of Inference**
+
+**File:** `Technical_Report_122.md`
+
+- **Focus:** Foundational characterization of physical costs and constraints of LLM inference on consumer hardware
+- **Data:** Run 20251225_190610, 2,041 poller samples (1,955 valid)
+- **Key Findings:**
+  - **Baseline power:** RTX 4080 Laptop GPU idles at mean 20.71W (σ=9.97W)
+  - **Poller scheduling:** V2 strict scheduler achieves 100ms grid adherence (median dt=100.00ms)
+  - **Thermal equilibrium:** Small models (GPT-2) reach equilibrium at 48°C (slope < 0.5°C/min)
+  - **Phase segmentation:** Prefill/decode segmentation validated at event level
+  - **Measurement limits:** Event-level energy attribution requires faster polling or hardware counters
+- **Experiments:**
+  1. Baseline Calibration
+  2. Instrument Response Test
+  3. VRAM / Context Limits (Architecture-Limited)
+  4. Joule Curve
+  5. Heat Soak
+- **Infrastructure:** V2.0 (strict scheduling, read_ok validation, composite idle detection)
+- **Status:** ✅ Complete (70KB, artifact-backed, publish-ready)
+
+### **Conclusive 117-122: Research Arc Synthesis**
+
+**Files:**
+- `Technical_Report_Conclusive_117-122.md` (208KB)
+- `Technical_Report_Conclusive_117-122_Extended_Appendices.md` (89KB)
+- `Technical_Report_Conclusive_117-122_Whitepaper.md` (8KB)
+
+- **Focus:** Synthesize findings across the full TR117-TR122 research arc
+- **Status:** ✅ Complete (publish-ready)
+
 ---
 
 ## 🎓 Research Evolution & Key Insights
@@ -640,7 +685,11 @@ PublishReady/reports/
 │   ├── Technical_Report_119v1.md - Cost & energy deep dive (comprehensive)
 │   ├── Technical_Report_120.md - Compile paradox root-cause audit
 │   ├── Technical_Report_121.md - Model scaling study pipeline (superseded)
-│   └── Technical_Report_121v1.md - Comprehensive scaling analysis
+│   ├── Technical_Report_121v1.md - Comprehensive scaling analysis
+│   ├── Technical_Report_122.md - The physics of inference
+│   ├── Technical_Report_Conclusive_117-122.md - Full synthesis (208KB)
+│   ├── Technical_Report_Conclusive_117-122_Extended_Appendices.md - Extended appendices
+│   └── Technical_Report_Conclusive_117-122_Whitepaper.md - Whitepaper summary
 │
 ├── 📚 Historical Reports (Superseded)
 │   ├── Technical_Report_111.md - Initial Rust (micro-benchmark)
@@ -684,6 +733,8 @@ TR114_v2 (Dual Ollama)            TR115_v2 (Runtime Optimization)
 - TR117 → TR119 → TR119v1 (cost/energy analysis)
 - TR117 → TR120 (compile paradox investigation)
 - TR117/TR118/TR120 → TR121 → TR121v1 (scaling study)
+- TR117/TR119/TR121 → TR122 (physics of inference)
+- TR117-TR122 → Conclusive 117-122 (synthesis whitepaper)
 
 ---
 
@@ -771,7 +822,8 @@ All reports include:
 - TR118v2.2: 360 runs
 - TR120: 546+ runs
 - TR121v1: 684+ runs (primary) + decode sweep + boundary shifts
-- **Total: 6,000+ benchmark runs** across all reports
+- TR122: 2,041 poller samples (1,955 valid)
+- **Total: 8,000+ benchmark runs and samples** across all reports
 
 ---
 
@@ -792,6 +844,8 @@ All reports include:
 11. Analyze **TR119v1** (cost & energy deep dive)
 12. Investigate **TR120** (compile paradox root-cause)
 13. Explore **TR121v1** (comprehensive scaling analysis)
+14. Study **TR122** (physics of inference, hardware characterization)
+15. Review **Conclusive 117-122** (full synthesis)
 
 ### **For Engineers**
 
@@ -804,7 +858,8 @@ All reports include:
 7. **Cost Optimization:** Read **TR119v1** for cost/energy analysis
 8. **Compile Behavior:** Read **TR120** for torch.compile() guidance
 9. **Scaling Planning:** Read **TR121v1** for capacity planning and model selection
-10. **Configuration:** Use best configs from TR111_v2 (single) and TR114_v2 (multi)
+10. **Hardware Profiling:** Read **TR122** for power/thermal baselines and measurement infrastructure
+11. **Configuration:** Use best configs from TR111_v2 (single) and TR114_v2 (multi)
 
 ### **For Decision Makers**
 
@@ -813,7 +868,9 @@ All reports include:
 3. **Cost Analysis:** Review break-even analysis in TR112_v2, cost projections in TR119v1, capacity planning in TR121v1
 4. **Backend Selection:** Review TR117, TR118v2.2 for production backend recommendations
 5. **Scaling Strategy:** Review TR121v1 for model size selection and capacity planning
-6. **Recommendations:** See "Production Recommendations" in this README
+6. **Hardware Constraints:** Review TR122 for power/thermal baselines
+7. **Full Synthesis:** Review Conclusive 117-122 for the complete research narrative
+8. **Recommendations:** See "Production Recommendations" in this README
 
 ---
 
@@ -825,8 +882,8 @@ All reports include:
 
 ---
 
-**Last Updated:** 2025-12-24  
-**Repository:** Chimeraforge (Research)  
-**Maintainer:** Chimeraforge Research Team  
-**Total Reports:** 22+ (19+ production-ready, 5+ historical)  
-**Total Benchmark Runs:** 6,000+ across all reports
+**Last Updated:** 2026-02-15
+**Repository:** Chimeraforge (Research)
+**Maintainer:** Chimeraforge Research Team
+**Total Reports:** 25+ (22+ production-ready, 5+ historical)
+**Total Benchmark Runs:** 8,000+ runs and samples across all reports
