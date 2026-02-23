@@ -419,7 +419,7 @@ This section summarizes observed performance, telemetry, and derived cost/energy
 - Under time-based pricing, higher throughput almost always implies lower $/token; power differences matter most when power varies dramatically at similar throughput.
 - **torch.compile draws significantly more power** (82–119 W decode vs 47–67 W vanilla GPU) but this is more than offset by its 1.2–2.5x throughput improvement.
 - CPU backends draw only 2.7–3.5 W (GPU idle power) but their throughput is so low that total energy per token is comparable to GPU backends.
-- No thermal throttling observed (all temps < 64°C, well below 80°C threshold).
+- No thermal throttling observed (all temps < 72°C, well below 80°C threshold).
 - Treat CPU backends as fallbacks unless GPU is unavailable; the gap in throughput and cost per token is large.
 
 ### 5.2 Latency, Throughput, and Telemetry (Per Backend/Scenario)
@@ -600,7 +600,7 @@ Decode is the production-realistic KV-cached token generation phase. Every step 
 
 ### Validation & Sanity Checks
 
-- Validation status: **PASS**
+- Validation status: **PASS with warnings** (13 IQR outlier flags; no completeness/timing failures)
 - 420/420 measurements OK (0 errors in final merged dataset)
 - 105 skipped (intentional backend_skip for infeasible combos)
 - Timing sanity: prefill_ms + decode_ms ≈ total_ms (within 5% for all rows)
@@ -637,13 +637,13 @@ Per-group coefficient of variation (CV = std/mean × 100%) across 7 repetitions:
 
 | CV Range | Groups | Interpretation |
 |----------|--------|---------------|
-| < 1% | 18/60 (30%) | Excellent reproducibility |
-| 1–3% | 26/60 (43%) | Good — typical for GPU benchmarks |
-| 3–5% | 10/60 (17%) | Acceptable — minor thermal/clock variation |
-| 5–10% | 6/60 (10%) | Moderate — investigate if critical |
+| < 1% | 19/60 (32%) | Excellent reproducibility |
+| 1–3% | 28/60 (47%) | Good — typical for GPU benchmarks |
+| 3–5% | 9/60 (15%) | Acceptable — minor thermal/clock variation |
+| 5–10% | 4/60 (7%) | Moderate — investigate if critical |
 | > 10% | 0/60 (0%) | None — no unstable measurements |
 
-**Worst stability:** Phi-2/GPU on `long_context` (CV=9.02%, max/min ratio=1.27). This single outlier is attributable to dynamic GPU clock scaling under sustained load on the laptop GPU. All other groups have CV < 8.2%.
+**Worst stability:** Phi-2/GPU on `long_context` (CV=9.02%, max/min ratio=1.27). This single outlier is attributable to dynamic GPU clock scaling under sustained load on the laptop GPU. All other groups have CV <= 8.2%.
 
 **Conclusion:** Measurement variance is well-controlled. No group exceeds 10% CV, and 90% of groups are below 5% CV. The 7-rep design provides sufficient statistical power for the analyses in §7.
 
@@ -1199,7 +1199,7 @@ The following invariants were verified across all 420 measurements:
 | Prefill monotonicity | More prompt tokens → longer prefill | **PASS** (all backends) |
 | Decode monotonicity | More gen tokens → longer decode | **PASS** (all backends) |
 | KV formula accuracy | Theoretical = empirical | **PASS** (30/30 exact) |
-| No thermal throttling | GPU temp < 80°C | **PASS** (max 63.5°C) |
+| No thermal throttling | GPU temp < 80°C | **PASS** (max 71°C) |
 | No clock degradation | GPU clock stable | **PASS** (0/420 degraded) |
 | Warmup effectiveness | Rep=0 within 11% of reps 1–6 | **PASS** (worst ratio: 1.104) |
 
@@ -1233,7 +1233,7 @@ TR123 (KV-cache production economics) ← this report
 1. **Separate prefill and decode in cost models.** They have different cost structures (10–100x gap per token). A single "tokens/second" metric hides this.
 2. **Use KV-cached generation.** `use_cache=True` is 2x+ faster than uncached for decode. There is no legitimate reason to use `use_cache=False` in production.
 3. **Warm up models before serving traffic.** Run 2–5 throwaway inferences after loading. Without warmup, first-request latency can be 10% higher (§5.7).
-4. **Monitor GPU temperature under sustained load.** Our laptop GPU stayed below 64°C, but tower GPUs with restricted airflow may throttle at 80°C+.
+4. **Monitor GPU temperature under sustained load.** Our laptop GPU stayed below 71°C, but tower GPUs with restricted airflow may throttle at 80°C+.
 5. **Choose pricing tier before choosing backend.** Consumer vs cloud (95% savings) is a bigger lever than GPU vs compile (48% savings).
 
 ### 13.2 What to Never Do
