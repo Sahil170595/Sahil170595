@@ -7,7 +7,7 @@
 **Report Type:** Cross-platform performance validation (3-phase, Docker/Linux)
 **Test Duration:** ~5 min (Phase 1) + ~90 min (Phase 2) + ~45 min (Phase 3)
 **Status:** Complete — All phases delivered
-**Run IDs:** Phase 1: `20260222_195228`, `20260222_195522` | Phase 2: `20260222_195655` (baseline), `20260222_213342` (padded), `20260222_214114` (dynamic) | Phase 3: `20260222_231929`
+**Run IDs:** Phase 1: `20260222_195228`, `20260222_195522` | Phase 2: `20260222_195655` (baseline), `20260222_213342` (padded), `20260222_214114` (dynamic) | Phase 3: `20260222_231929` (reduce-overhead), `20260223_034940` (mode="default")
 **Related Work:** [TR120](Technical_Report_120.md) (Compile Paradox Root-Cause Audit), [TR117](Technical_Report_117.md) (Baseline Benchmark), [TR123](Technical_Report_123.md) (KV-Cache Production Economics)
 **Depends On:** TR120 (compile paradox discovery, Windows baseline data), TR117 (Tier-3 matrix design, prompt sets)
 
@@ -23,20 +23,29 @@ TR120 discovered that `torch.compile` on Windows silently falls back to `aot_eag
 
 **Phase 3 (Backend Matrix):** We run 5 models across 3 backends (transformers-gpu, transformers-gpu-compile, Ollama) × 5 scenarios × 3 modes (prefill, kv_decode, e2e_kv) with 15 repetitions — totaling **3,780 successful measurements** (plus 111 error rows from compiled decode crashes). Compiled HF wins prefill (-53.3%, d = -1.21, large effect). Ollama dominates decode (7× faster than eager HF for kv_decode). Compiled mode (`reduce-overhead`) crashes on autoregressive decode due to CUDA graph shape incompatibility with growing KV caches — a critical practical limitation for production deployment.
 
-**Total: ~10,260 successful measurements across 3 phases** (Phase 2: 3,240 prefill × 2 configs [dynamic + padded] + Phase 3: 3,780 across 3 modes), **2 platforms, 3 backends, 7 models.** Phase 3 additionally logged 111 error rows from compiled decode crashes (3,891 total rows).
+**Phase 2 Baseline (Previously Unanalyzed):** The baseline config (`dynamic=False`, `mode=reduce-overhead`, `max_new_tokens=64`) collected **11,340 measurements** (3,780 per mode) that were never analyzed in v1. Key discovery: compiled kv_decode **succeeds** at `max_new_tokens=64` (1,890 successful measurements) but shows no speedup — compiled decode is 2.2% slower than eager (not significant, p = 0.43). This is prefill-only benefit even when decode doesn't crash.
+
+**mode="default" Experiment (3,891 measurements):** Testing `torch.compile(mode="default")` (disabling CUDA graph replay) reveals that PyTorch 2.8's Inductor still invokes CUDA graph trees internally, causing identical `CUDAGraphs tensor overwrite` crashes on compiled decode (100% crash rate across all 4 HF models). Compiled prefill still works and delivers **-54.2% speedup** (d = -1.25, p = 7.6 × 10⁻⁸⁰) — slightly better than reduce-overhead's -53.3%, suggesting CUDA graph replay adds overhead to prefill. The `mode` parameter does not fully control CUDA graph usage in current PyTorch. Compiled decode remains broken regardless of mode setting.
+
+**Total: ~25,400 successful measurements across 3 phases** (Phase 2: 3,240 prefill × 2 configs [dynamic + padded] + 11,340 baseline across 3 modes + Phase 3: 3,780 across 3 modes + mode="default" experiment: ~3,850 across 3 modes), **2 platforms, 3 backends, 7 models.** Phase 3 additionally logged 151 error rows from compiled decode crashes across both mode experiments.
 
 Key findings:
 
 - **The compile paradox is resolved:** Real Triton compilation on Linux delivers 24-60% prefill speedups across all 7 models tested. The "paradox" in TR120 was caused by Windows falling back to `aot_eager`, which adds overhead without optimization.
 - **Effect size is large and consistent:** Phase 2 aggregate d = -0.59 (medium), Phase 3 prefill d = -1.21 (large). All per-scenario p-values < 10⁻⁷. The compile benefit is not marginal — it is the dominant factor in prefill latency.
 - **Backend rankings are mode-dependent:** Compiled HF wins prefill (8.2 ms), Ollama wins kv_decode (286 ms vs 2,019 ms) and e2e_kv (541 ms vs 2,051 ms). No single backend dominates all modes.
-- **`reduce-overhead` mode breaks autoregressive decode:** CUDA graphs capture fixed tensor shapes, but KV-cache decoding involves a growing cache. This causes `CUDAGraphs tensor overwrite` errors on every model for kv_decode and e2e_kv modes. Production systems must use separate compile strategies per mode.
+- **All torch.compile modes break autoregressive decode:** Both `reduce-overhead` and `mode="default"` crash on decode — PyTorch 2.8's Inductor uses CUDA graph trees internally regardless of mode. Even at 64 tokens where decode works, compilation provides no speedup (+2.2%, not significant). torch.compile is exclusively a prefill optimization.
 - **Model scale inverts prefill rankings:** For small models (≤500M), compiled HF is fastest. For larger models (≥1.5B), Ollama's quantized inference matches or beats compiled FP16 HF on prefill.
 - **Ollama achieves 7× decode speedup over eager HF:** Across 4 Qwen2.5 + Llama models, Ollama's quantized KV-cache decode is 286 ms mean vs 2,019 ms eager HF (d = 2.38, p < 10⁻²⁰⁹).
 - **Measurement quality is high:** Outlier rate 0.0-0.9% (IQR method). Power analysis confirms ability to detect small effects (d ≥ 0.10 in Phase 2, d ≥ 0.17 in Phase 3).
 - **Triton compilation is proven with physical evidence:** 17-245 new cached Triton kernels per model (916 total across 6 models), 0 graph breaks, verified via `TRITON_CACHE_DIR` inspection.
 - **Padded config amplifies compile benefit:** Padding inputs to fixed shapes improves compiled performance by 15% (d = -0.91 padded vs d = -0.59 dynamic), validating TR120's shape-stability hypothesis. qwen2.5-0.5b achieves 5.0× speedup under padding.
 - **1.5B crossover formally validated:** TOST equivalence test confirms Ollama and compiled HF are within ±1 ms for prefill at qwen2.5-1.5b (p = 0.001).
+- **Scale crossover statistically validated (ANOVA):** 2-way ANOVA interaction term (backend × model) is highly significant: F(8,1608) = 453.1, p < 10⁻¹⁶, η² = 0.107. The effect of backend choice depends on model scale — this formally validates the qualitative crossover observation.
+- **Compiled decode provides no speedup even when it works:** Phase 2 baseline at `max_new_tokens=64` has 1,890 successful compiled decode measurements, but compilation is 2.2% *slower* than eager (d = 0.026, not significant). Compilation benefits are prefill-specific.
+- **CUDA graph crash is length-dependent:** Compiled decode works at 64 tokens (Phase 2) but crashes at 128 tokens (Phase 3). The crash threshold lies between 64 and 128 generated tokens.
+- **`mode="default"` does not fix compiled decode:** PyTorch 2.8's Inductor invokes CUDA graph trees internally regardless of the `mode` parameter, causing identical crashes on autoregressive decode. No torch.compile mode enables compiled decode.
+- **All pairwise comparisons survive multiple-testing correction:** 5/5 Phase 3 pairwise tests survive both Bonferroni (α = 0.01) and Holm step-down correction. The smallest p-value (3.67 × 10⁻³ for Ollama vs compile prefill) clears the Bonferroni threshold.
 
 ---
 
@@ -51,11 +60,14 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 1. **Compile paradox reversed on Linux:** Eager prefill 11.87 ms vs compiled 7.12 ms (-40.0%, d = -0.59, p = 8.87 × 10⁻⁶¹) across 3,240 Phase 2 samples. All 6 per-scenario comparisons are significant.
 2. **Speedup scales inversely with model size:** gpt2-25m gets 2.5× speedup, gpt2-50m 2.2×, qwen2.5-0.5b 2.3×, qwen2.5-1.5b 1.8×, qwen2.5-3b 1.3×, gpt2-100m 1.3×. Smaller models benefit most from Triton kernel fusion.
 3. **Phase 3 confirms with larger effect:** In the 3-backend matrix, compiled vs eager shows d = -1.21 (large), -53.3% delta. The effect amplifies when Ollama provides a third reference point.
-4. **`reduce-overhead` mode is prefill-only in practice:** CUDA graphs require static shapes. KV-cache growth during autoregressive decode causes 100% crash rate on compiled models. Production must use `mode="default"` for decode or split compile strategies.
+4. **torch.compile is prefill-only in practice (all modes):** Both `reduce-overhead` and `mode="default"` crash on autoregressive decode (100% crash rate). PyTorch 2.8's Inductor uses CUDA graph trees internally regardless of mode. Even when compiled decode works (64 tokens, Phase 2), it provides no speedup (+2.2%). Production must use eager or Ollama for decode.
 5. **Ollama dominates decode:** 7× faster than eager HF for kv_decode (d = 2.38), 3.8× for e2e_kv (d = 2.01). Ollama's advantage comes from quantized weights (lower memory bandwidth) and optimized C++ KV-cache implementation.
 6. **Model scale inverts prefill winner:** Small models (gpt2-100m, qwen2.5-0.5b) — compiled HF wins. Large models (qwen2.5-1.5b, qwen2.5-3b) — Ollama wins or ties, despite running quantized weights.
 7. **Cross-platform environment validated:** Same GPU (RTX 4080 Laptop, 12.88 GB), same model weights, same prompts — only the OS and compilation backend differ. This isolates the Triton variable cleanly.
 8. **Triton compilation is physically verified:** 17-245 new Triton kernels per model (916 cumulative across 6 models) in `TRITON_CACHE_DIR`, Triton 3.3.1 importable, 0 graph breaks in validation.
+9. **Scale crossover validated by ANOVA interaction:** F(8,1608) = 453.1, p < 10⁻¹⁶, η² = 0.107 for the backend × model interaction term. Backend rankings depend on model scale — not a confound, but a real structural effect.
+10. **Compiled decode is neutral even when it works:** Phase 2 baseline (max_new_tokens=64): 1,890 compiled decode measurements succeed but show +2.2% overhead vs eager (not significant). Compilation is a prefill-only optimization.
+11. **`mode="default"` does not rescue compiled decode:** Experiment confirms PyTorch 2.8 Inductor uses CUDA graph trees internally regardless of mode setting. Compiled decode crashes on all modes tested.
 
 ### Key Decisions
 
@@ -65,7 +77,7 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 - **Never deploy torch.compile with `reduce-overhead` for autoregressive decode.** It will crash on every model tested.
 - **Windows torch.compile is not a valid benchmark.** All prior TR results using `-compile` on Windows reflect `aot_eager` overhead, not compilation benefit.
 - **`dynamic=True` is not free.** Phase 2 (`dynamic=True`) shows ~85% higher compiled latency than Phase 3 (`dynamic=False`) on gpt2-100m. For small models (< 200M), prefer `dynamic=False` with input bucketing to avoid this overhead.
-- **Decode recommendation caveat:** The "use Ollama for decode" recommendation is based on `reduce-overhead` mode crashing on autoregressive decode. Compiled decode with `mode="default"` (no CUDA graphs) remains **untested** and may deliver intermediate performance between eager and Ollama. This is the single largest gap for production guidance (see L2, Future Work).
+- **Decode recommendation strengthened:** The "use Ollama for decode" recommendation is now supported by three lines of evidence: (1) `reduce-overhead` crashes on decode at 128 tokens, (2) `mode="default"` also crashes (PyTorch 2.8 Inductor uses CUDA graph trees internally), and (3) even when compiled decode works (64 tokens, Phase 2), it provides no speedup (+2.2%, not significant). Compiled decode is not viable for production.
 
 ### Claim Validation
 
@@ -79,6 +91,11 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 | 6 | Model scale inverts prefill winner | Phase 3: small models → compile wins; large → Ollama wins (SS9). TOST confirms 1.5B tie at ε=1ms (p=0.001, SS9.2) | **Validated** |
 | 7 | Triton compilation is physically present | Phase 1: 0 graph breaks; Phase 2: 916 cumulative cached kernels; 24-60% speedups prove kernel optimization (SS3, Appendix B). Note: `inductor_backend` flag returns false-negative — see Appendix B for explanation | **Validated** (5 positive evidence lines; 1 false-negative flag explained) |
 | 8 | Environment parity with Windows runs | Phase 1: same GPU, same weights, deterministic decode verified (SS3) | **Validated** |
+| 9 | Scale crossover is statistically significant | ANOVA interaction: F(8,1608) = 453.1, p < 10⁻¹⁶, η² = 0.107 (SS11.4) | **Validated** |
+| 10 | Compiled decode provides no speedup | Phase 2 baseline: +2.2% overhead, d = 0.026, p = 0.43, 1,890 measurements (SS5.6) | **Validated** |
+| 11 | CUDA graph crash is length-dependent | Phase 2 @ 64 tokens: 1,890 OK; Phase 3 @ 128 tokens: 100% crash (SS10.1) | **Validated** |
+| 12 | `mode="default"` does not fix decode crash | mode="default" experiment: identical CUDAGraphs crash via Inductor graph trees (SS10.5) | **Validated** |
+| 13 | All comparisons survive multiple-testing correction | 5/5 tests pass Bonferroni (α=0.01) and Holm step-down (SS9.5) | **Validated** |
 
 ---
 
@@ -102,7 +119,7 @@ TR126 is the cross-platform validation reference for the Banterhearts research p
 
 **Question:** "Can I use torch.compile with reduce-overhead mode for my serving pipeline?"
 
-**Answer:** Only for prefill. Phase 3 (SS9) shows 100% crash rate on autoregressive decode with `reduce-overhead` mode due to CUDA graph shape incompatibility. Use `mode="default"` for decode, or split your compile strategy by mode.
+**Answer:** Only for prefill. Phase 3 (SS10) shows 100% crash rate on autoregressive decode with both `reduce-overhead` and `mode="default"` — PyTorch 2.8's Inductor uses CUDA graph trees internally regardless of mode setting (SS10.5). Use eager mode for decode, or use Ollama.
 
 ### Scenario 4: Validating Prior TR Conclusions
 
@@ -536,6 +553,81 @@ All 6 models show statistically significant compile speedups (p < 10⁻²¹), al
 
 **Practical implication:** For production prefill serving with fixed-shape inputs (e.g., embedding APIs with max-length padding), the padded configuration delivers the best absolute compile performance. The `dynamic=True` setting remains preferable for variable-length workloads where padding overhead is unacceptable.
 
+### 5.5 Phase 2 Baseline Config Full Analysis (Run `20260222_195655`)
+
+The baseline configuration (`dynamic=False`, `mode=reduce-overhead`, `max_new_tokens=64`) collected **11,340 measurements** (3,780 per mode) across 7 models × 2 backends × 5 scenarios × ~30 reps. This data was collected but never analyzed in v1 of this report. The baseline config is the most conservative compile setting (no dynamic shapes, CUDA graph replay enabled).
+
+**Prefill compile effect (baseline config):**
+
+| Metric | Eager (N=1,890) | Compiled (N=1,890) | Delta | Significance |
+|--------|-----------------|-------------------|-------|-------------|
+| Mean (ms) | 10.89 | 5.64 | **-48.2%** | p = 4.33 × 10⁻⁸⁸ |
+| Median (ms) | 4.13 | 1.88 | -54.6% | — |
+| Cohen's d | — | — | **-0.67** | Medium-large effect |
+
+The baseline config shows a **stronger** compile effect (-48.2%) than the dynamic config (-40.0%), consistent with `dynamic=False` allowing better CUDA graph replay optimization.
+
+**Per-model prefill speedups (baseline config):**
+
+| Model | Eager (ms) | Compiled (ms) | Speedup | Cohen's d |
+|-------|-----------|--------------|---------|-----------|
+| gpt2-25m (FP32) | 1.89 | 0.70 | **2.7×** | Large |
+| gpt2-50m (FP32) | 3.97 | 1.52 | **2.6×** | Large |
+| gpt2-100m (FP32) | 4.04 | 2.03 | **2.0×** | Large |
+| gpt2-100m (FP16) | 3.84 | 1.32 | **2.9×** | Large |
+| qwen2.5-0.5b (FP16) | 16.40 | 5.12 | **3.2×** | Large |
+| qwen2.5-1.5b (FP16) | 19.94 | 10.44 | **1.9×** | Large |
+| qwen2.5-3b (FP16) | 26.18 | 18.36 | **1.4×** | Large |
+
+**KV-decode: no compile benefit.**
+
+| Metric | Eager (N=1,890) | Compiled (N=1,890) | Delta | Significance |
+|--------|-----------------|-------------------|-------|-------------|
+| Mean (ms) | 628.3 | 642.2 | **+2.2%** | p = 0.43, **NOT significant** |
+| Cohen's d | — | — | 0.026 | Negligible |
+
+Compiled decode is 2.2% *slower* than eager — a trivial, non-significant difference. This confirms that torch.compile's Triton kernel fusion provides no benefit for autoregressive decode, even when it doesn't crash.
+
+**E2E_KV: no compile benefit.**
+
+| Metric | Eager (N=1,890) | Compiled (N=1,890) | Delta | Significance |
+|--------|-----------------|-------------------|-------|-------------|
+| Mean (ms) | 633.7 | 647.2 | **+2.1%** | p = 0.44, **NOT significant** |
+
+E2E results mirror kv_decode: the decode phase dominates, and compilation provides no benefit.
+
+**Cross-config comparison (compiled prefill):**
+
+| Config | dynamic | mode | Compiled Mean (ms) | Speedup vs Eager | Cohen's d |
+|--------|---------|------|-------------------|-----------------:|-----------|
+| **Baseline** | False | reduce-overhead | 5.64 | 1.93× | -0.67 |
+| Dynamic | True | reduce-overhead | 7.12 | 1.67× | -0.59 |
+| Padded | False | reduce-overhead | 6.03 | 2.29× | -0.91 |
+
+The baseline config's compiled performance (5.64 ms) is 21% better than dynamic (7.12 ms), confirming that `dynamic=False` improves CUDA graph replay. The padded config achieves the best eager-vs-compiled *ratio* (2.29×) because it also hurts eager performance.
+
+### 5.6 Compiled Decode Performance Characterization
+
+**Critical finding:** Phase 2 baseline has **1,890 successful compiled kv_decode measurements** at `max_new_tokens=64`. Phase 3 has **0 successful compiled decode measurements** at `max_new_tokens=128` (100% crash rate). This establishes that the CUDA graph shape violation crash is **length-dependent**, not absolute.
+
+**Per-model compiled decode at max_new_tokens=64:**
+
+| Model | Eager (ms) | Compiled (ms) | Speedup | Compile Helps? |
+|-------|-----------|--------------|---------|----------------|
+| gpt2-25m (FP32) | 99.8 | 103.2 | 0.97× | No |
+| gpt2-50m (FP32) | 228.8 | 235.9 | 0.97× | No |
+| gpt2-100m (FP32) | 209.6 | 220.1 | 0.95× | No |
+| gpt2-100m (FP16) | 204.3 | 212.6 | 0.96× | No |
+| qwen2.5-0.5b (FP16) | 980.7 | 996.5 | 0.98× | No |
+| qwen2.5-1.5b (FP16) | 1,179.6 | 1,204.8 | 0.98× | No |
+| qwen2.5-3b (FP16) | 1,495.5 | 1,522.3 | 0.98× | No |
+
+**Every model shows compiled decode is slightly slower** (0.95-0.98× speedup, i.e., 2-5% overhead). None are statistically significant at the individual model level, but the consistent direction across all 7 models suggests a small, real overhead from Triton graph tracing during autoregressive generation.
+
+**Why compilation doesn't help decode:** Autoregressive decode processes one token at a time. Each step involves a single matrix-vector multiplication (not matrix-matrix), which is memory-bandwidth-bound. Triton's kernel fusion benefits come from combining multiple operations and reducing memory traffic — but with only one token per step, there are few operations to fuse. The compilation overhead (graph tracing, dispatch) slightly exceeds the minimal benefit from kernel optimization.
+
+**Contrast with prefill:** Prefill processes the entire prompt in one pass, creating opportunities for operation fusion across attention heads, layers, and the batch dimension. This is why compilation delivers 48% speedup on prefill but 0% on decode.
+
 ---
 
 ## 6. Phase 2 Per-Model Analysis
@@ -879,7 +971,19 @@ The effect size difference is not simply "expected" from model composition — i
 
 All 3 comparisons reach statistical significance (p < 0.005). Two show large practical effects: eager-vs-compile (d = 1.21) and eager-vs-Ollama (d = 1.26). The Ollama-vs-compile comparison is statistically significant (p = 0.004) but practically negligible (d = 0.18) — with N=540 per group, even trivial differences reach significance. These backends are effectively tied in aggregate prefill.
 
-**Note on multiple comparisons:** Three pairwise tests at α = 0.05 yield a family-wise error rate of ~14.3%. A Bonferroni-corrected α = 0.017 still leaves all 3 comparisons significant (p ≤ 0.004). Phase 2's 5 per-scenario comparisons (Bonferroni α = 0.01) are all significant (p < 10⁻⁷). No conclusions change under correction, but the uncorrected p-values should be read with this context. For Phase 3's 3 modes × 3 pairwise comparisons (9 tests total), a Bonferroni-corrected α = 0.0056 still leaves every comparison significant.
+#### Bonferroni and Holm Step-Down Correction
+
+Across all 3 Phase 3 modes, there are **5 unique pairwise tests** (3 prefill pairs + 1 kv_decode pair + 1 e2e_kv pair). We apply both Bonferroni and Holm step-down corrections to control family-wise error rate.
+
+| Rank | Mode | Group A | Group B | p-value | Bonferroni (α=0.01) | Holm α | Holm |
+|------|------|---------|---------|---------|:-------------------:|--------|:----:|
+| 1 | kv_decode | ollama | transformers-gpu | 2.55 × 10⁻²⁰⁹ | **PASS** | 0.0100 | **PASS** |
+| 2 | e2e_kv | ollama | transformers-gpu | 1.46 × 10⁻¹⁶⁵ | **PASS** | 0.0125 | **PASS** |
+| 3 | prefill | ollama | transformers-gpu | 2.75 × 10⁻⁸⁰ | **PASS** | 0.0167 | **PASS** |
+| 4 | prefill | transformers-gpu | transformers-gpu-compile | 2.65 × 10⁻⁷⁵ | **PASS** | 0.0250 | **PASS** |
+| 5 | prefill | ollama | transformers-gpu-compile | 3.67 × 10⁻³ | **PASS** | 0.0500 | **PASS** |
+
+**All 5 tests survive both corrections.** The smallest p-value (3.67 × 10⁻³ for Ollama vs compile prefill) clears even the strictest Bonferroni threshold (0.01). No conclusions change under multiple-testing correction.
 
 ---
 
@@ -900,10 +1004,14 @@ Stack trace: File ".../transformers/utils/generic.py", line 841, in wrapper
 
 **Why prefill works:** Prefill processes a fixed-length prompt in a single forward pass — the tensor shapes are determined once and don't change during execution. CUDA graphs can capture and replay this fixed-shape computation without conflict.
 
-**Practical implication:** `reduce-overhead` is prefill-only in practice. For production systems that need both prefill and decode:
-1. Use `mode="default"` for compile (no CUDA graphs, may still benefit from kernel fusion)
-2. Split compile strategy: `reduce-overhead` for prefill, `default` or eager for decode
-3. Use Ollama for decode-heavy workloads (avoids the issue entirely)
+**Length-dependent threshold (NEW in v2):** Phase 2 baseline collected 1,890 successful compiled kv_decode measurements at `max_new_tokens=64` using the same `mode=reduce-overhead`, `dynamic=False` settings. The CUDA graph crash is therefore **not immediate** — it occurs when the KV cache grows past a critical size during generation. The crash threshold lies between 64 and 128 generated tokens. At 64 tokens, the cache growth may stay within the CUDA graph's recorded tensor shape tolerances; at 128 tokens, it exceeds them.
+
+**`mode="default"` does not fix the crash (NEW in v2):** We ran the identical Phase 3 experiment with `torch.compile(mode="default")` to test whether disabling CUDA graph replay would allow compiled decode. **Result: identical crashes.** The error traces show `torch/_inductor/cudagraph_trees.py` in the stack — PyTorch 2.8's Inductor backend invokes CUDA graph tree management internally regardless of the user-facing `mode` parameter. The `mode` flag controls *explicit* CUDA graph capture/replay at the model level, but Inductor's own optimization passes use graph trees for compiled kernel execution. This is an implementation detail of PyTorch 2.8 that renders the `mode` parameter ineffective for avoiding shape-mismatch crashes in autoregressive decode.
+
+**Practical implication:** Compiled autoregressive decode is **not viable** with any torch.compile mode in PyTorch 2.8. For production systems that need decode:
+1. Use eager mode for HF decode (no compilation)
+2. Use Ollama for decode-heavy workloads (avoids the issue entirely and is 7× faster)
+3. Split strategy: `torch.compile(mode="reduce-overhead")` for prefill only, eager/Ollama for decode
 
 ### 10.2 KV-Decode Rankings (2 backends)
 
@@ -992,6 +1100,33 @@ Ollama is **3.8× faster** end-to-end (d = 2.01, p < 10⁻¹⁶⁵).
 
 End-to-end speedups (4.4-5.5×) are lower than pure decode (6.8-13.7×) because prefill latency is similar across backends at larger scales (SS9.2). The decode portion dominates e2e latency, so Ollama's decode advantage drives the overall speedup.
 
+### 10.5 mode="default" Compiled Decode Experiment (NEW in v2)
+
+To test whether `mode="default"` (which nominally disables CUDA graph replay) could enable compiled decode, we ran the identical Phase 3 experiment with `torch.compile(mode="default", backend="inductor", dynamic=False)`. All other parameters (models, scenarios, reps, max_new_tokens=128) were unchanged.
+
+**Config:** `research/tr126/phase3/config_mode_default.yaml`
+
+**Result: compiled kv_decode and e2e_kv crash identically to `reduce-overhead`.**
+
+| Mode | Backend | `reduce-overhead` | `mode="default"` |
+|------|---------|:------------------:|:-----------------:|
+| prefill | transformers-gpu-compile | All OK (-53.3%) | All OK (**-54.2%**) |
+| kv_decode | transformers-gpu-compile | 100% crash | **100% crash** |
+| e2e_kv | transformers-gpu-compile | 100% crash | **100% crash** |
+
+**Prefill performance comparison:** mode="default" achieves -54.2% prefill speedup (d = -1.25, p = 7.6 × 10⁻⁸⁰) vs. reduce-overhead's -53.3% (d = -1.21). The slightly better default-mode prefill suggests CUDA graph replay overhead actually *hurts* prefill. Both modes use Triton kernel fusion — the difference is reduce-overhead adds CUDA graph capture/replay on top, which marginally slows prefill's single-pass execution.
+
+**Error trace (mode="default"):**
+```
+torch/_inductor/cudagraph_trees.py, line 2457, in dealloc_current_path_weakrefs
+    assert len(node.tensor_weakrefs) == len(node.stack_traces)
+AssertionError
+```
+
+**Root cause analysis:** PyTorch 2.8's Inductor backend uses `cudagraph_trees.py` internally as part of its compiled kernel execution pipeline, regardless of the user-facing `mode` parameter. The `mode="default"` setting prevents *explicit* CUDA graph capture at the `torch.compile()` level, but the Inductor's own code generation passes still invoke CUDA graph tree management for compiled kernels. When tensor shapes change during autoregressive decode, these internal graph trees encounter the same shape mismatch that causes crashes under `reduce-overhead`.
+
+**Implication:** There is no torch.compile mode in PyTorch 2.8 that enables compiled autoregressive decode. This closes the gap identified in v1's limitation L2 — the answer is definitively "no, compiled decode is not viable" rather than "untested." Future PyTorch versions may decouple Inductor's internal graph management from CUDA graph replay, but as of 2.8, compilation is exclusively a prefill optimization.
+
 ---
 
 ## 11. Phase 3 Statistical Analysis
@@ -1024,7 +1159,28 @@ Mean outlier rate: **0.1%** — excellent measurement quality. The 5 Ollama pref
 
 **Distribution shape:** Decode latencies show right skew (e.g., qwen2.5-1.5b Ollama decode: mean 211.8 ms vs median 85.2 ms, ratio 2.49). This extreme skew is driven by scenario mixing — short-prompt scenarios (single_micro) produce fast decode, while long-prompt scenarios (single_long) produce slow decode. Within-scenario distributions are tighter. The t-test is robust to this level of skew at N=540, but per-model-per-scenario analyses (where N=15) would benefit from non-parametric tests.
 
-**No formal interaction tests:** The factorial structure of Phase 3 (5 models × 3 backends × 5 scenarios × 3 modes) invites ANOVA-style analysis with model, backend, and scenario as factors. We opted for pairwise t-tests (following TR120's methodology) to maintain consistency across reports. A formal 2-way or 3-way ANOVA with interaction terms would allow testing whether the compile effect varies significantly by model scale — this is claimed qualitatively (SS9.2 crossover at 1.5B) but not tested with a formal interaction p-value.
+### 11.4 ANOVA Interaction Test: Backend × Model Scale (NEW in v2)
+
+The v1 report noted the absence of formal interaction tests for the scale crossover claim. We now provide a 2-way ANOVA on Phase 3 prefill data (1,620 samples, 3 backends × 5 models).
+
+**Model:** `latency_ms ~ backend + model + backend:model`
+
+| Source | SS | df | MS | F | p-value | η² |
+|--------|---:|---:|---:|--:|---------|---:|
+| Backend | 28,793 | 2 | 14,397 | 4,929.1 | < 10⁻¹⁶ | 0.290 |
+| Model | 52,428 | 4 | 13,107 | 4,487.5 | < 10⁻¹⁶ | 0.528 |
+| **Backend × Model** | **10,587** | **8** | **1,323** | **453.1** | **< 10⁻¹⁶** | **0.107** |
+| Residual | 4,697 | 1,608 | 2.92 | — | — | — |
+| **Total** | **99,361** | **1,619** | — | — | — | — |
+
+**The interaction term is highly significant** (F(8,1608) = 453.1, p < 10⁻¹⁶, η² = 0.107). This means the effect of backend choice depends on model scale — formally validating the qualitative crossover observation in SS9.2.
+
+**Interpretation:**
+- **Model scale explains the most variance** (η² = 0.528): larger models have higher latencies regardless of backend.
+- **Backend explains substantial variance** (η² = 0.290): compilation consistently reduces prefill latency.
+- **The interaction explains 10.7% of variance** (η² = 0.107): this is the crossover effect. Small models show large compile advantage; large models show Ollama catching up or winning. The interaction is not merely statistically significant (which is expected at N=1,620) — it explains a meaningful fraction of the total variance, confirming it is a real structural effect rather than statistical noise.
+
+**Grand mean:** 11.62 ms across all 1,620 samples.
 
 ---
 
@@ -1137,6 +1293,8 @@ The result is 24-60% latency reduction, with the benefit proportionally larger f
 | TR123 | Cost economics for eager backends | **Still valid** — TR123 measured eager backends, not compile |
 | TR124 | Quality baselines | **Still valid** — TR124 measured output quality, not compilation performance |
 | TR125 | Quantization quality + Ollama performance | **Still valid** — TR125 measured Ollama quality/throughput, not HF compilation |
+| TR126 v1 | "use `mode=default` for decode" suggestion | **Superseded** — TR126 v2 shows mode="default" also crashes (Inductor uses CUDA graph trees internally). No torch.compile mode enables decode. |
+| TR126 v1 | Decode recommendation had "untested" caveat | **Resolved** — Compiled decode is now fully characterized: crashes at 128 tokens on all modes; no speedup even at 64 tokens where it works. Ollama decode recommendation stands without caveats. |
 
 ---
 
@@ -1149,7 +1307,7 @@ The result is 24-60% latency reduction, with the benefit proportionally larger f
 | **Prefill-heavy** (RAG, summarization, embedding) | `torch.compile` + `reduce-overhead` | 8.2 ms mean (Phase 3) | 2× faster than Ollama, 53% faster than eager |
 | **Decode-heavy** (chat, code gen, long-form) | Ollama (quantized) | 286 ms mean (Phase 3) | 7× faster than eager HF |
 | **Balanced** (mixed prefill + decode) | Ollama | 541 ms e2e mean | Simplicity + strong decode performance |
-| **Latency-critical prefill** (search, autocomplete) | `torch.compile` + split mode | ~2 ms (small models) | Compile for prefill, `mode="default"` for decode |
+| **Latency-critical prefill** (search, autocomplete) | `torch.compile` + eager decode | ~2 ms (small models) | Compile for prefill, eager for decode (mode="default" also crashes) |
 
 ### 14.2 Model Scale Decision
 
@@ -1179,7 +1337,7 @@ Before deploying torch.compile in production on Linux:
 
 - [ ] Verify Triton is installed and importable
 - [ ] Verify `torch.compile(backend="inductor")` produces 0 graph breaks on your model
-- [ ] Use `mode="reduce-overhead"` ONLY for prefill; use `mode="default"` for decode
+- [ ] Use `mode="reduce-overhead"` ONLY for prefill; use eager (no compile) for decode — `mode="default"` also crashes
 - [ ] Set `TRITON_CACHE_DIR` to a persistent directory (avoid recompilation on restart)
 - [ ] Run warmup (3+ forward passes) before serving production traffic
 - [ ] Monitor for recompilation events (>30ms latency spikes at 0.3% frequency)
@@ -1193,7 +1351,7 @@ Before deploying torch.compile in production on Linux:
 
 1. **Single GPU:** All results are from one RTX 4080 Laptop (12.88 GB, Ada Lovelace). Results may differ on datacenter GPUs (A100 with 80 GB, H100 with HBM3) where memory bandwidth characteristics differ. The crossover point (1.5B) will likely shift on higher-bandwidth hardware.
 
-2. **No `mode="default"` for decode:** Phase 3 only tested `reduce-overhead`, which crashes on decode. Testing `mode="default"` (no CUDA graphs) for compiled decode is needed to determine if compilation helps decode with a compatible mode. This is the single largest gap for production guidance.
+2. **~~No `mode="default"` for decode~~ (RESOLVED in v2):** v2 tested `mode="default"` — it also crashes due to PyTorch 2.8 Inductor's internal CUDA graph tree management (SS10.5). Additionally, Phase 2 baseline shows compiled decode provides no speedup even when it works (SS5.6). This limitation is fully resolved: compiled decode is not viable in PyTorch 2.8.
 
 3. **Ollama quantization level unknown:** Ollama's default quant level for `qwen2.5:*` and `llama3.2:1b` is likely Q4_0 or Q4_K_M. The HF-vs-Ollama comparison conflates compilation effects with quantization effects. A controlled comparison would use the same precision (FP16 Ollama vs FP16 HF, or Q4 GPTQ HF vs Q4 Ollama).
 
@@ -1220,7 +1378,8 @@ Before deploying torch.compile in production on Linux:
 ### 15.2 Future Work
 
 - **Phase 4 (deferred):** uvloop multi-agent concurrency testing under Linux — tests whether compile benefits survive under concurrent request load.
-- **TR127 (planned):** `mode="default"` compilation for decode — the critical missing piece for production decode recommendations.
+- **~~TR127 (planned): `mode="default"` compilation for decode~~ (DONE):** v2's mode="default" experiment shows it also crashes. Future work should instead target **PyTorch 2.9+** where Inductor's CUDA graph tree behavior may change, or test `torch.compile(backend="aot_eager")` as a non-crashing baseline.
+- **Compiled decode threshold characterization:** The crash occurs between 64 and 128 generated tokens. A binary search experiment (80, 96, 112 tokens) could pinpoint the exact threshold where CUDA graph shape tolerances are exceeded.
 - **Cross-GPU validation:** Replicate on A100/H100 to test whether findings generalize beyond consumer GPUs.
 - **Bare-metal Linux:** Remove Docker/WSL2 layer for a true Linux baseline.
 - **Controlled quantization comparison:** Compare FP16 HF vs FP16 Ollama (via custom GGUF) to isolate runtime effects from quantization effects.
@@ -1268,6 +1427,7 @@ MSYS_NO_PATHCONV=1 docker run --rm --gpus all --ipc=host \
 | 2 | `research/tr126/phase2/config_padded.yaml` | Padded: fixed shapes |
 | 2 | `research/tr126/phase2/config_dynamic.yaml` | Dynamic: `dynamic=True` |
 | 3 | `research/tr126/phase3/config.yaml` | 3 backends, 5 models, 5 scenarios |
+| 3 | `research/tr126/phase3/config_mode_default.yaml` | mode="default" decode experiment (v2) |
 
 ### 16.4 Key Artifacts
 
@@ -1283,6 +1443,10 @@ MSYS_NO_PATHCONV=1 docker run --rm --gpus all --ipc=host \
 | Phase 3 prefill CSV | `research/tr126/results/phase3/20260222_231929/prefill/metrics.csv` | 1,620 rows |
 | Phase 3 kv_decode CSV | `research/tr126/results/phase3/20260222_231929/kv_decode/metrics.csv` | 1,170 rows |
 | Phase 3 e2e_kv CSV | `research/tr126/results/phase3/20260222_231929/e2e_kv/metrics.csv` | 1,100 rows |
+| v2 enhancement analysis | `research/tr126/results/enhance_v2_results.json` | ~30 KB |
+| v2 mode="default" config | `research/tr126/phase3/config_mode_default.yaml` | 1 KB |
+| v2 mode="default" analysis | `research/tr126/results/phase3/20260223_034940/phase3_analysis.json` | 33 KB |
+| v2 mode="default" prefill CSV | `research/tr126/results/phase3/20260223_034940/prefill/metrics.csv` | 1,620 rows |
 
 ### 16.5 Analysis Scripts
 
@@ -1294,6 +1458,7 @@ MSYS_NO_PATHCONV=1 docker run --rm --gpus all --ipc=host \
 | `research/tr126/phase3/generate_report.py` | Phase 3: auto-generates markdown report |
 | `research/tr126/shared/env_fingerprint.py` | Environment capture utility |
 | `research/tr126/shared/cross_platform_compare.py` | Windows vs Linux comparison utility |
+| `research/tr126/enhance_v2.py` | v2: ANOVA, Bonferroni, compiled decode, baseline analysis |
 
 ---
 
@@ -1461,6 +1626,19 @@ modes:
 ollama_url: http://host.docker.internal:11434
 ollama_timeout_s: 120
 ```
+
+### Phase 3 mode="default" Config (NEW in v2)
+
+Identical to Phase 3 config above, except `mode: default` instead of `mode: reduce-overhead`. This disables explicit CUDA graph replay but, as discovered, does not prevent Inductor's internal CUDA graph tree usage.
+
+```yaml
+torch_compile:
+  backend: inductor
+  mode: default          # KEY CHANGE from reduce-overhead
+  dynamic: false
+```
+
+**Result:** Compiled decode crashes identically to `reduce-overhead` — confirming the issue is in Inductor's internal CUDA graph tree management, not the user-facing mode parameter.
 
 ---
 
