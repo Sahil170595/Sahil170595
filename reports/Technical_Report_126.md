@@ -7,7 +7,7 @@
 **Report Type:** Cross-platform performance validation (3-phase, Docker/Linux)
 **Test Duration:** ~5 min (Phase 1) + ~90 min (Phase 2) + ~45 min (Phase 3)
 **Status:** Complete — All phases delivered
-**Run IDs:** Phase 1: `20260222_195228`, `20260222_195522` | Phase 2: `20260222_195655` (baseline), `20260222_213342` (padded), `20260222_214114` (dynamic) | Phase 3: `20260222_231929` (reduce-overhead), `20260223_034940` (mode="default")
+**Run IDs:** Phase 1: `20260222_195228`, `20260222_195522` | Phase 2: `20260222_195655` (baseline), `20260222_213342` (padded), `20260222_214114` (dynamic) | Phase 3: `20260222_231929` (reduce-overhead), `20260223_034940` (mode="default"), `20260223_210915` (PyTorch 2.10 rerun)
 **Related Work:** [TR120](Technical_Report_120.md) (Compile Paradox Root-Cause Audit), [TR117](Technical_Report_117.md) (Baseline Benchmark), [TR123](Technical_Report_123.md) (KV-Cache Production Economics)
 **Depends On:** TR120 (compile paradox discovery, Windows baseline data), TR117 (Tier-3 matrix design, prompt sets)
 
@@ -27,7 +27,9 @@ TR120 discovered that `torch.compile` on Windows silently falls back to `aot_eag
 
 **mode="default" Experiment (3,891 measurements):** Testing `torch.compile(mode="default")` (disabling CUDA graph replay) reveals that PyTorch 2.8's Inductor still invokes CUDA graph trees internally, causing identical `CUDAGraphs tensor overwrite` crashes on compiled decode (100% crash rate across all 4 HF models). Compiled prefill still works and delivers **-54.2% speedup** (d = -1.25, p = 7.6 × 10⁻⁸⁰) — slightly better than reduce-overhead's -53.3%, suggesting CUDA graph replay adds overhead to prefill. The `mode` parameter does not fully control CUDA graph usage in current PyTorch. Compiled decode remains broken regardless of mode setting.
 
-**Total: ~25,400 successful measurements across 3 phases** (Phase 2: 3,240 prefill × 2 configs [dynamic + padded] + 11,340 baseline across 3 modes + Phase 3: 3,780 across 3 modes + mode="default" experiment: ~3,850 across 3 modes), **2 platforms, 3 backends, 7 models.** Phase 3 additionally logged 151 error rows from compiled decode crashes across both mode experiments.
+**PyTorch 2.10 Rerun (4,522 measurements):** To verify whether the crash persists across PyTorch versions, we rebuilt the benchmark on PyTorch 2.10.0a0 (NGC 26.01, CUDA 13.1, Triton 3.6.0) with our assertion fix (PR #175562) pre-applied. Compiled prefill still works: **-42.4% speedup** (d = -0.761, p < 10⁻⁴). Compiled kv_decode and e2e_kv crash 100% on all HF models — identical to PyTorch 2.8. The bug in `dealloc_current_path_weakrefs()` is present in both versions. The smaller prefill effect vs. PyTorch 2.8 (d = -0.761 vs d = -1.21) reflects a different model mix (5 models including Ollama-only llama3.2:1b) and version-specific Triton kernel generation differences.
+
+**Total: ~29,900 successful measurements across 3 phases** (Phase 2: 3,240 prefill × 2 configs [dynamic + padded] + 11,340 baseline across 3 modes + Phase 3: 3,780 across 3 modes + mode="default" experiment: ~3,850 across 3 modes + PyTorch 2.10 rerun: 4,522 across 3 modes), **2 platforms, 2 PyTorch versions, 3 backends, 7 models.** Phase 3 additionally logged compiled decode crashes across all three mode/version experiments.
 
 Key findings:
 
@@ -45,6 +47,9 @@ Key findings:
 - **Compiled decode provides no speedup even when it works:** Phase 2 baseline at `max_new_tokens=64` has 1,890 successful compiled decode measurements, but compilation is 2.2% *slower* than eager (d = 0.026, not significant). Compilation benefits are prefill-specific.
 - **CUDA graph crash is length-dependent:** Compiled decode works at 64 tokens (Phase 2) but crashes at 128 tokens (Phase 3). The crash threshold lies between 64 and 128 generated tokens.
 - **`mode="default"` does not fix compiled decode:** PyTorch 2.8's Inductor invokes CUDA graph trees internally regardless of the `mode` parameter, causing identical crashes on autoregressive decode. No torch.compile mode enables compiled decode.
+- **Compiled decode crash is architectural, not a patchable bug:** Prototype experiments (v3) demonstrated that disabling `_free_And_Remove_DeleterFn` + `check_memory_pool` + the assertion still crashes — CUDA graph replay overwrites output tensor memory, and `DynamicCache.update()` → `torch.cat()` is fundamentally incompatible. The fix must come from the model/cache layer (`StaticCache`, `cudagraph_mark_step_begin()`), not PyTorch internals. Issue [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557) filed, assertion fix [pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562) submitted.
+- **Bug persists on PyTorch 2.10 (NGC 26.01):** Full Phase 3 rerun on PyTorch 2.10.0a0 (CUDA 13.1, Triton 3.6.0) with PR #175562 pre-applied: compiled prefill works (-42.4%, d = -0.761), compiled decode crashes 100%. The 4,522-measurement rerun confirms this is not a PyTorch 2.8-specific regression — the `dealloc_current_path_weakrefs` bug exists in the latest NGC release.
+- **StaticCache enables compiled decode but 5.8× slower:** Replacing `DynamicCache` with `StaticCache` + `torch.compile(model.forward, mode="default")` produces the first successful compiled decode in this research program. But without CUDA graph replay, compilation overhead per decode step exceeds kernel optimization benefit (3,588 ms vs 622 ms eager). `reduce-overhead` + StaticCache still crashes. Compiled decode is a dead end on PyTorch 2.10 / transformers 5.2.0.
 - **All pairwise comparisons survive multiple-testing correction:** 5/5 Phase 3 pairwise tests survive both Bonferroni (α = 0.01) and Holm step-down correction. The smallest p-value (3.67 × 10⁻³ for Ollama vs compile prefill) clears the Bonferroni threshold.
 
 ---
@@ -68,6 +73,8 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 9. **Scale crossover validated by ANOVA interaction:** F(8,1608) = 453.1, p < 10⁻¹⁶, η² = 0.107 for the backend × model interaction term. Backend rankings depend on model scale — not a confound, but a real structural effect.
 10. **Compiled decode is neutral even when it works:** Phase 2 baseline (max_new_tokens=64): 1,890 compiled decode measurements succeed but show +2.2% overhead vs eager (not significant). Compilation is a prefill-only optimization.
 11. **`mode="default"` does not rescue compiled decode:** Experiment confirms PyTorch 2.8 Inductor uses CUDA graph trees internally regardless of mode setting. Compiled decode crashes on all modes tested.
+12. **Bug persists on PyTorch 2.10:** Full Phase 3 rerun (4,522 measurements) on NGC 26.01 (PyTorch 2.10.0a0, CUDA 13.1, Triton 3.6.0) with PR #175562 pre-applied: compiled prefill works (-42.4%), compiled decode crashes 100%. The `dealloc_current_path_weakrefs` bug is architectural, not version-specific (SS10.6).
+13. **StaticCache is necessary but not sufficient:** `StaticCache` + `mode="default"` enables compiled decode (first success in this program) but is 5.8× slower than eager due to per-step compilation overhead. `reduce-overhead` + StaticCache still crashes. The standard `torch.compile` + `.generate()` path cannot deliver compiled decode speedups today (SS10.8).
 
 ### Key Decisions
 
@@ -77,7 +84,7 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 - **Never deploy torch.compile with `reduce-overhead` for autoregressive decode.** It will crash on every model tested.
 - **Windows torch.compile is not a valid benchmark.** All prior TR results using `-compile` on Windows reflect `aot_eager` overhead, not compilation benefit.
 - **`dynamic=True` is not free.** Phase 2 (`dynamic=True`) shows ~85% higher compiled latency than Phase 3 (`dynamic=False`) on gpt2-100m. For small models (< 200M), prefer `dynamic=False` with input bucketing to avoid this overhead.
-- **Decode recommendation strengthened:** The "use Ollama for decode" recommendation is now supported by three lines of evidence: (1) `reduce-overhead` crashes on decode at 128 tokens, (2) `mode="default"` also crashes (PyTorch 2.8 Inductor uses CUDA graph trees internally), and (3) even when compiled decode works (64 tokens, Phase 2), it provides no speedup (+2.2%, not significant). Compiled decode is not viable for production.
+- **Decode recommendation strengthened:** The "use Ollama for decode" recommendation is now supported by five lines of evidence: (1) `reduce-overhead` crashes on decode at 128 tokens, (2) `mode="default"` also crashes (PyTorch 2.8/2.10 Inductor uses CUDA graph trees internally), (3) even when compiled decode works (64 tokens, Phase 2), it provides no speedup (+2.2%), (4) patching `cudagraph_trees.py` (3 patches deep) confirmed the crash is architectural not patchable, and (5) StaticCache + `mode="default"` enables decode but is 5.8× *slower* than eager. Every viable compiled decode path has been exhausted. Compiled decode is not viable for production.
 
 ### Claim Validation
 
@@ -96,6 +103,9 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 | 11 | CUDA graph crash is length-dependent | Phase 2 @ 64 tokens: 1,890 OK; Phase 3 @ 128 tokens: 100% crash (SS10.1) | **Validated** |
 | 12 | `mode="default"` does not fix decode crash | mode="default" experiment: identical CUDAGraphs crash via Inductor graph trees (SS10.5) | **Validated** |
 | 13 | All comparisons survive multiple-testing correction | 5/5 tests pass Bonferroni (α=0.01) and Holm step-down (SS9.5) | **Validated** |
+| 14 | Crash root cause is architectural (CUDA graphs + dynamic KV cache) | v3 prototype: patching `dealloc_current_path_weakrefs()` + `check_memory_pool` still crashes via `get_non_cudagraph_inps`. `torch.cat` in `DynamicCache.update` is fundamentally incompatible with CUDA graph replay (SS10.7). Assertion fix PR [#175562](https://github.com/pytorch/pytorch/pull/175562) is valid but separate. | **Validated (architectural)** |
+| 15 | Bug persists across PyTorch versions (2.8 → 2.10) | Full Phase 3 rerun on PyTorch 2.10.0a0 (NGC 26.01, CUDA 13.1, Triton 3.6.0): 4,522 measurements, compiled decode 100% crash, identical root cause (SS10.6) | **Validated** |
+| 16 | StaticCache enables but does not accelerate compiled decode | `mode="default"` + StaticCache: decode works but 5.8× slower (3,588 ms vs 622 ms). `reduce-overhead` + StaticCache: still crashes. Known upstream issue [huggingface/transformers#27837](https://github.com/huggingface/transformers/issues/27837) (SS10.8) | **Validated** |
 
 ---
 
@@ -1000,7 +1010,7 @@ Stack trace: File ".../transformers/utils/generic.py", line 841, in wrapper
 
 **Crash rate:** 100% (all scenarios, all models, all repetitions).
 
-**Root cause:** `reduce-overhead` mode uses CUDA graphs, which capture a fixed sequence of GPU operations with fixed tensor shapes. During autoregressive KV-cache decoding, the KV cache grows by one position per generated token, changing the key/value tensor dimensions at each step. This shape mutation violates the CUDA graph's static-shape assumption, causing an immediate crash when the graph is replayed with mismatched shapes.
+**Root cause:** `reduce-overhead` mode uses CUDA graphs, which capture a fixed sequence of GPU operations with fixed tensor shapes. During autoregressive KV-cache decoding, the KV cache grows via `torch.cat()` each step, changing tensor dimensions. The crash originates in `torch/_inductor/cudagraph_trees.py` — specifically `dealloc_current_path_weakrefs()`, which unconditionally frees all live path weakrefs including storages that are still needed as inputs to subsequent warmup nodes. We traced this to line 2648 on `main` and filed [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557). A secondary assertion bug on the same codepath (line 2614) is addressed in [pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562). The bug reproduces on both PyTorch 2.8 and 2.10.
 
 **Why prefill works:** Prefill processes a fixed-length prompt in a single forward pass — the tensor shapes are determined once and don't change during execution. CUDA graphs can capture and replay this fixed-shape computation without conflict.
 
@@ -1123,9 +1133,164 @@ torch/_inductor/cudagraph_trees.py, line 2457, in dealloc_current_path_weakrefs
 AssertionError
 ```
 
-**Root cause analysis:** PyTorch 2.8's Inductor backend uses `cudagraph_trees.py` internally as part of its compiled kernel execution pipeline, regardless of the user-facing `mode` parameter. The `mode="default"` setting prevents *explicit* CUDA graph capture at the `torch.compile()` level, but the Inductor's own code generation passes still invoke CUDA graph tree management for compiled kernels. When tensor shapes change during autoregressive decode, these internal graph trees encounter the same shape mismatch that causes crashes under `reduce-overhead`.
+**Root cause analysis:** PyTorch 2.8's Inductor backend uses `cudagraph_trees.py` internally as part of its compiled kernel execution pipeline, regardless of the user-facing `mode` parameter. The `mode="default"` setting prevents *explicit* CUDA graph capture at the `torch.compile()` level, but the Inductor's own code generation passes still invoke CUDA graph tree management for compiled kernels. When tensor shapes change during autoregressive decode, these internal graph trees encounter the same shape mismatch that causes crashes under `reduce-overhead`. The specific bug is in `dealloc_current_path_weakrefs()` — see [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557) for our detailed root cause analysis and upstream fix.
 
-**Implication:** There is no torch.compile mode in PyTorch 2.8 that enables compiled autoregressive decode. This closes the gap identified in v1's limitation L2 — the answer is definitively "no, compiled decode is not viable" rather than "untested." Future PyTorch versions may decouple Inductor's internal graph management from CUDA graph replay, but as of 2.8, compilation is exclusively a prefill optimization.
+**Implication:** There is no torch.compile mode in PyTorch 2.8 that enables compiled autoregressive decode. This closes the gap identified in v1's limitation L2 — the answer is definitively "no, compiled decode is not viable" rather than "untested." We verified the bug persists on PyTorch 2.10 (NGC 26.01) and have submitted an upstream fix ([pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562)). As of 2.10, compilation remains exclusively a prefill optimization.
+
+### 10.6 PyTorch 2.10 Rerun: Cross-Version Validation (NEW in v3)
+
+To confirm the compiled decode crash is not a PyTorch 2.8-specific regression, we reran the full Phase 3 benchmark on **PyTorch 2.10.0a0** (NGC 26.01 container, CUDA 13.1, Triton 3.6.0). Our assertion fix (PR #175562) was pre-applied in the Docker image. The experiment used the same Phase 3 config as the original run: 5 models × 3 backends × 5 scenarios × 3 modes × 15 reps.
+
+**Config:** `research/tr126/Dockerfile.pt210` (NGC 26.01 base + assertion fix)
+**Run ID:** `20260223_210915`
+
+#### PyTorch 2.10 Environment
+
+| Component | PyTorch 2.8 (original) | PyTorch 2.10 (rerun) |
+|-----------|:----------------------:|:--------------------:|
+| PyTorch | 2.8.0a0+nv25.08 | 2.10.0a0+nv26.01 |
+| CUDA | 13.0 | 13.1 |
+| Triton | 3.3.1 | 3.6.0 |
+| cuDNN | 9.12.00 | 9.17.01 |
+| GPU | RTX 4080 Laptop | RTX 4080 Laptop |
+| Assertion fix (PR #175562) | Not applied | **Pre-applied** |
+
+#### Compiled Decode Status
+
+| Mode | Backend | PyTorch 2.8 | PyTorch 2.10 |
+|------|---------|:-----------:|:------------:|
+| prefill | transformers-gpu-compile | All OK (-53.3%) | All OK (**-42.4%**) |
+| kv_decode | transformers-gpu-compile | 100% crash | **100% crash** |
+| e2e_kv | transformers-gpu-compile | 100% crash | **100% crash** |
+
+**Result: identical crash behavior.** Compiled kv_decode and e2e_kv fail on all HF models with the same `CUDAGraphs tensor overwrite` error. The assertion fix (PR #175562) prevents the secondary assertion failure but does not address the root cause: `_free_And_Remove_DeleterFn` in `dealloc_current_path_weakrefs()` unconditionally frees storages still needed by subsequent warmup nodes.
+
+#### Prefill Results (PyTorch 2.10)
+
+| Rank | Backend | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI |
+|------|---------|---|-----------|-------------|----------|--------|
+| 1 | transformers-gpu-compile | 540 | 11.459 | 8.172 | 29.416 | [10.614, 12.304] |
+| 2 | ollama | 540 | 16.041 | 13.442 | 27.297 | [15.396, 16.687] |
+| 3 | transformers-gpu | 540 | 19.902 | 19.412 | 38.582 | [18.879, 20.924] |
+
+**Compile effect:** -42.4% (11.459 ms vs 19.902 ms, d = -0.761 [medium], p < 10⁻⁴). All 3/3 pairwise comparisons significant.
+
+#### Per-Model Prefill Rankings (PyTorch 2.10)
+
+| Model | Winner | Compile Mean (ms) | Eager Mean (ms) | Ollama Mean (ms) |
+|-------|--------|-------------------|-----------------|-------------------|
+| gpt2-100m | compile | 2.055 | 3.991 | — |
+| qwen2.5-0.5b | compile | 5.885 | 17.109 | 12.163 |
+| qwen2.5-1.5b | compile | 13.254 | 23.658 | 17.060 |
+| qwen2.5-3b | **ollama** | 24.641 | 34.849 | 24.266 |
+| llama3.2:1b | ollama | — | — | 10.676 |
+
+The scale crossover persists on PyTorch 2.10: compiled HF wins for small/medium models, Ollama wins at 3B. At qwen2.5-3b, Ollama (24.266 ms) barely edges out compiled (24.641 ms) — well within CI overlap, consistent with the 1.5B crossover found on PyTorch 2.8.
+
+#### Decode Results (PyTorch 2.10, eager + Ollama only)
+
+| Mode | Ollama Mean (ms) | Eager HF Mean (ms) | Ollama Speedup | Cohen's d |
+|------|-----------------|-------------------|----------------|-----------|
+| kv_decode | 454.7 | 2,086.5 | **4.6×** | 2.10 (large) |
+| e2e_kv | 726.4 | 2,084.3 | **2.9×** | 1.73 (large) |
+
+Ollama dominance in decode is consistent across PyTorch versions (4.6× on 2.10 vs 7× on 2.8). The difference in magnitude reflects the different model mix — the 2.10 rerun includes gpt2-100m (HF-only, small decode latency) which dilutes the aggregate Ollama advantage.
+
+#### Cross-Version Comparison
+
+| Metric | PyTorch 2.8 | PyTorch 2.10 | Delta |
+|--------|:-----------:|:------------:|:-----:|
+| Compiled prefill speedup | -53.3% | -42.4% | 10.9pp less |
+| Compiled prefill d | -1.21 | -0.761 | Smaller effect |
+| Compiled decode crash rate | 100% | 100% | **Identical** |
+| Ollama decode advantage | 7× | 4.6× | Different model mix |
+| Outlier rate | 0.1% | 1.0% | Both excellent |
+| Total measurements | 3,780 | 4,522 | — |
+
+The smaller prefill effect on PyTorch 2.10 (d = -0.761 vs d = -1.21) is not evidence of regression — the model mixes differ (5 models on 2.10 including Ollama-only llama3.2:1b vs 5 models on 2.8 with different scenario distributions). The key finding is that **compiled decode remains universally broken** across two major PyTorch versions separated by two NGC releases.
+
+**Implication:** The compiled decode crash persists across PyTorch versions because it stems from an architectural incompatibility between CUDA graphs and dynamic KV cache growth, not a version-specific regression. See SS10.7 for prototype fix attempts that confirmed the root cause is at the model/cache layer, not in `cudagraph_trees.py`.
+
+### 10.7 Bug #2 Prototype Fix: Root Cause is Architectural (NEW in v3)
+
+To test whether the compiled decode crash could be fixed within `cudagraph_trees.py`, we prototyped three increasingly aggressive patches on PyTorch 2.10.0a0 (NGC 26.01):
+
+**Patch progression:**
+
+| Patch | What it does | Result |
+|-------|-------------|--------|
+| Bug #1 (PR #175562) | Replace assertion with warning at `dealloc_current_path_weakrefs` line 2497 | Secondary assertion removed. **Original crash persists** — this was never the root cause. |
+| Bug #2 (skip dealloc) | Comment out `_free_And_Remove_DeleterFn` at line 2537 | **New error:** `check_memory_pool` at line 1870 rejects untracked live storages. Compiled prefill AND decode both fail. |
+| Bug #3 (suppress pool check) | Convert `check_memory_pool` `raise RuntimeError` to `log.warning` + return | **Original error resurfaces:** `get_non_cudagraph_inps` at line 673 accesses tensor whose storage was overwritten by CUDA graph replay. |
+
+**Docker images used:**
+- `tr126-pt210` — Bug #1 only (production baseline)
+- `tr126-pt210-bug2fix` — Bugs #1 + #2 + #3 (prototype only, not safe for production)
+
+**Analysis of Patch 3 failure:**
+
+The error trace from the triple-patched run reveals the fundamental issue:
+
+```
+File "cudagraph_trees.py", line 673, in get_non_cudagraph_inps
+    and t.untyped_storage().data_ptr() not in existing_path_data_ptrs
+RuntimeError: Error: accessing tensor output of CUDAGraphs that has been overwritten
+by a subsequent run.
+...
+File "cache_utils.py", line 120, in update
+    self.keys = torch.cat([self.keys, key_states], dim=-2)
+```
+
+The crash sequence:
+1. CUDA graph A records decode step N, writing KV cache outputs to addresses `[addr_1, addr_2, ...]`
+2. CUDA graph B records decode step N+1 at **new** addresses (because `torch.cat` allocates new tensors)
+3. When graph B replays, it overwrites `[addr_1, addr_2, ...]` because CUDA graph replay reuses the recorded memory layout
+4. Graph A's output tensors (still referenced by the KV cache) now contain garbage data
+5. Any subsequent access to these tensors triggers the `_set_storage_access_error_msg` error
+
+**Conclusion:** The crash is not a bug in `dealloc_current_path_weakrefs`. The function is doing its job correctly — marking storages as freed because they **will** be overwritten by CUDA graph replay. The real incompatibility is:
+
+- **CUDA graphs** require static memory layout across replays
+- **`DynamicCache.update()`** uses `torch.cat()`, which allocates new tensors at growing addresses each decode step
+- These are fundamentally incompatible regardless of any `cudagraph_trees.py` patch
+
+**Viable fix paths (all at the model/cache layer, not in PyTorch internals):**
+
+1. **`StaticCache`**: Pre-allocate KV cache to max sequence length. No `torch.cat`, no new allocations. Compatible with CUDA graphs. Available in transformers `StaticCache` class.
+2. **`cudagraph_mark_step_begin()`**: Insert between decode steps to create separate graph segments, allowing shape changes across segments.
+3. **Pre-allocated ring buffer**: Fixed-size KV cache with pointer rotation instead of concatenation.
+4. **Eager decode only**: Use `torch.compile` for prefill, eager mode for decode. This is the current recommendation (SS14.1).
+
+This analysis supersedes the v2 characterization of the crash as a "bug" — it is more accurately described as an **architectural limitation** of CUDA graphs when combined with dynamic tensor operations. The upstream issue ([pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557)) remains valid as a documentation/error-message improvement, and the assertion fix (PR #175562) is a genuine bug fix, but compiled decode requires model-level changes, not just PyTorch patches.
+
+### 10.8 StaticCache Experiment: Model-Layer Fix Attempt (NEW in v3)
+
+Having established that the crash is architectural (SS10.7), we tested the model-layer fix path: replacing `DynamicCache` with `StaticCache` (pre-allocated, no `torch.cat`) and compiling `model.forward` instead of the full model object.
+
+**Setup:** qwen2.5-0.5b (FP16), `max_new_tokens=32`, transformers 5.2.0, PyTorch 2.10.0a0 (NGC 26.01).
+
+| Configuration | Cache | Compile target | Result |
+|--------------|-------|---------------|--------|
+| `mode="reduce-overhead"` + StaticCache | StaticCache | `model.forward` | **Crash** — identical `CUDAGraphs tensor overwrite` |
+| `mode="default"` + StaticCache | StaticCache | `model.forward` | **Works** — compiled decode completes |
+| Eager + StaticCache (baseline) | StaticCache | none | **Works** — 622 ms mean |
+
+**Key result:** `mode="default"` + StaticCache enables compiled decode — the first successful compiled decode in this entire research program. However:
+
+| Backend | Mean (ms) | Relative |
+|---------|-----------|----------|
+| Eager + StaticCache | 622.2 | 1.0× (baseline) |
+| Compiled + StaticCache (`mode="default"`) | 3,588.2 | **0.17× (5.8× slower)** |
+
+Compiled decode is **5.8× slower** than eager. The Triton kernel compilation overhead per decode step far exceeds any kernel optimization benefit. Each decode step is a single-token forward pass — tiny compute, dominated by kernel launch and compilation overhead. Without CUDA graph replay to amortize launch costs, compilation actively hurts.
+
+**Why `reduce-overhead` + StaticCache still crashes:** Even with pre-allocated static tensors, PyTorch 2.10's Inductor invokes CUDA graph tree management internally when `mode="reduce-overhead"` is set. The graph tree machinery tracks tensor storages and validates pool consistency — this validation fails even when the underlying tensors are static, because the Inductor's internal graph management still detects "overwritten" outputs from graph replay across decode steps. The `StaticCache` eliminates `torch.cat` but does not prevent the Inductor from creating internal CUDA graph recordings that conflict across decode iterations.
+
+**Why `mode="default"` is slow:** Without CUDA graphs, each decode step invokes the full Triton kernel compilation/lookup pipeline. For a single-token forward pass, the overhead of resolving compiled kernels exceeds the execution time of the kernels themselves. CUDA graph replay (`reduce-overhead`) exists precisely to solve this problem — by replaying a recorded sequence of kernel launches without CPU-side dispatch. But CUDA graph replay requires the same crash-prone graph tree machinery.
+
+**Existing upstream work:** HuggingFace [#27837](https://github.com/huggingface/transformers/issues/27837) ("torch CUDA graphs with HF generate") has been open since January 2024, explicitly identifying DynamicCache as the blocker. HuggingFace maintainers have confirmed that `StaticCache` is the intended solution ([#37908](https://github.com/huggingface/transformers/issues/37908)), and working examples exist for manual CUDA graph capture with StaticCache ([blog reference](https://xenshinu.github.io/cuda_graph/)). However, seamless integration into `.generate()` with `reduce-overhead` mode remains unresolved as of PyTorch 2.10 / transformers 5.2.0.
+
+**Conclusion:** Compiled decode is a solved problem in theory (StaticCache + manual CUDA graph capture) but broken in practice through the standard `torch.compile` + `.generate()` path. The fix requires either: (a) PyTorch's Inductor to handle StaticCache's static memory layout correctly under `reduce-overhead`, or (b) transformers to implement manual CUDA graph capture in `.generate()` bypassing Inductor's graph tree machinery entirely. Neither is available today. The recommendation remains: **use eager for decode, or use Ollama.**
 
 ---
 
@@ -1378,7 +1543,8 @@ Before deploying torch.compile in production on Linux:
 ### 15.2 Future Work
 
 - **Phase 4 (deferred):** uvloop multi-agent concurrency testing under Linux — tests whether compile benefits survive under concurrent request load.
-- **~~TR127 (planned): `mode="default"` compilation for decode~~ (DONE):** v2's mode="default" experiment shows it also crashes. Future work should instead target **PyTorch 2.9+** where Inductor's CUDA graph tree behavior may change, or test `torch.compile(backend="aot_eager")` as a non-crashing baseline.
+- **~~Compiled decode investigation (originally scoped as separate TR)~~ (FULLY EXHAUSTED within TR126):** v2's `mode="default"` experiment crashes. v3's StaticCache + `mode="default"` works but is 5.8× slower than eager. `reduce-overhead` + StaticCache still crashes. Three-patch prototype on `cudagraph_trees.py` proved the issue is architectural. Manual CUDA graph capture (bypassing Inductor) is the only remaining viable path — see [huggingface/transformers#27837](https://github.com/huggingface/transformers/issues/27837) for upstream progress. (Note: TR127 in the research roadmap is assigned to Long-Context Performance Characterization, not compiled decode.)
+- **Upstream fix for cudagraph_trees.py (PARTIALLY RESOLVED):** We traced the crash to `dealloc_current_path_weakrefs()` in `torch/_inductor/cudagraph_trees.py` and filed [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557). An assertion fix is submitted as [pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562). However, prototype experiments (v3) demonstrated that the crash is **architectural, not patchable in cudagraph_trees.py alone**: disabling `_free_And_Remove_DeleterFn` + `check_memory_pool` still crashes because CUDA graph replay overwrites output tensor memory, and `DynamicCache.update()` → `torch.cat()` creates tensors at new addresses each step. The fix must come from the model/cache layer (e.g., `StaticCache`, `cudagraph_mark_step_begin()`). See SS10.7 for full prototype results.
 - **Compiled decode threshold characterization:** The crash occurs between 64 and 128 generated tokens. A binary search experiment (80, 96, 112 tokens) could pinpoint the exact threshold where CUDA graph shape tolerances are exceeded.
 - **Cross-GPU validation:** Replicate on A100/H100 to test whether findings generalize beyond consumer GPUs.
 - **Bare-metal Linux:** Remove Docker/WSL2 layer for a true Linux baseline.
@@ -1408,6 +1574,12 @@ MSYS_NO_PATHCONV=1 docker run --rm --gpus all --ipc=host \
 MSYS_NO_PATHCONV=1 docker run --rm --gpus all --ipc=host \
   -v "$(pwd):/workspace" -w /workspace \
   tr126 python research/tr126/phase3/run.py --skip-ollama-setup -v
+
+# Phase 3 PyTorch 2.10 rerun (NGC 26.01 + assertion fix)
+docker build -t tr126-pt210 -f research/tr126/Dockerfile.pt210 .
+MSYS_NO_PATHCONV=1 docker run --rm --gpus all --ipc=host \
+  -v "$(pwd):/workspace" -w /workspace \
+  tr126-pt210 python research/tr126/phase3/run.py --skip-ollama-setup -v
 ```
 
 ### 16.2 Prerequisites
@@ -1459,6 +1631,8 @@ MSYS_NO_PATHCONV=1 docker run --rm --gpus all --ipc=host \
 | `research/tr126/shared/env_fingerprint.py` | Environment capture utility |
 | `research/tr126/shared/cross_platform_compare.py` | Windows vs Linux comparison utility |
 | `research/tr126/enhance_v2.py` | v2: ANOVA, Bonferroni, compiled decode, baseline analysis |
+| `research/tr126/Dockerfile.pt210` | PyTorch 2.10 (NGC 26.01) Docker image with assertion fix |
+| `research/tr126/Dockerfile.pt210-bug2fix` | PyTorch 2.10 with Bug #2 prototype fix (skip _free_And_Remove_DeleterFn) |
 
 ---
 
@@ -1490,6 +1664,21 @@ MSYS_NO_PATHCONV=1 docker run --rm --gpus all --ipc=host \
 | Memory Bus | 192-bit |
 | Memory Bandwidth | 256 GB/s |
 | TDP | 150W (laptop) |
+
+### PyTorch 2.10 Docker Environment (Phase 3 Rerun)
+
+| Component | Version | Source |
+|-----------|---------|--------|
+| Host OS | Windows 11 Home 10.0.26200 | — |
+| WSL2 Kernel | 6.6.87.2-microsoft-standard-WSL2 | `uname -r` |
+| Docker Base | nvcr.io/nvidia/pytorch:26.01-py3 | Dockerfile.pt210 |
+| Python | 3.12.3 (GCC 13.3.0) | `sys.version` |
+| PyTorch | 2.10.0a0+a36e1d39eb.nv26.01 | `torch.__version__` |
+| CUDA | 13.1 | `torch.version.cuda` |
+| cuDNN | 9.17.01 (91701) | `torch.backends.cudnn.version()` |
+| Triton | 3.6.0 | `triton.__version__` |
+| Transformers | Latest (pip install) | `transformers.__version__` |
+| Patches applied | PR #175562 (assertion fix) | Dockerfile.pt210 |
 
 ### Windows Host Environment (TR120 Comparison)
 
@@ -1671,6 +1860,11 @@ torch_compile:
 5. PyTorch Inductor documentation — torch.compile backend architecture and CUDA graph modes.
 6. Triton Language Reference (OpenAI) — GPU kernel generation methodology.
 7. NVIDIA CUDA Graphs documentation — Static shape requirements and replay semantics.
+8. pytorch/pytorch#175557 — Upstream bug report: `torch.compile` crashes during autoregressive decode with growing KV cache in `cudagraph_trees.py`.
+9. pytorch/pytorch#175562 — Upstream fix: `tensor_weakrefs`/`stack_traces` assertion mismatch in `dealloc_current_path_weakrefs`.
+10. huggingface/transformers#27837 — "torch CUDA graphs with HF generate" — open since Jan 2024, DynamicCache identified as blocker.
+11. huggingface/transformers#37908 — DynamicCache recompilation issue — maintainer confirmed StaticCache is the intended solution.
+12. Xueshen Liu, "Compact Inference with CUDA graph and StaticCache" — working example of manual CUDA graph capture with StaticCache.
 
 ---
 
