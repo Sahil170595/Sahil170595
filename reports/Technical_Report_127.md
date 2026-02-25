@@ -5,7 +5,7 @@
 **Date:** 2026-02-24
 **Author:** Research Team
 **Report Type:** Context-length scaling analysis (single-phase, 2-backend sweep)
-**Test Duration:** ~5 hours (10:11 to 15:13 EST)
+**Test Duration:** ~5 hours
 **Status:** Complete — Experiment + two-regime reanalysis delivered
 **Run ID:** `20260224_101128`
 **Related Work:** [TR123](Technical_Report_123.md) (KV-Cache Production Economics), [TR125](Technical_Report_125.md) (Quantization Decision Matrix), [TR126](Technical_Report_126.md) (Linux/Triton Validation)
