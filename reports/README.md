@@ -18,9 +18,9 @@ Single-agent and multi-agent performance analysis, Rust vs Python cross-language
 KV-cache economics, quality baselines, quantization decision matrix, Linux/Triton compile validation, long-context characterization, production workload analysis, N-agent scaling laws, serving stack comparison, GPU kernel profiling (host + in-container), and a predictive capacity planner shipped as the `chimeraforge plan` CLI.
 
 ### Conclusive Reports
-**6 synthesis documents spanning both phases.**
+**9 synthesis documents spanning both phases.**
 
-Two dissertation-style conclusive reports (Phase 1 + Phase 2), two extended appendices volumes, and two executive whitepapers — providing audit-ready decision guidance with full artifact provenance.
+Three dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133), three extended appendices volumes, and three executive whitepapers — providing audit-ready decision guidance with full artifact provenance.
 
 ---
 
@@ -67,7 +67,10 @@ Two dissertation-style conclusive reports (Phase 1 + Phase 2), two extended appe
 
 | Report | Scope | Size |
 |--------|-------|------|
-| **Conclusive 117-122** | Phase 1 Synthesis | 208KB |
+| **Conclusive 108-116** | Phase 1 Synthesis (Python→Rust Migration) | 2,826 lines |
+| **Conclusive 108-116 Extended Appendices** | Phase 1 Deep-Dive Appendices (108-116) | 1,171 lines |
+| **Conclusive 108-116 Whitepaper** | Phase 1 Executive Guidance (108-116) | 214 lines |
+| **Conclusive 117-122** | Phase 1 Synthesis (Benchmarking→Decision-Grade) | 208KB |
 | **Conclusive 117-122 Extended Appendices** | Phase 1 Deep-Dive Appendices | 89KB |
 | **Conclusive 117-122 Whitepaper** | Phase 1 Executive Guidance | 8KB |
 | **Conclusive 123-133** | Phase 2 Synthesis | 433KB, 3,327 lines, 60 appendices |
@@ -172,7 +175,7 @@ Six shippable decisions backed by ~62,000 measurements:
 #### TR108: Single-Agent LLM Performance Analysis
 **File:** `Technical_Report_108.md`
 - Models: gemma3:latest, llama3.1:8b-instruct variants
-- Hardware: NVIDIA RTX 4080 (12GB VRAM), i9-13900HX
+- Hardware: NVIDIA RTX 4080 (12GB VRAM), i9-13980HX
 - Test Matrix: 150+ benchmark runs across parameter sweeps
 
 #### TR109: Agent Workflow Optimization
@@ -330,7 +333,14 @@ Six shippable decisions backed by ~62,000 measurements:
 
 ## Conclusive Report Details
 
-### Phase 1 Synthesis: Technical_Report_Conclusive_117-122
+### Phase 1a Synthesis: Technical_Report_Conclusive_108-116
+**File:** `Technical_Report_Conclusive_108-116.md` (2,826 lines)
+- Covers TR108 through TR116: Python-to-Rust migration, multi-agent architecture, runtime selection, cross-model validation
+- Six shippable decisions: Rust for production, dual Ollama mandatory, Tokio-default runtime, Gemma 3 for scaling, Python ceiling at ~86%, config transfer failure
+- Extended Appendices: `Technical_Report_Conclusive_108-116_Extended_Appendices.md` (1,171 lines)
+- Executive Whitepaper: `Technical_Report_Conclusive_108-116_Whitepaper.md` (214 lines)
+
+### Phase 1b Synthesis: Technical_Report_Conclusive_117-122
 **File:** `Technical_Report_Conclusive_117-122.md` (208KB)
 - Covers TR117 through TR122
 - Extended Appendices: `Technical_Report_Conclusive_117-122_Extended_Appendices.md` (89KB)
@@ -405,6 +415,9 @@ PublishReady/reports/
 │   └── Technical_Report_133.md
 │
 ├── Conclusive Reports
+│   ├── Technical_Report_Conclusive_108-116.md
+│   ├── Technical_Report_Conclusive_108-116_Extended_Appendices.md
+│   ├── Technical_Report_Conclusive_108-116_Whitepaper.md
 │   ├── Technical_Report_Conclusive_117-122.md
 │   ├── Technical_Report_Conclusive_117-122_Extended_Appendices.md
 │   ├── Technical_Report_Conclusive_117-122_Whitepaper.md
@@ -436,7 +449,7 @@ PublishReady/reports/
 
 All measurements on a single fixed baseline:
 - **GPU:** NVIDIA RTX 4080 Laptop GPU (12 GB GDDR6, 256-bit, 432 GB/s, AD104)
-- **CPU:** Intel Core i9-13900HX (24 cores, 32 threads)
+- **CPU:** Intel Core i9-13980HX (24 cores, 32 threads)
 - **RAM:** 64 GB DDR5-4800
 - **OS:** Windows 11 + WSL2/Ubuntu 22.04 for Docker/Linux workloads
 
@@ -495,12 +508,13 @@ All measurements on a single fixed baseline:
 4. **Compilation:** TR126 (what works, what crashes)
 
 ### For Decision Makers
-1. **Executive Whitepaper:** `Technical_Report_Conclusive_123-133_Whitepaper.md` (15KB, 6 decisions)
-2. **Decision Matrix:** See Phase 2 Deployment Decisions table above
-3. **Cost Analysis:** TR123 ($/token) + TR119 (energy/carbon)
+1. **Rust vs Python Decision:** `Technical_Report_Conclusive_108-116_Whitepaper.md` (language, architecture, runtime, model)
+2. **Phase 2 Whitepaper:** `Technical_Report_Conclusive_123-133_Whitepaper.md` (15KB, 6 decisions)
+3. **Decision Matrix:** See Phase 2 Deployment Decisions table above
+4. **Cost Analysis:** TR123 ($/token) + TR119 (energy/carbon)
 
 ---
 
 **Last Updated:** 2026-02-28
-**Total Reports:** 38 files (26 production-ready TRs + 6 conclusive/whitepaper documents + 6 historical/superseded)
+**Total Reports:** 41 files (26 production-ready TRs + 9 conclusive/whitepaper documents + 6 historical/superseded)
 **Total Measurements:** 70,000+ across all reports
