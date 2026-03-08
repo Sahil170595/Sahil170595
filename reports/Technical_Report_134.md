@@ -556,16 +556,14 @@ Slopes are computed per (model, metric), not per task. The `refusal_rate` slope 
 
 ### 6.3 Capability Slopes (for Comparison)
 
-| Model | Task | Metric | Slope | R-sq |
-|-------|------|--------|-------|------|
-| llama3.2-1b | arc_challenge | accuracy | +0.0221 | 0.275 |
-| llama3.2-1b | mmlu_real | accuracy | +0.0221 | 0.275 |
-| llama3.2-3b | arc_challenge | accuracy | +0.0110 | 0.292 |
-| llama3.2-3b | mmlu_real | accuracy | +0.0110 | 0.292 |
-| mistral-7b | arc_challenge | accuracy | +0.0133 | 0.619 |
-| mistral-7b | mmlu_real | accuracy | +0.0133 | 0.619 |
-| qwen2.5-7b | arc_challenge | accuracy | +0.0157 | 0.722 |
-| qwen2.5-7b | mmlu_real | accuracy | +0.0157 | 0.722 |
+Slopes are computed per (model, metric) across both capability tasks, mirroring the safety slope methodology. Each `accuracy` slope combines MMLU and ARC-Challenge data (hence N=14 for small models with 7 quant levels × 2 tasks, N=12 for 7B models with 6 × 2).
+
+| Model | Metric | Slope | R-sq | CI Lower | CI Upper | N points | Tasks Combined |
+|-------|--------|-------|------|----------|----------|----------|----------------|
+| llama3.2-1b | accuracy | +0.0221 | 0.275 | +0.0060 | +0.0967 | 14 | mmlu + arc |
+| llama3.2-3b | accuracy | +0.0110 | 0.292 | +0.0036 | +0.0450 | 14 | mmlu + arc |
+| mistral-7b | accuracy | +0.0133 | 0.619 | +0.0083 | +0.0208 | 12 | mmlu + arc |
+| qwen2.5-7b | accuracy | +0.0157 | 0.722 | +0.0080 | +0.0258 | 12 | mmlu + arc |
 
 **Note:** Mistral and Qwen capability slopes have higher R-squared (0.62-0.72) than most safety slopes, meaning BPW explains more variance in capability than in safety. Safety metrics are noisier due to smaller sample sizes and binary classification ambiguity.
 
