@@ -1,263 +1,220 @@
 # Sahil Kadadekar
 
-**AI Systems Architect | Builder of Agentic Infrastructure | Mythmaker in Code**
+**Machine Learning Engineer | Constitutional AI | Inference Systems | Empirical Safety Research**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/sahilkadadekar) • [![YouTube](https://img.shields.io/badge/YouTube-Demo-FF0000?style=flat&logo=youtube)](https://youtu.be/IPbwLB_sZ9I)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/sahilkadadekar) [![PyPI](https://img.shields.io/badge/PyPI-chimeraforge-3775A9?style=flat&logo=pypi)](https://pypi.org/project/chimeraforge/) [![YouTube](https://img.shields.io/badge/YouTube-Demo-FF0000?style=flat&logo=youtube)](https://youtu.be/IPbwLB_sZ9I)
 
 **Featured:** [Latent Space Podcast Episode](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 
-I build local-first, silicon-aware agent ecosystems — from custom CUDA kernels to multi-agent runtimes and narrative analytics.
-
+I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. 30 technical reports. 126,000+ empirical measurements. Everything measured, everything reproducible.
 
 ---
 
-##  The Mission: Architecting the Agentic Future
+## What I Build
 
-### The Problem
+I work across the full stack of AI systems — from CUDA kernels and Triton compilation to multi-agent runtimes, alignment architectures, and production platforms.
 
-AI agents are advancing faster than the infrastructure beneath them. Most systems still rely on bloated cloud pipelines, inefficient runtimes, and generic inference loops that:
+**Three pillars:**
 
-- **Underutilize GPUs** by 30–70%
-- **Add unnecessary latency** through framework overhead
-- **Serialize multi-agent workloads**
-- **Scale costs linearly** instead of efficiently
+1. **Inference optimization** — vLLM, TGI, Ollama, TensorRT, torch.compile, FlashAttention, quantization sweeps, Nsight Systems kernel profiling. I don't guess where the bottleneck is. I trace it.
 
-**Current "agent stacks" are built on sand — not silicon.**
+2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-### The Solution
+3. **Empirical safety research** —30 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, and scale concurrency. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned.
 
-**Chimera** — a silicon-aware, self-optimizing inference engine — closes the gap between LLMs and hardware.
+---
 
-**It combines:**
+## The Chimera Ecosystem
 
-- **Runtime introspection:** Inference telemetry → adaptive decision loops
-- **Hardware-aware scheduling:** Predictive GPU governors, kernel-level routing
-- **Custom CUDA/Triton/TensorRT paths:** Fused kernels, quantization sweeps
-- **Dual-runtime agent orchestration:** Concurrency-aware execution
-- **Research-driven configurations:** From Chimeraforge (TR108–TR115, 1,100+ runs)
+**6 repositories. 15+ services. 5 languages. One obsession: make AI systems that are fast, safe, and honest.**
 
-*Chimera turns your GPU into a dynamic inference runtime, not a passive device.*
+```mermaid
+graph TD
+    BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 95%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
+    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>30 reports · 126K+ measurements"]
+    CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>6 predictive models · 292 tests<br/>Python + Rust harnesses"]
+    MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
+    CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
+    BB["<b>Banterblogs</b><br/>Next.js 15 · Vercel<br/>266 episodes · 30+ reports"]
 
-### The Result
+    BP -->|optimized backends| BH
+    BH -->|findings| CF
+    BP -->|telemetry + debate outcomes| MP
+    MP -->|episodes| BB
+    BP -->|streaming + voice| CD
+    BH -->|GPU configs| BP
 
-**Measured improvements across real workloads:**
+    style BP fill:#1a1a2e,stroke:#e94560,color:#fff
+    style BH fill:#1a1a2e,stroke:#0f3460,color:#fff
+    style CF fill:#1a1a2e,stroke:#16213e,color:#fff
+    style MP fill:#1a1a2e,stroke:#533483,color:#fff
+    style CD fill:#1a1a2e,stroke:#e94560,color:#fff
+    style BB fill:#1a1a2e,stroke:#0f3460,color:#fff
+```
+
+---
+
+## Banterpacks — Constitutional AI Runtime
+
+**The core.** Everything else in the ecosystem feeds into or out of this.
+
+- **Constitutional Debate Engine (TDD001):** Multi-model debate with heat-based escalation and 3 consensus algorithms. Constitutional principles as first-class constraints, not afterthoughts.
+- **Fast-Path Router (TDD002):** Embedding-based cosine similarity routing. 95% of queries resolved in <10ms without touching the debate engine.
+- **Rust Alignment Runtime (TDD005):** 7 crates. BFT consensus, Ed25519 provenance chains, zero-knowledge proofs via Pedersen commitments on Ristretto255, CRDT sync for cross-device state.
+- **RLAIF Pipeline:** Debate outcomes generate DPO training pairs that continuously refine the router's alignment centroid. The system improves itself.
+- **JARVIS Gateway:** Unified AI assistant with chat (turn-based state machine), voice (Whisper STT, TTS, wake word, barge-in), tool execution with human-in-the-loop approval, WebSocket streaming, and durable workflows.
+
+> *The alignment layer doesn't just steer the model. It proves it steered correctly.*
+
+---
+
+## Banterhearts — Research & Inference Platform
+
+**The measurement engine.** Every claim in the research program comes from code running here.
+
+- **Capability-aware backend dispatching** — Ollama, HuggingFace Transformers, ONNX Runtime, TensorRT. The system picks the right backend for the job.
+- **Compile+quantize pipeline** with latency/accuracy guardrails
+- **Thompson Sampling auto-optimizer** for configuration discovery
+- **GPU monitoring** —100ms power polling, thermal safety, VRAM fragmentation tracking via pynvml
+- **TensorRT engine building**, ONNX model export, torch.compile with Inductor backend
+- **KV-cache analysis** — theoretical + empirical measurement, CUDA graph crash reproduction
+
+> *If you can't measure it, you can't optimize it. If you can't reproduce the measurement, you didn't measure it.*
+
+---
+
+## Chimeraforge — Capacity Planning CLI
+
+**The tool that ships the research.**
+
+Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chimeraforge`
+
+- 6 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required)
+- Dual-language benchmarking harnesses (Python + Rust)
+- 292 tests
+- Operationalizes findings from 30 technical reports into deployment decisions
+
+> *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
+
+---
+
+## Chimeradroid — Android & XR Client
+
+Unity/C# JARVIS client for Android and Android XR. WebSocket streaming, voice interface, tool approval UI, cross-device sync via CRDT, and session handoff. Embodiment-based architecture — runs on Android XR headsets for early-stage embodied agent work.
+
+**Currently:** Extending cross-device reach so JARVIS on your phone talks to your local laptop GPU. No cloud dependency. Walk around, keep talking to your agents.
+
+> *The ecosystem runs everywhere, not just on a dev machine.*
+
+---
+
+## Research Program
+
+**30 technical reports (TR 108--137). 126,000+ empirical measurements. 3 hypotheses overturned.**
+
+Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
+
+### AI Safety & Alignment | 74,254 samples
+
+Quantified the **safety tax of inference optimization** across 4 model families:
+
+| Factor | Share of Safety Cost |
+|--------|---------------------|
+| Quantization | **57%** |
+| Backend | **41%** |
+| Concurrency | **2%** (null result, TOST-confirmed) |
+
+Key finding: **backend matters more than numerical precision for safety.** A 23pp safety drop traced to chat template divergence, not FP16 vs Q4 arithmetic.
+
+### Inference Systems & GPU Kernel Profiling | ~35,000 measurements
+
+Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottleneck is **GPU memory bandwidth physics**, not serving software. Continuous batching (vLLM/TGI) amortizes this:
 
 | Metric | Improvement |
 |--------|-------------|
-|  **Throughput** | 10×–12× gains |
-|  **Latency** | 12×–15× reduction |
-|  **GPU Utilization** | 90%+ (vs. typical 30%–40%) |
-|  **Agentic Loop Speed** | Sub-80ms (STT → LLM → TTS) |
-|  **Concurrency Efficiency** | ≥99% with dual-Ollama |
+| Kernel count reduction | **80%** |
+| Memory bandwidth reduction | **79–83%** |
+| Throughput at N=8 | **2.25x** |
 
-**Validated using:**
-- Nsight Compute
-- TensorRT profiling
-- TR-series methodology (Chimeraforge)
-- ClickHouse lineage tracking
+### Scaling Laws & Capacity Planning | ~33,000 measurements
 
- Scale: End-to-end architecture built solo — from custom CUDA kernels to multi-agent runtimes, telemetry pipelines, and narrative layers.
+- Multi-agent scaling follows **Amdahl's Law** (R² > 0.97), throughput plateaus at N=2
+- **Q4_K_M** is the universal quantization sweet spot (30–67% cost savings)
+- **VRAM spillover** causes 25–105x latency cliffs — the real context-length bottleneck, not quadratic attention
 
----
+### Hypotheses Overturned
 
-##  Chimera Ecosystem
-
-
-*Silicon-aware inference engine → Agent runtime → Analytics → UX*
-
-### Architecture Overview
-
-```
-                                  ┌────────────────────────────────────────────────────────────┐
-                                  │                    CHIMERA ECOSYSTEM                       │
-                                  │                                                            │
-                                  ├────────────────────────────────────────────────────────────┤
-                                  │                                                            │
-                                  │  ┌──────────────────────────────────────────────────────┐  │
-                                  │  │  CHIMERA (Core Engine)                               │  │
-                                  │  │  • Custom CUDA & Triton kernels (10–100× speedups)   │  │
-                                  │  │  • Quantization engine (INT8/FP8/QAT)                │  │
-                                  │  │  • Predictive GPU governors & runtime introspection  │  │
-                                  │  │  • Kernel fusion + TensorRT paths                    │  │
-                                  │  │  • Telemetry spine (ClickHouse lineage)              │  │
-                                  │  │  • Houses Banterhearts (profiling + optimization)    │  │
-                                  │  └──────────────────────────────────────────────────────┘  │
-                                  │                           ↓                                │
-                                  │  ┌──────────────────────────────────────────────────────┐  │
-                                  │  │  BANTERPACKS (Real-Time Agent Runtime)               │  │
-                                  │  │  • Local "Jarvis-as-a-Server" (<80ms loop)           │  │
-                                  │  │  • Multi-agent orchestration (tools, events, memory) │  │
-                                  │  │  • Low-latency streaming overlay (OBS integration)   │  │
-                                  │  │  • Voice-powered agents (ASR/TTS pipeline)           │  │
-                                  │  │  • Consumes Chimera-optimized model backends         │  │
-                                  │  └──────────────────────────────────────────────────────┘  │
-                                  │                           ↓                                │
-                                  │  ┌──────────────────────────────────────────────────────┐  │
-                                  │  │  CHIMERAFORGE (Benchmark & Research Lab)             │  │
-                                  │  │  • Rust vs Python agent parity harnesses             │  │
-                                  │  │  • Single & multi-agent performance (TR108–TR115)    │  │
-                                  │  │  • Async runtime sweeps (Tokio/Smol/async-std)       │  │
-                                  │  │  • Dual-Ollama orchestration (true concurrency)      │  │
-                                  │  │  • 1,100+ reproducible benchmark runs                │  │
-                                  │  │  • Produces validated configs for Chimera/Banterpacks│  │
-                                  │  └──────────────────────────────────────────────────────┘  │
-                                  │                           ↓                                │
-                                  │  ┌──────────────────────────────────────────────────────┐  │
-                                  │  │  MUSE PROTOCOL                                       │  │
-                                  │  │  • 6-agent pipeline (Ingest → Collect → Watch →      │  │
-                                  │  │    Council → Publish → Translate)                    │  │
-                                  │  │  • Correlates metrics → decisions → outcomes         │  │
-                                  │  │  • Datadog + ClickHouse observability                │  │
-                                  │  │  • Turns raw telemetry into structured insight       │  │
-                                  │  └──────────────────────────────────────────────────────┘  │ 
-                                  │                           ↓                                │
-                                  │  ┌──────────────────────────────────────────────────────┐  │
-                                  │  │  BANTERBLOGS                                         │  │
-                                  │  │  • Next.js narrative layer                           │  │
-                                  │  │  • Auto-publishes Muse-generated episodes            │  │
-                                  │  │  • Visualizes benchmarks, commits, and architecture  │  │
-                                  │  │  • Deployed on Vercel with multi-language support    │  │
-                                  │  └──────────────────────────────────────────────────────┘  │
-                                  │                                                            │
-                                  └────────────────────────────────────────────────────────────┘
-```
+1. **M/D/1 queueing theory** — deviates 20.4x from observed behavior (TR 128)
+2. **NUM_PARALLEL enables concurrent GPU inference** — confirmed no-op, 0/30 tests significant (TR 128)
+3. **Serving stack is the scaling bottleneck** — GPU memory bandwidth physics dominates; PyTorch Direct degrades worse than Ollama (TR 131)
 
 ---
 
-##  Chimera (Core Engine)
+## Recent Shipped Work
 
-**The Heart of the System — Powers Everything Above It**
+### GhostEye Inc. — Founding Engineer (AI/ML)
 
-- **Dynamic GPU Scheduling:** Real-time governors reallocating kernels based on telemetry
-- **Fused Kernel Optimization:** Custom CUDA + Triton/TensorRT paths with adaptive quantization
-- **Self-Optimizing Runtime:** Agents audit their own throughput, latency, and memory footprint
-- **Telemetry Spine:** Every run logged to ClickHouse for regression and anomaly tracking
+Built a **security awareness training platform in 90 days** as a founding engineer. Multi-channel delivery across web, Slack, Teams, SMS/RCS, WhatsApp, Telegram, voice, and email.
 
-> *Chimera is the silicon-aware intelligence layer — it turns your GPU into an adaptive runtime.*
+- Phishing email generation pipeline on **self-hosted 70B LLMs** with **domain-specific LoRA/QLoRA adapters** trained on a 1M+ email corpus
+- Reduced **deepfake phishing simulation** latency from **40s to 100--450ms** (80--400x improvement)
+- Input guardrails across all APIs and agents with adversarial attempt logging
+- **5 specialized PR-review agents** distilled from ~2,500 comments across ~1,000 PRs
+- 5000+ tests across ~10 services
 
----
+### Attunica AI — Co-Founder & Chief Architect
 
-##  Chimeraforge (Benchmark & Research Lab)
+Four-service AI platform for psychotherapy training.
 
-**The Truth Engine — Establishes the Numbers Everything Else Is Built On**
-
-- **Language Parity Harnesses:** Identical Python and Rust agent workflows for apples-to-apples comparison
-- **Reproducible Benchmarks:** 1,100+ runs across TR108–TR115 with cold starts, fresh processes, and structured logs
-- **Dual-Ollama Concurrency Testing:** Validated true multi-agent parallelism with ≥99% efficiency
-- **Runtime Sweeps:** Tokio, Smol, async-std, and custom executor profiles across agent workloads
-- **Statistical Rigor:** Confidence intervals, coefficient of variation, variance tracking, percentile latency metrics
-- **Configuration Discovery:** Derives optimal throughput/latency configs consumed directly by Chimera & Banterpacks
-
-> *Chimeraforge is the verification layer — it transforms intuition into data, and data into engineering truth.*
+- Real-time streaming agent via **LiveKit SDK** + **Google Gemini Realtime API** in sub-100ms WebRTC sessions
+- Evaluation microservice with **Claude Sonnet 4.5** for criterion-based feedback
+- Privacy-first system (~$1.20/session) via transcript-mirroring protocol
 
 ---
 
-##  Banterpacks 2.0 — *"Jarvis-as-a-Server"*
-
-**Built on Chimera, powered by its optimizations.**  
-Transforms any GPU machine into a **fully local agentic runtime** capable of deploying, hosting, and coordinating AI agents.
-
-- **Full Locality:** Agents run 100% on-device — no cloud dependency
-- **Sub-120 ms Latency:** Real-time STT → LLM → TTS loops benchmarked on RTX 4080
-- **Agentic Orchestration:** Modular runtime for spawning and managing AI agents via event bus
-- **APIs for Integration:** REST and gRPC endpoints for system-level embedding
-- **Silicon-Aware Boosting:** Every inference, prompt, and model call optimized by Chimera
-- **Monitoring:** Prometheus + Grafana observability
-
-> *If Chimera is the brainstem, Banterpacks is the body — the deployable face of local intelligence.*
-
----
-
-##  Banterblogs — *The Narrative Layer*
-
-Commit-to-story system documenting Banter-Infra's evolution in real time.  
-Every benchmark, optimization, and design decision is logged and published as an interactive story.
-
-- Deployed on **Vercel**
-- Auto-generated from git commit history
-- Visualizes metrics, commits, and architecture
-
-🔗 **[Live Blog → banterblogs.vercel.app](https://banterblogs.vercel.app)**
-
----
-
-##  The Banter-Infra Ecosystem
-
-| Layer | System | Role |
-|:------|:-------|:-----|
-|  **Muse Protocol** | *(Public — `Chimera_Multi_agent`)* | **Enterprise orchestration and content generation layer.** Orchestrates 6 agents (Ingestor → Collector → Watcher → Council → Publisher → Translator) to transform Banter-Infra telemetry into live, multilingual episodes and dashboards. |
-|  **Chimera** | *(Private, foundational)* | **Self-optimizing inference engine** managing quantization, kernel fusion, and silicon-level tuning for all downstream agents. |
-|  **Banterpacks 2.0** | *(Private)* | **Local "Jarvis-as-a-Server"** runtime for agent deployment and live interaction; consumes Chimera's optimizations. |
-|  **Banterblogs** | *(Public, Vercel)* | **Narrative visualization layer**, auto-publishing episodes and dashboards generated by Muse. |
-|  **Banterhearts** | *(Merged into Chimera)* | **Telemetry spine**—ClickHouse/Datadog layer feeding performance data to Muse. |
-|  **Chimeraforge** | *(Standalone Research Lab)* | **Reproducibility lab** — rigorous Rust/Python parity tests, runtime sweeps, and statistical validation. |
-
----
-
-##  Profiling & Results
-
-### Quantization Kernel Profiling (RTX 4080)
-
-| Metric | Value |
-|--------|-------|
-| **Baseline latency** | 6.92 ms |
-| **Optimized latency** | 0.07 ms |
-| **Speedup** | **≈15× faster** |
-| **Throughput gain** | 10× local baseline |
-| **Inference performance** | Substantial gain |
-| **Agentic Workflow TTFT** | ~65% improvement over baseline |
-
-###  Technical Reports
-
-**Latest:** [View All Reports →](https://github.com/Sahil170595/Sahil170595/tree/main/reports)
-
--  [Ollama Benchmark – 2025-10-01](reports/ollama/2025-10-01/ollama_benchmark_2025-10-01.md)
--  [Kernel Deep Dive – 2025-10-02](reports/ollama/2025-10-02/Performance_Deep_dive.md)
--  [Gemma3 Deep Dive – 2025-10-08](reports/ollama/2025-10-08/Gemma3_Deepdive.md)
--  [Full Report (108 pages) – 2025-10-08](reports/ollama/2025-10-08/Technical_Report_108pages.md)
--  [Single Agent Performance – 2025-10-09](reports/ollama/2025-10-09/Technical_Report_109.md)
-
-> *All metrics reproducible and version-controlled through ClickHouse lineage.*
-
----
-
-##  Currently Building
+## Open Source
 
 | Project | Description |
-|---------|-------------|
-| **Chimera v2** | Predictive GPU governors, real-time quantization sweeps, and Triton autotuning |
-| **Banterpacks 2.0** | *Jarvis-as-a-Server* — a local-first platform for hosting and coordinating AI agents |
-| **Banterblogs Episodes** | Automated storytelling for commits, builds, and benchmarks |
+|:--------|:------------|
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI. 6 predictive models, 292 tests. |
+| [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | Triaged upstream PR — torch.compile autoregressive decode failure with growing KV-cache tensors. Traced into cudagraph_trees deallocation. |
 
 ---
 
-##  Tech Stack
+## Tech Stack
 
-**Core:** Python • CUDA • PyTorch • Triton LLM • TensorRT  
-**Infra:** ClickHouse • Redis • Prometheus • Grafana • Datadog  
-**Deployment:** Docker • FastAPI • Vercel • WSL2  
-**Tooling:** Nsight • PyTorch FX • ONNX • Ollama • OpenAI API
+**Languages:** Python, TypeScript, Rust, C#, SQL, C++, Java
+
+**GPU & Compilation:** CUDA, Triton, TensorRT, FlashAttention, ONNX Runtime, torch.compile, Nsight Systems / Nsight Compute, quantization (GPTQ, AWQ, INT4/INT8)
+
+**Inference & Serving:** vLLM, TGI, Ollama, llama.cpp (GGUF), continuous batching, KV-cache optimization
+
+**Frameworks:** FastAPI, Next.js, PyTorch, Transformers, PEFT, Ray, DeepSpeed, LangGraph, LangSmith, LiveKit
+
+**Infra:** AWS (Lambda, S3, DynamoDB, SQS, IAM), Docker, Kubernetes, Vercel, ClickHouse, Redis, PostgreSQL, MinIO
+
+**Monitoring:** Prometheus, Grafana, Datadog, OpenTelemetry, pynvml, MLflow, W&B
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
-![CUDA](https://img.shields.io/badge/CUDA-12.5-76B900?style=flat&logo=nvidia&logoColor=white)
-![Triton](https://img.shields.io/badge/Triton--LLM-25.08-FF6F00?style=flat)
-![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=flat&logo=vercel&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-stable-DEA584?style=flat&logo=rust&logoColor=white)
+![CUDA](https://img.shields.io/badge/CUDA-12.x-76B900?style=flat&logo=nvidia&logoColor=white)
+![PyPI](https://img.shields.io/badge/PyPI-chimeraforge-3775A9?style=flat&logo=pypi&logoColor=white)
 
 ---
 
-##  Visual Gallery
+## Visual Gallery
 
 | Artifact | Description | Preview | Links |
 |:---------|:------------|:--------|:------|
-| **CI/CD Dashboard** | Datadog pipeline & tests overview | <img src="https://github.com/user-attachments/assets/2bd7ccce-192d-40fb-82b3-10606632f4cc" width="360" alt="CI/CD Dashboard"> | — |
-| **Chimera Engine Profiling** | Nsight Compute profiling on RTX 4080 | <img src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" width="360" alt="Chimera Profiling"> | — |
-| **Frontend UI** | Application frontend snapshot | <img src="https://github.com/user-attachments/assets/35c6439a-7ddd-4021-8d90-5518213db4af" width="360" alt="Frontend UI"> | — |
-| **Performance** | Throughput/latency view | <img src="https://github.com/user-attachments/assets/4d067d29-4d61-47bc-bae9-b0d859f03a50" width="360" alt="Performance"> | — |
-| **Banterpacks Demo** | Live demo still | <img src="https://github.com/user-attachments/assets/7685a091-274a-4ce5-ab43-7fcec213caa2" width="360" alt="Banterpacks Demo"> | [YouTube Demo](https://youtu.be/IPbwLB_sZ9I) • [Repository](https://github.com/Sahil170595/Banterpacks) |
+| **CI/CD Dashboard** | Datadog pipeline & tests overview | <img src="https://github.com/user-attachments/assets/2bd7ccce-192d-40fb-82b3-10606632f4cc" width="360" alt="CI/CD Dashboard"> | —|
+| **Chimera Engine Profiling** | Nsight Compute profiling on RTX 4080 | <img src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" width="360" alt="Chimera Profiling"> | —|
+| **Frontend UI** | Application frontend snapshot | <img src="https://github.com/user-attachments/assets/35c6439a-7ddd-4021-8d90-5518213db4af" width="360" alt="Frontend UI"> | —|
+| **Performance** | Throughput/latency view | <img src="https://github.com/user-attachments/assets/4d067d29-4d61-47bc-bae9-b0d859f03a50" width="360" alt="Performance"> | —|
+| **Banterpacks Demo** | Live demo still | <img src="https://github.com/user-attachments/assets/7685a091-274a-4ce5-ab43-7fcec213caa2" width="360" alt="Banterpacks Demo"> | [YouTube Demo](https://youtu.be/IPbwLB_sZ9I) |
 
 ---
 
-##  Other Projects
+## Other Projects
 
 | Project | Description |
 |:--------|:------------|
@@ -270,23 +227,23 @@ Every benchmark, optimization, and design decision is logged and published as an
 
 ---
 
-##  Publications
+## Publications
 
 ### 2023
 
-**Digital Currency Price Prediction using Machine Learning**  
-*IJRASET 11(9): 338–355* • Sep 2023  
+**Digital Currency Price Prediction using Machine Learning**
+*IJRASET 11(9): 338–355* — Sep 2023
 [![DOI](https://img.shields.io/badge/DOI-10.22214%2Fijraset.2023.55647-blue?style=flat)](https://doi.org/10.22214/ijraset.2023.55647)
 
 ### 2022
 
-**Machine Learning Based Car Damage Identification**  
-*JETIR 9(10)* • Oct 2022  
+**Machine Learning Based Car Damage Identification**
+*JETIR 9(10)* — Oct 2022
 [![PDF](https://img.shields.io/badge/Paper-JETIR%20(2022)-brightgreen?style=flat)](https://www.jetir.org/papers/JETIR2210195.pdf)
 
 ---
 
-##  Reach Me
+## Reach Me
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/sahilkadadekar) [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/Sahil170595) [![YouTube](https://img.shields.io/badge/YouTube-Demo-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/IPbwLB_sZ9I)
 
@@ -294,7 +251,6 @@ Every benchmark, optimization, and design decision is logged and published as an
 
 <div align="center">
 
-> *"Turning every GPU into a self-optimizing Jarvis."*  
-> *Building the future of interactive streaming, one line of code at a time.*
+> *"Measure everything. Trust nothing. Ship anyway."*
 
 </div>
