@@ -1,15 +1,15 @@
 # Technical Report 128: Production Workload Characterization
 ## Concurrency, saturation, streaming, and multi-turn performance of Ollama on consumer GPU
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-02-25
-**Author:** Research Team
-**Report Type:** Production workload characterization (5-phase, 3,172 measurements)
-**Test Duration:** ~55 minutes
-**Status:** Complete --- All 5 phases delivered
-**Run ID:** `20260225_145254`
-**Related Work:** [TR123](Technical_Report_123.md) (KV-Cache Economics), [TR125](Technical_Report_125.md) (Quantization Matrix), [TR126](Technical_Report_126.md) (Linux/Triton Validation), [TR127](Technical_Report_127.md) (Long-Context Scaling)
-**Depends On:** TR127 (context scaling baseline, prefill cross-validation), TR126 (HF vs Ollama methodology)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-02-25  
+**Author:** Research Team  
+**Report Type:** Production workload characterization (5-phase, 3,172 measurements)  
+**Test Duration:** ~55 minutes  
+**Status:** Complete --- All 5 phases delivered  
+**Run ID:** `20260225_145254`  
+**Related Work:** [TR123](Technical_Report_123.md) (KV-Cache Economics), [TR125](Technical_Report_125.md) (Quantization Matrix), [TR126](Technical_Report_126.md) (Linux/Triton Validation), [TR127](Technical_Report_127.md) (Long-Context Scaling)  
+**Depends On:** TR127 (context scaling baseline, prefill cross-validation), TR126 (HF vs Ollama methodology)  
 
 ---
 
@@ -74,7 +74,7 @@ The answer is sobering for anyone expecting Ollama's NUM_PARALLEL setting to imp
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | NUM_PARALLEL enables concurrent GPU inference | 0/30 pairwise tests significant, mean |change| = 4.0% (SS4) | **Refuted** |
+| 1 | NUM_PARALLEL enables concurrent GPU inference | 0/30 pairwise tests significant, mean \|change\| = 4.0% (SS4) | **Refuted** |
 | 2 | M/D/1 predicts queue wait accurately | Deviation up to 20.4x at NP=4 (SS5) | **Refuted** (at NP>1) |
 | 3 | Streaming adds latency overhead | 0/9 tests significant after Holm--Bonferroni (SS8) | **Refuted** |
 | 4 | GPU throttles under sustained LLM load | Peak 66 degrees C, 0 throttle events across 412 measurements (SS6) | **Refuted** |
@@ -191,7 +191,7 @@ TR128 is the production workload reference for the Banterhearts research program
 | Metric | Definition | Interpretation |
 |--------|-----------|---------------|
 | **Cohen's d** | Standardized mean difference: `(mean_B - mean_A) / pooled_std` | Negligible: \|d\| < 0.2, Small: 0.2--0.5, Medium: 0.5--0.8, Large: > 0.8 |
-| **p-value** | Probability of observing the data under H0 (no difference), via Welch's two-sample t-test | Significant if p < 0.05 (before correction) |
+| **p-value** | Probability of observing the data under H_0 (no difference), via Welch's two-sample t-test | Significant if p < 0.05 (before correction) |
 | **Holm--Bonferroni** | Step-down FWER correction: sort p-values ascending, reject p_i if p_i < alpha/(n-i+1) while all smaller p rejected | Controls family-wise error rate without assuming test independence. More powerful than Bonferroni |
 
 ### Queue Wait Derivation
@@ -1041,7 +1041,7 @@ The ~3x ratio is consistent with retaining 3 of ~10 turns. The slight variation 
 
 ### 12.1 TR127 Cross-Validation
 
-TR127 measured Ollama prefill times at various context lengths. TR128 Phase 1 provides new prefill measurements at ~210 tokens (the mean prompt length). The naïve comparison uses means, but TR128's prefill data is heavily right-skewed by cold-start outliers:
+TR127 measured Ollama prefill times at various context lengths. TR128 Phase 1 provides new prefill measurements at ~210 tokens (the mean prompt length). The naive comparison uses means, but TR128's prefill data is heavily right-skewed by cold-start outliers:
 
 | Model | TR128 n | TR128 Mean (ms) | TR128 Median (ms) | CV% | Skewness | Max (ms) |
 |-------|---------|-----------------|--------------------|----|----------|----------|
@@ -1201,7 +1201,7 @@ The following findings emerged from the data analysis and are ordered by their i
 
 **Finding 3: Saturation occurs at very low arrival rates.** All models show p99/p50 > 2 at 0.5 rps. Even at 43% utilization (llama3.2-1b at 0.5 rps), Poisson burstiness creates measurable tail latency. Safe sustained rates: 0.49--0.82 rps depending on model.
 
-**Finding 4: No thermal throttling.** Peak 66 degrees C across 412 Phase 3 measurements. 0 throttle events. Negative latency drift in qwen2.5-1.5b (-27.7%) reflects a model-specific decode throughput increase (167→275 tok/s), not thermal degradation. Laptop GPU cooling is adequate for sustained small-model inference.
+**Finding 4: No thermal throttling.** Peak 66 degrees C across 412 Phase 3 measurements. 0 throttle events. Negative latency drift in qwen2.5-1.5b (-27.7%) reflects a model-specific decode throughput increase (167->275 tok/s), not thermal degradation. Laptop GPU cooling is adequate for sustained small-model inference.
 
 **Finding 5: Streaming is free.** 0/9 stream-vs-batch comparisons significant. No wall-clock overhead. Always use streaming.
 
@@ -1238,7 +1238,7 @@ Zero wall-clock overhead across 9 comparisons. Streaming provides earlier TTFT (
 
 ### 15.4 Laptop GPU Handles Sustained Load
 
-The RTX 4080 Laptop GPU maintained stable performance under 3 minutes of sustained load per model. Peak temperature of 66 degrees C leaves a 14-degree margin to the throttle threshold. The negative latency drift observed for qwen2.5-1.5b (-27.7%) reflects a model-specific decode throughput increase (167→275 tok/s over 143 requests) whose mechanism is unknown (see SS6.1). The other two models show flat or slightly negative drift within noise. None of the three models exhibit thermal degradation.
+The RTX 4080 Laptop GPU maintained stable performance under 3 minutes of sustained load per model. Peak temperature of 66 degrees C leaves a 14-degree margin to the throttle threshold. The negative latency drift observed for qwen2.5-1.5b (-27.7%) reflects a model-specific decode throughput increase (167->275 tok/s over 143 requests) whose mechanism is unknown (see SS6.1). The other two models show flat or slightly negative drift within noise. None of the three models exhibit thermal degradation.
 
 This finding is specific to small models (1--3B parameters) at default quantization. Larger models, higher-precision formats (FP16), or multi-model workloads may produce higher power draw and temperatures. TR132 (Serving Stacks) will test with vLLM and TGI, which may exercise the GPU differently.
 

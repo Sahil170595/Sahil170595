@@ -1,15 +1,15 @@
 # Technical Report 130: Serving Stack Benchmarking
-## Ollama vs vLLM vs TGI — Multi-agent throughput scaling comparison
+## Ollama vs vLLM vs TGI -- Multi-agent throughput scaling comparison
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-02-26
-**Author:** Research Team
-**Report Type:** Cross-backend serving stack benchmarking (4-phase, 3 backends, 4797 measurements)
-**Test Duration:** ~3 hours
-**Status:** Complete --- All 4 phases delivered
-**Run ID:** `20260226_125833`
-**Related Work:** [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR128](Technical_Report_128.md) (Production Workload Characterization)
-**Depends On:** TR129 (Ollama serial fraction cross-validation)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-02-26  
+**Author:** Research Team  
+**Report Type:** Cross-backend serving stack benchmarking (4-phase, 3 backends, 4797 measurements)  
+**Test Duration:** ~3 hours  
+**Status:** Complete --- All 4 phases delivered  
+**Run ID:** `20260226_125833`  
+**Related Work:** [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR128](Technical_Report_128.md) (Production Workload Characterization)  
+**Depends On:** TR129 (Ollama serial fraction cross-validation)  
 
 ---
 
@@ -17,13 +17,13 @@
 
 TR129 found that Ollama exhibits Amdahl serial fractions s=0.39--0.54 on an RTX 4080 Laptop GPU (12 GB VRAM), meaning up to 54% of inference is serialized under multi-agent concurrency. The critical unanswered question: **is this an Ollama scheduling bottleneck or an inherent GPU physics constraint?** If alternative serving stacks achieve lower serial fractions with identical hardware, the bottleneck is the serving stack, not the silicon.
 
-TR130 answers this question with **4,797 measurements** across 3 serving backends (Ollama, vLLM, TGI), 3 models (llama3.2-1b, llama3.2-3b, qwen2.5-1.5b), and 4 phases: environment validation, single-agent baseline, N-agent scaling (N={1,2,4,8}), and time-to-first-token (TTFT) comparison. Each backend serves the same models on the same GPU under identical closed-loop workloads. All 9 backend × model combinations passed validation; zero were skipped.
+TR130 answers this question with **4,797 measurements** across 3 serving backends (Ollama, vLLM, TGI), 3 models (llama3.2-1b, llama3.2-3b, qwen2.5-1.5b), and 4 phases: environment validation, single-agent baseline, N-agent scaling (N={1,2,4,8}), and time-to-first-token (TTFT) comparison. Each backend serves the same models on the same GPU under identical closed-loop workloads. All 9 backend x model combinations passed validation; zero were skipped.
 
-**Core finding: The serving stack is the bottleneck, and it is Ollama that suffers.** The three backends follow fundamentally different degradation curves under concurrency. Ollama's sequential request scheduling maps to Amdahl's Law (R²=0.957--0.987), producing steep efficiency collapse: at N=8 agents, each agent retains only **16--17%** of its standalone throughput. vLLM and TGI, with continuous batching and PagedAttention, follow a power-law degradation (R²=0.988--0.996) that is far more gradual: at N=8, each agent retains **46--66%** of standalone throughput.
+**Core finding: The serving stack is the bottleneck, and it is Ollama that suffers.** The three backends follow fundamentally different degradation curves under concurrency. Ollama's sequential request scheduling maps to Amdahl's Law (R^2=0.957--0.987), producing steep efficiency collapse: at N=8 agents, each agent retains only **16--17%** of its standalone throughput. vLLM and TGI, with continuous batching and PagedAttention, follow a power-law degradation (R^2=0.988--0.996) that is far more gradual: at N=8, each agent retains **46--66%** of standalone throughput.
 
-The practical consequence is dramatic. For llama3.2-1b at N=8 concurrent agents, vLLM delivers **559 total tok/s** versus Ollama's **248 total tok/s** — a 2.25× advantage — despite Ollama being 18% faster at N=1 (177.7 vs 150.7 tok/s). The crossover point occurs between N=2 and N=4 for all three models. Beyond N=2, practitioners should switch to vLLM or TGI.
+The practical consequence is dramatic. For llama3.2-1b at N=8 concurrent agents, vLLM delivers **559 total tok/s** versus Ollama's **248 total tok/s** -- a 2.25x advantage -- despite Ollama being 18% faster at N=1 (177.7 vs 150.7 tok/s). The crossover point occurs between N=2 and N=4 for all three models. Beyond N=2, practitioners should switch to vLLM or TGI.
 
-**Methodological caveat on the Amdahl serial fraction:** When Amdahl's model is force-fitted to vLLM/TGI data, it produces artificially high serial fractions (s=0.81--0.92) because these backends do not degrade via Amdahl's mechanism. Their best-fit model is power law (eta ∝ N^−α, α=0.17--0.35), which has no "serial fraction" parameter. Comparing Amdahl serial fractions across backends with different degradation mechanisms is a category error. This report uses raw efficiency eta(N), total throughput, and saturation points as the primary cross-backend comparison, with the Amdahl serial fraction reserved for Ollama where the model genuinely fits.
+**Methodological caveat on the Amdahl serial fraction:** When Amdahl's model is force-fitted to vLLM/TGI data, it produces artificially high serial fractions (s=0.81--0.92) because these backends do not degrade via Amdahl's mechanism. Their best-fit model is power law (eta propto N?alpha, alpha=0.17--0.35), which has no "serial fraction" parameter. Comparing Amdahl serial fractions across backends with different degradation mechanisms is a category error. This report uses raw efficiency eta(N), total throughput, and saturation points as the primary cross-backend comparison, with the Amdahl serial fraction reserved for Ollama where the model genuinely fits.
 
 *Quantization note:* Ollama serves Q4_0 quantized models while vLLM and TGI serve FP16. Absolute throughput differences from quantization are expected and do not affect the scaling comparison: eta(N) normalizes each backend against its own N=1 baseline.
 
@@ -31,21 +31,21 @@ The practical consequence is dramatic. For llama3.2-1b at N=8 concurrent agents,
 
 ### Key Findings
 
-1. **Ollama wins at N=1.** Q4_0 quantization gives Ollama 1.2--2.6× higher single-agent throughput: 198 tok/s (qwen2.5-1.5b) vs 103 tok/s (vLLM) and 75 tok/s (TGI). This is expected — 4-bit weights are 4× smaller, reducing memory bandwidth pressure.
+1. **Ollama wins at N=1.** Q4_0 quantization gives Ollama 1.2--2.6x higher single-agent throughput: 198 tok/s (qwen2.5-1.5b) vs 103 tok/s (vLLM) and 75 tok/s (TGI). This is expected -- 4-bit weights are 4x smaller, reducing memory bandwidth pressure.
 
-2. **vLLM/TGI win decisively at N≥4.** At N=8 agents, vLLM delivers 559 tok/s total vs Ollama's 248 tok/s for llama3.2-1b — a **2.25× throughput advantage** despite being slower at N=1. The crossover point is between N=2 and N=4.
+2. **vLLM/TGI win decisively at N>=4.** At N=8 agents, vLLM delivers 559 tok/s total vs Ollama's 248 tok/s for llama3.2-1b -- a **2.25x throughput advantage** despite being slower at N=1. The crossover point is between N=2 and N=4.
 
-3. **The backends follow different scaling laws.** Ollama degrades via Amdahl's Law (R²=0.957--0.987): sequential request processing creates a genuine serial fraction. vLLM and TGI degrade via power law (R²=0.988--0.996): continuous batching enables overlapping execution with gradual resource contention.
+3. **The backends follow different scaling laws.** Ollama degrades via Amdahl's Law (R^2=0.957--0.987): sequential request processing creates a genuine serial fraction. vLLM and TGI degrade via power law (R^2=0.988--0.996): continuous batching enables overlapping execution with gradual resource contention.
 
-4. **Ollama efficiency collapses at N=8.** Each agent retains only 16--17% of N=1 throughput (eta≈0.16). vLLM agents retain 46--65% (eta≈0.56). TGI agents retain 48--66% (eta≈0.58). The difference is 3--4× in per-agent efficiency.
+4. **Ollama efficiency collapses at N=8.** Each agent retains only 16--17% of N=1 throughput (eta~0.16). vLLM agents retain 46--65% (eta~0.56). TGI agents retain 48--66% (eta~0.58). The difference is 3--4x in per-agent efficiency.
 
 5. **Ollama saturates at N*=4; vLLM/TGI never saturate within tested range.** Ollama drops below 50% efficiency at N=4 for all models. vLLM and TGI remain above 50% efficiency at N=8 for 2 of 3 models, suggesting useful scaling continues to N=16+.
 
-6. **TTFT is 6--8× faster on vLLM/TGI.** Ollama: 163--194 ms. vLLM: 23--32 ms. TGI: 22--35 ms. Docker-based backends start streaming tokens in under 35 ms, versus Ollama's 160+ ms — a user-perceptible gap (Cohen's d > 13 for all pairwise comparisons).
+6. **TTFT is 6--8x faster on vLLM/TGI.** Ollama: 163--194 ms. vLLM: 23--32 ms. TGI: 22--35 ms. Docker-based backends start streaming tokens in under 35 ms, versus Ollama's 160+ ms -- a user-perceptible gap (Cohen's d > 13 for all pairwise comparisons).
 
-7. **All backends are perfectly fair.** Jain's fairness index ≥ 0.996 across all backends at all concurrency levels. No backend starves individual agents under contention.
+7. **All backends are perfectly fair.** Jain's fairness index >= 0.996 across all backends at all concurrency levels. No backend starves individual agents under contention.
 
-8. **Zero cold-start effects detected.** No phase × backend combination shows first-3-request latency more than 1.07× the steady-state mean. The warmup protocol successfully eliminates cold-start artifacts.
+8. **Zero cold-start effects detected.** No phase x backend combination shows first-3-request latency more than 1.07x the steady-state mean. The warmup protocol successfully eliminates cold-start artifacts.
 
 9. **Data quality is exceptional.** 98.08% success rate (4,705/4,797 ok). Only 92 HTTP 424 errors (TGI overload at high N). Outlier rate: 0.0--0.2% across all backends. Zero outliers for Ollama and vLLM llama3.2-1b.
 
@@ -72,26 +72,26 @@ The practical consequence is dramatic. For llama3.2-1b at N=8 concurrent agents,
 | **vllm** | **559 tok/s** | **319 tok/s** | **457 tok/s** |
 | **tgi** | **483 tok/s** | **261 tok/s** | **362 tok/s** |
 | ollama | 248 tok/s | 162 tok/s | 259 tok/s |
-| vllm / ollama ratio | **2.25×** | **1.97×** | **1.76×** |
+| vllm / ollama ratio | **2.25x** | **1.97x** | **1.76x** |
 
 ### Claim Validation
 
 | # | Claim | Evidence | Status |
 |---|-------|----------|--------|
 | 1 | Serving stack affects multi-agent scaling | eta(8) ranges 0.16 (Ollama) to 0.66 (TGI); Cohen's d > 3 | **Confirmed** |
-| 2 | vLLM/TGI scale better than Ollama | Total throughput 1.76--2.25× higher at N=8 | **Confirmed** |
-| 3 | Backends follow different scaling laws | Ollama=Amdahl (R²=0.96+), vLLM/TGI=power law (R²=0.99+) | **Confirmed** |
-| 4 | Ollama is fastest at N=1 | Q4_0 gives 1.2--2.6× throughput advantage | **Confirmed** |
-| 5 | TTFT is faster on Docker backends | 6--8× faster (22--35 ms vs 163--194 ms) | **Confirmed** |
-| 6 | All backends are fair under contention | Jain's index ≥ 0.996 at all N | **Confirmed** |
-| 7 | No cold-start effects after warmup | Max ratio 1.07×, no detections | **Confirmed** |
+| 2 | vLLM/TGI scale better than Ollama | Total throughput 1.76--2.25x higher at N=8 | **Confirmed** |
+| 3 | Backends follow different scaling laws | Ollama=Amdahl (R^2=0.96+), vLLM/TGI=power law (R^2=0.99+) | **Confirmed** |
+| 4 | Ollama is fastest at N=1 | Q4_0 gives 1.2--2.6x throughput advantage | **Confirmed** |
+| 5 | TTFT is faster on Docker backends | 6--8x faster (22--35 ms vs 163--194 ms) | **Confirmed** |
+| 6 | All backends are fair under contention | Jain's index >= 0.996 at all N | **Confirmed** |
+| 7 | No cold-start effects after warmup | Max ratio 1.07x, no detections | **Confirmed** |
 | 8 | Amdahl serial fraction is valid cross-backend | vLLM/TGI best fit is power law, not Amdahl | **Refuted** |
 
 ### Key Decisions for Practitioners
 
 1. **For N=1 (single-agent):** Use Ollama with Q4_0. It delivers the highest absolute throughput due to quantized weights requiring less memory bandwidth. There is no scheduling overhead to worry about.
 
-2. **For N≥4 (multi-agent production):** Switch to vLLM. It delivers 1.76--2.25× total throughput at N=8, retains 46--65% per-agent efficiency, and provides 6× faster TTFT. The FP16 precision also means higher output quality.
+2. **For N>=4 (multi-agent production):** Switch to vLLM. It delivers 1.76--2.25x total throughput at N=8, retains 46--65% per-agent efficiency, and provides 6x faster TTFT. The FP16 precision also means higher output quality.
 
 3. **For N=2--3 (light multi-agent):** The choice depends on your priority. Ollama still delivers higher per-agent throughput at N=2 in absolute terms (Q4_0 advantage), but vLLM overtakes in total throughput by N=4.
 
@@ -103,7 +103,7 @@ The practical consequence is dramatic. For llama3.2-1b at N=8 concurrent agents,
 
 | Time | Reading Path |
 |------|-------------|
-| **5 min** | Abstract → Executive Summary → SS19 Conclusions |
+| **5 min** | Abstract -> Executive Summary -> SS19 Conclusions |
 | **15 min** | Add SS5 (throughput curves), SS6 (efficiency), SS8 (cross-backend comparison) |
 | **45 min** | Full report, SS1--SS19 + Appendices |
 
@@ -121,15 +121,15 @@ The practical consequence is dramatic. For llama3.2-1b at N=8 concurrent agents,
 
 - [SS1. Introduction and Motivation](#ss1-introduction-and-motivation)
 - [SS2. Methodology](#ss2-methodology)
-- [SS3. Phase 1 — Environment Validation](#ss3-phase-1--environment-validation)
-- [SS4. Phase 2 — Single-Agent Baseline](#ss4-phase-2--single-agent-baseline)
-- [SS5. Phase 3 — N-Agent Throughput Curves](#ss5-phase-3--n-agent-throughput-curves)
+- [SS3. Phase 1 -- Environment Validation](#ss3-phase-1--environment-validation)
+- [SS4. Phase 2 -- Single-Agent Baseline](#ss4-phase-2--single-agent-baseline)
+- [SS5. Phase 3 -- N-Agent Throughput Curves](#ss5-phase-3--n-agent-throughput-curves)
 - [SS6. Efficiency Curves eta(N)](#ss6-efficiency-curves-etan)
 - [SS7. Scaling Law Fitting](#ss7-scaling-law-fitting)
 - [SS8. Cross-Backend Serial Fraction Comparison](#ss8-cross-backend-serial-fraction-comparison)
 - [SS9. Saturation Detection](#ss9-saturation-detection)
 - [SS10. Fairness Analysis](#ss10-fairness-analysis)
-- [SS11. Phase 4 — TTFT Comparison](#ss11-phase-4--ttft-comparison)
+- [SS11. Phase 4 -- TTFT Comparison](#ss11-phase-4--ttft-comparison)
 - [SS12. Queue Dynamics](#ss12-queue-dynamics)
 - [SS13. VRAM Usage](#ss13-vram-usage)
 - [SS14. TR129 Cross-Validation](#ss14-tr129-cross-validation)
@@ -175,7 +175,7 @@ The quantization difference (Q4_0 vs FP16) affects absolute throughput but **not
 TR130 is designed to answer five specific questions:
 
 1. **Q1: Does the serving stack affect multi-agent scaling efficiency?** If eta(N) differs across backends on the same GPU, the software matters.
-2. **Q2: Which backend delivers the most total throughput at high concurrency?** The metric that matters for production: N × per_agent_tps at N=8.
+2. **Q2: Which backend delivers the most total throughput at high concurrency?** The metric that matters for production: N x per_agent_tps at N=8.
 3. **Q3: Do all backends follow the same scaling law?** If one backend follows Amdahl while another follows power law, the degradation mechanisms are fundamentally different.
 4. **Q4: At what N does the best backend overtake Ollama in total throughput?** Ollama starts faster (Q4_0) but may lose the lead under contention.
 5. **Q5: Is TTFT independent of throughput scaling?** A backend could be slow in throughput but fast in time-to-first-token, or vice versa.
@@ -188,9 +188,9 @@ Published LLM serving benchmarks (Patel et al. 2024, Kwon et al. 2023) compare b
 
 | Backend | Scheduling | Batching | KV-Cache | Expected Scaling |
 |---------|-----------|----------|----------|-----------------|
-| Ollama | Sequential FIFO | None (one request at a time) | Implicit (ggml) | Amdahl — strict serial fraction |
-| vLLM | Continuous batching | Dynamic in-flight batching | PagedAttention (virtual memory) | Sub-linear but graceful — resource contention |
-| TGI | Continuous batching | Token-level scheduling | Paged blocks | Similar to vLLM — different implementation |
+| Ollama | Sequential FIFO | None (one request at a time) | Implicit (ggml) | Amdahl -- strict serial fraction |
+| vLLM | Continuous batching | Dynamic in-flight batching | PagedAttention (virtual memory) | Sub-linear but graceful -- resource contention |
+| TGI | Continuous batching | Token-level scheduling | Paged blocks | Similar to vLLM -- different implementation |
 
 Ollama is the null hypothesis: a simple sequential server. vLLM represents the state of the art in LLM serving efficiency. TGI provides a second continuous-batching implementation to distinguish "continuous batching in general" from "vLLM specifically."
 
@@ -216,11 +216,11 @@ Only one backend runs at a time. Between backend switches, the previous server i
 | `decode_ms` | Backend-native decode time | Ollama, TGI |
 | `ttft_ms` | Time to first token (streaming) | All backends |
 
-`effective_tps` is the **primary metric** — it captures the throughput each agent actually experiences, including all queue wait, scheduling overhead, and network latency.
+`effective_tps` is the **primary metric** -- it captures the throughput each agent actually experiences, including all queue wait, scheduling overhead, and network latency.
 
 ### SS2.3 Statistical Methods
 
-- **95% CI** via t-distribution (per-backend × per-model)
+- **95% CI** via t-distribution (per-backend x per-model)
 - **Bootstrap CIs** (1,000 resamples) on Amdahl serial fractions
 - **Shapiro-Wilk** normality testing on wall_ms distributions
 - **Cohen's d** for cross-backend pairwise effect sizes
@@ -235,18 +235,18 @@ Only one backend runs at a time. Between backend switches, the previous server i
 | P3: Scaling | N={1,2,4,8} closed-loop agents (CORE) | ~4,050 |
 | P4: TTFT | Streaming time-to-first-token | ~270 |
 
-## SS3. Phase 1 — Environment Validation
+## SS3. Phase 1 -- Environment Validation
 
-Phase 1 sent 27 validation requests across all backend × model combinations to confirm:
+Phase 1 sent 27 validation requests across all backend x model combinations to confirm:
 
 1. Docker GPU passthrough works for vLLM and TGI containers
 2. Each model loads and generates coherent text
 3. API response parsing extracts correct token counts and timing
 4. Timing fields match expected availability per backend
 
-All backend × model combinations that passed validation proceeded to Phase 2. Failed combinations were skipped with logged errors.
+All backend x model combinations that passed validation proceeded to Phase 2. Failed combinations were skipped with logged errors.
 
-## SS4. Phase 2 — Single-Agent Baseline
+## SS4. Phase 2 -- Single-Agent Baseline
 
 ### SS4.1 Absolute Throughput (N=1)
 
@@ -264,25 +264,25 @@ All backend × model combinations that passed validation proceeded to Phase 2. F
 
 ### SS4.2 Observations
 
-1. **Ollama is 1.2--2.6× faster at N=1.** The Q4_0 quantization advantage is consistent across all models. For llama3.2-1b: Ollama 177.7 vs vLLM 150.7 vs TGI 125.2 tok/s. The ratio is largest for llama3.2-3b (130.1/49.4 = 2.63×) where FP16 weights strain the 12 GB VRAM.
+1. **Ollama is 1.2--2.6x faster at N=1.** The Q4_0 quantization advantage is consistent across all models. For llama3.2-1b: Ollama 177.7 vs vLLM 150.7 vs TGI 125.2 tok/s. The ratio is largest for llama3.2-3b (130.1/49.4 = 2.63x) where FP16 weights strain the 12 GB VRAM.
 
-2. **vLLM is 1.2--1.4× faster than TGI at N=1.** Both serve FP16, so this gap reflects implementation efficiency: vLLM's optimized CUDA kernels and PagedAttention overhead is lower than TGI's at zero contention. For llama3.2-1b: 150.7 vs 125.2 tok/s (1.20×). For qwen2.5-1.5b: 102.6 vs 75.0 tok/s (1.37×).
+2. **vLLM is 1.2--1.4x faster than TGI at N=1.** Both serve FP16, so this gap reflects implementation efficiency: vLLM's optimized CUDA kernels and PagedAttention overhead is lower than TGI's at zero contention. For llama3.2-1b: 150.7 vs 125.2 tok/s (1.20x). For qwen2.5-1.5b: 102.6 vs 75.0 tok/s (1.37x).
 
-3. **vLLM llama3.2-3b has near-zero variance (CV=0.2%).** This is remarkably consistent — 50 requests spanning only 22 ms range (2097--2120 ms). This suggests vLLM's scheduler produces deterministic timing when there is no contention, likely because PagedAttention eliminates memory fragmentation randomness.
+3. **vLLM llama3.2-3b has near-zero variance (CV=0.2%).** This is remarkably consistent -- 50 requests spanning only 22 ms range (2097--2120 ms). This suggests vLLM's scheduler produces deterministic timing when there is no contention, likely because PagedAttention eliminates memory fragmentation randomness.
 
-4. **TGI llama3.2-3b has the highest variance (CV=7.5%).** The same model on TGI shows 37× more relative variance than vLLM. Combined with TGI's non-normal wall_ms distribution (Shapiro-Wilk p < 0.001), this suggests occasional scheduling hiccups even at N=1.
+4. **TGI llama3.2-3b has the highest variance (CV=7.5%).** The same model on TGI shows 37x more relative variance than vLLM. Combined with TGI's non-normal wall_ms distribution (Shapiro-Wilk p < 0.001), this suggests occasional scheduling hiccups even at N=1.
 
-5. **Ollama exposes native prefill/decode timing.** Ollama's llama3.2-1b shows prefill=7.1 ms, decode=459.5 ms at N=1, meaning only 1.5% of GPU time is prefill. The remaining 212 ms gap between (prefill+decode)=467 ms and wall_ms=679 ms is Ollama's HTTP/scheduling overhead — **31% of total request time at N=1.**
+5. **Ollama exposes native prefill/decode timing.** Ollama's llama3.2-1b shows prefill=7.1 ms, decode=459.5 ms at N=1, meaning only 1.5% of GPU time is prefill. The remaining 212 ms gap between (prefill+decode)=467 ms and wall_ms=679 ms is Ollama's HTTP/scheduling overhead -- **31% of total request time at N=1.**
 
 ### SS4.3 Cross-Backend Interpretation
 
-Ollama serves Q4_0 quantized weights, which are ~4× smaller than FP16. This means Ollama has lower memory bandwidth pressure (less data to transfer per token), lower compute requirements (INT4 ops vs FP16 ops), and correspondingly higher absolute tok/s at N=1. This is expected and correct.
+Ollama serves Q4_0 quantized weights, which are ~4x smaller than FP16. This means Ollama has lower memory bandwidth pressure (less data to transfer per token), lower compute requirements (INT4 ops vs FP16 ops), and correspondingly higher absolute tok/s at N=1. This is expected and correct.
 
-**Why the baseline difference does not affect scaling comparison:** Amdahl's eta(N) = TPS(N) / TPS(1) normalizes each backend against its own N=1 reference. A backend with 50 tok/s at N=1 and 25 tok/s at N=2 has the same eta(2)=0.5 as one with 100 tok/s at N=1 and 50 tok/s at N=2. However, for *total throughput* comparisons (the metric practitioners care about), the baseline matters — Ollama's Q4_0 head start must be overcome by the competing backend's superior scaling before switching is worthwhile.
+**Why the baseline difference does not affect scaling comparison:** Amdahl's eta(N) = TPS(N) / TPS(1) normalizes each backend against its own N=1 reference. A backend with 50 tok/s at N=1 and 25 tok/s at N=2 has the same eta(2)=0.5 as one with 100 tok/s at N=1 and 50 tok/s at N=2. However, for *total throughput* comparisons (the metric practitioners care about), the baseline matters -- Ollama's Q4_0 head start must be overcome by the competing backend's superior scaling before switching is worthwhile.
 
 **Why vLLM beats TGI at N=1:** Both use continuous batching, but at N=1 this doesn't matter (there's nothing to batch). The gap likely reflects vLLM's more optimized CUDA graph execution and lower Python-side overhead in the critical path. TGI's Rust-based router adds a layer that may introduce small latencies under zero contention.
 
-## SS5. Phase 3 — N-Agent Throughput Curves
+## SS5. Phase 3 -- N-Agent Throughput Curves
 
 ### SS5.1 Per-Agent Throughput vs N
 
@@ -327,17 +327,17 @@ Ollama serves Q4_0 quantized weights, which are ~4× smaller than FP16. This mea
 
 ### SS5.2 Observations
 
-1. **Ollama total throughput PEAKS at N=2 and then declines.** For llama3.2-1b: N=1→175, N=2→280, N=4→259, N=8→248 tok/s. The system actually delivers *less* total throughput at N=8 than at N=2. This is the signature of severe serialization — adding agents beyond 2 creates more queue wait than it adds productive GPU time.
+1. **Ollama total throughput PEAKS at N=2 and then declines.** For llama3.2-1b: N=1->175, N=2->280, N=4->259, N=8->248 tok/s. The system actually delivers *less* total throughput at N=8 than at N=2. This is the signature of severe serialization -- adding agents beyond 2 creates more queue wait than it adds productive GPU time.
 
-2. **vLLM total throughput grows monotonically through N=8.** For llama3.2-1b: 149→247→373→559 tok/s. Each doubling of N adds meaningful throughput, suggesting the system has not yet reached its scaling ceiling. Continuous batching enables the GPU to overlap compute across concurrent requests, converting queued requests into productive parallelism.
+2. **vLLM total throughput grows monotonically through N=8.** For llama3.2-1b: 149->247->373->559 tok/s. Each doubling of N adds meaningful throughput, suggesting the system has not yet reached its scaling ceiling. Continuous batching enables the GPU to overlap compute across concurrent requests, converting queued requests into productive parallelism.
 
-3. **TGI follows the same monotonic pattern as vLLM but at lower absolute throughput.** For llama3.2-1b: 122→199→329→483 tok/s. TGI at N=8 (483) is roughly comparable to vLLM at N=4 (373), suggesting TGI is approximately one concurrency level behind vLLM in terms of aggregate efficiency.
+3. **TGI follows the same monotonic pattern as vLLM but at lower absolute throughput.** For llama3.2-1b: 122->199->329->483 tok/s. TGI at N=8 (483) is roughly comparable to vLLM at N=4 (373), suggesting TGI is approximately one concurrency level behind vLLM in terms of aggregate efficiency.
 
-4. **The vLLM advantage grows with model size.** At N=8, the vLLM/Ollama total throughput ratio is 2.25× for llama3.2-1b, 1.97× for llama3.2-3b, and 1.76× for qwen2.5-1.5b. Larger FP16 models consume more VRAM, but vLLM's PagedAttention manages this memory more efficiently under contention than Ollama's implicit KV-cache.
+4. **The vLLM advantage grows with model size.** At N=8, the vLLM/Ollama total throughput ratio is 2.25x for llama3.2-1b, 1.97x for llama3.2-3b, and 1.76x for qwen2.5-1.5b. Larger FP16 models consume more VRAM, but vLLM's PagedAttention manages this memory more efficiently under contention than Ollama's implicit KV-cache.
 
-5. **Per-agent throughput at N=8 reveals the scheduling difference.** Ollama: 31.0 tok/s per agent (each agent waits while 7 others are served sequentially). vLLM: 69.9 tok/s per agent (requests overlap via continuous batching). The 2.26× per-agent gap means each vLLM agent experiences half the latency of an Ollama agent.
+5. **Per-agent throughput at N=8 reveals the scheduling difference.** Ollama: 31.0 tok/s per agent (each agent waits while 7 others are served sequentially). vLLM: 69.9 tok/s per agent (requests overlap via continuous batching). The 2.26x per-agent gap means each vLLM agent experiences half the latency of an Ollama agent.
 
-6. **Wall-clock latency progression confirms serial vs parallel.** Ollama llama3.2-1b: 695→886→1855→3986 ms (roughly N× the N=1 latency, confirming sequential). vLLM: 860→1055→1414→1928 ms (sub-linear growth, confirming overlapped execution). At N=8, an Ollama request takes 3.99 seconds vs vLLM's 1.93 seconds.
+6. **Wall-clock latency progression confirms serial vs parallel.** Ollama llama3.2-1b: 695->886->1855->3986 ms (roughly Nx the N=1 latency, confirming sequential). vLLM: 860->1055->1414->1928 ms (sub-linear growth, confirming overlapped execution). At N=8, an Ollama request takes 3.99 seconds vs vLLM's 1.93 seconds.
 
 ### SS5.3 The Crossover Point
 
@@ -349,7 +349,7 @@ For production planning, the critical question is: at what N does vLLM's total t
 | llama3.2-3b | 176.2 | 109.2 | Between N=2 and N=4 |
 | qwen2.5-1.5b | 301.2 | 177.6 | Between N=2 and N=4 |
 
-At N=2, Ollama still leads thanks to Q4_0 throughput. By N=4, vLLM overtakes for llama3.2-1b (373.3 vs 259.1) and qwen2.5-1.5b (291.0 vs 274.5). The crossover occurs near N=3 — the point at which continuous batching's parallelism advantage overcomes quantization's throughput advantage. For deployments with 3+ agents, vLLM is the strictly dominant choice.
+At N=2, Ollama still leads thanks to Q4_0 throughput. By N=4, vLLM overtakes for llama3.2-1b (373.3 vs 259.1) and qwen2.5-1.5b (291.0 vs 274.5). The crossover occurs near N=3 -- the point at which continuous batching's parallelism advantage overcomes quantization's throughput advantage. For deployments with 3+ agents, vLLM is the strictly dominant choice.
 
 ## SS6. Efficiency Curves eta(N)
 
@@ -402,19 +402,19 @@ This is the per-agent efficiency: the fraction of N=1 throughput that each agent
 
 ### SS6.3 Observations
 
-**Observation 1 — Ollama collapses by N=4, vLLM/TGI hold through N=8.** Ollama's eta drops below 0.50 by N=4 for all three models (0.320--0.365), meaning each agent retains less than a third of its standalone throughput. vLLM/TGI remain above 0.60 at N=4 (0.619--0.779) and still above 0.46 at N=8. The gap is not marginal — it is a 3--4× difference in scaling efficiency at N=8.
+**Observation 1 -- Ollama collapses by N=4, vLLM/TGI hold through N=8.** Ollama's eta drops below 0.50 by N=4 for all three models (0.320--0.365), meaning each agent retains less than a third of its standalone throughput. vLLM/TGI remain above 0.60 at N=4 (0.619--0.779) and still above 0.46 at N=8. The gap is not marginal -- it is a 3--4x difference in scaling efficiency at N=8.
 
-**Observation 2 — The three Ollama models degrade nearly identically.** At N=8: eta=0.174 (1B), 0.156 (3B), 0.164 (1.5B). The spread is only 0.018 — less than 2 percentage points. This model-invariance confirms that Ollama's efficiency loss is dominated by the serving scheduler, not model-specific compute characteristics. If the bottleneck were memory bandwidth (which scales with model size), the 3B model would degrade faster than the 1B.
+**Observation 2 -- The three Ollama models degrade nearly identically.** At N=8: eta=0.174 (1B), 0.156 (3B), 0.164 (1.5B). The spread is only 0.018 -- less than 2 percentage points. This model-invariance confirms that Ollama's efficiency loss is dominated by the serving scheduler, not model-specific compute characteristics. If the bottleneck were memory bandwidth (which scales with model size), the 3B model would degrade faster than the 1B.
 
-**Observation 3 — vLLM/TGI efficiency is model-size-dependent.** Unlike Ollama, the 3B model retains *more* efficiency than the 1B at N=8: vLLM eta=0.654 (3B) vs 0.464 (1B); TGI eta=0.659 (3B) vs 0.483 (1B). This inverted pattern reveals that continuous batching amortizes per-request scheduling overhead more effectively when requests are longer (larger model = longer decode per token = more time for the scheduler to batch the next request). The 1B model's fast decode leaves less slack for batch formation.
+**Observation 3 -- vLLM/TGI efficiency is model-size-dependent.** Unlike Ollama, the 3B model retains *more* efficiency than the 1B at N=8: vLLM eta=0.654 (3B) vs 0.464 (1B); TGI eta=0.659 (3B) vs 0.483 (1B). This inverted pattern reveals that continuous batching amortizes per-request scheduling overhead more effectively when requests are longer (larger model = longer decode per token = more time for the scheduler to batch the next request). The 1B model's fast decode leaves less slack for batch formation.
 
-**Observation 4 — Efficiency drop 1→2 is the diagnostic moment.** Ollama loses 21--32% of efficiency going from N=1 to N=2 (eta drops from ~1.0 to 0.68--0.79). vLLM/TGI lose only 3--14% (eta drops from ~1.0 to 0.82--0.90). A backend that struggles at N=2 — when only one other request competes — exposes scheduling-level serialization. The N=1→2 gap predicts the entire curve shape.
+**Observation 4 -- Efficiency drop 1->2 is the diagnostic moment.** Ollama loses 21--32% of efficiency going from N=1 to N=2 (eta drops from ~1.0 to 0.68--0.79). vLLM/TGI lose only 3--14% (eta drops from ~1.0 to 0.82--0.90). A backend that struggles at N=2 -- when only one other request competes -- exposes scheduling-level serialization. The N=1->2 gap predicts the entire curve shape.
 
-**Observation 5 — Per-agent TPS at N=8 tells the story.** Ollama: 20--32 tok/s per agent. vLLM: 40--70 tok/s per agent. TGI: 33--60 tok/s per agent. For a user running 8 agents simultaneously, each Ollama agent produces text at roughly the speed of a slow typist. vLLM agents are 2--3.5× faster individually, and 2.25× faster in aggregate (since there are 8 of each).
+**Observation 5 -- Per-agent TPS at N=8 tells the story.** Ollama: 20--32 tok/s per agent. vLLM: 40--70 tok/s per agent. TGI: 33--60 tok/s per agent. For a user running 8 agents simultaneously, each Ollama agent produces text at roughly the speed of a slow typist. vLLM agents are 2--3.5x faster individually, and 2.25x faster in aggregate (since there are 8 of each).
 
 ### SS6.4 What the Efficiency Curves Reveal
 
-The answer to the central question of TR130 is visible in this table alone, before any curve fitting. If all backends showed similar eta(N) curves, the serial bottleneck would be in the GPU hardware. Instead, the backends diverge dramatically — Ollama's eta=0.16 vs vLLM's eta=0.56 at N=8 — proving that the **serving stack is the bottleneck**. The GPU is capable of much higher concurrent throughput than Ollama allows.
+The answer to the central question of TR130 is visible in this table alone, before any curve fitting. If all backends showed similar eta(N) curves, the serial bottleneck would be in the GPU hardware. Instead, the backends diverge dramatically -- Ollama's eta=0.16 vs vLLM's eta=0.56 at N=8 -- proving that the **serving stack is the bottleneck**. The GPU is capable of much higher concurrent throughput than Ollama allows.
 
 The mechanism: Ollama processes requests sequentially (one at a time on the GPU), so N concurrent agents form a queue where each waits for the others. vLLM/TGI batch multiple requests into a single GPU kernel launch, so N agents partially overlap rather than queuing. The efficiency table quantifies this difference exactly.
 
@@ -422,7 +422,7 @@ The mechanism: Ollama processes requests sequentially (one at a time on the GPU)
 
 ### SS7.1 Four-Model Comparison
 
-| Backend | Model | Best Fit | R² | Amdahl s | Amdahl R² | Power α | Exp β |
+| Backend | Model | Best Fit | R^2 | Amdahl s | Amdahl R^2 | Power alpha | Exp beta |
 |---------|-------|----------|-----|----------|-----------|---------|-------|
 | ollama | llama3.2-1b | exponential | 0.984 | 0.5329 | 0.957 | 0.681 | 0.289 |
 | ollama | llama3.2-3b | amdahl | 0.987 | 0.3920 | 0.987 | 0.782 | 0.347 |
@@ -436,23 +436,23 @@ The mechanism: Ollama processes requests sequentially (one at a time on the GPU)
 
 ### SS7.2 Observations
 
-**Observation 1 — Ollama follows Amdahl's Law; vLLM/TGI follow power law.** This is the most important finding in the table. Ollama's best-fit model is Amdahl or exponential (both consistent with fixed serialization), with Amdahl R²=0.957--0.987. All six vLLM/TGI fits select power law as best fit (R²=0.988--0.996). The backends obey fundamentally different scaling laws because they have fundamentally different scheduling architectures.
+**Observation 1 -- Ollama follows Amdahl's Law; vLLM/TGI follow power law.** This is the most important finding in the table. Ollama's best-fit model is Amdahl or exponential (both consistent with fixed serialization), with Amdahl R^2=0.957--0.987. All six vLLM/TGI fits select power law as best fit (R^2=0.988--0.996). The backends obey fundamentally different scaling laws because they have fundamentally different scheduling architectures.
 
-**Observation 2 — Amdahl R² is poor for vLLM/TGI.** When Amdahl is force-fitted to TGI-3B, R²=0.843 — a terrible fit. For vLLM-1B, Amdahl R²=0.987 looks acceptable only because the power law happens to be close to Amdahl at small N. The key diagnostic: Amdahl predicts eta(8)→1/(s+7(1-s)) which, for s=0.81, gives eta=0.15. The actual vLLM-1B eta(8)=0.464 — 3× higher than Amdahl's prediction. The force-fitted Amdahl "serial fraction" is meaningless for these backends.
+**Observation 2 -- Amdahl R^2 is poor for vLLM/TGI.** When Amdahl is force-fitted to TGI-3B, R^2=0.843 -- a terrible fit. For vLLM-1B, Amdahl R^2=0.987 looks acceptable only because the power law happens to be close to Amdahl at small N. The key diagnostic: Amdahl predicts eta(8)->1/(s+7(1-s)) which, for s=0.81, gives eta=0.15. The actual vLLM-1B eta(8)=0.464 -- 3x higher than Amdahl's prediction. The force-fitted Amdahl "serial fraction" is meaningless for these backends.
 
-**Observation 3 — Power law exponents reveal the degradation rate.** For vLLM/TGI, eta(N) ∝ N^−α. The exponent α ranges from 0.171 (TGI-3B) to 0.353 (vLLM-1B). Smaller α = slower degradation = better scaling. The 3B models have the smallest α across both backends (0.171--0.197), confirming Observation 3 in SS6: larger models scale better under continuous batching because longer decode times provide more scheduling slack.
+**Observation 3 -- Power law exponents reveal the degradation rate.** For vLLM/TGI, eta(N) propto N?alpha. The exponent alpha ranges from 0.171 (TGI-3B) to 0.353 (vLLM-1B). Smaller alpha = slower degradation = better scaling. The 3B models have the smallest alpha across both backends (0.171--0.197), confirming Observation 3 in SS6: larger models scale better under continuous batching because longer decode times provide more scheduling slack.
 
-**Observation 4 — Ollama's serial fractions match TR129.** Ollama-3B: s=0.392 (TR130) vs s=0.39 (TR129). Ollama-1.5B: s=0.492 (TR130) vs s=0.54 (TR129). The agreement within bootstrap CIs validates both experiments and confirms that Ollama's Amdahl-like behavior is reproducible.
+**Observation 4 -- Ollama's serial fractions match TR129.** Ollama-3B: s=0.392 (TR130) vs s=0.39 (TR129). Ollama-1.5B: s=0.492 (TR130) vs s=0.54 (TR129). The agreement within bootstrap CIs validates both experiments and confirms that Ollama's Amdahl-like behavior is reproducible.
 
-**Observation 5 — Exponential beats Amdahl for the 1B model on Ollama.** For llama3.2-1b, exponential (R²=0.984) edges out Amdahl (R²=0.957). The exponential model eta(N) ∝ e^{−βN} predicts faster-than-Amdahl collapse at high N, suggesting that the 1B model's rapid decode (177.7 tok/s at N=1) intensifies scheduling contention beyond what a fixed serial fraction captures. At very high throughput, even Ollama's sequential scheduling may experience additional bottlenecks (e.g., CPU-side tokenization, HTTP overhead).
+**Observation 5 -- Exponential beats Amdahl for the 1B model on Ollama.** For llama3.2-1b, exponential (R^2=0.984) edges out Amdahl (R^2=0.957). The exponential model eta(N) propto e^{-betaN} predicts faster-than-Amdahl collapse at high N, suggesting that the 1B model's rapid decode (177.7 tok/s at N=1) intensifies scheduling contention beyond what a fixed serial fraction captures. At very high throughput, even Ollama's sequential scheduling may experience additional bottlenecks (e.g., CPU-side tokenization, HTTP overhead).
 
 ### SS7.3 Why Different Backends Obey Different Laws
 
-**Amdahl's Law** (eta = 1/(s + (1-s)N)) assumes a fixed serial fraction: some fraction s of the workload is strictly sequential, and the rest can overlap. Ollama's sequential request scheduling is a textbook Amdahl system — it processes one request at a time, so the serial component is the scheduling granularity. The serial fraction s captures the ratio of scheduling overhead to total request time.
+**Amdahl's Law** (eta = 1/(s + (1-s)N)) assumes a fixed serial fraction: some fraction s of the workload is strictly sequential, and the rest can overlap. Ollama's sequential request scheduling is a textbook Amdahl system -- it processes one request at a time, so the serial component is the scheduling granularity. The serial fraction s captures the ratio of scheduling overhead to total request time.
 
-**Power law** (eta ∝ N^−α) has no serial fraction. Instead, each additional agent causes a multiplicative slowdown that compounds, producing a straight line on a log-log plot. This matches continuous batching: adding a request to an in-progress batch has a cost proportional to the current batch size (attention computation grows, memory bandwidth is shared), not a fixed cost. The degradation is gradual and continuous, not threshold-driven.
+**Power law** (eta propto N?alpha) has no serial fraction. Instead, each additional agent causes a multiplicative slowdown that compounds, producing a straight line on a log-log plot. This matches continuous batching: adding a request to an in-progress batch has a cost proportional to the current batch size (attention computation grows, memory bandwidth is shared), not a fixed cost. The degradation is gradual and continuous, not threshold-driven.
 
-**The implication**: Amdahl serial fractions are valid for Ollama and should be used for capacity planning with Ollama deployments. They are **not valid** for vLLM/TGI — the power law exponent α is the correct characterization. Comparing Amdahl s values across backends with different best-fit models is a category error, addressed in SS8.
+**The implication**: Amdahl serial fractions are valid for Ollama and should be used for capacity planning with Ollama deployments. They are **not valid** for vLLM/TGI -- the power law exponent alpha is the correct characterization. Comparing Amdahl s values across backends with different best-fit models is a category error, addressed in SS8.
 
 ### SS7.4 Amdahl's Law Definition
 
@@ -525,13 +525,13 @@ Each serial fraction below is estimated via 1,000 bootstrap resamples of the eff
 
 ### SS8.5 Observations
 
-**Observation 1 — The Amdahl serial fractions tell a paradoxical story that reveals their invalidity for cross-backend comparison.** The data says Ollama has the *lowest* serial fraction (s=0.38--0.51) while vLLM/TGI have the *highest* (s=0.81--0.92). Naively, this means Ollama scales best. But we know from SS6 that Ollama's eta(8)=0.16 while vLLM's eta(8)=0.56 — Ollama scales *worst*. The paradox resolves when we recognize that **Amdahl's model genuinely fits Ollama but is a bad model for vLLM/TGI** (SS7). Force-fitting an inappropriate model produces meaningless parameters.
+**Observation 1 -- The Amdahl serial fractions tell a paradoxical story that reveals their invalidity for cross-backend comparison.** The data says Ollama has the *lowest* serial fraction (s=0.38--0.51) while vLLM/TGI have the *highest* (s=0.81--0.92). Naively, this means Ollama scales best. But we know from SS6 that Ollama's eta(8)=0.16 while vLLM's eta(8)=0.56 -- Ollama scales *worst*. The paradox resolves when we recognize that **Amdahl's model genuinely fits Ollama but is a bad model for vLLM/TGI** (SS7). Force-fitting an inappropriate model produces meaningless parameters.
 
-**Observation 2 — The bootstrap CIs confirm the meaninglessness of cross-backend comparison.** Ollama's CIs are wide ([0.23, 0.73] for 1B) because 4 data points with noise allow Amdahl to fit a range of s values. vLLM/TGI's CIs are tight ([0.78, 0.83] for vLLM-1B) not because the fit is good, but because the power-law curve is locally well-approximated by a specific Amdahl curve at these N values. The tightness is an artifact, not evidence.
+**Observation 2 -- The bootstrap CIs confirm the meaninglessness of cross-backend comparison.** Ollama's CIs are wide ([0.23, 0.73] for 1B) because 4 data points with noise allow Amdahl to fit a range of s values. vLLM/TGI's CIs are tight ([0.78, 0.83] for vLLM-1B) not because the fit is good, but because the power-law curve is locally well-approximated by a specific Amdahl curve at these N values. The tightness is an artifact, not evidence.
 
-**Observation 3 — The pairwise comparisons are statistically sound but semantically wrong.** Cohen's d values of 3--8 with non-overlapping CIs correctly indicate that the Amdahl fits produce *different parameters* across backends. But the question is not whether the parameters differ — it is whether the parameter *means the same thing* across backends. It does not. Ollama's s=0.45 means "45% of request time is sequential scheduling." vLLM's s=0.86 means "the power-law curve happens to intersect Amdahl at this parameter value."
+**Observation 3 -- The pairwise comparisons are statistically sound but semantically wrong.** Cohen's d values of 3--8 with non-overlapping CIs correctly indicate that the Amdahl fits produce *different parameters* across backends. But the question is not whether the parameters differ -- it is whether the parameter *means the same thing* across backends. It does not. Ollama's s=0.45 means "45% of request time is sequential scheduling." vLLM's s=0.86 means "the power-law curve happens to intersect Amdahl at this parameter value."
 
-**Observation 4 — TGI ≈ vLLM in the Amdahl frame.** The pairwise TGI-vs-vLLM comparisons show negligible-to-small effects (Cohen's d = 0.11--0.46). This is the one valid comparison: both backends follow power law, so their Amdahl fits are equally wrong in the same way. The similar s values (0.86--0.87 mean) reflect similar scaling behavior, which is genuine — both use continuous batching.
+**Observation 4 -- TGI ~ vLLM in the Amdahl frame.** The pairwise TGI-vs-vLLM comparisons show negligible-to-small effects (Cohen's d = 0.11--0.46). This is the one valid comparison: both backends follow power law, so their Amdahl fits are equally wrong in the same way. The similar s values (0.86--0.87 mean) reflect similar scaling behavior, which is genuine -- both use continuous batching.
 
 ### SS8.6 Answer to the Core Question
 
@@ -546,18 +546,18 @@ Each serial fraction below is estimated via 1,000 bootstrap resamples of the eff
 | Best-fit law | Amdahl | Power | Power |
 | N* (saturation) | 4 (all models) | 8 or >8 | 8 or >8 |
 
-The GPU can deliver 3--4× better scaling than Ollama allows. vLLM/TGI prove this by achieving eta(8)=0.46--0.66 on the **same GPU, same models, same workload**. The bottleneck is Ollama's sequential request scheduling, not GPU memory bandwidth or compute serialization.
+The GPU can deliver 3--4x better scaling than Ollama allows. vLLM/TGI prove this by achieving eta(8)=0.46--0.66 on the **same GPU, same models, same workload**. The bottleneck is Ollama's sequential request scheduling, not GPU memory bandwidth or compute serialization.
 
-**Mechanistic explanation:** Ollama processes requests one at a time. When 8 agents send concurrent requests, 7 wait in a queue while 1 executes. vLLM batches all 8 into a single GPU kernel, sharing the attention computation. The cost of concurrent batched attention scales sub-linearly (power law), not linearly (Amdahl). This is why Ollama degrades 6× faster than vLLM at N=8.
+**Mechanistic explanation:** Ollama processes requests one at a time. When 8 agents send concurrent requests, 7 wait in a queue while 1 executes. vLLM batches all 8 into a single GPU kernel, sharing the attention computation. The cost of concurrent batched attention scales sub-linearly (power law), not linearly (Amdahl). This is why Ollama degrades 6x faster than vLLM at N=8.
 
 ### SS8.7 What Should Practitioners Compare?
 
 Since Amdahl serial fractions are invalid for cross-backend comparison, the correct metrics are:
 
-1. **eta(N) at target concurrency** — directly answers "how much throughput does each agent retain?"
-2. **Total throughput at target N** — answers "how much total work gets done?"
-3. **N* (saturation point)** — answers "how many agents can I run before efficiency halves?"
-4. **Power law exponent α** — for continuous-batching backends, answers "how fast does efficiency degrade?"
+1. **eta(N) at target concurrency** -- directly answers "how much throughput does each agent retain?"
+2. **Total throughput at target N** -- answers "how much total work gets done?"
+3. **N* (saturation point)** -- answers "how many agents can I run before efficiency halves?"
+4. **Power law exponent alpha** -- for continuous-batching backends, answers "how fast does efficiency degrade?"
 
 All four metrics consistently rank: **vLLM > TGI >> Ollama** for multi-agent deployments.
 
@@ -579,17 +579,17 @@ N* = the concurrency level where eta drops below 0.50 (each agent retains less t
 
 ### SS9.2 Observations
 
-**Observation 1 — Ollama saturates at N*=4 for all three models.** By N=4, every Ollama-served model has eta<0.37 — well below the 0.50 threshold. This is consistent with Amdahl serial fractions of 0.39--0.53: the mathematical prediction from s=0.45 gives eta(4)=1/(0.45+0.55×4)=0.35, matching the data. Practitioners running >3 Ollama agents are operating in the saturated regime where adding agents provides marginal total throughput gain.
+**Observation 1 -- Ollama saturates at N*=4 for all three models.** By N=4, every Ollama-served model has eta<0.37 -- well below the 0.50 threshold. This is consistent with Amdahl serial fractions of 0.39--0.53: the mathematical prediction from s=0.45 gives eta(4)=1/(0.45+0.55x4)=0.35, matching the data. Practitioners running >3 Ollama agents are operating in the saturated regime where adding agents provides marginal total throughput gain.
 
-**Observation 2 — vLLM/TGI have not saturated at N=8 for 3B and 1.5B models.** N*=None means eta never dropped below 0.50 in our measurement range. TGI-3B: eta(8)=0.659, vLLM-3B: eta(8)=0.654 — both retaining nearly two-thirds of per-agent throughput. Extrapolating the power law fit: vLLM-3B (α=0.197) predicts N*≈13, TGI-3B (α=0.171) predicts N*≈16. These backends can support roughly 4× more concurrent agents than Ollama before reaching the same efficiency threshold.
+**Observation 2 -- vLLM/TGI have not saturated at N=8 for 3B and 1.5B models.** N*=None means eta never dropped below 0.50 in our measurement range. TGI-3B: eta(8)=0.659, vLLM-3B: eta(8)=0.654 -- both retaining nearly two-thirds of per-agent throughput. Extrapolating the power law fit: vLLM-3B (alpha=0.197) predicts N*~13, TGI-3B (alpha=0.171) predicts N*~16. These backends can support roughly 4x more concurrent agents than Ollama before reaching the same efficiency threshold.
 
-**Observation 3 — The 1B model saturates first on vLLM/TGI.** Both show N*=8 for llama3.2-1b (eta≈0.47), while the 3B model remains unsaturated. This reinforces the finding from SS6: the 1B model's fast decode (150 tok/s at N=1) leaves less slack for continuous batching to overlap requests. Faster individual requests paradoxically scale worse under concurrent batching because the scheduler has less time to amortize overhead.
+**Observation 3 -- The 1B model saturates first on vLLM/TGI.** Both show N*=8 for llama3.2-1b (eta~0.47), while the 3B model remains unsaturated. This reinforces the finding from SS6: the 1B model's fast decode (150 tok/s at N=1) leaves less slack for continuous batching to overlap requests. Faster individual requests paradoxically scale worse under concurrent batching because the scheduler has less time to amortize overhead.
 
-**Observation 4 — The saturation gap is the simplest decision metric.** Ollama: N*=4. vLLM: N*=8--13+. TGI: N*=8--16+. A practitioner choosing a backend for multi-agent deployment can compare these numbers directly: at N=6 agents, Ollama is deep in saturation (eta≈0.22) while vLLM is still efficient (eta≈0.55). No curve fitting or statistical analysis needed — N* alone answers the deployment question.
+**Observation 4 -- The saturation gap is the simplest decision metric.** Ollama: N*=4. vLLM: N*=8--13+. TGI: N*=8--16+. A practitioner choosing a backend for multi-agent deployment can compare these numbers directly: at N=6 agents, Ollama is deep in saturation (eta~0.22) while vLLM is still efficient (eta~0.55). No curve fitting or statistical analysis needed -- N* alone answers the deployment question.
 
 ## SS10. Fairness Analysis
 
-Jain's Fairness Index: J = (sum(x))² / (n × sum(x²)), where x_i is agent i's mean effective_tps. J=1.0 means perfectly fair (all agents get equal throughput).
+Jain's Fairness Index: J = (sum(x))^2 / (n x sum(x^2)), where x_i is agent i's mean effective_tps. J=1.0 means perfectly fair (all agents get equal throughput).
 
 | Backend | Model | N | Jain's Index | Agent TPS CV% |
 |---------|-------|---|-------------|---------------|
@@ -623,15 +623,15 @@ Jain's Fairness Index: J = (sum(x))² / (n × sum(x²)), where x_i is agent i's 
 
 ### SS10.2 Observations
 
-**Observation 1 — All three backends achieve near-perfect fairness.** Every Jain's index value exceeds 0.996. No backend systematically starves any agent. This is a positive result but also a non-differentiator: fairness cannot be used to choose between backends.
+**Observation 1 -- All three backends achieve near-perfect fairness.** Every Jain's index value exceeds 0.996. No backend systematically starves any agent. This is a positive result but also a non-differentiator: fairness cannot be used to choose between backends.
 
-**Observation 2 — Ollama's sequential scheduling produces paradoxically good fairness.** Ollama's round-robin queue (one request at a time, FIFO) gives each agent exactly the same wait time per cycle. The CV% at N=8 is 1.0--3.8% for Ollama vs 2.3--6.3% for vLLM/TGI. Sequential serving is perfectly fair because it is perfectly serialized — the same property that kills throughput guarantees equitable distribution of the limited throughput.
+**Observation 2 -- Ollama's sequential scheduling produces paradoxically good fairness.** Ollama's round-robin queue (one request at a time, FIFO) gives each agent exactly the same wait time per cycle. The CV% at N=8 is 1.0--3.8% for Ollama vs 2.3--6.3% for vLLM/TGI. Sequential serving is perfectly fair because it is perfectly serialized -- the same property that kills throughput guarantees equitable distribution of the limited throughput.
 
-**Observation 3 — vLLM/TGI show slightly higher variance at N=8.** TGI llama3.2-1b at N=8: CV=6.3%, with per-agent TPS ranging from 51.4 to 65.4 tok/s — a 27% spread between the slowest and fastest agent. vLLM llama3.2-1b at N=8: range 63.3 to 79.0 tok/s — a 25% spread. This is a consequence of continuous batching: requests that arrive when the batch is less full get better service. The variation is small enough (Jain's > 0.996) to be operationally irrelevant, but it reveals that continuous batching introduces stochastic unfairness that sequential serving avoids.
+**Observation 3 -- vLLM/TGI show slightly higher variance at N=8.** TGI llama3.2-1b at N=8: CV=6.3%, with per-agent TPS ranging from 51.4 to 65.4 tok/s -- a 27% spread between the slowest and fastest agent. vLLM llama3.2-1b at N=8: range 63.3 to 79.0 tok/s -- a 25% spread. This is a consequence of continuous batching: requests that arrive when the batch is less full get better service. The variation is small enough (Jain's > 0.996) to be operationally irrelevant, but it reveals that continuous batching introduces stochastic unfairness that sequential serving avoids.
 
-**Observation 4 — Fairness is high but throughput is not.** The key insight is that fairness ≠ performance. Ollama at N=8 distributes 31 tok/s perfectly equally among 8 agents. vLLM at N=8 distributes 70 tok/s with 6.3% CV. A 6.3% unfairness in 70 tok/s (worst agent gets 63.3) still beats Ollama's perfectly-fair 31 tok/s by 2×.
+**Observation 4 -- Fairness is high but throughput is not.** The key insight is that fairness != performance. Ollama at N=8 distributes 31 tok/s perfectly equally among 8 agents. vLLM at N=8 distributes 70 tok/s with 6.3% CV. A 6.3% unfairness in 70 tok/s (worst agent gets 63.3) still beats Ollama's perfectly-fair 31 tok/s by 2x.
 
-## SS11. Phase 4 — TTFT Comparison
+## SS11. Phase 4 -- TTFT Comparison
 
 ### SS11.1 Time-to-First-Token (N=1)
 
@@ -663,15 +663,15 @@ Jain's Fairness Index: J = (sum(x))² / (n × sum(x²)), where x_i is agent i's 
 
 ### SS11.3 Observations
 
-**Observation 1 — vLLM/TGI are 6--8× faster to first token than Ollama.** Across all three models, Ollama TTFT is 163--194 ms while vLLM/TGI TTFT is 22--35 ms. The Cohen's d values are enormous (13--19), confirming this is not noise. For an interactive chat application, Ollama has a noticeable 200ms delay before text appears; vLLM/TGI feel instantaneous.
+**Observation 1 -- vLLM/TGI are 6--8x faster to first token than Ollama.** Across all three models, Ollama TTFT is 163--194 ms while vLLM/TGI TTFT is 22--35 ms. The Cohen's d values are enormous (13--19), confirming this is not noise. For an interactive chat application, Ollama has a noticeable 200ms delay before text appears; vLLM/TGI feel instantaneous.
 
-**Observation 2 — Ollama's TTFT is dominated by scheduling overhead, not prefill.** Ollama's native prefill_ms for the 1B model is only 7.2 ms (SS17), yet TTFT is 176 ms. The 169 ms gap is pure scheduling + HTTP overhead. vLLM/TGI have similar GPU prefill physics but report TTFT of 22--23 ms — roughly 3× the compute-only prefill time. Ollama's overhead is ~10× larger than the actual computation.
+**Observation 2 -- Ollama's TTFT is dominated by scheduling overhead, not prefill.** Ollama's native prefill_ms for the 1B model is only 7.2 ms (SS17), yet TTFT is 176 ms. The 169 ms gap is pure scheduling + HTTP overhead. vLLM/TGI have similar GPU prefill physics but report TTFT of 22--23 ms -- roughly 3x the compute-only prefill time. Ollama's overhead is ~10x larger than the actual computation.
 
-**Observation 3 — TGI has a slight edge over vLLM for TTFT on small models.** For llama3.2-1b: TGI=21.7 ms vs vLLM=22.8 ms (Cohen's d=-0.13, negligible). For qwen2.5-1.5b: TGI=24.1 ms vs vLLM=29.6 ms (Cohen's d=-1.06, large). TGI's generate endpoint with streaming is slightly more optimized for first-token latency than vLLM's OpenAI-compatible completions endpoint. The difference is operationally small (~5 ms) but statistically significant for qwen2.5.
+**Observation 3 -- TGI has a slight edge over vLLM for TTFT on small models.** For llama3.2-1b: TGI=21.7 ms vs vLLM=22.8 ms (Cohen's d=-0.13, negligible). For qwen2.5-1.5b: TGI=24.1 ms vs vLLM=29.6 ms (Cohen's d=-1.06, large). TGI's generate endpoint with streaming is slightly more optimized for first-token latency than vLLM's OpenAI-compatible completions endpoint. The difference is operationally small (~5 ms) but statistically significant for qwen2.5.
 
-**Observation 4 — vLLM/TGI TTFT distributions are heavily right-skewed.** Skewness values: vLLM 3.3--3.5, TGI 2.7--4.2, Ollama 0.6--0.9. vLLM/TGI have occasional outlier TTFTs (P99 up to 68 ms vs median 30 ms) caused by garbage collection, batch boundary effects, or Docker scheduling jitter. Ollama's TTFT is more predictable (low skewness) because the scheduling overhead is constant — it is consistently slow.
+**Observation 4 -- vLLM/TGI TTFT distributions are heavily right-skewed.** Skewness values: vLLM 3.3--3.5, TGI 2.7--4.2, Ollama 0.6--0.9. vLLM/TGI have occasional outlier TTFTs (P99 up to 68 ms vs median 30 ms) caused by garbage collection, batch boundary effects, or Docker scheduling jitter. Ollama's TTFT is more predictable (low skewness) because the scheduling overhead is constant -- it is consistently slow.
 
-**Observation 5 — Model size has minimal impact on TTFT.** For vLLM: 1B=22.8 ms, 1.5B=29.6 ms, 3B=32.3 ms. Going from 1B to 3B parameters (2.7× larger) only increases TTFT by 42%. Prefill is fast for short prompts; the TTFT bottleneck is per-request overhead, not compute.
+**Observation 5 -- Model size has minimal impact on TTFT.** For vLLM: 1B=22.8 ms, 1.5B=29.6 ms, 3B=32.3 ms. Going from 1B to 3B parameters (2.7x larger) only increases TTFT by 42%. Prefill is fast for short prompts; the TTFT bottleneck is per-request overhead, not compute.
 
 ### SS11.4 Practical Implications for Interactive Applications
 
@@ -725,13 +725,13 @@ Jain's Fairness Index: J = (sum(x))² / (n × sum(x²)), where x_i is agent i's 
 
 ### SS12.2 Observations
 
-**Observation 1 — Queue depths are nearly identical across all three backends.** At N=8: all backends show mean depth ≈ 6.9, max depth = 7, and 95--97% of time at max. This is surprising — we expected continuous batching backends to show lower queue depths because they process requests faster.
+**Observation 1 -- Queue depths are nearly identical across all three backends.** At N=8: all backends show mean depth ~ 6.9, max depth = 7, and 95--97% of time at max. This is surprising -- we expected continuous batching backends to show lower queue depths because they process requests faster.
 
-**Observation 2 — The paradox resolves with closed-loop dynamics.** In a closed-loop system, each agent immediately submits a new request when the previous one completes. Faster backends (vLLM/TGI) complete requests sooner, causing the agent to resubmit sooner, keeping the queue full. The queue depth is a property of the **workload generator** (N closed-loop agents), not the backend. This is fundamentally different from open-loop (Poisson arrival) benchmarks where faster backends would indeed show lower queue depths.
+**Observation 2 -- The paradox resolves with closed-loop dynamics.** In a closed-loop system, each agent immediately submits a new request when the previous one completes. Faster backends (vLLM/TGI) complete requests sooner, causing the agent to resubmit sooner, keeping the queue full. The queue depth is a property of the **workload generator** (N closed-loop agents), not the backend. This is fundamentally different from open-loop (Poisson arrival) benchmarks where faster backends would indeed show lower queue depths.
 
-**Observation 3 — The slight differences at N=8 are informative.** vLLM-1B: 94.6% at max depth vs Ollama-1B: 97.1%. The 2.5% difference means vLLM occasionally drains the queue briefly — the batch completes fast enough that for a moment, all agents are between requests. This microsecond-level queue drainage is invisible operationally but confirms that vLLM is processing the batch faster than agents can refill it. Ollama never drains the queue (97.1% at max) because sequential processing ensures the queue stays permanently full.
+**Observation 3 -- The slight differences at N=8 are informative.** vLLM-1B: 94.6% at max depth vs Ollama-1B: 97.1%. The 2.5% difference means vLLM occasionally drains the queue briefly -- the batch completes fast enough that for a moment, all agents are between requests. This microsecond-level queue drainage is invisible operationally but confirms that vLLM is processing the batch faster than agents can refill it. Ollama never drains the queue (97.1% at max) because sequential processing ensures the queue stays permanently full.
 
-**Observation 4 — Queue depth × completion time = the real metric.** The total time to serve 240 requests (8 agents × 30 each) at N=8 reveals the throughput difference hidden by similar queue depths:
+**Observation 4 -- Queue depth x completion time = the real metric.** The total time to serve 240 requests (8 agents x 30 each) at N=8 reveals the throughput difference hidden by similar queue depths:
 
 | Backend | Model | Total Duration (s) | Mean Inter-Submit (ms) |
 |---------|-------|--------------------|----------------------|
@@ -739,7 +739,7 @@ Jain's Fairness Index: J = (sum(x))² / (n × sum(x²)), where x_i is agent i's 
 | tgi | llama3.2-1b | 88.1 | 374 |
 | ollama | llama3.2-1b | 129.1 | 522 |
 
-vLLM finishes the same 240 requests 40% faster than Ollama despite showing the same queue depth. The queue is equally "full" for both, but vLLM drains and refills it 1.6× faster.
+vLLM finishes the same 240 requests 40% faster than Ollama despite showing the same queue depth. The queue is equally "full" for both, but vLLM drains and refills it 1.6x faster.
 
 ## SS13. VRAM Usage
 
@@ -752,15 +752,15 @@ vLLM finishes the same 240 requests 40% faster than Ollama despite showing the s
 
 ### SS13.2 Observations
 
-**Observation 1 — The wide VRAM range (148--10,367 MB) reflects backend transitions.** The minimum of 148 MB occurs when no model is loaded (between backend switches). The maximum of 10,367 MB (84% of 12,282 MB) occurs when vLLM loads a 3B FP16 model with `--gpu-memory-utilization 0.80`. The mean increases across phases because Phase 3 runs more concurrent agents, which increases KV-cache allocation.
+**Observation 1 -- The wide VRAM range (148--10,367 MB) reflects backend transitions.** The minimum of 148 MB occurs when no model is loaded (between backend switches). The maximum of 10,367 MB (84% of 12,282 MB) occurs when vLLM loads a 3B FP16 model with `--gpu-memory-utilization 0.80`. The mean increases across phases because Phase 3 runs more concurrent agents, which increases KV-cache allocation.
 
-**Observation 2 — FP16 models on 12 GB VRAM leave thin margins.** The llama3.2-3b FP16 model weights consume ~6.4 GB. With vLLM's `gpu-memory-utilization=0.80` (allocating ~9.8 GB), only ~3.4 GB remains for KV-cache. At max_model_len=2048, this is sufficient for 8 concurrent requests at short context, but would fail at 4K+ context or N>8. Ollama's Q4_0 model weights for the same model consume ~1.6 GB, leaving 10+ GB for KV-cache — a significant advantage for memory-constrained deployments.
+**Observation 2 -- FP16 models on 12 GB VRAM leave thin margins.** The llama3.2-3b FP16 model weights consume ~6.4 GB. With vLLM's `gpu-memory-utilization=0.80` (allocating ~9.8 GB), only ~3.4 GB remains for KV-cache. At max_model_len=2048, this is sufficient for 8 concurrent requests at short context, but would fail at 4K+ context or N>8. Ollama's Q4_0 model weights for the same model consume ~1.6 GB, leaving 10+ GB for KV-cache -- a significant advantage for memory-constrained deployments.
 
-**Observation 3 — The VRAM data does not differentiate per-backend because measurements were pooled.** The GPU monitor polls nvidia-smi at 1s intervals regardless of which backend is running. A per-backend breakdown would require correlating timestamps with backend lifecycle events. This is a limitation of the current instrumentation — future work should tag VRAM samples with the active backend.
+**Observation 3 -- The VRAM data does not differentiate per-backend because measurements were pooled.** The GPU monitor polls nvidia-smi at 1s intervals regardless of which backend is running. A per-backend breakdown would require correlating timestamps with backend lifecycle events. This is a limitation of the current instrumentation -- future work should tag VRAM samples with the active backend.
 
 ## SS14. TR129 Cross-Validation
 
-*No matching models between TR129 and TR130 Ollama runs* — the analyzer could not find model name matches because TR129 used different model naming conventions.
+*No matching models between TR129 and TR130 Ollama runs* -- the analyzer could not find model name matches because TR129 used different model naming conventions.
 
 ### SS14.1 Manual Cross-Validation
 
@@ -772,13 +772,13 @@ The automated cross-validation failed on model name matching, but we can compare
 | qwen2.5-1.5b | 0.42 | 0.492 | Within 7% |
 | llama3.2-3b | 0.39 | 0.392 | Within 1% |
 
-**Observation 1 — TR130 reproduces TR129's Ollama serial fractions.** The largest discrepancy is qwen2.5-1.5b (0.42 vs 0.49, Δ=0.07), which falls within both experiments' bootstrap confidence intervals. This cross-validation confirms that (a) Ollama's Amdahl behavior is stable across experimental sessions, (b) the Phase 3 measurement protocol produces consistent results, and (c) the serial fraction is a property of the Ollama+GPU system, not measurement noise.
+**Observation 1 -- TR130 reproduces TR129's Ollama serial fractions.** The largest discrepancy is qwen2.5-1.5b (0.42 vs 0.49, Delta=0.07), which falls within both experiments' bootstrap confidence intervals. This cross-validation confirms that (a) Ollama's Amdahl behavior is stable across experimental sessions, (b) the Phase 3 measurement protocol produces consistent results, and (c) the serial fraction is a property of the Ollama+GPU system, not measurement noise.
 
-**Observation 2 — The model rank order is preserved.** Both TR129 and TR130 find: 3B has the lowest s (best Amdahl scaling), 1B has the highest s (worst Amdahl scaling). The physical explanation from TR129 holds: larger models have longer per-request GPU time relative to fixed scheduling overhead, so the serial fraction (overhead/total) is smaller.
+**Observation 2 -- The model rank order is preserved.** Both TR129 and TR130 find: 3B has the lowest s (best Amdahl scaling), 1B has the highest s (worst Amdahl scaling). The physical explanation from TR129 holds: larger models have longer per-request GPU time relative to fixed scheduling overhead, so the serial fraction (overhead/total) is smaller.
 
 ## SS15. Cold-Start Detection
 
-| Phase × Backend | Model | First-3 Mean (ms) | Rest Mean (ms) | Ratio | Cold Start? |
+| Phase x Backend | Model | First-3 Mean (ms) | Rest Mean (ms) | Ratio | Cold Start? |
 |----------------|-------|-------------------|---------------|-------|------------|
 | p2_baseline_ollama | llama3.2-1b | 657 | 680 | 0.97 | No |
 | p2_baseline_ollama | llama3.2-3b | 984 | 984 | 1.00 | No |
@@ -801,15 +801,15 @@ The automated cross-validation failed on model name matching, but we can compare
 
 ### SS15.2 Observations
 
-**Observation 1 — No cold-start effects detected in any backend.** All ratios are ≤1.07, well below the 1.5 threshold. This means Phase 1 warmup requests (3 per backend×model combo) were sufficient to eliminate JIT compilation, KV-cache initialization, and CUDA kernel caching effects. The measurement data is clean from the first Phase 2 request onward.
+**Observation 1 -- No cold-start effects detected in any backend.** All ratios are <=1.07, well below the 1.5 threshold. This means Phase 1 warmup requests (3 per backendxmodel combo) were sufficient to eliminate JIT compilation, KV-cache initialization, and CUDA kernel caching effects. The measurement data is clean from the first Phase 2 request onward.
 
-**Observation 2 — Phase 3 shows an inverted pattern: first requests are FASTER.** Ollama-3B Phase 3: first 3 = 1,653 ms, rest = 4,492 ms, ratio = 0.37. This is not cold start — it is the opposite. The first 3 requests in Phase 3 run at N=1 (the first scaling level), which is fast. The "rest" includes N=4 and N=8 data, which is slower due to contention. The cold-start detection heuristic correctly flags this as "No" because it tests ratio > 1.5, not ratio < 0.5.
+**Observation 2 -- Phase 3 shows an inverted pattern: first requests are FASTER.** Ollama-3B Phase 3: first 3 = 1,653 ms, rest = 4,492 ms, ratio = 0.37. This is not cold start -- it is the opposite. The first 3 requests in Phase 3 run at N=1 (the first scaling level), which is fast. The "rest" includes N=4 and N=8 data, which is slower due to contention. The cold-start detection heuristic correctly flags this as "No" because it tests ratio > 1.5, not ratio < 0.5.
 
-**Observation 3 — Docker overhead is absorbed by the startup protocol.** vLLM and TGI run in Docker containers, which could theoretically add cold-start latency. The wait_ready() polling loop in the backend implementation (up to 300s timeout) ensures the container is fully initialized before any measurement requests are sent. This design decision eliminates what would otherwise be a significant confound in the Docker-based backend measurements.
+**Observation 3 -- Docker overhead is absorbed by the startup protocol.** vLLM and TGI run in Docker containers, which could theoretically add cold-start latency. The wait_ready() polling loop in the backend implementation (up to 300s timeout) ensures the container is fully initialized before any measurement requests are sent. This design decision eliminates what would otherwise be a significant confound in the Docker-based backend measurements.
 
 ## SS16. Outlier Analysis
 
-IQR-based outlier detection (1.5 × IQR beyond Q1/Q3).
+IQR-based outlier detection (1.5 x IQR beyond Q1/Q3).
 
 | Backend | Model | N Total | N Outliers | Outlier % | IQR (ms) |
 |---------|-------|---------|-----------|-----------|----------|
@@ -825,11 +825,11 @@ IQR-based outlier detection (1.5 × IQR beyond Q1/Q3).
 
 ### SS16.2 Observations
 
-**Observation 1 — Data quality is excellent: 0--0.2% outliers across all 9 backend×model combinations.** At most 1 outlier per combination, out of 490--533 samples. The scaling law fits, efficiency curves, and cross-backend comparisons are built on clean data without needing robust statistics or trimming.
+**Observation 1 -- Data quality is excellent: 0--0.2% outliers across all 9 backendxmodel combinations.** At most 1 outlier per combination, out of 490--533 samples. The scaling law fits, efficiency curves, and cross-backend comparisons are built on clean data without needing robust statistics or trimming.
 
-**Observation 2 — Ollama has zero outliers but massive IQR.** The IQR for Ollama (2909--4949 ms) is 3--6× larger than vLLM/TGI (846--912 ms). Zero outliers with large IQR means the data is uniformly spread across a wide range — this is the signature of mixed N-levels (N=1 through N=8) pooled together. Ollama's wall-time varies 10× across N levels (400 ms at N=1 to 7000 ms at N=8), creating a wide IQR. vLLM/TGI's wall-time varies only 3× (500 ms to 3200 ms), creating a narrow IQR. The IQR ratio (3--6×) is another proxy for scaling efficiency: backends that scale well have less variation across N levels.
+**Observation 2 -- Ollama has zero outliers but massive IQR.** The IQR for Ollama (2909--4949 ms) is 3--6x larger than vLLM/TGI (846--912 ms). Zero outliers with large IQR means the data is uniformly spread across a wide range -- this is the signature of mixed N-levels (N=1 through N=8) pooled together. Ollama's wall-time varies 10x across N levels (400 ms at N=1 to 7000 ms at N=8), creating a wide IQR. vLLM/TGI's wall-time varies only 3x (500 ms to 3200 ms), creating a narrow IQR. The IQR ratio (3--6x) is another proxy for scaling efficiency: backends that scale well have less variation across N levels.
 
-**Observation 3 — The 3 detected outliers (one each in TGI-3B, TGI-1.5B, vLLM-3B) are Docker scheduling artifacts.** Docker containers on Windows occasionally experience scheduling delays from Hyper-V context switches. These single-sample outliers do not affect any aggregate statistic and require no remediation.
+**Observation 3 -- The 3 detected outliers (one each in TGI-3B, TGI-1.5B, vLLM-3B) are Docker scheduling artifacts.** Docker containers on Windows occasionally experience scheduling delays from Hyper-V context switches. These single-sample outliers do not affect any aggregate statistic and require no remediation.
 
 ## SS17. Backend-Native Metrics
 
@@ -861,13 +861,13 @@ IQR-based outlier detection (1.5 × IQR beyond Q1/Q3).
 
 ### SS17.3 Observations
 
-**Observation 1 — Ollama's prefill is trivially fast: 7--12 ms.** For a 100--200 token prompt on a Q4_0 model, prefill takes <15 ms. Decode dominates: 437--753 ms for 128 tokens. The prefill/decode ratio is ~1.5% — essentially all time is spent generating tokens, not processing the prompt. This is expected for short prompts; the ratio would invert at 4K+ context.
+**Observation 1 -- Ollama's prefill is trivially fast: 7--12 ms.** For a 100--200 token prompt on a Q4_0 model, prefill takes <15 ms. Decode dominates: 437--753 ms for 128 tokens. The prefill/decode ratio is ~1.5% -- essentially all time is spent generating tokens, not processing the prompt. This is expected for short prompts; the ratio would invert at 4K+ context.
 
-**Observation 2 — TGI's "decode_ms" values are in microseconds, not milliseconds.** TGI llama3.2-1b reports decode=1,180,187 — this is ~1.18 seconds expressed as microseconds. The TGI API returns timing in nanoseconds, and the conversion appears to divide by 1,000 instead of 1,000,000. Corrected: TGI-1B decode ≈ 1,180 ms, TGI-3B ≈ 3,024 ms, TGI-1.5B ≈ 1,885 ms. These values include multi-agent contention (averaged across all N levels), so they are not directly comparable to Ollama's per-request decode times.
+**Observation 2 -- TGI's "decode_ms" values are in microseconds, not milliseconds.** TGI llama3.2-1b reports decode=1,180,187 -- this is ~1.18 seconds expressed as microseconds. The TGI API returns timing in nanoseconds, and the conversion appears to divide by 1,000 instead of 1,000,000. Corrected: TGI-1B decode ~ 1,180 ms, TGI-3B ~ 3,024 ms, TGI-1.5B ~ 1,885 ms. These values include multi-agent contention (averaged across all N levels), so they are not directly comparable to Ollama's per-request decode times.
 
-**Observation 3 — Ollama's scheduling overhead can be computed exactly.** For the 1B model at N=1: wall_ms ≈ 680 ms (Phase 2 baseline), prefill + decode = 7.2 + 459.5 = 466.7 ms. The gap: 680 - 467 = **213 ms of scheduling overhead** — HTTP round-trip, tokenization, JSON serialization, queue management. This 213 ms represents **31% of total request time** at N=1. Under concurrency, the queue wait amplifies: at N=8, agents spend ~85% of time waiting.
+**Observation 3 -- Ollama's scheduling overhead can be computed exactly.** For the 1B model at N=1: wall_ms ~ 680 ms (Phase 2 baseline), prefill + decode = 7.2 + 459.5 = 466.7 ms. The gap: 680 - 467 = **213 ms of scheduling overhead** -- HTTP round-trip, tokenization, JSON serialization, queue management. This 213 ms represents **31% of total request time** at N=1. Under concurrency, the queue wait amplifies: at N=8, agents spend ~85% of time waiting.
 
-**Observation 4 — vLLM's opacity is a limitation.** vLLM exposes no per-request timing breakdown via the OpenAI-compatible completions API. We cannot decompose vLLM's wall_ms into prefill + decode + overhead. However, the total wall_ms data (SS12) shows vLLM-1B at N=1: 850 ms, which is ~25% slower than Ollama (680 ms) but with 6× better scaling at N=8. The higher single-request overhead is more than compensated by continuous batching at N>1.
+**Observation 4 -- vLLM's opacity is a limitation.** vLLM exposes no per-request timing breakdown via the OpenAI-compatible completions API. We cannot decompose vLLM's wall_ms into prefill + decode + overhead. However, the total wall_ms data (SS12) shows vLLM-1B at N=1: 850 ms, which is ~25% slower than Ollama (680 ms) but with 6x better scaling at N=8. The higher single-request overhead is more than compensated by continuous batching at N>1.
 
 ### SS17.4 Scheduling Overhead Decomposition (Ollama Only)
 
@@ -877,7 +877,7 @@ IQR-based outlier detection (1.5 × IQR beyond Q1/Q3).
 | llama3.2-3b | 984 ms | 12 ms | 753 ms | 219 ms | 22% |
 | qwen2.5-1.5b | 638 ms | 10 ms | 437 ms | 191 ms | 30% |
 
-The overhead is approximately constant at ~210 ms regardless of model size. This confirms it is software overhead (HTTP, tokenization, JSON), not GPU-dependent. For the 3B model, overhead is 22% of wall time; for the 1B model, 31% — because the denominator (GPU time) is larger for the 3B model. This fixed overhead is the primary source of Ollama's Amdahl serial fraction: under concurrency, every request pays the 210 ms tax sequentially.
+The overhead is approximately constant at ~210 ms regardless of model size. This confirms it is software overhead (HTTP, tokenization, JSON), not GPU-dependent. For the 3B model, overhead is 22% of wall time; for the 1B model, 31% -- because the denominator (GPU time) is larger for the 3B model. This fixed overhead is the primary source of Ollama's Amdahl serial fraction: under concurrency, every request pays the 210 ms tax sequentially.
 
 ## SS17b. Statistical Power and Distribution Analysis
 
@@ -899,11 +899,11 @@ Can we detect a 5% throughput difference with the collected sample sizes?
 
 ### SS17b.2 Observations
 
-**Observation 1 — Ollama appears underpowered, but this is an artifact of pooling across N levels.** Ollama's CV of 72--76% comes from pooling N=1 through N=8 data, where wall times range from 400 ms to 7000 ms. Within a single N level, Ollama's CV is <15% (similar to vLLM/TGI), and 30 samples per N level easily detect 5% effects. The "inadequate power" flag is a statistical artifact, not a real limitation.
+**Observation 1 -- Ollama appears underpowered, but this is an artifact of pooling across N levels.** Ollama's CV of 72--76% comes from pooling N=1 through N=8 data, where wall times range from 400 ms to 7000 ms. Within a single N level, Ollama's CV is <15% (similar to vLLM/TGI), and 30 samples per N level easily detect 5% effects. The "inadequate power" flag is a statistical artifact, not a real limitation.
 
-**Observation 2 — vLLM/TGI are adequately powered even when pooled.** Their lower CV (19--35%) reflects the flatter scaling curve: wall times only vary 3× across N levels (vs 10× for Ollama). This confirms that vLLM/TGI throughput measurements are precise enough to detect small differences — important for the cross-backend comparisons in SS8.
+**Observation 2 -- vLLM/TGI are adequately powered even when pooled.** Their lower CV (19--35%) reflects the flatter scaling curve: wall times only vary 3x across N levels (vs 10x for Ollama). This confirms that vLLM/TGI throughput measurements are precise enough to detect small differences -- important for the cross-backend comparisons in SS8.
 
-**Observation 3 — The key comparisons have massive effect sizes.** The cross-backend differences (Cohen's d = 3--8 in SS8, d = 13--19 in SS11) are so large that even 10 samples would suffice. Power analysis concerns apply only to subtle within-backend comparisons, not to the main findings.
+**Observation 3 -- The key comparisons have massive effect sizes.** The cross-backend differences (Cohen's d = 3--8 in SS8, d = 13--19 in SS11) are so large that even 10 samples would suffice. Power analysis concerns apply only to subtle within-backend comparisons, not to the main findings.
 
 ### SS17b.3 Distribution Shape
 
@@ -919,23 +919,23 @@ Can we detect a 5% throughput difference with the collected sample sizes?
 | vllm | llama3.2-3b | 2813 | 2680 | 0.54 | -0.63 | No |
 | vllm | qwen2.5-1.5b | 1886 | 1875 | 0.48 | -0.87 | No |
 
-**Observation 4 — No distribution is normal (all Shapiro-Wilk p < 0.05).** This is expected: pooling multiple N levels creates multimodal distributions. The non-normality justifies our use of bootstrap confidence intervals (1,000 resamples) rather than parametric t-tests throughout the analysis.
+**Observation 4 -- No distribution is normal (all Shapiro-Wilk p < 0.05).** This is expected: pooling multiple N levels creates multimodal distributions. The non-normality justifies our use of bootstrap confidence intervals (1,000 resamples) rather than parametric t-tests throughout the analysis.
 
-**Observation 5 — Ollama distributions are platykurtic (kurtosis ≈ -1.6).** Negative kurtosis means the distribution is flatter than normal — uniform-like. This is the signature of 4 distinct N-level clusters pooled together. vLLM/TGI distributions are closer to normal (kurtosis -0.6 to +0.2) because their N-level clusters are closer together (smaller spread = less multimodality).
+**Observation 5 -- Ollama distributions are platykurtic (kurtosis ~ -1.6).** Negative kurtosis means the distribution is flatter than normal -- uniform-like. This is the signature of 4 distinct N-level clusters pooled together. vLLM/TGI distributions are closer to normal (kurtosis -0.6 to +0.2) because their N-level clusters are closer together (smaller spread = less multimodality).
 
-**Observation 6 — Trimmed means closely match raw means.** For all 9 combinations, the 5% and 10% trimmed means differ from the raw mean by <2%. This confirms that the means are not inflated by outliers and that the aggregate statistics are robust.
+**Observation 6 -- Trimmed means closely match raw means.** For all 9 combinations, the 5% and 10% trimmed means differ from the raw mean by <2%. This confirms that the means are not inflated by outliers and that the aggregate statistics are robust.
 
 ## SS18. Limitations and Future Work
 
 ### SS18.1 What This Report Does NOT Prove
 
-1. **Generalization to other GPUs.** All measurements are on a single RTX 4080 Laptop GPU (12 GB GDDR6). Server GPUs (A100 80GB HBM2e, H100 80GB HBM3) have 3--5× higher memory bandwidth, which may reduce the GPU-physics component of serial fractions and change the relative backend rankings. The Ollama scheduling overhead (~210 ms) is CPU-bound and would be similar on any platform, but the GPU-side compute time would be faster, making the overhead a larger fraction.
+1. **Generalization to other GPUs.** All measurements are on a single RTX 4080 Laptop GPU (12 GB GDDR6). Server GPUs (A100 80GB HBM2e, H_100 80GB HBM3) have 3--5x higher memory bandwidth, which may reduce the GPU-physics component of serial fractions and change the relative backend rankings. The Ollama scheduling overhead (~210 ms) is CPU-bound and would be similar on any platform, but the GPU-side compute time would be faster, making the overhead a larger fraction.
 
-2. **Long-context behavior.** All prompts are 100--300 tokens with max_new_tokens=128. At 4K+ context, KV-cache memory pressure becomes the dominant constraint. vLLM's PagedAttention is specifically designed for efficient KV-cache management at long context — its advantage over Ollama may be larger than measured here. Conversely, 12 GB VRAM cannot fit the 3B FP16 model with 4K context and 8 concurrent agents, which would reduce the testable N range.
+2. **Long-context behavior.** All prompts are 100--300 tokens with max_new_tokens=128. At 4K+ context, KV-cache memory pressure becomes the dominant constraint. vLLM's PagedAttention is specifically designed for efficient KV-cache management at long context -- its advantage over Ollama may be larger than measured here. Conversely, 12 GB VRAM cannot fit the 3B FP16 model with 4K context and 8 concurrent agents, which would reduce the testable N range.
 
-3. **Quantization confound.** Ollama serves Q4_0 (4-bit), vLLM/TGI serve FP16 (16-bit). The weights are 4× smaller for Ollama, which means:
-   - Ollama loads weights 4× faster from VRAM → faster decode per token
-   - Ollama has 4× more VRAM headroom for KV-cache
+3. **Quantization confound.** Ollama serves Q4_0 (4-bit), vLLM/TGI serve FP16 (16-bit). The weights are 4x smaller for Ollama, which means:
+   - Ollama loads weights 4x faster from VRAM -> faster decode per token
+   - Ollama has 4x more VRAM headroom for KV-cache
    - Different memory access patterns under concurrency
 
    While eta(N) normalizes each backend against its own baseline (eliminating absolute throughput differences), the *scaling behavior* could be quantization-dependent. The 31% scheduling overhead measured in SS17 is quantization-independent, but memory bandwidth contention under concurrency could differ.
@@ -960,7 +960,7 @@ Can we detect a 5% throughput difference with the collected sample sizes?
 ### SS18.3 Future Work
 
 1. **Same quantization comparison.** Run vLLM with GPTQ/AWQ Q4 quantization to isolate the scheduling vs quantization confound. If vLLM-Q4 still scales better than Ollama-Q4, the scheduling advantage is confirmed independently of quantization.
-2. **Server GPU replication.** Repeat on A100 80GB with HBM2e bandwidth. Prediction: Ollama's ~210 ms overhead will be unchanged (CPU-bound), but GPU compute will be 3× faster, making the scheduling overhead an even larger fraction of total time.
+2. **Server GPU replication.** Repeat on A100 80GB with HBM2e bandwidth. Prediction: Ollama's ~210 ms overhead will be unchanged (CPU-bound), but GPU compute will be 3x faster, making the scheduling overhead an even larger fraction of total time.
 3. **Open-loop benchmarking.** Run the same backends under Poisson arrivals at varying request rates to validate that closed-loop serial fractions translate to open-loop throughput advantages.
 4. **Extended N range.** Test N={16, 32, 64} on a high-VRAM GPU to find true saturation points for vLLM/TGI. Prediction based on power law: vLLM-3B should maintain eta>0.30 at N=32.
 5. **Mixed-model multi-agent.** Deploy different models per agent slot to stress KV-cache management. vLLM's PagedAttention should handle mixed-model KV-cache allocation better than Ollama's model-switching approach.
@@ -972,7 +972,7 @@ Can we detect a 5% throughput difference with the collected sample sizes?
 
 **Q1: Does the serving stack affect multi-agent scaling efficiency?**
 
-**Yes — dramatically.** At N=8 concurrent agents, Ollama retains 16% of per-agent throughput while vLLM retains 56% and TGI retains 58% — a 3.5× difference in scaling efficiency on the same GPU, same models, same workload. The serving stack is the dominant bottleneck, not GPU physics. The GPU is capable of much higher concurrent throughput than Ollama allows (SS6, SS8).
+**Yes -- dramatically.** At N=8 concurrent agents, Ollama retains 16% of per-agent throughput while vLLM retains 56% and TGI retains 58% -- a 3.5x difference in scaling efficiency on the same GPU, same models, same workload. The serving stack is the dominant bottleneck, not GPU physics. The GPU is capable of much higher concurrent throughput than Ollama allows (SS6, SS8).
 
 **Q2: Which backend delivers the most total throughput at high concurrency?**
 
@@ -980,20 +980,20 @@ Can we detect a 5% throughput difference with the collected sample sizes?
 
 | Model | vLLM Total TPS (N=8) | Ollama Total TPS (N=8) | vLLM Advantage |
 |-------|----------------------|------------------------|---------------|
-| llama3.2-1b | 559.2 | 248.0 | 2.25× |
-| llama3.2-3b | 318.4 | 161.6 | 1.97× |
-| qwen2.5-1.5b | 456.8 | 259.2 | 1.76× |
+| llama3.2-1b | 559.2 | 248.0 | 2.25x |
+| llama3.2-3b | 318.4 | 161.6 | 1.97x |
+| qwen2.5-1.5b | 456.8 | 259.2 | 1.76x |
 
-TGI is a close second (483.2, 260.8, 362.4 total tok/s respectively), typically within 15% of vLLM. Both continuous-batching backends deliver roughly 2× more total work than Ollama at N=8.
+TGI is a close second (483.2, 260.8, 362.4 total tok/s respectively), typically within 15% of vLLM. Both continuous-batching backends deliver roughly 2x more total work than Ollama at N=8.
 
 **Q3: Do all backends follow the same scaling law?**
 
-**No — they follow fundamentally different laws.** This is the most important finding of TR130:
+**No -- they follow fundamentally different laws.** This is the most important finding of TR130:
 
-- **Ollama**: Amdahl's Law (R²=0.957--0.987). Degradation is governed by a fixed serial fraction (s=0.39--0.53) representing the scheduling overhead per request. Efficiency follows eta(N) = 1/(s + (1-s)N).
-- **vLLM/TGI**: Power law (R²=0.988--0.996). Degradation follows eta(N) ∝ N^−α (α=0.17--0.35) with no fixed serial fraction. Each additional agent causes a multiplicative slowdown that compounds gradually.
+- **Ollama**: Amdahl's Law (R^2=0.957--0.987). Degradation is governed by a fixed serial fraction (s=0.39--0.53) representing the scheduling overhead per request. Efficiency follows eta(N) = 1/(s + (1-s)N).
+- **vLLM/TGI**: Power law (R^2=0.988--0.996). Degradation follows eta(N) propto N?alpha (alpha=0.17--0.35) with no fixed serial fraction. Each additional agent causes a multiplicative slowdown that compounds gradually.
 
-The mechanistic difference: Ollama processes requests sequentially (FIFO queue), creating a fixed per-request serialization cost. vLLM/TGI batch requests into joint GPU kernels, where the cost of adding a request grows sub-linearly with batch size. Comparing Amdahl serial fractions across these fundamentally different systems is a category error — the correct cross-backend comparison uses raw eta(N) or total throughput (SS8).
+The mechanistic difference: Ollama processes requests sequentially (FIFO queue), creating a fixed per-request serialization cost. vLLM/TGI batch requests into joint GPU kernels, where the cost of adding a request grows sub-linearly with batch size. Comparing Amdahl serial fractions across these fundamentally different systems is a category error -- the correct cross-backend comparison uses raw eta(N) or total throughput (SS8).
 
 **Q4: At what N does the best backend overtake Ollama in total throughput?**
 
@@ -1011,9 +1011,9 @@ The crossover is earlier for models with smaller Ollama N=1 advantages and later
 
 **Partially independent.** TTFT is a latency metric (time to first token) while throughput scaling measures sustained generation rate. Key findings:
 
-- vLLM/TGI dominate TTFT: 22--35 ms vs Ollama's 163--194 ms (6--8× faster, Cohen's d=13--19)
+- vLLM/TGI dominate TTFT: 22--35 ms vs Ollama's 163--194 ms (6--8x faster, Cohen's d=13--19)
 - The TTFT advantage is **independent of N** because it measures first-token latency, not sustained throughput
-- vLLM/TGI win on **both** TTFT and throughput scaling — there is no trade-off
+- vLLM/TGI win on **both** TTFT and throughput scaling -- there is no trade-off
 - Ollama's high TTFT comes from scheduling overhead (~210 ms), not GPU compute (prefill is 7--12 ms)
 
 The only case where TTFT and throughput partially diverge: TGI has marginally better TTFT than vLLM (5 ms lower for qwen2.5), but vLLM has better total throughput. The difference is too small to drive backend selection.
@@ -1022,9 +1022,9 @@ The only case where TTFT and throughput partially diverge: TGI has marginally be
 
 TR129 asked: **is the Amdahl serial fraction an Ollama problem or a GPU physics problem?**
 
-TR130 answers: **It is an Ollama problem.** The GPU can support 3--4× better scaling than Ollama achieves. Ollama's sequential request scheduling creates a fixed ~210 ms per-request overhead that becomes the dominant bottleneck under concurrency, producing Amdahl's-law degradation with s=0.39--0.53. vLLM and TGI eliminate this bottleneck through continuous batching, achieving power-law degradation with exponents α=0.17--0.35 — far more gradual than Amdahl's collapse.
+TR130 answers: **It is an Ollama problem.** The GPU can support 3--4x better scaling than Ollama achieves. Ollama's sequential request scheduling creates a fixed ~210 ms per-request overhead that becomes the dominant bottleneck under concurrency, producing Amdahl's-law degradation with s=0.39--0.53. vLLM and TGI eliminate this bottleneck through continuous batching, achieving power-law degradation with exponents alpha=0.17--0.35 -- far more gradual than Amdahl's collapse.
 
-The practical implication: **any practitioner running 3+ concurrent agents should use vLLM or TGI instead of Ollama.** The switch doubles total throughput, triples per-agent efficiency, reduces time-to-first-token by 6×, and pushes the saturation point from N=4 to N>8.
+The practical implication: **any practitioner running 3+ concurrent agents should use vLLM or TGI instead of Ollama.** The switch doubles total throughput, triples per-agent efficiency, reduces time-to-first-token by 6x, and pushes the saturation point from N=4 to N>8.
 
 ### SS19.3 One-Number Summaries
 
@@ -1032,27 +1032,27 @@ The practical implication: **any practitioner running 3+ concurrent agents shoul
 
 | Backend | N* (saturation) | eta(8) range | Best N=8 total TPS | Scaling law |
 |---------|----------------|--------------|--------------------|----|
-| Ollama | 4 | 0.16--0.17 | 259 tok/s | Amdahl (s≈0.45) |
-| vLLM | 8--13+ | 0.46--0.65 | 559 tok/s | Power (α≈0.28) |
-| TGI | 8--16+ | 0.48--0.66 | 483 tok/s | Power (α≈0.24) |
+| Ollama | 4 | 0.16--0.17 | 259 tok/s | Amdahl (s~0.45) |
+| vLLM | 8--13+ | 0.46--0.65 | 559 tok/s | Power (alpha~0.28) |
+| TGI | 8--16+ | 0.48--0.66 | 483 tok/s | Power (alpha~0.24) |
 
 **For backend selection (decision tree):**
 
 ```
-N=1 and throughput priority? → Ollama (Q4_0 advantage)
-N=1 and TTFT priority?       → vLLM or TGI (6× faster TTFT)
-N=2?                         → Either (Ollama still competitive)
-N≥3?                         → vLLM (best total throughput)
-N≥3 and TTFT matters?        → vLLM (best of both worlds)
-Memory-constrained (<8GB)?   → Ollama (Q4_0 = 4× less VRAM)
+N=1 and throughput priority? -> Ollama (Q4_0 advantage)
+N=1 and TTFT priority?       -> vLLM or TGI (6x faster TTFT)
+N=2?                         -> Either (Ollama still competitive)
+N>=3?                         -> vLLM (best total throughput)
+N>=3 and TTFT matters?        -> vLLM (best of both worlds)
+Memory-constrained (<8GB)?   -> Ollama (Q4_0 = 4x less VRAM)
 ```
 
 ### SS19.4 What Changes for the Banterhearts Research Program
 
-1. **TR129's Amdahl serial fractions are confirmed** — reproducible within bootstrap CIs — but now understood as Ollama-specific, not GPU-universal.
+1. **TR129's Amdahl serial fractions are confirmed** -- reproducible within bootstrap CIs -- but now understood as Ollama-specific, not GPU-universal.
 2. **Future multi-agent experiments should use vLLM** as the default backend. Ollama's sequential scheduling confounds multi-agent scaling measurements with scheduling overhead.
 3. **The scaling law taxonomy expands**: Amdahl (sequential schedulers) vs power law (continuous batching). Future work should characterize the transition between these regimes.
-4. **VRAM becomes the binding constraint** at FP16 precision. The 12 GB RTX 4080 Laptop can run the 3B model at N=8 only with max_model_len=2048. Longer contexts or larger models require quantized vLLM serving (GPTQ/AWQ) — a configuration not tested here.
+4. **VRAM becomes the binding constraint** at FP16 precision. The 12 GB RTX 4080 Laptop can run the 3B model at N=8 only with max_model_len=2048. Longer contexts or larger models require quantized vLLM serving (GPTQ/AWQ) -- a configuration not tested here.
 
 ## Appendix A: Configuration
 
@@ -1148,22 +1148,22 @@ phase4:
 
 | Term | Definition |
 |------|-----------|
-| effective_tps | completion_tokens / wall_ms × 1000. User-perceived throughput including queue wait. |
-| gpu_tokens_per_s | completion_tokens / decode_ms × 1000. GPU-side decode throughput (no queue wait). |
-| eta(N) | Efficiency: per-agent TPS at N agents / per-agent TPS at N=1. Always ≤ 1. |
+| effective_tps | completion_tokens / wall_ms x 1000. User-perceived throughput including queue wait. |
+| gpu_tokens_per_s | completion_tokens / decode_ms x 1000. GPU-side decode throughput (no queue wait). |
+| eta(N) | Efficiency: per-agent TPS at N agents / per-agent TPS at N=1. Always <= 1. |
 | Serial fraction (s) | Amdahl parameter: fraction of inference that is serialized. Lower s = better scaling. Only valid for Amdahl-like systems (e.g., Ollama). |
-| Power law exponent (α) | Exponent in eta(N) ∝ N^−α. Lower α = slower degradation. Valid for continuous-batching systems (vLLM, TGI). |
+| Power law exponent (alpha) | Exponent in eta(N) propto N?alpha. Lower alpha = slower degradation. Valid for continuous-batching systems (vLLM, TGI). |
 | N* | Saturation point: N where eta < 0.5. Higher N* = wider useful concurrency range. |
-| Jain's Index | Fairness metric: J = (Σx)² / (n·Σx²). J=1.0 = all agents get equal throughput. |
+| Jain's Index | Fairness metric: J = (Sigmax)^2 / (n*Sigmax^2). J=1.0 = all agents get equal throughput. |
 | TTFT | Time-to-First-Token: latency from request to first streamed token. |
-| Closed-loop | Each agent sends request → waits → sends next. Max concurrency = N. |
+| Closed-loop | Each agent sends request -> waits -> sends next. Max concurrency = N. |
 | Open-loop | Requests arrive at a specified rate (Poisson). Can exceed N in-flight. |
 | PagedAttention | vLLM's KV-cache management: allocates memory in pages, reducing fragmentation. |
 | Continuous batching | vLLM/TGI: new requests join an in-progress batch without waiting for others to finish. Sequential batching (Ollama) completes the entire current request before starting the next. |
-| Q4_0 | 4-bit quantization (Ollama default). ~4× smaller than FP16. Faster inference but lower precision. |
+| Q4_0 | 4-bit quantization (Ollama default). ~4x smaller than FP16. Faster inference but lower precision. |
 | FP16 | Half-precision floating point (vLLM/TGI default). Higher precision, higher VRAM. |
 | Bootstrap CI | Confidence interval from resampling the data 1,000 times. Non-parametric; valid for any distribution. |
-| Cohen's d | Effect size: \|mean_diff\| / pooled_std. <0.2 negligible, <0.5 small, <0.8 medium, ≥0.8 large. |
+| Cohen's d | Effect size: \|mean_diff\| / pooled_std. <0.2 negligible, <0.5 small, <0.8 medium, >=0.8 large. |
 | Category error | Comparing a parameter across systems where the parameter means different things. E.g., comparing Amdahl s between Amdahl and power-law systems. |
 | Crossover point | The N at which Backend A's total throughput exceeds Backend B's, despite B being faster at N=1. |
 
@@ -1185,7 +1185,7 @@ python research/tr130/run.py --analyze-only -v
 ### Key Implementation Details
 
 - **Closed-loop workload**: Each agent sends one request, waits for completion, then immediately sends the next. No think time between requests.
-- **Warmup**: 3 requests per backend×model combination before measurement begins.
+- **Warmup**: 3 requests per backendxmodel combination before measurement begins.
 - **Cooldown**: 5 seconds between Phase 3 configurations to allow GPU temperature stabilization.
 - **Docker model loading**: HuggingFace cache (`~/.cache/huggingface`) mounted into Docker containers to avoid re-downloading.
 - **Randomized prompt lengths**: Uniform random between prompt_tokens_low and prompt_tokens_high per phase.
@@ -1208,4 +1208,3 @@ python research/tr130/run.py --analyze-only -v
 4. Jain, R. et al. (1984). *A Quantitative Measure Of Fairness And Discrimination For Resource Allocation In Shared Computer Systems.* DEC-TR-301.
 5. TR129 (2026). *N-Agent Scaling Laws.* Banterhearts Research.
 6. TR128 (2026). *Production Workload Characterization.* Banterhearts Research.
-

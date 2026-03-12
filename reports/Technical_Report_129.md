@@ -1,15 +1,15 @@
 # Technical Report 129: N-Agent Scaling Laws
 ## Closed-Loop Multi-Agent Throughput Scaling on Consumer GPU with Ollama
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-02-25
-**Author:** Research Team
-**Report Type:** N-agent scaling characterization (4-phase, 5,310 measurements)
-**Test Duration:** ~90 minutes
-**Status:** Complete --- All 4 phases delivered
-**Run ID:** `20260225_213619`
-**Related Work:** [TR114v2](Technical_Report_114.md) (2-Agent Efficiency), [TR128](Technical_Report_128.md) (Production Workload Characterization)
-**Depends On:** TR128 (baseline throughput cross-validation)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-02-25  
+**Author:** Research Team  
+**Report Type:** N-agent scaling characterization (4-phase, 5,310 measurements)  
+**Test Duration:** ~90 minutes  
+**Status:** Complete --- All 4 phases delivered  
+**Run ID:** `20260225_213619`  
+**Related Work:** [TR114v2](Technical_Report_114.md) (2-Agent Efficiency), [TR128](Technical_Report_128.md) (Production Workload Characterization)  
+**Depends On:** TR128 (baseline throughput cross-validation)  
 
 ---
 
@@ -419,7 +419,7 @@ TR114v2 tested N=2 agents with llama3.2-1b on the same hardware and found ~98.28
 
 Plotting per-agent throughput vs N reveals a hyperbolic decay (consistent with 1/N modified by Amdahl). The curve is NOT linear --- the steepest drop is from N=1 to N=2 (20--33% loss), while N=7 to N=8 loses only 2--3%. This "front-loaded" degradation means the first additional agent costs the most in per-agent terms.
 
-| Model | Drop N=1→2 | Drop N=2→3 | Drop N=3→4 | Drop N=7→8 |
+| Model | Drop N=1->2 | Drop N=2->3 | Drop N=3->4 | Drop N=7->8 |
 |-------|-----------|-----------|-----------|-----------|
 | llama3.2-1b | -21.3% | -33.1% | -24.5% | -12.7% |
 | llama3.2-3b | -33.4% | -32.7% | -24.5% | -12.2% |
@@ -427,7 +427,7 @@ Plotting per-agent throughput vs N reveals a hyperbolic decay (consistent with 1
 
 **Observation:** The percentage drops stabilize at higher N. From N=7 to N=8, all three models lose ~12% of their per-agent throughput. This convergence is predicted by Amdahl's Law: at high N, the scaling curve approaches 1/(s*N), and each additional agent adds a fixed fraction of degradation. The asymptotic regime begins around N=5--6.
 
-**Observation --- llama3.2-3b drops most at N=1→2:** The 33.4% initial drop (vs 21.3% for 1b) seems counterintuitive given that 3b has a lower serial fraction (s=0.39 vs 0.54). The explanation: at N=1, 3b's longer decode time means the GPU is more fully utilized, so adding a second agent immediately creates contention. For 1b, the GPU has more inter-request idle time at N=1, so the second agent partially fills that idle time before contention sets in.
+**Observation --- llama3.2-3b drops most at N=1->2:** The 33.4% initial drop (vs 21.3% for 1b) seems counterintuitive given that 3b has a lower serial fraction (s=0.39 vs 0.54). The explanation: at N=1, 3b's longer decode time means the GPU is more fully utilized, so adding a second agent immediately creates contention. For 1b, the GPU has more inter-request idle time at N=1, so the second agent partially fills that idle time before contention sets in.
 
 ---
 
@@ -849,14 +849,14 @@ GPU temperature across the ~90-minute experiment:
 
 | Phase | Duration (approx) | Temp Range | Notes |
 |-------|--------------------|------------|-------|
-| Phase 1 (Baseline) | ~10 min | 55--60°C | Light load (N=1, sequential) |
-| Phase 2 (Scaling) | ~40 min | 58--66°C | Sustained heavy load (N=1--8) |
-| Phase 3 (Think-Time) | ~25 min | 60--65°C | Moderate load (N=4 with idle periods) |
-| Phase 4 (Heterogeneous) | ~15 min | 62--66°C | Heavy load (N=4, multi-model) |
+| Phase 1 (Baseline) | ~10 min | 55--60degC | Light load (N=1, sequential) |
+| Phase 2 (Scaling) | ~40 min | 58--66degC | Sustained heavy load (N=1--8) |
+| Phase 3 (Think-Time) | ~25 min | 60--65degC | Moderate load (N=4 with idle periods) |
+| Phase 4 (Heterogeneous) | ~15 min | 62--66degC | Heavy load (N=4, multi-model) |
 
-**Observation --- no thermal throttling:** Peak temperature (66°C) is well below the RTX 4080 Laptop's thermal throttle point (~83--87°C). This confirms TR128's finding that sustained inference workloads on this GPU do not trigger thermal management. The ~8°C temperature increase from Phase 1 to Phase 2/4 reflects the transition from intermittent (N=1) to continuous (N >= 2) GPU utilization.
+**Observation --- no thermal throttling:** Peak temperature (66degC) is well below the RTX 4080 Laptop's thermal throttle point (~83--87degC). This confirms TR128's finding that sustained inference workloads on this GPU do not trigger thermal management. The ~8degC temperature increase from Phase 1 to Phase 2/4 reflects the transition from intermittent (N=1) to continuous (N >= 2) GPU utilization.
 
-**Observation --- temperature does not explain Phase 4's 25% speedup:** Phase 4 runs at 62--66°C, similar to late Phase 2 (also 62--66°C). If anything, higher temperature would slightly *reduce* clock speed (thermal headroom), not increase it. The Phase 4 anomaly (SS10) must have a different explanation.
+**Observation --- temperature does not explain Phase 4's 25% speedup:** Phase 4 runs at 62--66degC, similar to late Phase 2 (also 62--66degC). If anything, higher temperature would slightly *reduce* clock speed (thermal headroom), not increase it. The Phase 4 anomaly (SS10) must have a different explanation.
 
 **Implication:** Thermal throttling is not a concern for multi-agent deployments on this hardware with models in the 1--3B range. Larger models or longer sustained runs might approach thermal limits --- TR122 characterized the thermal profile in detail.
 
@@ -885,7 +885,7 @@ Request timeline analysis examines how requests overlap in time as N increases. 
 
 **Interpretation --- why throughput plateaus:** At N=2, the GPU is already 98% utilized (0.98 overlap). Going to N=8 increases overlap to 99.5% --- a 1.5 percentage point gain. There is almost no idle time to recover at N >= 2. Adding more agents increases the *queue depth* (how many requests wait), not the *GPU utilization* (which is already saturated). This is the physical manifestation of Amdahl's bottleneck: the GPU processes tokens at a fixed rate, and more agents just mean longer queues.
 
-**Connection to Amdahl's Law:** The serialization degree at N=8 (0.5%) closely tracks the predicted "parallelizable fraction" from Amdahl's model. With s ≈ 0.46, the non-serial portion is 54%, and the GPU spends ~99.5% of time doing useful work. The remaining 0.5% is the brief gap between request completion and agent re-submission --- the only true idle time.
+**Connection to Amdahl's Law:** The serialization degree at N=8 (0.5%) closely tracks the predicted "parallelizable fraction" from Amdahl's model. With s ~ 0.46, the non-serial portion is 54%, and the GPU spends ~99.5% of time doing useful work. The remaining 0.5% is the brief gap between request completion and agent re-submission --- the only true idle time.
 
 ### 12.2 Queue Depth Analysis
 
@@ -899,7 +899,7 @@ The `in_flight_at_submit` metric records how many other agents had active reques
 | llama3.2-3b | 0.0 | 0.98 | 1.97 | 2.97 | 3.97 | 4.97 | 5.97 | 6.97 |
 | qwen2.5-1.5b | 0.0 | 0.98 | 1.97 | 2.97 | 3.97 | 4.97 | 5.97 | 6.97 |
 
-**Observation --- mean in-flight ≈ N-1:** At every N, the average agent sees N-1 other active requests when it submits. This confirms the closed-loop invariant: when an agent finishes and immediately re-submits, the other N-1 agents are still waiting for their responses. The GPU queue is always nearly full.
+**Observation --- mean in-flight ~ N-1:** At every N, the average agent sees N-1 other active requests when it submits. This confirms the closed-loop invariant: when an agent finishes and immediately re-submits, the other N-1 agents are still waiting for their responses. The GPU queue is always nearly full.
 
 **Observation --- values are not exactly N-1:** The ~0.03 deficit (e.g., 6.97 vs 7.0 at N=8) reflects brief windows where two agents finish nearly simultaneously. For the ~20ms between one agent's completion and the other agent's re-submission, one fewer request is in-flight. These brief dips are the only "slack" in the system --- and they're too short to meaningfully reduce queue wait for anyone.
 
@@ -1019,7 +1019,7 @@ Compared first 5 requests vs remaining requests for each agent-phase combination
 
 The statistical profile has direct implications for production SLA design:
 
-1. **Predictability is high at N >= 2:** Phase 2's zero outlier rate and positive skew (right tail only, no left-tail latency spikes) means that multi-agent throughput is highly predictable. Agents can reliably expect throughput >= mean - 2σ. For SLA purposes, the 5th percentile throughput is a conservative bound.
+1. **Predictability is high at N >= 2:** Phase 2's zero outlier rate and positive skew (right tail only, no left-tail latency spikes) means that multi-agent throughput is highly predictable. Agents can reliably expect throughput >= mean - 2sigma. For SLA purposes, the 5th percentile throughput is a conservative bound.
 
 2. **Phase 1 variability warns about single-agent deployments:** The 18% outlier rate for llama3.2-1b at N=1 means that ~1 in 5 requests deviates significantly from the mean. For latency-sensitive single-agent applications, budget extra headroom. At N >= 2, the GPU is continuously busy and scheduling jitter is amortized across requests.
 
@@ -1152,7 +1152,7 @@ To prevent over-generalization, we explicitly state what TR129's data cannot sup
 
 3. **"Think-time never helps."** Nuanced. Think-time does not help *sustained throughput* for llama3.2-1b/3b (duty-cycle loss). But the qwen2.5-1.5b anomaly (45% gain) shows model-specific benefits exist. And for all models, natural think-time improves *per-request latency*, which matters for interactive agent experiences.
 
-4. **"These scaling laws apply to all GPUs."** Not tested. The serial fractions are specific to RTX 4080 Laptop + Ollama. Higher-bandwidth GPUs (A100, H100) will have different serial fractions, likely lower (see SS18.2 for predictions).
+4. **"These scaling laws apply to all GPUs."** Not tested. The serial fractions are specific to RTX 4080 Laptop + Ollama. Higher-bandwidth GPUs (A100, H_100) will have different serial fractions, likely lower (see SS18.2 for predictions).
 
 ### Summary Conclusions
 
@@ -1248,7 +1248,7 @@ TR129's results inform architectural decisions for multi-agent LLM frameworks (e
 - **Priority-based:** Give time-sensitive agents higher priority. This breaks fairness (J < 0.99) but may be necessary for mixed interactive/batch workloads.
 - **Dynamic N:** Monitor per-agent throughput and shed agents when eta drops below a threshold. TR129's Amdahl formula enables real-time prediction of what throughput each new agent will get.
 
-**Multi-GPU scaling:** With K GPUs, each running Ollama, assign N=2 agents per GPU for maximum throughput. Total system throughput ≈ K * 1.5 * single_agent_tps (since N=2 captures ~1.5x of solo). This is a linear scaling strategy that avoids the Amdahl bottleneck within each GPU.
+**Multi-GPU scaling:** With K GPUs, each running Ollama, assign N=2 agents per GPU for maximum throughput. Total system throughput ~ K * 1.5 * single_agent_tps (since N=2 captures ~1.5x of solo). This is a linear scaling strategy that avoids the Amdahl bottleneck within each GPU.
 
 ### 17.6 Monitoring & Warning Signs
 
@@ -1265,7 +1265,7 @@ Track these metrics in production:
 
 ### 18.1 Limitations
 
-1. **Single GPU only.** Results are specific to RTX 4080 Laptop (12 GB). Data-center GPUs (A100, H100) have different memory bandwidth, batch processing capabilities, and scheduler behavior. Serial fractions will differ.
+1. **Single GPU only.** Results are specific to RTX 4080 Laptop (12 GB). Data-center GPUs (A100, H_100) have different memory bandwidth, batch processing capabilities, and scheduler behavior. Serial fractions will differ.
 2. **N <= 8.** Higher agent counts not tested. Amdahl's Law extrapolation provides bounds but is uncertain beyond the tested range.
 3. **Fixed prompt/completion sizes.** All requests use 100--300 token prompts and 128-token completions. Real agents have variable sizes; long prompts or completions may shift the scaling curve (see TR127 for long-context effects).
 4. **No context accumulation.** Each request is independent (no multi-turn history). Real agents accumulate context across turns, increasing prompt size over time (see TR128 Phase 5).
@@ -1281,10 +1281,10 @@ TR129's results are specific to the RTX 4080 Laptop (12 GB, 256 GB/s bandwidth).
 | Hardware | Memory BW | Expected Serial Fraction | Predicted Plateau | Reasoning |
 |----------|-----------|-------------------------|-------------------|-----------|
 | RTX 4080 Laptop (this study) | 256 GB/s | s = 0.39--0.54 | N=2 | Measured |
-| RTX 4090 Desktop | 1,008 GB/s | s ≈ 0.20--0.35 | N=3--4 | 4x bandwidth → decode is faster → overhead fraction larger, BUT Ollama HTTP overhead stays constant → net effect uncertain |
-| A100 80GB | 2,039 GB/s | s ≈ 0.15--0.30 | N=3--5 | Higher bandwidth + more VRAM → can batch more effectively. vLLM would further reduce s. |
-| H100 80GB | 3,350 GB/s | s ≈ 0.10--0.25 | N=4--8 | Highest bandwidth + optimized batching → serial fraction dominated by HTTP, not GPU |
-| CPU (no GPU) | 50 GB/s | s ≈ 0.60--0.80 | N=1--2 | Decode so slow that any overhead is negligible... but concurrency is limited by CPU cores |
+| RTX 4090 Desktop | 1,008 GB/s | s ~ 0.20--0.35 | N=3--4 | 4x bandwidth -> decode is faster -> overhead fraction larger, BUT Ollama HTTP overhead stays constant -> net effect uncertain |
+| A100 80GB | 2,039 GB/s | s ~ 0.15--0.30 | N=3--5 | Higher bandwidth + more VRAM -> can batch more effectively. vLLM would further reduce s. |
+| H_100 80GB | 3,350 GB/s | s ~ 0.10--0.25 | N=4--8 | Highest bandwidth + optimized batching -> serial fraction dominated by HTTP, not GPU |
+| CPU (no GPU) | 50 GB/s | s ~ 0.60--0.80 | N=1--2 | Decode so slow that any overhead is negligible... but concurrency is limited by CPU cores |
 
 **Key insight:** As GPU bandwidth increases, the Amdahl serial fraction *should* decrease because decode becomes a larger fraction of total work (less relative overhead). But the HTTP/scheduling overhead is hardware-independent, so there's a floor below which s cannot drop without changing the backend. This is why TR130 (profiling to decompose s) and TR132 (testing vLLM/TGI with lower-overhead serving) are the logical next steps.
 

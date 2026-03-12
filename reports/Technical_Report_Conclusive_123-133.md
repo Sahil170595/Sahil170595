@@ -1,14 +1,14 @@
 # Conclusive Report 123-133: From Cost Models to Predictive Capacity Planning
 ## A dissertation-style synthesis of economics, quality, quantization, compilation, context scaling, production workloads, multi-agent scaling, serving stacks, GPU kernel physics, and predictive modeling
 
-Project: Banterhearts LLM Performance Research
-Date: 2026-02-28
-Author: Research Team
-Report Type: Conclusive synthesis across TR123-TR133 (artifact-backed, 11 technical reports)
-Scope: TR123, TR124, TR125, TR126, TR127, TR128, TR129, TR130, TR131, TR132, TR133
-Hardware Baseline: NVIDIA RTX 4080 Laptop GPU (12 GB VRAM, AD104, 7,424 CUDA cores, 175W TDP)
-Measurement Corpus: ~70,000+ measurements across 11 technical reports
-Primary Sources:
+Project: Banterhearts LLM Performance Research  
+Date: 2026-02-28  
+Author: Research Team  
+Report Type: Conclusive synthesis across TR123-TR133 (artifact-backed, 11 technical reports)  
+Scope: TR123, TR124, TR125, TR126, TR127, TR128, TR129, TR130, TR131, TR132, TR133  
+Hardware Baseline: NVIDIA RTX 4080 Laptop GPU (12 GB VRAM, AD104, 7,424 CUDA cores, 175W TDP)  
+Measurement Corpus: ~70,000+ measurements across 11 technical reports  
+Primary Sources:  
 - PublishReady/reports/Technical_Report_123.md (KV-Cache Production Economics)
 - PublishReady/reports/Technical_Report_124.md (Quality & Accuracy Baseline)
 - PublishReady/reports/Technical_Report_125.md (Quantization Decision Matrix)
@@ -20,7 +20,7 @@ Primary Sources:
 - PublishReady/reports/Technical_Report_131.md (GPU Kernel Profiling -- Root-Cause Analysis)
 - PublishReady/reports/Technical_Report_132.md (In-Container GPU Kernel Profiling -- Serving Stack Mechanism)
 - PublishReady/reports/Technical_Report_133.md (Predictive Capacity Planner)
-Predecessor Synthesis: PublishReady/reports/Technical_Report_Conclusive_117-122.md (Phase 1)
+Predecessor Synthesis: PublishReady/reports/Technical_Report_Conclusive_117-122.md (Phase 1)  
 
 ---
 
@@ -375,7 +375,7 @@ Flash Attention [3, 13] reduces the memory footprint of attention computation fr
 
 Paged KV-cache management, introduced by vLLM [14], treats KV-cache memory as virtual memory pages that can be allocated and freed independently. This eliminates internal fragmentation and enables efficient sharing of KV-cache across concurrent requests. The practical benefit is that multiple requests can coexist in VRAM without pre-allocating worst-case memory for each, which is essential for continuous batching.
 
-The dominant scaling phenomenon discovered in TR127 is VRAM spillover. When the combined footprint of model weights, KV-cache, and activation memory exceeds the 12 GB VRAM capacity, CUDA Unified Memory transparently migrates pages to system RAM. This migration incurs PCIe bandwidth penalties that are 10-20x worse than VRAM bandwidth (PCIe 4.0 x16 at approximately 25 GB/s vs VRAM at 432 GB/s). The result is not a gradual degradation but a catastrophic latency cliff: 25-105x increases in per-token latency at the spillover threshold. Below the spillover threshold, Ollama prefill scaling is clean and sub-linear (power-law exponent b = 0.083-0.158). HF FP16 pre-spillover scaling is between linear and quadratic (b = 1.58-1.78, R² > 0.999). Above the spillover threshold, latency explodes. This two-regime behavior means that VRAM capacity, not quadratic attention, is the practical context scaling bottleneck for consumer GPUs.
+The dominant scaling phenomenon discovered in TR127 is VRAM spillover. When the combined footprint of model weights, KV-cache, and activation memory exceeds the 12 GB VRAM capacity, CUDA Unified Memory transparently migrates pages to system RAM. This migration incurs PCIe bandwidth penalties that are 10-20x worse than VRAM bandwidth (PCIe 4.0 x16 at approximately 25 GB/s vs VRAM at 432 GB/s). The result is not a gradual degradation but a catastrophic latency cliff: 25-105x increases in per-token latency at the spillover threshold. Below the spillover threshold, Ollama prefill scaling is clean and sub-linear (power-law exponent b = 0.083-0.158). HF FP16 pre-spillover scaling is between linear and quadratic (b = 1.58-1.78, R^2 > 0.999). Above the spillover threshold, latency explodes. This two-regime behavior means that VRAM capacity, not quadratic attention, is the practical context scaling bottleneck for consumer GPUs.
 
 The implication for deployment is direct: the maximum usable context length is determined by the VRAM budget equation (VRAM_available = model_weights + KV_cost_per_token * context_length + activation_overhead), and exceeding this budget by even a single step can cause order-of-magnitude latency regressions. Ollama's quantized models, which reduce both weight and KV-cache footprint, can operate at much longer context lengths than FP16 HuggingFace models on the same hardware.
 
@@ -587,7 +587,7 @@ PyTorch Direct serves as the control condition in TR131. By running inference wi
 
 The five hypotheses tested in TR131 are:
 
-- H1: Memory bandwidth stress increases with N (PARTIALLY CONFIRMED: +74.4%, sole Holm-surviving test).
+- H_1: Memory bandwidth stress increases with N (PARTIALLY CONFIRMED: +74.4%, sole Holm-surviving test).
 - H2: Ollama serializes requests (REATTRIBUTED: serialization occurs at GPU hardware level, not serving stack level).
 - H3: GPU context switching causes overhead (REJECTED: context switch overhead is negligible).
 - H4: Kernel concurrency exists and degrades (REJECTED: max_concurrent_kernels = 1 in all conditions).
@@ -651,7 +651,7 @@ All Phase 2 measurements are conducted on a single hardware baseline to eliminat
 
 **Thermal environment:** Laptop form factor with manufacturer cooling solution. TR128 confirms no thermal throttling under sustained load (peak 66 degrees C, well below the 80-degree C throttle threshold). This is a boundary condition: desktop GPUs with different thermal profiles may behave differently.
 
-This hardware baseline is deliberately fixed and narrow. The portable output of Phase 2 is the decision framework, not the absolute numbers. If you deploy on a different GPU (e.g., RTX 4090, A100, H100), you must re-run the measurements. But you use the same framework -- the same phase-split cost model, the same quality evaluation protocol, the same scaling law fits, the same 4-gate search algorithm -- to interpret the new measurements and produce new deployment decisions.
+This hardware baseline is deliberately fixed and narrow. The portable output of Phase 2 is the decision framework, not the absolute numbers. If you deploy on a different GPU (e.g., RTX 4090, A100, H_100), you must re-run the measurements. But you use the same framework -- the same phase-split cost model, the same quality evaluation protocol, the same scaling law fits, the same 4-gate search algorithm -- to interpret the new measurements and produce new deployment decisions.
 
 ### 3.14 Measurement boundary catalog
 
@@ -695,7 +695,7 @@ The matrix is organized by the chronological order of the reports (TR123 through
 | TR125 | Quantization | Q4_K_M as universal default quantization; Q2_K ban for all quality-sensitive tasks; per-model quant tolerance map | Cost savings quantification (30-67% vs FP16); VRAM budget reduction; repetition collapse detection at extreme quantization | High | ~26,000 samples, 34 model-quant variants, Q4_K_M max loss -4.1pp, Q3_K_S cliff at -10.1pp to -12.2pp, Q2_K universally >11pp loss (qwen2.5-1.5b -40.6pp), phi-2 most robust (-1.8pp through Q4_K_M), 10x cost range ($0.020-$0.198), TOST 0/18 at +/-3pp, 7/16 Bonferroni survivors at Q2_K boundary | TOST underpowered at +/-3pp equivalence margin; single-rep Ollama determinism assumption; tier classifications below 9pp MDE are point-estimate-based |
 | TR126 | Compilation | Prefill-only compile on Linux with Inductor+Triton; never compile decode; all Windows compile results invalidated | Scale-dependent backend selection (small models -> compile wins; large -> Ollama wins); ANOVA interaction quantification | High | ~29,900 measurements, -40.0% latency reduction (d=-0.59, p=8.87e-61), prefill d=-1.21, Ollama 7x decode advantage (d=2.38), compiled decode 100% crash rate, 916 Triton kernels, ANOVA F(8,1608)=453.1 p<1e-16, bug persists on PyTorch 2.10, StaticCache 5.8x slower | Compiled decode is architecturally broken (DynamicCache + CUDA graphs incompatible); CUDA graph crash is length-dependent (works at 64 tokens, crashes at 128); Windows results remain invalid |
 | TR127 | Context Scaling | VRAM budget formula per model; Ollama for >4K token contexts on 12GB VRAM; HF FP16 limited to 4-8K tokens | Per-token VRAM cost estimation (0.75-1.16 MB/token FP16); TTFT planning; decode throughput degradation curves | High | 1,144 measurements, two-regime scaling (pre-spillover b=1.58-1.78, R^2=0.999+; post-spillover 25-105x cliffs), Ollama sub-linear b<0.2, spillover at 8-16K tokens, decode 41-53% degradation over 64x context, HF 95% collapse, TTFT >1s at 4K on HF | Only 512-32K range tested; per-token VRAM cost includes activations and allocator overhead (not pure KV); OOM cliff follows spillover by one step |
-| TR128 | Production Load | NUM_PARALLEL=1 (no-op confirmed); streaming always on (zero overhead); 70% utilization cap; empirical saturation curves replace M/D/1 | TTFT amplification planning; thermal safety margin; multi-turn context growth estimation | High | 3,172 measurements, 0/30 NUM_PARALLEL tests significant (mean |change| 4.0%), M/D/1 deviation up to 20.4x, peak 66 deg C (threshold 80 deg C), 0/9 streaming tests significant, TTFT 29.9x at 2.0 req/s, qwen2.5-1.5b 66% decode warmup anomaly | Sliding-window context inconclusive (p=0.042, n=8, wouldn't survive Bonferroni); qwen2.5-1.5b warmup mechanism unknown; 15/15 distributions non-normal |
+| TR128 | Production Load | NUM_PARALLEL=1 (no-op confirmed); streaming always on (zero overhead); 70% utilization cap; empirical saturation curves replace M/D/1 | TTFT amplification planning; thermal safety margin; multi-turn context growth estimation | High | 3,172 measurements, 0/30 NUM_PARALLEL tests significant (mean \|change\| 4.0%), M/D/1 deviation up to 20.4x, peak 66 deg C (threshold 80 deg C), 0/9 streaming tests significant, TTFT 29.9x at 2.0 req/s, qwen2.5-1.5b 66% decode warmup anomaly | Sliding-window context inconclusive (p=0.042, n=8, wouldn't survive Bonferroni); qwen2.5-1.5b warmup mechanism unknown; 15/15 distributions non-normal |
 | TR129 | Multi-Agent Scaling | 2-3 agents per GPU optimal; Amdahl prediction formula with per-model serial fractions; think-time tradeoff quantification | Saturation point identification; fairness guarantee; GPU tok/s constancy confirmation | High | 5,310 measurements, Amdahl s=0.39-0.54 (R^2>0.97), total throughput plateau at N=2 (<3% gain N=2 to N=8), per-agent eta(8)=17-20%, saturation at N=3-4, Jain's index >=0.997, GPU tok/s constant across N | Phase 4 confounded (homo_1b 25% above Phase 2 N=4); think-time improves per-request but reduces sustained throughput; serial fraction is model-fit, not physically derived |
 | TR130 | Serving Stack Selection | vLLM for N>=4 agents; Ollama for N=1; TTFT 6-8x faster on vLLM/TGI | Crossover point identification (N=2 to N=4); power-law vs Amdahl degradation model selection; fairness guarantee across stacks | High | 4,797 measurements, vLLM 2.25x at N=8 (559 vs 248 tok/s for llama3.2-1b), Ollama eta(8)=0.16 vs vLLM eta(8)=0.56, Ollama=Amdahl (R^2=0.96+) vs vLLM/TGI=power law (R^2=0.99+), TTFT 22-35ms vs 163-194ms, Jain >=0.996, zero cold-start | Q4_0 vs FP16 confounds absolute throughput (eta(N) normalizes); Amdahl cross-backend comparison is category error; serving-stack-as-bottleneck hypothesis overturned by TR131 |
 | TR131 | Root-Cause Attribution | Do not blame Ollama for N=8 degradation -- GPU bandwidth is fundamental; quantization helps concurrency (Q4_0 advantage grows 3.0x to 3.9x) | Reattribution of kernel serialization to GPU hardware; rejection of context-switching and KV-cache pressure hypotheses | High | 26 profiled runs, PyTorch Direct degrades 86.4% vs Ollama 82.1%, bandwidth +74.4% at N=8 (p=6.4e-5, d=3.81, survives Holm), max_concurrent_kernels=1 in all conditions, N=8 demand exceeds 432 GB/s by 78-130% | ncu metrics null on WDDM driver (back-of-envelope substituted); Q4_0 vs FP16 absolute TPS non-comparable (degradation ratio is the metric); CPU scheduling hypothesis has insufficient data |
@@ -825,7 +825,7 @@ What is the full quantization decision space, and where exactly is the quality c
 
 TR124 Phase 2 provided preliminary evidence that quantization degrades quality by an average of -10.7%, but tested only 3 levels with 200 samples and a base-vs-instruct confound that invalidated the FP16 comparison baseline. The deployment community needs a comprehensive decision matrix spanning the full range of GGUF k-quant levels (Q2_K through FP16) with statistically powered sample sizes and proper baselines. Quantization is the single most impactful lever for inference cost optimization (after infrastructure choice): it simultaneously affects model size, VRAM footprint, throughput, quality, and -- as TR131 later reveals -- concurrency scaling. A rigorous decision matrix is therefore prerequisite to every downstream deployment recommendation.
 
-**Experimental design.** Two phases over approximately 26,000 total samples and 34 model-quant variants. Phase 1 (exploratory, 900 samples) tests 3 models (LLaMA-3.2-1B, Qwen2.5-1.5B, Phi-2) across 6 quant levels (Q2_K, Q3_K_S, Q4_K_M, Q5_K_M, Q6_K, Q8_0) with 10 samples per task using Q8_0 as the quantization baseline rather than FP16. Phase 1 identifies the base-vs-instruct confound in TR124's FP16 baselines: HuggingFace serves base models while Ollama serves instruct-tuned variants, making cross-backend quality comparison invalid. Phase 2 (production-grade, ~24,990 samples) resolves this confound by expanding to 5 models (1.2B-8B, adding LLaMA-3.2-3B and LLaMA-3.1-8B) across 7 quant levels (Q2_K through FP16, with FP16 via Ollama as the new baseline) and using 285 real MMLU questions + 200 real ARC-Challenge questions from HuggingFace as the primary quality gate, plus 5 generation tasks (50 samples each) as secondary validation. Rescored accuracy (regex letter extraction) replaces raw exact match to handle formatting noise -- a critical correction after Phase 1 revealed that Phi-2's raw accuracy of 26% masks a rescored accuracy of 59%. A 4-tier classification system (negligible: >=−3pp benchmark, >=−3% generation; acceptable: >=−5pp, >=−8%; concerning: >=−10pp, >=−15%; unacceptable: worse) replaces Phase 1's binary threshold, with each variant classified by the worse of its benchmark and generation deltas. Statistical apparatus includes Welch's t-tests between adjacent quant levels, Wilson confidence intervals for all benchmark tables, TOST equivalence testing at +/-3pp and +/-5pp margins, Bonferroni/Holm multiple comparison correction across 116 pairwise tests, and power analysis via normal approximation for minimum detectable effect at alpha=0.05 and power=0.80.
+**Experimental design.** Two phases over approximately 26,000 total samples and 34 model-quant variants. Phase 1 (exploratory, 900 samples) tests 3 models (LLaMA-3.2-1B, Qwen2.5-1.5B, Phi-2) across 6 quant levels (Q2_K, Q3_K_S, Q4_K_M, Q5_K_M, Q6_K, Q8_0) with 10 samples per task using Q8_0 as the quantization baseline rather than FP16. Phase 1 identifies the base-vs-instruct confound in TR124's FP16 baselines: HuggingFace serves base models while Ollama serves instruct-tuned variants, making cross-backend quality comparison invalid. Phase 2 (production-grade, ~24,990 samples) resolves this confound by expanding to 5 models (1.2B-8B, adding LLaMA-3.2-3B and LLaMA-3.1-8B) across 7 quant levels (Q2_K through FP16, with FP16 via Ollama as the new baseline) and using 285 real MMLU questions + 200 real ARC-Challenge questions from HuggingFace as the primary quality gate, plus 5 generation tasks (50 samples each) as secondary validation. Rescored accuracy (regex letter extraction) replaces raw exact match to handle formatting noise -- a critical correction after Phase 1 revealed that Phi-2's raw accuracy of 26% masks a rescored accuracy of 59%. A 4-tier classification system (negligible: >=-3pp benchmark, >=-3% generation; acceptable: >=-5pp, >=-8%; concerning: >=-10pp, >=-15%; unacceptable: worse) replaces Phase 1's binary threshold, with each variant classified by the worse of its benchmark and generation deltas. Statistical apparatus includes Welch's t-tests between adjacent quant levels, Wilson confidence intervals for all benchmark tables, TOST equivalence testing at +/-3pp and +/-5pp margins, Bonferroni/Holm multiple comparison correction across 116 pairwise tests, and power analysis via normal approximation for minimum detectable effect at alpha=0.05 and power=0.80.
 
 **Key results.**
 
@@ -973,7 +973,7 @@ TR108-TR127 characterized inference under controlled, single-shot conditions: on
 | Metric | Value | Context |
 |--------|-------|---------|
 | Baseline service times | 858-1,435 ms | llama3.2-1b to llama3.2-3b (1.7x range) |
-| NUM_PARALLEL effect | 0/30 significant | Mean |change| = 4.0%; Holm-Bonferroni corrected |
+| NUM_PARALLEL effect | 0/30 significant | Mean \|change\| = 4.0%; Holm-Bonferroni corrected |
 | M/D/1 deviation | Up to 20.4x | llama3.2-3b at NP=4, 1.0 req/s |
 | Peak GPU temperature | 66 deg C | Well below 80 deg C throttle threshold |
 | Streaming overhead | 0/9 significant | Zero wall-clock penalty; Holm-Bonferroni corrected |
@@ -1136,7 +1136,7 @@ TR130 attributed the degradation to the serving stack based on correlational evi
 | Ollama vs PyTorch at N=8 | 3.9x faster | Advantage grows under contention |
 | Max concurrent kernels | 1 in all conditions | GPU hardware enforces serialization |
 | N=8 bandwidth demand | 78-130% over 432 GB/s | Back-of-envelope calculation |
-| H1 (bandwidth saturation) | Partially confirmed | Only Holm survivor |
+| H_1 (bandwidth saturation) | Partially confirmed | Only Holm survivor |
 | H3 (context switching) | Rejected | Zero variance in gap metrics |
 | H5 (KV-cache pressure) | Rejected | Alloc counts unchanged, d=0 |
 | Degradation (LLaMA-1B Ollama) | -82.1% | 160.4 to 28.8 TPS |
@@ -1156,7 +1156,7 @@ The max_concurrent_kernels=1 finding across all 26 runs and both backends is rev
 
 Ollama's growing advantage under contention (3.0x at N=1 to 3.9x at N=8) is a direct consequence of quantization economics under bandwidth pressure. Q4_0 models use 0.5 bytes per parameter versus FP16's 2 bytes, reducing bandwidth demand by 4x per weight read. When bandwidth is the bottleneck, this 4x reduction compounds with contention: each agent's bandwidth demand is lower, so the saturation point is softer. The 3.0x-to-3.9x growth quantifies this compounding effect: at N=1, the 3.0x advantage reflects the raw precision difference in memory reads; at N=8, the additional 0.9x advantage arises from Q4_0 being further from the bandwidth ceiling than FP16, so it experiences proportionally less contention. This finding has a direct implication that connects TR131 back to TR125: the Q4_K_M quantization recommended for quality reasons also provides a concurrency benefit, making quantization a simultaneously quality-preserving, cost-reducing, and concurrency-enhancing optimization. There is no tradeoff between these three objectives at Q4_K_M -- all three improve together.
 
-The hypothesis testing framework in TR131 is notable for its rigor and its negative results. Of five hypotheses tested, only H1 (bandwidth saturation) is partially confirmed, and only one test (memory operation time +74.4%) survives Holm step-down correction. H3 (CUDA context switching) is cleanly rejected with zero variance in inter-kernel gap metrics between N=1 and N=8. H5 (KV-cache pressure) is rejected with memory allocation counts unchanged (p=1.0, d=0). The rejection of H3 and H5 is as informative as the confirmation of H1: it eliminates two intuitively plausible mechanisms (context switching overhead and memory pressure) that a less rigorous study might have accepted as contributing factors. The clean null results demonstrate that the profiling methodology has the resolution to detect these effects if they existed.
+The hypothesis testing framework in TR131 is notable for its rigor and its negative results. Of five hypotheses tested, only H_1 (bandwidth saturation) is partially confirmed, and only one test (memory operation time +74.4%) survives Holm step-down correction. H3 (CUDA context switching) is cleanly rejected with zero variance in inter-kernel gap metrics between N=1 and N=8. H5 (KV-cache pressure) is rejected with memory allocation counts unchanged (p=1.0, d=0). The rejection of H3 and H5 is as informative as the confirmation of H_1: it eliminates two intuitively plausible mechanisms (context switching overhead and memory pressure) that a less rigorous study might have accepted as contributing factors. The clean null results demonstrate that the profiling methodology has the resolution to detect these effects if they existed.
 
 The ncu metrics limitation deserves acknowledgment. On the Windows WDDM driver, Nsight Compute captures kernel names but returns null values for SM occupancy and DRAM throughput -- the two metrics that would directly quantify bandwidth saturation. The back-of-envelope bandwidth calculation (N=8 demand = N * model_bytes * decode_rate, yielding 78-130% over the RTX 4080's peak 432 GB/s) is the best available substitute. This calculation is conservative: it assumes peak sustained bandwidth, which real workloads rarely achieve due to memory access patterns and cache effects. The true bandwidth utilization is likely higher than the theoretical demand, making the saturation conclusion even stronger.
 
@@ -1191,7 +1191,7 @@ TR131 established that GPU bandwidth saturation is the root cause of multi-agent
 | GEMM dominance (vLLM) | 69-82% of GPU time | TGI: 41-57% (more attention time) |
 | Serving stack vs Ollama kernels at N=1 | 15-25x more | vLLM: 35,129 vs Ollama: 2,257 |
 | Larger model advantage | 3B: -38.7% vs 1B: -55.8% | Larger models amortize better |
-| H1 (kernel count) | CONFIRMED | 8/8 Holm-corrected tests |
+| H_1 (kernel count) | CONFIRMED | 8/8 Holm-corrected tests |
 | H2 (bandwidth) | CONFIRMED | 8/8 Holm-corrected tests |
 | vLLM LLaMA-1B N=8 degradation | -55.8% | 106.3 to 47.0 TPS |
 | TGI LLaMA-1B N=8 degradation | -54.1% | 83.7 to 38.4 TPS |
@@ -1209,7 +1209,7 @@ The near-identical amortization ratios between vLLM (4.68-5.75x) and TGI (4.65-4
 
 This distinction matters for practitioners: choosing between vLLM and TGI should be based on operational factors (API compatibility, deployment complexity, model format support, community support, update cadence), not on a belief that one has a fundamentally better scaling mechanism. Both achieve the same physics-level bandwidth amortization, and their performance convergence at high N (the throughput gap narrows from 27-35% at N=1 to 22-23% at N=8) confirms that the N=1 overhead difference becomes proportionally less important as batching efficiency dominates.
 
-The GEMM dominance finding (vLLM 69-82%, TGI 41-57%) reveals a significant implementation difference in attention computation. vLLM's PagedAttention compresses attention into GEMM-shaped operations that are highly efficient on tensor cores, achieving near-peak hardware utilization for the matrix-multiply workload. TGI spends a larger fraction (22-32%) on softmax-heavy attention kernels that are less amenable to GEMM fusion. This explains TGI's slightly lower raw throughput despite comparable amortization: the non-GEMM attention component is less efficiently batched. The practical implication for GPU selection is that vLLM will benefit more from GPUs with higher tensor core throughput (such as the H100's FP16 tensor cores at 989.4 TFLOPS), while TGI's attention-heavy profile would benefit relatively more from memory bandwidth improvements.
+The GEMM dominance finding (vLLM 69-82%, TGI 41-57%) reveals a significant implementation difference in attention computation. vLLM's PagedAttention compresses attention into GEMM-shaped operations that are highly efficient on tensor cores, achieving near-peak hardware utilization for the matrix-multiply workload. TGI spends a larger fraction (22-32%) on softmax-heavy attention kernels that are less amenable to GEMM fusion. This explains TGI's slightly lower raw throughput despite comparable amortization: the non-GEMM attention component is less efficiently batched. The practical implication for GPU selection is that vLLM will benefit more from GPUs with higher tensor core throughput (such as the H_100's FP16 tensor cores at 989.4 TFLOPS), while TGI's attention-heavy profile would benefit relatively more from memory bandwidth improvements.
 
 The larger-model amortization advantage (3B degrades only 38.7-38.9% versus 1B's 54.1-55.8%) has implications for model selection in multi-agent deployments. Although larger models have lower absolute throughput at N=1, they retain a higher fraction of that throughput under concurrency. The scaling advantage over Ollama reaches 43.3-43.5 percentage points for the 3B model versus 26.3-28.0 for the 1B model. This suggests that the optimal model choice for multi-agent vLLM deployments may be larger than for single-agent Ollama deployments -- a non-obvious insight that TR133's cost model captures through the interaction between throughput lookup and scaling prediction.
 
@@ -1218,7 +1218,7 @@ The methodological contribution of TR132 -- the in-container nsys profiling tech
 The 15-25x kernel count disparity between serving stacks and Ollama at N=1 (vLLM launches 35,129 kernels for LLaMA-1B versus Ollama's 2,257) reveals the overhead cost of the continuous batching architecture. When serving a single request, vLLM's PagedAttention, scheduler, and memory manager launch far more kernels than Ollama's streamlined single-request path. This overhead is why Ollama wins at N=1 (in addition to the Q4_0 quantization advantage). The crossover at N>=4 occurs precisely because continuous batching converts this overhead into an advantage: the 15-25x more kernels at N=1 become only 2-3x more kernels at N=8 (after 77-80% amortization), while the batch-level GEMM operations process all concurrent requests simultaneously. The architecture that is wasteful at N=1 is precisely the architecture that scales efficiently at N=8 -- a tradeoff that is invisible to single-request benchmarks and explains why naive benchmarking consistently misleads practitioners into choosing sequential serving stacks for production multi-agent workloads.
 
 The 25 profiled runs with 100% trace capture rate validate the in-container nsys methodology as a reliable approach for GPU profiling under WSL2/Docker.
-The confirmed hypotheses (H1: kernel reduction, H2: bandwidth reduction) with 8/8 Holm-corrected tests surviving correction provide the strongest statistical evidence for any mechanism claim in the program.
+The confirmed hypotheses (H_1: kernel reduction, H2: bandwidth reduction) with 8/8 Holm-corrected tests surviving correction provide the strongest statistical evidence for any mechanism claim in the program.
 
 **Opening for TR133.** Ten reports have produced 70,000+ measurements, validated decisions, and identified mechanisms.
 Can the entire corpus be operationalized into a predictive tool that replaces manual report navigation?
@@ -1515,7 +1515,7 @@ The break-even analysis (Section 7.9) shows that the consumer GPU pays for itsel
 
 The cloud comparison does not account for operational overhead (system administration, monitoring, hardware failures) or the elasticity advantage of cloud (instant scale-up for traffic spikes). These factors may favor cloud for production services with SLOs, but for development, experimentation, personal assistants, and small-team tools, the 95.4% cost advantage is decisive.
 
-The comparison also varies by model. The consumer advantage is largest for small, fast models (GPT-2, llama3.2-1b) where the GPU is dramatically under-utilized by a single model and the cloud pricing premium is highest per token. For larger models (llama3.1-8b), the consumer GPU is more heavily utilized and the cloud alternative may offer better performance per dollar through specialized inference hardware (A100, H100) that is not available in consumer form factors. The 95.4% headline figure is the best-case comparison (GPT-2); the worst-case comparison for models tested in this program is still approximately 85% cheaper, which remains decisive for most use cases.
+The comparison also varies by model. The consumer advantage is largest for small, fast models (GPT-2, llama3.2-1b) where the GPU is dramatically under-utilized by a single model and the cloud pricing premium is highest per token. For larger models (llama3.1-8b), the consumer GPU is more heavily utilized and the cloud alternative may offer better performance per dollar through specialized inference hardware (A100, H_100) that is not available in consumer form factors. The 95.4% headline figure is the best-case comparison (GPT-2); the worst-case comparison for models tested in this program is still approximately 85% cheaper, which remains decisive for most use cases.
 
 It is worth noting that the cloud comparison does not account for the rapid depreciation of cloud pricing over time. Cloud inference costs have been declining at approximately 30-40% per year as providers optimize their inference infrastructure and introduce more efficient hardware generations. The consumer hardware cost, by contrast, is a one-time purchase that does not benefit from future price reductions (though it also does not incur ongoing price increases). A deployment that breaks even today will become increasingly cost-effective relative to cloud as the hardware depreciates, but less cost-effective relative to future cloud pricing. For a 3-year hardware lifetime, the net present value comparison should account for 2-3 rounds of cloud price reductions.
 
@@ -1711,7 +1711,7 @@ The practical impact of the compile policy is workload-dependent. For decode-hea
 
 The context budget policy prevents VRAM spillover, which causes 25-105x latency cliffs on consumer hardware (TR127). The policy is based on a first-principles VRAM formula validated empirically.
 
-VRAM budget formula: VRAM_required = model_weights_bytes × 1.058 + KV_bytes_per_token × context_length. The 1.058 factor accounts for CUDA allocator fragmentation on model weight loading (TR133) and applies to weights only, not KV-cache. Model weights and KV parameters are model-specific; the chimeraforge planner includes a model registry with these values.
+VRAM budget formula: VRAM_required = model_weights_bytes x 1.058 + KV_bytes_per_token x context_length. The 1.058 factor accounts for CUDA allocator fragmentation on model weight loading (TR133) and applies to weights only, not KV-cache. Model weights and KV parameters are model-specific; the chimeraforge planner includes a model registry with these values.
 
 For Ollama with quantized models: context budget is effectively unlimited within the model's context window (32K for most modern models). Ollama's Flash Attention eliminates quadratic scaling (b<0.2, TR127), and quantized KV-caches reduce per-token VRAM consumption proportionally. TTFT never exceeds 1 second through 32K context (TR127). Decode degradation is moderate: 41-53% over 64x context growth.
 
@@ -1896,11 +1896,11 @@ This section makes explicit the boundaries within which the Phase 2 conclusions 
 
 **Single hardware baseline.** All 70,000+ measurements were collected on a single GPU: the NVIDIA RTX 4080 Laptop GPU with 12 GB VRAM and 432 GB/s memory bandwidth. The throughput numbers, VRAM spillover thresholds, thermal behavior, and kernel profiling results are specific to this hardware. A desktop RTX 4090 (24 GB VRAM, 1008 GB/s bandwidth) would shift every threshold: spillover would occur at 2x the context length, bandwidth saturation would require more concurrent agents, and absolute throughput would scale roughly linearly with bandwidth. The chimeraforge planner includes a bandwidth-scaling heuristic for cross-GPU extrapolation, but this is unvalidated. No multi-GPU testing was performed.
 
-**WDDM driver limitations.** The Windows WDDM driver prevents Nsight Compute (ncu) from capturing SM occupancy and DRAM throughput metrics. TR131's bandwidth saturation hypothesis (H1) was partially confirmed via memory operation time increases (+74.4%, p = 6.4 x 10^-5) but could not be directly validated via hardware bandwidth counters. The in-container nsys profiling methodology developed for TR132 overcomes CUPTI visibility limitations for kernel-level traces but not for hardware performance counters. This means the "GPU memory bandwidth is the bottleneck" conclusion rests on indirect evidence (timing changes + back-of-envelope calculations showing demand exceeds 432 GB/s by 78-130%) rather than direct measurement.
+**WDDM driver limitations.** The Windows WDDM driver prevents Nsight Compute (ncu) from capturing SM occupancy and DRAM throughput metrics. TR131's bandwidth saturation hypothesis (H_1) was partially confirmed via memory operation time increases (+74.4%, p = 6.4 x 10^-5) but could not be directly validated via hardware bandwidth counters. The in-container nsys profiling methodology developed for TR132 overcomes CUPTI visibility limitations for kernel-level traces but not for hardware performance counters. This means the "GPU memory bandwidth is the bottleneck" conclusion rests on indirect evidence (timing changes + back-of-envelope calculations showing demand exceeds 432 GB/s by 78-130%) rather than direct measurement.
 
-**Quantization confound in serving stack comparison.** TR130 compares Ollama (Q4_0, 4-bit) against vLLM and TGI (FP16, 16-bit). Absolute throughput differences at N=1 are expected and attributable to quantization, not serving stack quality. The eta(N) normalization — dividing each backend's N-agent throughput by its own N=1 baseline — eliminates this confound for scaling comparisons. However, the absolute throughput advantage of vLLM at N=8 (559 vs 248 tok/s for llama3.2-1b) conflates two effects: better scaling from continuous batching AND higher absolute single-agent throughput from Q4_0 weights on the Ollama side being offset by the scaling advantage on the vLLM side. A vLLM-with-AWQ-quantization experiment would isolate the continuous batching effect from the precision effect, but was not conducted.
+**Quantization confound in serving stack comparison.** TR130 compares Ollama (Q4_0, 4-bit) against vLLM and TGI (FP16, 16-bit). Absolute throughput differences at N=1 are expected and attributable to quantization, not serving stack quality. The eta(N) normalization -- dividing each backend's N-agent throughput by its own N=1 baseline -- eliminates this confound for scaling comparisons. However, the absolute throughput advantage of vLLM at N=8 (559 vs 248 tok/s for llama3.2-1b) conflates two effects: better scaling from continuous batching AND higher absolute single-agent throughput from Q4_0 weights on the Ollama side being offset by the scaling advantage on the vLLM side. A vLLM-with-AWQ-quantization experiment would isolate the continuous batching effect from the precision effect, but was not conducted.
 
-**Statistical power for equivalence claims.** TR125's TOST (Two One-Sided Tests) equivalence testing at the ±3pp margin fails for all 18 "negligible" variants. At ±5pp, only 6/18 generation metrics pass. This means the "Q4_K_M preserves quality" claim is supported by point estimates and confidence intervals but not by formal equivalence testing at tight margins. The benchmark minimum detectable effect (MDE) is 9.0pp at 80% power — both the "negligible" (-3pp) and "acceptable" (-5pp) tier thresholds fall below detection limits. The tier system remains useful as a decision guide, but readers should understand that "negligible" means "point estimate within 3pp" rather than "statistically confirmed equivalent."
+**Statistical power for equivalence claims.** TR125's TOST (Two One-Sided Tests) equivalence testing at the +/-3pp margin fails for all 18 "negligible" variants. At +/-5pp, only 6/18 generation metrics pass. This means the "Q4_K_M preserves quality" claim is supported by point estimates and confidence intervals but not by formal equivalence testing at tight margins. The benchmark minimum detectable effect (MDE) is 9.0pp at 80% power -- both the "negligible" (-3pp) and "acceptable" (-5pp) tier thresholds fall below detection limits. The tier system remains useful as a decision guide, but readers should understand that "negligible" means "point estimate within 3pp" rather than "statistically confirmed equivalent."
 
 **Ollama determinism unvalidated.** TR125 uses temperature=0 with single repetition, citing TR124 Phase 3's validation that deterministic decoding needs only one rep. However, TR124 validated determinism for HuggingFace transformers, not Ollama (which uses llama.cpp). Ollama at temp=0 may not be perfectly deterministic due to different floating-point accumulation order in llama.cpp's CUDA kernels. If Ollama is non-deterministic, TR125's single-rep design underestimates measurement variance, potentially inflating the precision of quality tier classifications.
 
@@ -1917,10 +1917,10 @@ This section makes explicit the boundaries within which the Phase 2 conclusions 
 | TR | Limitation | Mitigation | Status |
 |----|-----------|------------|--------|
 | TR123 | Windows aot_eager for torch.compile measurements | TR126 validates real Triton on Linux; compile results revalidated | **Resolved** |
-| TR123 | No quality data — cost recommendations assume quality equivalence | TR124 confirms backend equivalence (0/7 significant) | **Resolved** |
+| TR123 | No quality data -- cost recommendations assume quality equivalence | TR124 confirms backend equivalence (0/7 significant) | **Resolved** |
 | TR124 | No quantization sweep beyond Ollama defaults | TR125 provides comprehensive 7-level, 5-model matrix | **Resolved** |
 | TR124 | Ollama determinism at temp=0 unvalidated | Flagged as caveat; single-rep variance may be underestimated | **Open** |
-| TR125 | TOST underpowered at ±3pp equivalence margin | Wilson CIs provided; 6/18 pass at ±5pp generation margin | **Mitigated** |
+| TR125 | TOST underpowered at +/-3pp equivalence margin | Wilson CIs provided; 6/18 pass at +/-5pp generation margin | **Mitigated** |
 | TR125 | Base-vs-instruct confound in Phase 1 FP16 baselines | Identified and corrected in Phase 2 with Ollama FP16 baselines | **Resolved** |
 | TR126 | Compiled decode crashes in all torch.compile modes | Documented as architectural (DynamicCache + CUDA graphs incompatible); PR #175562 filed | **Accepted** |
 | TR126 | Bug persists across PyTorch 2.8 and 2.10 | Confirmed architectural; awaiting upstream fix | **Accepted** |
@@ -1929,14 +1929,14 @@ This section makes explicit the boundaries within which the Phase 2 conclusions 
 | TR129 | Phase 4 (heterogeneous models) confounded by Ollama restart/warmup | Conservative interpretation; avoid mixed-model deployment claims | **Accepted** |
 | TR130 | Q4_0 vs FP16 absolute throughput comparison | eta(N) normalization eliminates confound for scaling; clearly labeled | **Mitigated** |
 | TR131 | Nsight Compute metrics null on Windows WDDM driver | Back-of-envelope bandwidth calculation (demand exceeds 432 GB/s by 78-130%) | **Mitigated** |
-| TR132 | H3 GPU utilization rejected — 0% in all conditions | Known nsys limitation with `--trace cuda` mode; not a finding | **Accepted** |
+| TR132 | H3 GPU utilization rejected -- 0% in all conditions | Known nsys limitation with `--trace cuda` mode; not a finding | **Accepted** |
 | TR132 | H4 PagedAttention vs FlashAttention kernel classification inconclusive | Kernel names not reliably mappable; mechanism confirmed via amortization | **Accepted** |
-| TR133 | Scaling model weakest (R² = 0.647) | Amdahl captures trend; flagged as least reliable prediction | **Accepted** |
+| TR133 | Scaling model weakest (R^2 = 0.647) | Amdahl captures trend; flagged as least reliable prediction | **Accepted** |
 | TR133 | Cross-GPU throughput extrapolation unverified | Linear bandwidth scaling is a first-order approximation | **Open** |
 
-**Narrative interpretation.** The limitation table reveals three patterns. First, the program is self-correcting: TR123's quality gap is filled by TR124, TR124's quantization gap by TR125, and TR125's base-vs-instruct confound is resolved within the same report. Second, architectural limitations (compiled decode crashes, WDDM profiling constraints) are accepted rather than worked around — the program documents what cannot be done rather than pretending it can. Third, the open items (Ollama determinism, sliding-window efficacy, cross-GPU extrapolation) are all testable with straightforward experiments and represent clear Phase 3 targets rather than fundamental design flaws.
+**Narrative interpretation.** The limitation table reveals three patterns. First, the program is self-correcting: TR123's quality gap is filled by TR124, TR124's quantization gap by TR125, and TR125's base-vs-instruct confound is resolved within the same report. Second, architectural limitations (compiled decode crashes, WDDM profiling constraints) are accepted rather than worked around -- the program documents what cannot be done rather than pretending it can. Third, the open items (Ollama determinism, sliding-window efficacy, cross-GPU extrapolation) are all testable with straightforward experiments and represent clear Phase 3 targets rather than fundamental design flaws.
 
-The most consequential limitation is statistical: the TOST equivalence failure at ±3pp means the "Q4_K_M is equivalent to FP16" claim is technically unconfirmed at tight margins. However, the point estimates, Wilson CIs, and the 6/18 generation-equivalent results at ±5pp collectively support the practical recommendation. The gap is statistical power, not evidence of degradation.
+The most consequential limitation is statistical: the TOST equivalence failure at +/-3pp means the "Q4_K_M is equivalent to FP16" claim is technically unconfirmed at tight margins. However, the point estimates, Wilson CIs, and the 6/18 generation-equivalent results at +/-5pp collectively support the practical recommendation. The gap is statistical power, not evidence of degradation.
 
 ---
 
@@ -1946,11 +1946,11 @@ Phase 1 (TR117-TR122) and Phase 2 (TR123-TR133) form a single, continuous resear
 
 **Methodology inheritance.** Phase 2 directly inherits three methodological pillars from Phase 1. The artifact-first principle (TR118_v2.2) ensures every Phase 2 claim traces to raw logs. The phase-aware measurement boundary (TR119v1/TR121v1) carries forward as the prefill/decode split that structures TR123's cost model, TR126's compile analysis, and TR127's context scaling. The distributional reporting standard (TR117/TR120) evolves into the statistical rigor escalation documented in Section 6.10.
 
-**Compile paradox resolution.** Phase 1's most prominent unresolved finding was the compile paradox (TR120): torch.compile appeared to hurt performance on Windows. Phase 2 resolved this definitively (TR126): the paradox was an artifact of the Windows aot_eager fallback. Real Triton compilation on Linux delivers 24-60% prefill speedups across all 7 models tested. This resolution required a cross-platform methodology that Phase 1 did not have — Docker/Linux environments were a Phase 2 innovation.
+**Compile paradox resolution.** Phase 1's most prominent unresolved finding was the compile paradox (TR120): torch.compile appeared to hurt performance on Windows. Phase 2 resolved this definitively (TR126): the paradox was an artifact of the Windows aot_eager fallback. Real Triton compilation on Linux delivers 24-60% prefill speedups across all 7 models tested. This resolution required a cross-platform methodology that Phase 1 did not have -- Docker/Linux environments were a Phase 2 innovation.
 
 **Backend expansion.** Phase 1 tested transformers-gpu, transformers-gpu-compile, and onnxruntime-gpu. Phase 2 retains the first two, drops ONNX (no pre-exported models for modern architectures), and adds Ollama (quantized serving), vLLM (continuous batching + PagedAttention), and TGI (continuous batching). This expansion reflects the program's shift from framework-level benchmarking to production-stack comparison.
 
-**Quality dimension added.** Phase 1 had zero quality measurements — every cost and performance recommendation assumed output equivalence across backends. Phase 2 fills this gap completely: TR124 establishes backend equivalence (0/7 significant), TR125 maps quantization quality across 26,000 samples, and TR133 integrates quality into the predictive planner. The quality-cost Pareto frontier (TR124) and the 4-tier quantization classification (TR125) are new decision instruments that Phase 1 could not provide.
+**Quality dimension added.** Phase 1 had zero quality measurements -- every cost and performance recommendation assumed output equivalence across backends. Phase 2 fills this gap completely: TR124 establishes backend equivalence (0/7 significant), TR125 maps quantization quality across 26,000 samples, and TR133 integrates quality into the predictive planner. The quality-cost Pareto frontier (TR124) and the 4-tier quantization classification (TR125) are new decision instruments that Phase 1 could not provide.
 
 **From benchmarks to production.** Phase 1 tested single-request, steady-state inference. Phase 2 adds production realism in five layers: realistic cost models with KV-cache (TR123), production workloads with concurrency and streaming (TR128), multi-agent scaling laws (TR129), serving stack comparison (TR130), and GPU kernel profiling for root-cause attribution (TR131/TR132). This progression from controlled benchmark to production characterization is the defining structural difference between the two phases.
 
@@ -1960,13 +1960,13 @@ Phase 1 (TR117-TR122) and Phase 2 (TR123-TR133) form a single, continuous resear
 
 ## 12. Conclusive Statement
 
-Phase 2 of the Banterhearts LLM Performance Research Program transforms the measurement methodology established in Phase 1 into a complete, artifact-backed deployment framework for local-first LLM inference on consumer hardware. The research arc from cost models (TR123) to predictive capacity planning (TR133) is deliberately sequential: each report either fills a gap exposed by its predecessor or falsifies a hypothesis that earlier results made plausible. This falsification-driven design produced three high-profile reversals — M/D/1 queueing theory refuted (TR128), Amdahl-as-universal-scaling refuted (TR130/TR131), and serving-stack-as-bottleneck overturned (TR131) — that sharpened every subsequent experimental design.
+Phase 2 of the Banterhearts LLM Performance Research Program transforms the measurement methodology established in Phase 1 into a complete, artifact-backed deployment framework for local-first LLM inference on consumer hardware. The research arc from cost models (TR123) to predictive capacity planning (TR133) is deliberately sequential: each report either fills a gap exposed by its predecessor or falsifies a hypothesis that earlier results made plausible. This falsification-driven design produced three high-profile reversals -- M/D/1 queueing theory refuted (TR128), Amdahl-as-universal-scaling refuted (TR130/TR131), and serving-stack-as-bottleneck overturned (TR131) -- that sharpened every subsequent experimental design.
 
-Three conclusions survive the full evidence chain. First, Q4_K_M quantization is the universal deployment default across all five tested model families: it preserves benchmark accuracy within 4.1 percentage points of FP16 while reducing cost by 30-67% and VRAM by proportional amounts. The quality cliff at Q3_K_S is sharp and model-dependent; Q2_K is universally unacceptable. Second, the serving stack choice depends on concurrency: Ollama with Q4_K_M is optimal for single-agent workloads (highest throughput per dollar), while vLLM with FP16 is optimal for multi-agent workloads at N >= 4 (2.25x throughput advantage from continuous batching that amortizes GPU memory bandwidth by 4.7-5.8x). Third, empirical lookup tables with first-principles interpolation outperform theoretical queueing models for capacity planning: M/D/1 deviates up to 20.4x from reality, while the chimeraforge planner achieves VRAM R² = 0.968, throughput R² = 0.859, quality RMSE = 0.062, and latency MAPE = 1.05%.
+Three conclusions survive the full evidence chain. First, Q4_K_M quantization is the universal deployment default across all five tested model families: it preserves benchmark accuracy within 4.1 percentage points of FP16 while reducing cost by 30-67% and VRAM by proportional amounts. The quality cliff at Q3_K_S is sharp and model-dependent; Q2_K is universally unacceptable. Second, the serving stack choice depends on concurrency: Ollama with Q4_K_M is optimal for single-agent workloads (highest throughput per dollar), while vLLM with FP16 is optimal for multi-agent workloads at N >= 4 (2.25x throughput advantage from continuous batching that amortizes GPU memory bandwidth by 4.7-5.8x). Third, empirical lookup tables with first-principles interpolation outperform theoretical queueing models for capacity planning: M/D/1 deviates up to 20.4x from reality, while the chimeraforge planner achieves VRAM R^2 = 0.968, throughput R^2 = 0.859, quality RMSE = 0.062, and latency MAPE = 1.05%.
 
 The program's greatest contribution is not any single finding but the demonstration that falsification-driven sequential research can transform benchmark data into auditable deployment policy. Each of the 11 technical reports contributes one decision-grade deliverable; together they form a chain where every claim traces to artifacts, every assumption is tested, and every failure mode is documented. The chimeraforge CLI operationalizes this chain into a tool that runs in under one second, requires no GPU, and answers the practitioner's core question: "What should I run on my hardware?"
 
-These conclusions are not universal. They are bound to one GPU (RTX 4080 Laptop, 12 GB VRAM), one software stack (PyTorch 2.x, CUDA 12.x, Ollama 0.6.x, vLLM 0.7.x), and bounded workloads (models <= 8B, contexts <= 32K, N <= 8 agents). The portable output is the method — the sequential falsification design, the statistical rigor escalation, the artifact-first reporting standard, and the gating rules that determine when a measurement is trustworthy enough to ship — not the absolute numbers. Any hardware, stack, or workload change requires a rerun. The infrastructure to perform that rerun is the second deliverable of this program, and it is fully operational.
+These conclusions are not universal. They are bound to one GPU (RTX 4080 Laptop, 12 GB VRAM), one software stack (PyTorch 2.x, CUDA 12.x, Ollama 0.6.x, vLLM 0.7.x), and bounded workloads (models <= 8B, contexts <= 32K, N <= 8 agents). The portable output is the method -- the sequential falsification design, the statistical rigor escalation, the artifact-first reporting standard, and the gating rules that determine when a measurement is trustworthy enough to ship -- not the absolute numbers. Any hardware, stack, or workload change requires a rerun. The infrastructure to perform that rerun is the second deliverable of this program, and it is fully operational.
 
 ---
 
@@ -2019,21 +2019,21 @@ These conclusions are not universal. They are bound to one GPU (RTX 4080 Laptop,
 ### A.1 KV-Cache Memory Formula
 
 ```
-KV_bytes_per_token = 2 × num_layers × num_kv_heads × head_dim × precision_bytes
+KV_bytes_per_token = 2 x num_layers x num_kv_heads x head_dim x precision_bytes
 ```
 
-Where precision_bytes = 2 for FP16, 0.5 for Q4_0. For GQA models, num_kv_heads < num_attention_heads. Example: Qwen2.5-1.5B (28 layers, 2 KV heads, 128 dim, FP16) = 2 × 28 × 2 × 128 × 2 = 28,672 bytes/token = 28 KB/token. Validated: 30/30 exact matches in TR123.
+Where precision_bytes = 2 for FP16, 0.5 for Q4_0. For GQA models, num_kv_heads < num_attention_heads. Example: Qwen2.5-1.5B (28 layers, 2 KV heads, 128 dim, FP16) = 2 x 28 x 2 x 128 x 2 = 28,672 bytes/token = 28 KB/token. Validated: 30/30 exact matches in TR123.
 
 ### A.2 Cost Formula
 
 ```
-$/1M_tokens = (1,000,000 / throughput_tok_s / 3600) × hourly_rate_usd
+$/1M_tokens = (1,000,000 / throughput_tok_s / 3600) x hourly_rate_usd
 ```
 
 ### A.3 Blend Cost Formula
 
 ```
-$/1M_blend = input_ratio × $/1M_prefill + output_ratio × $/1M_decode
+$/1M_blend = input_ratio x $/1M_prefill + output_ratio x $/1M_decode
 ```
 
 Blend ratios: RAG-heavy (0.95/0.05), Summarization (0.85/0.15), Chat (0.67/0.33), Balanced (0.50/0.50), Code generation (0.25/0.75).
@@ -2050,7 +2050,7 @@ Where s is the serial fraction. Fitted values: llama3.2-1b s=0.5391, llama3.2-3b
 ### A.5 VRAM Budget Formula
 
 ```
-VRAM_total = model_weight_bytes × overhead_factor + KV_bytes_per_token × context_length + activation_coeff × context_length²
+VRAM_total = model_weight_bytes x overhead_factor + KV_bytes_per_token x context_length + activation_coeff x context_length^2
 ```
 
 Overhead factor fitted at 1.058x (TR133). Activation coefficient varies by model (fitted from TR127 residuals).
@@ -2058,7 +2058,7 @@ Overhead factor fitted at 1.058x (TR133). Activation coefficient varies by model
 ### A.6 Power-Law Throughput Fallback
 
 ```
-throughput_tok_s = 72.1 × params_billions^(-0.089)
+throughput_tok_s = 72.1 x params_billions^(-0.089)
 ```
 
 For unseen models without lookup table entries (TR133).
@@ -2066,7 +2066,7 @@ For unseen models without lookup table entries (TR133).
 ### A.7 Quantization Multiplier
 
 ```
-throughput_quantized = throughput_fp16 × quant_multiplier
+throughput_quantized = throughput_fp16 x quant_multiplier
 ```
 
 Multipliers: FP16=1.0, Q8_0=1.15, Q6_K=1.25, Q5_K_M=1.40, Q4_K_M=1.65, Q3_K_S=1.90, Q2_K=2.30.
@@ -2083,7 +2083,7 @@ Multipliers: FP16=1.0, Q8_0=1.15, Q6_K=1.25, Q5_K_M=1.40, Q4_K_M=1.65, Q3_K_S=1.
 | C4: Compile speedup on Linux | results/eval/tr126/phase2_compile_analysis.json | Welch's t + Cohen's d |
 | C5: VRAM spillover dominates | results/eval/tr127/context_scaling_analysis.json | Two-regime fit + cliff detection |
 | C6: NUM_PARALLEL no-op | results/eval/tr128/phase2_concurrency.json | 30 pairwise tests + Holm |
-| C7: Amdahl scaling | results/eval/tr129/scaling_analysis.json | Amdahl fit R² > 0.97 |
+| C7: Amdahl scaling | results/eval/tr129/scaling_analysis.json | Amdahl fit R^2 > 0.97 |
 | C8: GPU physics dominates | results/eval/tr131/profiling_analysis.json | PyTorch Direct control + Mann-Whitney |
 | C9: Continuous batching amortizes | results/eval/tr132/kernel_analysis.json | Kernel count + Holm 8/8 |
 | C10: Lookup tables sufficient | results/eval/tr133/validation_results.json | 4/4 targets + 10/10 spots |
@@ -2104,7 +2104,7 @@ Multipliers: FP16=1.0, Q8_0=1.15, Q6_K=1.25, Q5_K_M=1.40, Q4_K_M=1.65, Q3_K_S=1.
 | TR130 | 4,797 | 3 | 3 | vLLM advantage at N=8 | 2.25x |
 | TR131 | 26 runs | 2 | 2 | PyTorch Direct degradation | 86.4% |
 | TR132 | 25 runs | 2 | 2 | Kernel amortization | 4.7-5.8x |
-| TR133 | 19,676 | 6 models | all | VRAM R² | 0.968 |
+| TR133 | 19,676 | 6 models | all | VRAM R^2 | 0.968 |
 
 ---
 
@@ -2126,7 +2126,7 @@ Multipliers: FP16=1.0, Q8_0=1.15, Q6_K=1.25, Q5_K_M=1.40, Q4_K_M=1.65, Q3_K_S=1.
 - **GQA:** Grouped-Query Attention. Shares KV heads across query heads, reducing KV cache 3-11x vs MHA.
 - **Holm-Bonferroni:** Step-down procedure for multiple comparison correction. Less conservative than Bonferroni.
 - **Inductor:** PyTorch's default compiler backend for torch.compile. Generates Triton kernels on Linux.
-- **Jain's fairness index:** J = (sum(xi))² / (N × sum(xi²)). J=1.0 means perfectly fair.
+- **Jain's fairness index:** J = (sum(xi))^2 / (N x sum(xi^2)). J=1.0 means perfectly fair.
 - **KV cache:** Key-Value cache storing attention states from prior tokens. Grows linearly with context.
 - **M/D/1:** Markovian arrival, deterministic service, single server queueing model.
 - **MHA:** Multi-Head Attention. Standard attention with independent KV heads per query head.
@@ -2152,10 +2152,10 @@ Multipliers: FP16=1.0, Q8_0=1.15, Q6_K=1.25, Q5_K_M=1.40, Q4_K_M=1.65, Q3_K_S=1.
 
 ### E.1 Deployment Checklist
 
-1. Select model based on quality requirements (TR124 §6, TR125 tier table)
-2. Select quantization level — default Q4_K_M unless quality-critical (then Q8_0)
+1. Select model based on quality requirements (TR124 Sec. 6, TR125 tier table)
+2. Select quantization level -- default Q4_K_M unless quality-critical (then Q8_0)
 3. Estimate VRAM: `chimeraforge plan --vram-budget 12`
-4. Select backend: N=1 → Ollama; N>=4 → vLLM
+4. Select backend: N=1 -> Ollama; N>=4 -> vLLM
 5. Validate quality on representative task (compare against TR124 baselines)
 6. Set context budget: Ollama for >4K tokens; HF only for <=4K
 7. Enable streaming (zero overhead confirmed TR128)
@@ -2168,17 +2168,17 @@ Multipliers: FP16=1.0, Q8_0=1.15, Q6_K=1.25, Q5_K_M=1.40, Q4_K_M=1.65, Q3_K_S=1.
 1. Track p95 latency per model-backend combination
 2. Monitor TTFT amplification under load (baseline from TR128)
 3. Track decode throughput drift (qwen2.5-1.5b anomaly: TR128)
-4. Monitor GPU temperature (alert at 75°C, throttle threshold 80°C)
+4. Monitor GPU temperature (alert at 75degC, throttle threshold 80degC)
 5. Track VRAM utilization trend over context growth
 6. Log error rates and HTTP timeouts per backend
 
 ### E.3 Change Management Checklist
 
-1. Any GPU/driver change → rerun core scenario matrix
-2. Any PyTorch version change → revalidate compile behavior (TR126)
-3. Any Ollama/vLLM version change → rerun baseline throughput (TR128/TR130)
-4. Any model family change → rerun quality baseline (TR124) and quantization sweep (TR125)
-5. Workload mix shift → recompute blend costs (TR123 §5.6)
+1. Any GPU/driver change -> rerun core scenario matrix
+2. Any PyTorch version change -> revalidate compile behavior (TR126)
+3. Any Ollama/vLLM version change -> rerun baseline throughput (TR128/TR130)
+4. Any model family change -> rerun quality baseline (TR124) and quantization sweep (TR125)
+5. Workload mix shift -> recompute blend costs (TR123 Sec. 5.6)
 
 ---
 
@@ -2206,9 +2206,9 @@ Routing rule: if context > 4K tokens AND backend is HF FP16, redirect to Ollama 
 Decode throughput (TR123/TR125): ~280 tok/s native
 Prefill throughput: ~5,000 tok/s (estimated)
 
-$/1M decode = (1M / 280 / 3600) × $0.046 = $0.046
-$/1M prefill = (1M / 5000 / 3600) × $0.046 = $0.0026
-$/1M blend = 0.67 × $0.0026 + 0.33 × $0.046 = $0.017
+$/1M decode = (1M / 280 / 3600) x $0.046 = $0.046
+$/1M prefill = (1M / 5000 / 3600) x $0.046 = $0.0026
+$/1M blend = 0.67 x $0.0026 + 0.33 x $0.046 = $0.017
 
 At 100M tokens/month: $1.70/month. At 1B tokens/month: $17.00/month.
 
@@ -2216,12 +2216,12 @@ At 100M tokens/month: $1.70/month. At 1B tokens/month: $17.00/month.
 
 **Setup:** qwen2.5-1.5b FP16, 8K context, RTX 4080 (12 GB)
 
-Model weights: 1.5B × 2 bytes = 3.0 GB
-KV cache: 28 layers × 2 heads × 128 dim × 2 bytes × 2 (K+V) × 8192 tokens = 234 MB
+Model weights: 1.5B x 2 bytes = 3.0 GB
+KV cache: 28 layers x 2 heads x 128 dim x 2 bytes x 2 (K+V) x 8192 tokens = 234 MB
 Overhead factor: 1.058x
 Activations: ~1.5 GB (estimated from TR127 slopes)
 
-Total: 3.0 × 1.058 + 0.234 + 1.5 = 4.9 GB. Fits in 12 GB with 7.1 GB headroom.
+Total: 3.0 x 1.058 + 0.234 + 1.5 = 4.9 GB. Fits in 12 GB with 7.1 GB headroom.
 
 At 16K context: KV doubles to 468 MB, activations grow quadratically. Total ~6.8 GB. Still fits but approaching 60% utilization.
 
@@ -2230,16 +2230,16 @@ At 16K context: KV doubles to 468 MB, activations grow quadratically. Total ~6.8
 **Setup:** 4 agents, llama3.2-1b, Ollama
 
 Amdahl serial fraction (TR129): s = 0.5391
-eta(4) = 1 / (0.5391 × 4 + (1 - 0.5391)) = 1 / (2.156 + 0.461) = 1 / 2.617 = 0.382
+eta(4) = 1 / (0.5391 x 4 + (1 - 0.5391)) = 1 / (2.156 + 0.461) = 1 / 2.617 = 0.382
 
 Solo throughput: ~160 tok/s per agent
-At N=4: 160 × 0.382 = 61.1 tok/s per agent
-Total system: 61.1 × 4 = 244.4 tok/s
+At N=4: 160 x 0.382 = 61.1 tok/s per agent
+Total system: 61.1 x 4 = 244.4 tok/s
 
-Switching to vLLM at N=4 (power law): eta(4) ≈ 0.65
+Switching to vLLM at N=4 (power law): eta(4) ~ 0.65
 Solo vLLM: ~150 tok/s
-At N=4: 150 × 0.65 = 97.5 tok/s per agent
-Total system: 97.5 × 4 = 390 tok/s (1.6x more than Ollama)
+At N=4: 150 x 0.65 = 97.5 tok/s per agent
+Total system: 97.5 x 4 = 390 tok/s (1.6x more than Ollama)
 
 ---
 
@@ -2249,8 +2249,8 @@ Total system: 97.5 × 4 = 390 tok/s (1.6x more than Ollama)
 
 1. Benchmark current Ollama N=1 throughput as baseline
 2. Deploy vLLM with same model in FP16 (Docker)
-3. Run N=1 baseline — expect 20-40% lower absolute TPS (FP16 vs Q4_0)
-4. Run N=4 comparison — expect vLLM to overtake in total throughput
+3. Run N=1 baseline -- expect 20-40% lower absolute TPS (FP16 vs Q4_0)
+4. Run N=4 comparison -- expect vLLM to overtake in total throughput
 5. Validate quality equivalence (TR124 metrics)
 6. Monitor TTFT improvement (expect 6-8x faster)
 7. Cut over at N >= 4 sustained; keep Ollama for N=1 fallback
@@ -2260,7 +2260,7 @@ Total system: 97.5 × 4 = 390 tok/s (1.6x more than Ollama)
 1. Identify which model and context length triggered alert
 2. Check VRAM utilization: if >85%, reduce context or switch to quantized model
 3. If Ollama: context should not spill (Flash Attention + paged KV)
-4. If HF FP16: reduce context to below spillover threshold (TR127 §SS6)
+4. If HF FP16: reduce context to below spillover threshold (TR127 Sec. SS6)
 5. Long-term: migrate to Ollama or vLLM for long-context workloads
 
 ---
@@ -2270,10 +2270,10 @@ Total system: 97.5 × 4 = 390 tok/s (1.6x more than Ollama)
 ### I.1 Test Selection Rationale
 
 - **Welch's t-test:** Primary comparison for two-group means. Does not assume equal variances (appropriate given CV ranges from 0.2% to 97%).
-- **ANOVA:** Multi-group comparison (backend × model interactions in TR126). Two-way with interaction term.
+- **ANOVA:** Multi-group comparison (backend x model interactions in TR126). Two-way with interaction term.
 - **Mann-Whitney U:** Non-parametric robustness check for all TR131 comparisons (15/15 distributions non-normal per Shapiro-Wilk).
 - **Holm-Bonferroni:** Step-down correction for family-wise error. Applied when multiple comparisons within a single experiment (TR125: 116 tests; TR128: 30 tests; TR132: 8 tests).
-- **TOST:** Two One-Sided Tests for equivalence at specified margin. Applied in TR125 at ±3pp and ±5pp.
+- **TOST:** Two One-Sided Tests for equivalence at specified margin. Applied in TR125 at +/-3pp and +/-5pp.
 - **Wilson CI:** Confidence intervals for binary proportions (benchmark accuracy). More accurate than normal approximation for p near 0 or 1.
 - **Cohen's d:** Standardized effect size for all pairwise comparisons. Thresholds: negligible < 0.2, small 0.2-0.5, medium 0.5-0.8, large > 0.8.
 
@@ -2299,10 +2299,10 @@ Total system: 97.5 × 4 = 390 tok/s (1.6x more than Ollama)
 | Compile policy | TR126 | Phase 2 + Phase 3 + mode="default" + PyTorch 2.10 | TR120 (Phase 1) discovery |
 | Context budget | TR123, TR127 | TR127 two-regime analysis + spillover thresholds | TR123 KV formula validation |
 | Agent count | TR129, TR130 | TR129 Amdahl fit + saturation points | TR130 vLLM scaling |
-| Streaming | TR128 | Phase 4: 0/9 significant | — |
-| Quality gate | TR124, TR125 | TR124 composite scores + TR125 tier thresholds | — |
+| Streaming | TR128 | Phase 4: 0/9 significant | -- |
+| Quality gate | TR124, TR125 | TR124 composite scores + TR125 tier thresholds | -- |
 | Capacity planning | TR133 | 4/4 validation targets + 10/10 spot checks | All of TR123-TR130 (input data) |
-| Thermal policy | TR128 | Phase 3: peak 66°C | — |
+| Thermal policy | TR128 | Phase 3: peak 66degC | -- |
 
 ---
 
@@ -2316,7 +2316,7 @@ The Phase 2 research program draws on several distinct bodies of literature that
 
 **Amdahl's Law in inference.** While Amdahl's Law [15] is well-known in parallel computing, its application to LLM inference serving is novel. TR129's finding that serial fractions of 0.39-0.54 govern Ollama's scaling behavior is, to our knowledge, the first empirical Amdahl fit for LLM inference on consumer hardware.
 
-**GPU profiling for inference.** Nsight Systems [16] is widely used for CUDA application profiling but rarely applied to LLM serving stack comparison. TR131 and TR132's methodology — particularly the in-container CUPTI approach — addresses a gap in the tooling literature for profiling Docker-hosted inference servers under WSL2/WDDM constraints.
+**GPU profiling for inference.** Nsight Systems [16] is widely used for CUDA application profiling but rarely applied to LLM serving stack comparison. TR131 and TR132's methodology -- particularly the in-container CUPTI approach -- addresses a gap in the tooling literature for profiling Docker-hosted inference servers under WSL2/WDDM constraints.
 
 ---
 
@@ -2330,7 +2330,7 @@ The Phase 2 research program draws on several distinct bodies of literature that
 | TR126 | Forward pass (prefill) or decode loop, per-mode | Model loading, compilation time (excluded; separate) | Cross-platform: same prompts, same models, different OS |
 | TR127 | Same as TR123 but across 7 context lengths | Tokenization; OOM samples marked as failures | VRAM measured via torch.cuda.max_memory_allocated() |
 | TR128 | Full /api/generate wall clock per request | Model loading (pre-warmed); Poisson inter-arrival sleep | Load generator is external; timing starts at request send |
-| TR129 | Agent-observed wall clock per request | Think-time gaps between requests | Closed-loop: agent sends → waits → measures → sends |
+| TR129 | Agent-observed wall clock per request | Think-time gaps between requests | Closed-loop: agent sends -> waits -> measures -> sends |
 | TR130 | Same as TR129 across 3 backends | Backend startup, Docker overhead | Warmup protocol eliminates cold-start |
 | TR131 | nsys-traced kernel execution + memory operations | Model loading; nsys startup; trace export | Profiling overhead validated: <1% TPS impact |
 | TR132 | In-container nsys-traced kernels | Container startup; nsys mounting; trace export | Novel methodology: Linux nsys binary mounted into Docker |
@@ -2342,19 +2342,19 @@ The Phase 2 research program draws on several distinct bodies of literature that
 
 This appendix provides per-report methodological detail beyond the summary in Section 3.
 
-**TR123:** 5 models × 3 backends × 5 scenarios × 7 reps = 525 cells. Backend-skip entries (105) for infeasible CPU combinations. PhasePowerSampler with mark_phase() for per-phase energy. Warmup: 3 iterations discarded. Prompts: curated 5 scenarios (RAG, summarization, chat, balanced, code_gen) with fixed token counts.
+**TR123:** 5 models x 3 backends x 5 scenarios x 7 reps = 525 cells. Backend-skip entries (105) for infeasible CPU combinations. PhasePowerSampler with mark_phase() for per-phase energy. Warmup: 3 iterations discarded. Prompts: curated 5 scenarios (RAG, summarization, chat, balanced, code_gen) with fixed token counts.
 
-**TR124:** Phase 1: 5 models × 2 backends × 5 tasks × 50 samples + 3 benchmarks × 100 samples = 2,800. Phase 2: 4 models × 3 quant × 5 tasks × 10 samples = 200 (Ollama defaults). Phase 3: 2 models × 2 backends × 3 tasks × 5 reps × 20 samples = 600. All at temp=0 except Phase 3 (temp=0.7).
+**TR124:** Phase 1: 5 models x 2 backends x 5 tasks x 50 samples + 3 benchmarks x 100 samples = 2,800. Phase 2: 4 models x 3 quant x 5 tasks x 10 samples = 200 (Ollama defaults). Phase 3: 2 models x 2 backends x 3 tasks x 5 reps x 20 samples = 600. All at temp=0 except Phase 3 (temp=0.7).
 
-**TR125:** Phase 1: 3 models × 6 quants × 5 tasks × 10 samples = 900. Phase 2: 5 models × 7 quants × (285 MMLU + 200 ARC + 250 generation) = 24,990. Wilson CIs, TOST, Bonferroni/Holm correction on 116 tests.
+**TR125:** Phase 1: 3 models x 6 quants x 5 tasks x 10 samples = 900. Phase 2: 5 models x 7 quants x (285 MMLU + 200 ARC + 250 generation) = 24,990. Wilson CIs, TOST, Bonferroni/Holm correction on 116 tests.
 
-**TR126:** Phase 1: Environment validation (CUDA, Triton, graph breaks). Phase 2: 6 models × 5 scenarios × 30 reps × 3 configs = 3,240+. Phase 3: 5 models × 3 backends × 5 scenarios × 3 modes × 15 reps = 3,780+. Additional: mode="default" (3,891), PyTorch 2.10 rerun (4,522).
+**TR126:** Phase 1: Environment validation (CUDA, Triton, graph breaks). Phase 2: 6 models x 5 scenarios x 30 reps x 3 configs = 3,240+. Phase 3: 5 models x 3 backends x 5 scenarios x 3 modes x 15 reps = 3,780+. Additional: mode="default" (3,891), PyTorch 2.10 rerun (4,522).
 
-**TR129:** Phase 1: N=1 baseline (30 reps × 3 models). Phase 2: N={1-8} × 3 models × 30 reps = 5,040+. Phase 3: N=4 × think={0,100,500,2000}ms. Phase 4: Heterogeneous model assignments.
+**TR129:** Phase 1: N=1 baseline (30 reps x 3 models). Phase 2: N={1-8} x 3 models x 30 reps = 5,040+. Phase 3: N=4 x think={0,100,500,2000}ms. Phase 4: Heterogeneous model assignments.
 
-**TR131:** 26 profiled runs across 4 conditions (Ollama N=1, N=8; PyTorch N=1, N=8) × 2 models. nsys profile with --trace cuda --cuda-event-stacks. ncu for kernel-level metrics (limited by WDDM).
+**TR131:** 26 profiled runs across 4 conditions (Ollama N=1, N=8; PyTorch N=1, N=8) x 2 models. nsys profile with --trace cuda --cuda-event-stacks. ncu for kernel-level metrics (limited by WDDM).
 
-**TR132:** 25 profiled runs: 2 backends × 2 models × 2 concurrency levels × 3 reps + 1 extra. In-container nsys via volume-mounted Linux binary. Traces 11.6-17.4 MB each.
+**TR132:** 25 profiled runs: 2 backends x 2 models x 2 concurrency levels x 3 reps + 1 extra. In-container nsys via volume-mounted Linux binary. Traces 11.6-17.4 MB each.
 
 ---
 
@@ -2366,7 +2366,7 @@ The Phase 2 research program produces several implications that extend beyond th
 
 **Quantization is under-studied in the systems literature.** Most serving stack comparisons in the literature use FP16 throughout. TR131's finding that Ollama's Q4_0 quantization actually helps under concurrency (advantage grows from 3.0x to 3.9x at N=8) suggests that the interaction between quantization and bandwidth contention is a first-order effect. Future work should compare vLLM with AWQ/GPTQ quantization against Ollama to isolate the continuous batching benefit from the quantization benefit.
 
-**Theoretical models need empirical calibration.** M/D/1 queueing theory, Amdahl's Law, and O(n²) attention scaling are all useful frameworks, but each failed in specific ways when confronted with empirical data. M/D/1 deviates 20.4x. Amdahl is a category error across backends. O(n²) is dominated by VRAM spillover on consumer hardware. The chimeraforge planner succeeds because it uses empirical lookup tables rather than theoretical models.
+**Theoretical models need empirical calibration.** M/D/1 queueing theory, Amdahl's Law, and O(n^2) attention scaling are all useful frameworks, but each failed in specific ways when confronted with empirical data. M/D/1 deviates 20.4x. Amdahl is a category error across backends. O(n^2) is dominated by VRAM spillover on consumer hardware. The chimeraforge planner succeeds because it uses empirical lookup tables rather than theoretical models.
 
 ---
 
@@ -2378,7 +2378,7 @@ TR123 is the economic foundation of Phase 2. It answers the question that TR119 
 
 ### O.2 TR124 Narrative
 
-TR124 is the quality insurance policy for the entire program. Without it, every cost recommendation from TR123 and every quantization recommendation from TR125 would carry an implicit assumption: that cheaper backends produce equivalent output. TR124 tests and confirms this assumption (0/7 metrics significant) while also mapping the quality landscape across models. The Pareto frontier finding — that llama3.2-1b offers the best quality-per-dollar — is a genuine decision instrument, not just a data point.
+TR124 is the quality insurance policy for the entire program. Without it, every cost recommendation from TR123 and every quantization recommendation from TR125 would carry an implicit assumption: that cheaper backends produce equivalent output. TR124 tests and confirms this assumption (0/7 metrics significant) while also mapping the quality landscape across models. The Pareto frontier finding -- that llama3.2-1b offers the best quality-per-dollar -- is a genuine decision instrument, not just a data point.
 
 ### O.3 TR125 Narrative
 
@@ -2386,7 +2386,7 @@ TR125 transforms quantization from a binary choice (full precision vs "some comp
 
 ### O.4 TR126 Narrative
 
-TR126 is the most satisfying report in the program because it resolves a genuine mystery. The Windows compile paradox (TR120) appeared to show that torch.compile hurts performance. TR126 proves this was an artifact: real Triton compilation delivers large, consistent speedups. The report also reveals that compiled decode crashes in all modes — a limitation that was obscured on Windows where compile never worked at all. The net policy is clear: compile prefill, never decode.
+TR126 is the most satisfying report in the program because it resolves a genuine mystery. The Windows compile paradox (TR120) appeared to show that torch.compile hurts performance. TR126 proves this was an artifact: real Triton compilation delivers large, consistent speedups. The report also reveals that compiled decode crashes in all modes -- a limitation that was obscured on Windows where compile never worked at all. The net policy is clear: compile prefill, never decode.
 
 ### O.5 TR127 Narrative
 
@@ -2398,7 +2398,7 @@ TR128 is the reality check for production deployment. It tests the knobs that pr
 
 ### O.7 TR129 Narrative
 
-TR129 quantifies the multi-agent problem. The Amdahl fits (R²>0.97) provide a predictive formula: eta(N) = 1/(s×N + 1-s). With s=0.39-0.54, the formula predicts that throughput plateaus at N=2 and per-agent efficiency drops to 17-20% at N=8. This has immediate design implications: deploying 8 agents on one GPU wastes 80% of each agent's potential throughput.
+TR129 quantifies the multi-agent problem. The Amdahl fits (R^2>0.97) provide a predictive formula: eta(N) = 1/(sxN + 1-s). With s=0.39-0.54, the formula predicts that throughput plateaus at N=2 and per-agent efficiency drops to 17-20% at N=8. This has immediate design implications: deploying 8 agents on one GPU wastes 80% of each agent's potential throughput.
 
 ### O.8 TR130 Narrative
 
@@ -2424,16 +2424,16 @@ TR133 is the capstone. It takes the 70,000+ measurements from TR123-TR130 and op
 
 ```
 Is this a quality-critical application (medical, legal, financial)?
-├── YES → Use Q8_0 or FP16
-│   └── Is VRAM sufficient for FP16?
-│       ├── YES → FP16
-│       └── NO → Q8_0
-└── NO → Use Q4_K_M (universal default)
-    └── Is VRAM extremely constrained (<2GB for model)?
-        ├── YES → Is the model phi-2 or llama3.1-8b?
-        │   ├── YES → Q3_K_S is acceptable
-        │   └── NO → Q4_K_M minimum; consider smaller model
-        └── NO → Q4_K_M
+|-- YES -> Use Q8_0 or FP16
+|   +-- Is VRAM sufficient for FP16?
+|       |-- YES -> FP16
+|       +-- NO -> Q8_0
++-- NO -> Use Q4_K_M (universal default)
+    +-- Is VRAM extremely constrained (<2GB for model)?
+        |-- YES -> Is the model phi-2 or llama3.1-8b?
+        |   |-- YES -> Q3_K_S is acceptable
+        |   +-- NO -> Q4_K_M minimum; consider smaller model
+        +-- NO -> Q4_K_M
 ```
 
 ### P.2 Quality Gates by Application Type
@@ -2442,10 +2442,10 @@ Is this a quality-critical application (medical, legal, financial)?
 |------------|------------------|-------------|-------------------|
 | General chatbot | 0.50 | 40% | Q4_K_M |
 | QA pipeline | 0.55 | 45% | Q4_K_M or Q8_0 |
-| Summarization | 0.45 | — | Q4_K_M |
-| Code generation | 0.40 | — | Q4_K_M |
+| Summarization | 0.45 | -- | Q4_K_M |
+| Code generation | 0.40 | -- | Q4_K_M |
 | Medical/legal | 0.60 | 55% | Q8_0 or FP16 |
-| Classification | — | 50% | Q4_K_M |
+| Classification | -- | 50% | Q4_K_M |
 
 ---
 
@@ -2455,19 +2455,19 @@ Is this a quality-critical application (medical, legal, financial)?
 
 **Scenario:** 3-person team, building a chatbot, ~50 req/hour, quality matters.
 
-**Decision path:** N=1 (50 req/hr = 0.014 req/s, well below saturation). Ollama Q4_K_M. llama3.2-1b for cost efficiency or phi-2 for quality. Context budget: up to 32K with Ollama. Monthly cost: <$5 in electricity. No vLLM needed — overkill for single-agent.
+**Decision path:** N=1 (50 req/hr = 0.014 req/s, well below saturation). Ollama Q4_K_M. llama3.2-1b for cost efficiency or phi-2 for quality. Context budget: up to 32K with Ollama. Monthly cost: <$5 in electricity. No vLLM needed -- overkill for single-agent.
 
 ### Q.2 Case Study: RAG Pipeline with 8 Concurrent Users
 
 **Scenario:** 8K context (retrieved documents), 8 concurrent users, p95 latency SLO of 5 seconds.
 
-**Decision path:** N=8 → vLLM FP16. llama3.2-1b FP16 fits in 12GB with 8K context (VRAM ~4.9 GB). vLLM at N=8: ~559 tok/s total, ~70 tok/s per user. 128 decode tokens at 70 tok/s = 1.8s decode + ~100ms prefill = ~1.9s per request. Well within 5s SLO. Cost: ~$25/month on consumer hardware.
+**Decision path:** N=8 -> vLLM FP16. llama3.2-1b FP16 fits in 12GB with 8K context (VRAM ~4.9 GB). vLLM at N=8: ~559 tok/s total, ~70 tok/s per user. 128 decode tokens at 70 tok/s = 1.8s decode + ~100ms prefill = ~1.9s per request. Well within 5s SLO. Cost: ~$25/month on consumer hardware.
 
 ### Q.3 Case Study: Quality-Sensitive Document Processing
 
 **Scenario:** Legal document summarization, accuracy is paramount, 2 concurrent agents.
 
-**Decision path:** N=2 → Ollama still viable (eta(2) = 0.67-0.80). phi-2 Q8_0 for maximum quality (composite 0.63, -1.8pp from FP16). Context: up to 4K tokens (longer documents need chunking). Quality gate: ROUGE-L > 0.45, BERTScore > 0.80 per TR124 baselines.
+**Decision path:** N=2 -> Ollama still viable (eta(2) = 0.67-0.80). phi-2 Q8_0 for maximum quality (composite 0.63, -1.8pp from FP16). Context: up to 4K tokens (longer documents need chunking). Quality gate: ROUGE-L > 0.45, BERTScore > 0.80 per TR124 baselines.
 
 ---
 
@@ -2532,7 +2532,7 @@ See Section 8.12 for the validation-source mapping of these risks and their arti
 | PyTorch upgrade breaks compile | Medium | Medium (prefill regression) | Rerun TR126 Phase 2 after upgrade | Platform |
 | Model quality below gate | Low | Medium (user-facing) | Automated quality checks against TR124 baselines | ML Eng |
 | vLLM version changes scaling | Medium | Medium (capacity miscalculation) | Rerun TR130 N=8 benchmark after upgrade | Platform |
-| Thermal throttling at sustained load | Low | Medium (throughput drop) | Alert at 75°C; tested safe to 66°C (TR128) | Ops |
+| Thermal throttling at sustained load | Low | Medium (throughput drop) | Alert at 75degC; tested safe to 66degC (TR128) | Ops |
 | M/D/1 used for capacity planning | Medium | High (20.4x overestimate) | Use chimeraforge exclusively; deprecate theory | Planning |
 
 ---
@@ -2541,15 +2541,15 @@ See Section 8.12 for the validation-source mapping of these risks and their arti
 
 Phase 2 began with a clear mandate: convert Phase 1's measurement methodology into deployment policy. The first step (TR123) was economic: what does production inference actually cost? This required enabling KV-cache (disabled in Phase 1's TR119 for methodological simplicity) and separating prefill from decode costs. The result was the first decision-grade $/token table for cached inference.
 
-The program then recognized its blind spot: all cost recommendations assumed quality equivalence. TR124 tested this assumption across 3,600 samples and confirmed it — but also exposed quantization as a major unanswered question. TR125 filled this gap with ~26,000 samples across 34 model-quant variants.
+The program then recognized its blind spot: all cost recommendations assumed quality equivalence. TR124 tested this assumption across 3,600 samples and confirmed it -- but also exposed quantization as a major unanswered question. TR125 filled this gap with ~26,000 samples across 34 model-quant variants.
 
-The compile paradox from Phase 1 demanded resolution. TR126 moved to Docker/Linux and demonstrated that real Triton compilation delivers the speedups that Windows's aot_eager fallback had hidden. This also revealed that compiled decode crashes in all modes — a finding with immediate policy implications.
+The compile paradox from Phase 1 demanded resolution. TR126 moved to Docker/Linux and demonstrated that real Triton compilation delivers the speedups that Windows's aot_eager fallback had hidden. This also revealed that compiled decode crashes in all modes -- a finding with immediate policy implications.
 
 TR127-TR128 shifted focus from controlled benchmarks to production conditions. Long context (TR127) and realistic load (TR128) introduced new failure modes: VRAM spillover and queueing theory breakdown. These findings directly motivated the multi-agent studies.
 
-TR129-TR132 form the scaling investigation arc. Each report dug deeper into the multi-agent bottleneck: TR129 measured it, TR130 compared alternatives, TR131 identified the root cause, and TR132 proved the mechanism. The arc's central narrative — from "Ollama is the bottleneck" to "GPU memory bandwidth is the bottleneck" to "continuous batching amortizes the bandwidth bottleneck" — is the most intellectually satisfying thread in the program.
+TR129-TR132 form the scaling investigation arc. Each report dug deeper into the multi-agent bottleneck: TR129 measured it, TR130 compared alternatives, TR131 identified the root cause, and TR132 proved the mechanism. The arc's central narrative -- from "Ollama is the bottleneck" to "GPU memory bandwidth is the bottleneck" to "continuous batching amortizes the bandwidth bottleneck" -- is the most intellectually satisfying thread in the program.
 
-TR133 closed the loop by operationalizing everything into a CLI tool. The program's output shifted from reports to software — from "here are the results" to "here is a tool that uses the results."
+TR133 closed the loop by operationalizing everything into a CLI tool. The program's output shifted from reports to software -- from "here are the results" to "here is a tool that uses the results."
 
 ---
 
@@ -2571,8 +2571,8 @@ Consumer GPU (RTX 4080, ~$1,200 purchase) vs AWS on-demand:
 Monthly savings = (AWS $/month - consumer energy $/month)
 Break-even months = $1,200 / monthly savings
 
-For llama3.2-1b at 100M tok/month: AWS=$102.60/month, consumer=$4.70/month → savings=$97.90/month → break-even=12.3 months.
-For llama3.2-1b at 1B tok/month: AWS=$1,026/month, consumer=$47/month → savings=$979/month → break-even=1.2 months.
+For llama3.2-1b at 100M tok/month: AWS=$102.60/month, consumer=$4.70/month -> savings=$97.90/month -> break-even=12.3 months.
+For llama3.2-1b at 1B tok/month: AWS=$1,026/month, consumer=$47/month -> savings=$979/month -> break-even=1.2 months.
 
 ---
 
@@ -2596,8 +2596,8 @@ For llama3.2-1b at 1B tok/month: AWS=$1,026/month, consumer=$47/month → saving
 
 ### W.3 Scaling Law Comparison
 
-Ollama follows Amdahl's Law: eta(N) = 1/(s×N + 1-s), R²=0.957-0.987
-vLLM/TGI follow power law: eta(N) ∝ N^(-α), α=0.17-0.35, R²=0.988-0.996
+Ollama follows Amdahl's Law: eta(N) = 1/(sxN + 1-s), R^2=0.957-0.987
+vLLM/TGI follow power law: eta(N) propto N^(-alpha), alpha=0.17-0.35, R^2=0.988-0.996
 
 The Amdahl serial fraction is a category error when applied to vLLM/TGI because these backends do not degrade via Amdahl's mechanism (serial bottleneck). Their degradation comes from resource contention under continuous batching, which is better described by a power law.
 
@@ -2655,7 +2655,7 @@ At N=8, perfect amortization would reduce per-token kernels by 8x (each kernel s
 
 ### Y.3 Super-Linear Amortization
 
-vLLM LLaMA-1B achieves 5.75x bandwidth amortization — exceeding the N/2 threshold (4.0x). This suggests kernel fusion in the batched code path: the GEMM operations for 8 sequences are fused into a single larger matrix multiply, which has better compute/memory ratio than 8 sequential small GEMMs.
+vLLM LLaMA-1B achieves 5.75x bandwidth amortization -- exceeding the N/2 threshold (4.0x). This suggests kernel fusion in the batched code path: the GEMM operations for 8 sequences are fused into a single larger matrix multiply, which has better compute/memory ratio than 8 sequential small GEMMs.
 
 ---
 
@@ -2664,15 +2664,15 @@ vLLM LLaMA-1B achieves 5.75x bandwidth amortization — exceeding the N/2 thresh
 ### Z.1 Derivation
 
 Given N agents sharing a resource with serial fraction s:
-- Serial portion: s × T (cannot be parallelized)
-- Parallel portion: (1-s) × T / N (shared across N agents)
-- Total time: T(N) = s × T + (1-s) × T / N
+- Serial portion: s x T (cannot be parallelized)
+- Parallel portion: (1-s) x T / N (shared across N agents)
+- Total time: T(N) = s x T + (1-s) x T / N
 - Speedup: S(N) = T / T(N) = 1 / (s + (1-s)/N)
 - Per-agent efficiency: eta(N) = S(N) / N
 
 ### Z.2 Fitted Parameters
 
-| Model | s | 1/s (max speedup) | R² | Fit method |
+| Model | s | 1/s (max speedup) | R^2 | Fit method |
 |-------|---|-------|-----|------------|
 | llama3.2-1b | 0.5391 | 1.85x | 0.970 | Non-linear least squares on eta(N) |
 | llama3.2-3b | 0.3870 | 2.58x | 0.993 | Same |
@@ -2681,11 +2681,11 @@ Given N agents sharing a resource with serial fraction s:
 ### Z.3 When Amdahl Fails
 
 Amdahl's Law assumes a fixed serial fraction. This assumption fails when:
-1. The degradation mechanism is resource contention (bandwidth), not serial execution → power law is better (vLLM/TGI)
+1. The degradation mechanism is resource contention (bandwidth), not serial execution -> power law is better (vLLM/TGI)
 2. The serial fraction varies with N (possible but not observed in TR129)
 3. The system has multiple serial bottlenecks with different scaling (not tested)
 
-Force-fitting Amdahl to vLLM/TGI produces s=0.81-0.92, which is meaningless — these backends don't have a "serial fraction" in the Amdahl sense.
+Force-fitting Amdahl to vLLM/TGI produces s=0.81-0.92, which is meaningless -- these backends don't have a "serial fraction" in the Amdahl sense.
 
 ---
 
@@ -2694,7 +2694,7 @@ Force-fitting Amdahl to vLLM/TGI produces s=0.81-0.92, which is meaningless — 
 ### AA.1 VRAM Components
 
 ```
-VRAM_total = weight_bytes × 1.058 + KV_bytes_per_token × context + activation_overhead
+VRAM_total = weight_bytes x 1.058 + KV_bytes_per_token x context + activation_overhead
 ```
 
 ### AA.2 Per-Model VRAM Budget (12 GB GPU, FP16)
@@ -2732,9 +2732,9 @@ VRAM_total = weight_bytes × 1.058 + KV_bytes_per_token × context + activation_
 
 ## Appendix AC: Multi-Agent Scaling Detailed Results
 
-### AC.1 Per-Agent Efficiency eta(N) — Ollama (Amdahl-fitted)
+### AC.1 Per-Agent Efficiency eta(N) -- Ollama (Amdahl-fitted)
 
-Note: These values are from Amdahl's Law curve fits (R² > 0.97) and may differ slightly from empirical throughput ratios in AC.2 due to model smoothing.
+Note: These values are from Amdahl's Law curve fits (R^2 > 0.97) and may differ slightly from empirical throughput ratios in AC.2 due to model smoothing.
 
 | N | llama3.2-1b | llama3.2-3b | qwen2.5-1.5b |
 |---|-------------|-------------|---------------|
@@ -2747,7 +2747,7 @@ Note: These values are from Amdahl's Law curve fits (R² > 0.97) and may differ 
 | 7 | 24.0% | 21.3% | 22.5% |
 | 8 | 20.3% | 17.3% | 18.6% |
 
-### AC.2 Total System Throughput — Ollama
+### AC.2 Total System Throughput -- Ollama
 
 | N | llama3.2-1b | llama3.2-3b | qwen2.5-1.5b |
 |---|-------------|-------------|---------------|
@@ -2762,8 +2762,8 @@ Note: These values are from Amdahl's Law curve fits (R² > 0.97) and may differ 
 
 ### AD.1 Theory
 
-M/D/1 wait time: W_q = ρ / (2μ(1-ρ)) where ρ = λ/μ
-Expected wait at NP=4: assumes μ scales by 4x → ρ drops by 4x → W_q drops dramatically
+M/D/1 wait time: W_q = rho / (2mu(1-rho)) where rho = lambda/mu
+Expected wait at NP=4: assumes mu scales by 4x -> rho drops by 4x -> W_q drops dramatically
 
 ### AD.2 Empirical Deviation
 
@@ -2777,7 +2777,7 @@ Expected wait at NP=4: assumes μ scales by 4x → ρ drops by 4x → W_q drops 
 
 Two assumptions fail simultaneously:
 1. **Deterministic service:** Service CV is 2-10%, not zero. This alone adds ~5-15% to predicted wait.
-2. **Linear NP scaling:** NUM_PARALLEL does not scale throughput (0/30 significant). The GPU serializes inference regardless of NP. At NP=4, effective μ = μ_base (not 4×μ_base), making ρ = λ/μ_base rather than λ/(4×μ_base). This alone accounts for 4x deviation; combined with queueing buildup, it produces the 20x gap.
+2. **Linear NP scaling:** NUM_PARALLEL does not scale throughput (0/30 significant). The GPU serializes inference regardless of NP. At NP=4, effective mu = mu_base (not 4xmu_base), making rho = lambda/mu_base rather than lambda/(4xmu_base). This alone accounts for 4x deviation; combined with queueing buildup, it produces the 20x gap.
 
 ---
 
@@ -2788,7 +2788,7 @@ Two assumptions fail simultaneously:
 - Method: Two-pass fit (weight overhead from low-context, activation quadratic from residuals)
 - Training data: 17 groups from TR127 VRAM measurements
 - Validation: 20% holdout
-- R² = 0.968, RMSE = 1.71 GB
+- R^2 = 0.968, RMSE = 1.71 GB
 - Overhead factor: 1.058x (captures allocator fragmentation)
 
 ### AE.2 Throughput Model
@@ -2796,20 +2796,20 @@ Two assumptions fail simultaneously:
 - Method: 22-entry lookup table + power-law fallback + quantization multipliers
 - Training data: TR123 (HF backends), TR128/TR130 (Ollama, vLLM, TGI)
 - Validation: 20% holdout
-- R² = 0.859
-- Power-law fallback: 72.1 × params^(-0.089)
+- R^2 = 0.859
+- Power-law fallback: 72.1 x params^(-0.089)
 
 ### AE.3 Scaling Model
 
 - Method: Per-(model, backend) Amdahl serial fractions from TR129/TR130
 - Training data: 9 (model, backend) pairs
 - Validation: 20% holdout
-- R² = 0.647 (weakest model)
+- R^2 = 0.647 (weakest model)
 - MAPE = 27.8%
 
 ### AE.4 Quality Model
 
-- Method: 35-entry lookup (5 models × 7 quants) + average deltas
+- Method: 35-entry lookup (5 models x 7 quants) + average deltas
 - Training data: TR124/TR125 quality measurements
 - Validation: 20% holdout
 - RMSE = 0.062
@@ -2830,17 +2830,17 @@ Two assumptions fail simultaneously:
 
 ```
 chimeraforge/
-├── planner.py          # 4-gate search engine
-├── models/
-│   ├── vram.py         # First-principles VRAM prediction
-│   ├── throughput.py   # Lookup table + fallbacks
-│   ├── scaling.py      # Amdahl's law
-│   ├── quality.py      # Lookup + deltas
-│   ├── cost.py         # Algebraic $/token
-│   └── latency.py      # M/D/1 approximation
-├── data/
-│   └── fitted_models.json  # ~5KB baked-in parameters
-└── cli.py              # Typer + Rich interface
+|-- planner.py          # 4-gate search engine
+|-- models/
+|   |-- vram.py         # First-principles VRAM prediction
+|   |-- throughput.py   # Lookup table + fallbacks
+|   |-- scaling.py      # Amdahl's law
+|   |-- quality.py      # Lookup + deltas
+|   |-- cost.py         # Algebraic $/token
+|   +-- latency.py      # M/D/1 approximation
+|-- data/
+|   +-- fitted_models.json  # ~5KB baked-in parameters
++-- cli.py              # Typer + Rich interface
 ```
 
 ### AF.2 Usage Examples
@@ -2872,7 +2872,7 @@ chimeraforge plan --model llama3.2-1b --quant Q4_K_M --context 8192
 - **ARC:** AI2 Reasoning Challenge benchmark
 - **aot_eager:** PyTorch's ahead-of-time eager compilation mode (fallback when Triton unavailable)
 - **AWQ:** Activation-aware Weight Quantization
-- **BPW:** Bits per weight (e.g., FP16=16, Q4_K_M≈4.5, Q2_K≈2.5)
+- **BPW:** Bits per weight (e.g., FP16=16, Q4_K_M~4.5, Q2_K~2.5)
 - **CUDA graphs:** Pre-recorded GPU execution sequences for reduced launch overhead
 - **CUTLASS:** CUDA Templates for Linear Algebra Subroutines
 - **cuBLAS:** NVIDIA's CUDA Basic Linear Algebra Subroutines library
@@ -2913,18 +2913,18 @@ chimeraforge plan --model llama3.2-1b --quant Q4_K_M --context 8192
 ### AI.1 Example: "Q4_K_M preserves quality" (C3)
 
 1. **Raw data:** TR125 Phase 2 MMLU/ARC responses stored in `results/eval/tr125/phase2_raw/`
-2. **Rescoring:** Regex letter extraction applied to raw responses → `phase2_rescored.json`
-3. **Accuracy computation:** Per-(model, quant) accuracy with Wilson CIs → `phase2_analysis.json`
-4. **Tier classification:** Delta vs baseline + tier thresholds → `tier_classification.csv`
+2. **Rescoring:** Regex letter extraction applied to raw responses -> `phase2_rescored.json`
+3. **Accuracy computation:** Per-(model, quant) accuracy with Wilson CIs -> `phase2_analysis.json`
+4. **Tier classification:** Delta vs baseline + tier thresholds -> `tier_classification.csv`
 5. **Claim:** Q4_K_M tier = "negligible" or "acceptable" for all 5 models
 
 ### AI.2 Example: "GPU physics dominates" (C8)
 
 1. **Raw data:** TR131 nsys traces in `results/eval/tr131/traces/`
-2. **Export:** nsys-rep → SQLite → kernel_launches.csv, memory_ops.csv
-3. **Aggregation:** Per-condition means, CIs, effect sizes → `profiling_analysis.json`
-4. **Hypothesis test:** Welch's t on PyTorch vs Ollama degradation → p=0.002
-5. **Claim:** PyTorch Direct degradation (86.4%) > Ollama (82.1%) → GPU physics, not serving stack
+2. **Export:** nsys-rep -> SQLite -> kernel_launches.csv, memory_ops.csv
+3. **Aggregation:** Per-condition means, CIs, effect sizes -> `profiling_analysis.json`
+4. **Hypothesis test:** Welch's t on PyTorch vs Ollama degradation -> p=0.002
+5. **Claim:** PyTorch Direct degradation (86.4%) > Ollama (82.1%) -> GPU physics, not serving stack
 
 ---
 
@@ -3002,23 +3002,23 @@ See Appendix R for metric definitions. This appendix maps benchmarks to quality 
 
 ```
 How many concurrent agents?
-├── N = 1
-│   └── Use Ollama Q4_K_M
-├── N = 2-3
-│   ├── Quality-critical? → vLLM FP16
-│   └── Cost-critical? → Ollama Q4_K_M
-└── N >= 4
-    └── Use vLLM FP16 (2.25x advantage)
+|-- N = 1
+|   +-- Use Ollama Q4_K_M
+|-- N = 2-3
+|   |-- Quality-critical? -> vLLM FP16
+|   +-- Cost-critical? -> Ollama Q4_K_M
++-- N >= 4
+    +-- Use vLLM FP16 (2.25x advantage)
 ```
 
 ### AN.2 Model Selection Decision Tree
 
 ```
 Quality requirement?
-├── Composite >= 0.60 → phi-2 (Q8_0 or FP16)
-├── Composite >= 0.50 → qwen2.5-1.5b or llama3.2-3b (Q4_K_M)
-├── Composite >= 0.40 → llama3.2-1b (Q4_K_M, best cost)
-└── No quality gate → GPT-2 (cheapest, $0.013/1M)
+|-- Composite >= 0.60 -> phi-2 (Q8_0 or FP16)
+|-- Composite >= 0.50 -> qwen2.5-1.5b or llama3.2-3b (Q4_K_M)
+|-- Composite >= 0.40 -> llama3.2-1b (Q4_K_M, best cost)
++-- No quality gate -> GPT-2 (cheapest, $0.013/1M)
 ```
 
 ---
@@ -3042,7 +3042,7 @@ See Appendix D (primary glossary) and Appendix AG (acronyms). This appendix adds
 
 Phase 1 asked: "How do we measure LLM inference correctly?" Phase 2 asked: "What do the measurements tell us to deploy?" Together, they form a 22-report evidence chain from raw benchmarks (TR117) to predictive software (TR133).
 
-The most important cross-phase finding is the compile paradox resolution. Phase 1 (TR120) discovered the problem; Phase 2 (TR126) solved it. This required expanding the measurement platform from Windows-only to Docker/Linux — an infrastructure change that also enabled serving stack comparison (TR130), kernel profiling (TR131/TR132), and vLLM/TGI testing.
+The most important cross-phase finding is the compile paradox resolution. Phase 1 (TR120) discovered the problem; Phase 2 (TR126) solved it. This required expanding the measurement platform from Windows-only to Docker/Linux -- an infrastructure change that also enabled serving stack comparison (TR130), kernel profiling (TR131/TR132), and vLLM/TGI testing.
 
 The second cross-phase thread is economic. Phase 1 (TR119) produced uncached cost models. Phase 2 (TR123) added KV-cache, cutting costs 2-8x. TR125 added quantization, cutting another 30-67%. TR130 added continuous batching, adding 2.25x throughput at N>=4. The cumulative cost improvement from naive Phase 1 defaults to Phase 2 optimal configuration is approximately 5-10x.
 
@@ -3070,7 +3070,7 @@ See Appendix T for the risk register. This appendix details mitigation strategie
 | TTFT | Streaming timestamps | >500ms (Ollama), >100ms (vLLM) | Time series |
 | Decode tok/s | /api/generate response | <80% of TR123 baseline | Gauge |
 | VRAM utilization | nvidia-smi | >85% | Gauge with zones |
-| GPU temperature | nvidia-smi | >75°C | Gauge |
+| GPU temperature | nvidia-smi | >75degC | Gauge |
 | Error rate | HTTP response codes | >1% | Counter |
 | Queue depth | Backend metrics | >5 (Ollama) | Time series |
 
@@ -3096,11 +3096,11 @@ See Appendix T for the risk register. This appendix details mitigation strategie
 
 The Decision Impact Matrix (Section 4) maps TRs to decisions. This appendix provides commentary on the decision chains:
 
-The cost chain (TR123→TR125→TR130→TR133) produces the largest cumulative impact. TR123 establishes that KV-cached inference is 2-8x cheaper than uncached. TR125 adds quantization savings of 30-67%. TR130 adds continuous batching throughput of 2.25x at N>=4. TR133 makes these savings accessible via a single CLI command.
+The cost chain (TR123->TR125->TR130->TR133) produces the largest cumulative impact. TR123 establishes that KV-cached inference is 2-8x cheaper than uncached. TR125 adds quantization savings of 30-67%. TR130 adds continuous batching throughput of 2.25x at N>=4. TR133 makes these savings accessible via a single CLI command.
 
-The quality chain (TR124→TR125) is shorter but foundational. Without quality baselines, every cost recommendation would carry an implicit assumption. TR124 validates that assumption; TR125 extends it across quantization levels.
+The quality chain (TR124->TR125) is shorter but foundational. Without quality baselines, every cost recommendation would carry an implicit assumption. TR124 validates that assumption; TR125 extends it across quantization levels.
 
-The scaling chain (TR128→TR129→TR130→TR131→TR132) is the longest and most intellectually dramatic. It progresses from "NUM_PARALLEL doesn't work" to "Amdahl governs Ollama" to "vLLM is 2.25x better" to "it's GPU physics, not software" to "continuous batching amortizes bandwidth." Each step deepened understanding while overturning the previous attribution.
+The scaling chain (TR128->TR129->TR130->TR131->TR132) is the longest and most intellectually dramatic. It progresses from "NUM_PARALLEL doesn't work" to "Amdahl governs Ollama" to "vLLM is 2.25x better" to "it's GPU physics, not software" to "continuous batching amortizes bandwidth." Each step deepened understanding while overturning the previous attribution.
 
 ---
 
@@ -3208,7 +3208,7 @@ Energy cost is a rounding error at consumer scale: 66-99% of total cost is infra
 | Llama-1B/compile | 15.8 | Best at >1B |
 | Phi-2/GPU | 31.2 | Highest quality |
 
-At 1B tokens/month, even the highest-emission configuration produces ~31 kgCO2e/year — equivalent to driving ~75 miles. Consumer-scale LLM inference has negligible carbon impact.
+At 1B tokens/month, even the highest-emission configuration produces ~31 kgCO2e/year -- equivalent to driving ~75 miles. Consumer-scale LLM inference has negligible carbon impact.
 
 ---
 
@@ -3271,11 +3271,11 @@ At 1B tokens/month, even the highest-emission configuration produces ~31 kgCO2e/
 
 | Use Case | Metric | Minimum | Source |
 |----------|--------|---------|--------|
-| General chat | Composite | 0.45 | TR124 §6 |
-| QA pipeline | ROUGE-L | 0.30 | TR124 §6.3 |
-| Summarization | BERTScore | 0.75 | TR124 §6.3 |
-| Code generation | BLEU | 0.15 | TR124 §6.3 |
-| Classification | MMLU | 45% | TR125 §SS8 |
+| General chat | Composite | 0.45 | TR124 Sec. 6 |
+| QA pipeline | ROUGE-L | 0.30 | TR124 Sec. 6.3 |
+| Summarization | BERTScore | 0.75 | TR124 Sec. 6.3 |
+| Code generation | BLEU | 0.15 | TR124 Sec. 6.3 |
+| Classification | MMLU | 45% | TR125 Sec. SS8 |
 
 ### BE.2 Acceptance Testing Protocol
 
@@ -3305,9 +3305,9 @@ When new data becomes available (e.g., new model, new GPU):
 
 The Phase 2 evaluation philosophy prioritizes decision utility over metric completeness. This means:
 
-1. **Automated metrics are sufficient for the decisions being made.** The choice between Q4_K_M and Q8_0 does not require human evaluation — the automated metrics capture the relevant signal (structural overlap, semantic similarity, benchmark accuracy).
+1. **Automated metrics are sufficient for the decisions being made.** The choice between Q4_K_M and Q8_0 does not require human evaluation -- the automated metrics capture the relevant signal (structural overlap, semantic similarity, benchmark accuracy).
 2. **Human evaluation would add value for subjective quality dimensions** (fluency, helpfulness, safety) but is out of scope for a performance research program focused on cost, throughput, and scaling.
-3. **The composite metric is a deliberate simplification.** Unweighted averaging across metrics dilutes task-specific signal. Users should consult per-task metrics (TR124 §6.3) for deployment decisions, and use the composite only for cross-model comparison.
+3. **The composite metric is a deliberate simplification.** Unweighted averaging across metrics dilutes task-specific signal. Users should consult per-task metrics (TR124 Sec. 6.3) for deployment decisions, and use the composite only for cross-model comparison.
 4. **Temperature=0 is the right default for evaluation.** TR124 Phase 3 shows CV=0.33 at temp=0.7, making non-greedy decoding unreliable for quality comparison. All quality claims use temp=0.
 
 ---
@@ -3319,7 +3319,7 @@ This report follows the documentation principles established in Phase 1 (TR118_v
 1. **Every number has a source.** Section numbers, TR numbers, and artifact paths are provided for all key claims.
 2. **Negative results are first-class.** The refutation of NUM_PARALLEL (TR128), M/D/1 theory (TR128), linear scaling (TR129), and serving-stack-as-bottleneck (TR131) receive the same analytical depth as positive findings.
 3. **Caveats are explicit.** The TOST failure (TR125), Ollama determinism gap (TR124/TR125), and WDDM profiling limitation (TR131) are documented in the claim status table, limitations table, and threats section.
-4. **The report is structured for multiple audiences.** The reading guide (§1.4) maps four distinct reading paths. The whitepaper (separate document) provides executive-level guidance. The extended appendices provide deep-dive material.
+4. **The report is structured for multiple audiences.** The reading guide (Sec. 1.4) maps four distinct reading paths. The whitepaper (separate document) provides executive-level guidance. The extended appendices provide deep-dive material.
 5. **Terminology is consistent.** All terms are defined in Appendices D, AG, and AO. Metric definitions are consistent across all 11 TRs.
 
 ---

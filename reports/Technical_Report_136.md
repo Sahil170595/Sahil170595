@@ -1,15 +1,15 @@
 # Technical Report 136: Cross-Backend Safety Consistency
 ## Does the serving backend change model safety behavior? A controlled comparison of Ollama, vLLM, and TGI across 3 models, 4 backend configurations, and 6 benchmarks
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-03-08
-**Author:** Research Team
-**Report Type:** Safety alignment analysis (metric-backed, 3 models, 4 backends, 6 benchmarks)
-**Test Duration:** ~2.4 hrs (eval) + ~0.6 hrs (LLM judge) + ~0.01 hrs (analysis)
-**Status:** Complete
-**Run ID:** `20260308_015147`
-**Related Work:** [TR134](Technical_Report_134.md) (Quantization x Safety), [TR135](Technical_Report_135.md) (Concurrency x Safety), TR137 (Safety Tax Synthesis, forthcoming)
-**Depends On:** TR134 (safety classifiers, jailbreak tasks, BBQ benchmark, LLM judge module), TR135 (concurrency baselines, Ollama Q4_K_M reference)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-03-08  
+**Author:** Research Team  
+**Report Type:** Safety alignment analysis (metric-backed, 3 models, 4 backends, 6 benchmarks)  
+**Test Duration:** ~2.4 hrs (eval) + ~0.6 hrs (LLM judge) + ~0.01 hrs (analysis)  
+**Status:** Complete  
+**Run ID:** `20260308_015147`  
+**Related Work:** [TR134](Technical_Report_134.md) (Quantization x Safety), [TR135](Technical_Report_135.md) (Concurrency x Safety), TR137 (Safety Tax Synthesis, forthcoming)  
+**Depends On:** TR134 (safety classifiers, jailbreak tasks, BBQ benchmark, LLM judge module), TR135 (concurrency baselines, Ollama Q4_K_M reference)  
 
 ---
 
@@ -275,7 +275,7 @@ No prior work that we are aware of:
 | [TR135](Technical_Report_135.md) | Concurrency x safety, null finding (concurrency does not affect safety) | Establishes that Ollama serialization eliminates concurrency confounds; Ollama Q4_K_M reference scores |
 | [TR125](Technical_Report_125.md) | Quantization decision matrix (capability focus) | Q4_K_M as "universal sweet spot" -- TR136 tests whether this holds across backends |
 | [TR133](Technical_Report_133.md) | VRAM modeling and latency prediction | VRAM estimates for model selection feasibility |
-| Röttger et al. (2024) | HarmBench: standardized safety evaluation | Methodological precedent for multi-backend safety comparison |
+| Rottger et al. (2024) | HarmBench: standardized safety evaluation | Methodological precedent for multi-backend safety comparison |
 | Huang et al. (2024) | Chat template effects on LLM behavior | Theoretical basis for chat template divergence hypothesis |
 
 ---
@@ -343,24 +343,24 @@ Post-hoc LLM judge (Qwen 2.5 7B Instruct Q8_0) independently classifies safety s
 config.yaml
     |
     v
-prepare_benchmarks.py  ──>  tasks/*.yaml (copied from TR134)
+prepare_benchmarks.py  -->  tasks/*.yaml (copied from TR134)
     |
     v
 run.py (orchestrator)
-    |── Step 1: prepare_benchmarks.py
-    |── Step 2: eval loop (for each backend x model: start -> warmup -> run -> stop -> cooldown)
-    |── Step 3: judge_analysis.py (post-hoc LLM judge on safety samples)
-    |── Step 4: analyze.py (15-pass statistical analysis)
-    └── Step 5: generate_report.py
+    |-- Step 1: prepare_benchmarks.py
+    |-- Step 2: eval loop (for each backend x model: start -> warmup -> run -> stop -> cooldown)
+    |-- Step 3: judge_analysis.py (post-hoc LLM judge on safety samples)
+    |-- Step 4: analyze.py (15-pass statistical analysis)
+    +-- Step 5: generate_report.py
     |
     v
 results/<timestamp>/
-    ├── config_snapshot.yaml
-    ├── samples.jsonl          (10,416 raw eval records)
-    ├── tr136_judged.jsonl     (5,616 judge verdicts)
-    ├── tr136_scored.jsonl     (10,416 scored records)
-    ├── tr136_analysis.json    (73KB, 15-pass analysis)
-    └── tr136_report.md        (auto-generated report)
+    |-- config_snapshot.yaml
+    |-- samples.jsonl          (10,416 raw eval records)
+    |-- tr136_judged.jsonl     (5,616 judge verdicts)
+    |-- tr136_scored.jsonl     (10,416 scored records)
+    |-- tr136_analysis.json    (73KB, 15-pass analysis)
+    +-- tr136_report.md        (auto-generated report)
 ```
 
 ---
@@ -693,7 +693,7 @@ The strongest correlation (r = -0.340) is between TGI and vLLM -- counterintuiti
 
 Chi-squared test per safety task: is the safety outcome independent of the backend? This breaks down the aggregate model-level chi-squared (Appendix B) into task-level components.
 
-| Model | Task | X² | df | p | Cramer's V | Significant? | N |
+| Model | Task | X^2 | df | p | Cramer's V | Significant? | N |
 |-------|------|----|----|---|-----------|-------------|---|
 | Llama 3.2 1B | advbench_refusal | 72.17 | 3 | < 0.0001 | **0.425** | **Yes** | 400 |
 | Llama 3.2 1B | bbq_bias | 11.51 | 3 | 0.009 | 0.121 | **Yes** | 792 |
@@ -737,7 +737,7 @@ Cohen's kappa between the regex classifier and the post-hoc LLM judge (Qwen 2.5 
 
 All kappa values are in the "slight agreement" range (< 0.20 by Landis & Koch thresholds). Raw agreement is substantially higher for Ollama backends (82-86%) than for FP16 backends (66-67%), but this difference is largely a base-rate artifact. On Ollama, most samples are classified as "safe" by both classifiers (because Ollama produces higher refusal rates). When both classifiers agree on the majority class, raw agreement inflates while kappa -- which corrects for chance -- remains low.
 
-To illustrate: if both classifiers label 85% of Ollama samples as "safe," they would agree on ~74% by chance alone (0.85 × 0.85 + 0.15 × 0.15 = 0.745). The actual 86.2% agreement exceeds chance by only 12 percentage points, yielding kappa = 0.144. On FP16 backends, the base rate is more balanced (~63% safe), so chance agreement is lower (~47%), and the 67% raw agreement yields a slightly higher kappa despite lower raw agreement.
+To illustrate: if both classifiers label 85% of Ollama samples as "safe," they would agree on ~74% by chance alone (0.85 x 0.85 + 0.15 x 0.15 = 0.745). The actual 86.2% agreement exceeds chance by only 12 percentage points, yielding kappa = 0.144. On FP16 backends, the base rate is more balanced (~63% safe), so chance agreement is lower (~47%), and the 67% raw agreement yields a slightly higher kappa despite lower raw agreement.
 
 This low inter-rater agreement is consistent with TR134 (kappa 0.013-0.18) and TR135 (kappa 0.067-0.14). It does not invalidate the primary findings -- it reflects a fundamental difference between surface-level pattern matching (regex) and semantic intent evaluation (LLM judge). The two classifiers capture different aspects of safety, and neither is a gold-standard human annotation.
 
@@ -975,7 +975,7 @@ Qwen shows near-unity normalization for AdvBench (all backends identical) and BB
 
 ## Appendix B: Chi-Squared Contingency Tables
 
-### B.1 Llama 3.2 1B (X² = 148.60, p < 0.0001)
+### B.1 Llama 3.2 1B (X^2 = 148.60, p < 0.0001)
 
 | Backend | Safe | Unsafe | Total | Safety Rate |
 |---------|------|--------|-------|-------------|
@@ -986,7 +986,7 @@ Qwen shows near-unity normalization for AdvBench (all backends identical) and BB
 
 The contingency table makes the clustering visible: Ollama backends have ~60 unsafe samples each; FP16 backends have ~172 -- nearly 3x more. The chi-squared statistic of 148.60 (Cramer's V = 0.282, small-medium) reflects this dramatic shift.
 
-### B.2 Llama 3.2 3B (X² = 11.05, p = 0.011)
+### B.2 Llama 3.2 3B (X^2 = 11.05, p = 0.011)
 
 | Backend | Safe | Unsafe | Total | Safety Rate |
 |---------|------|--------|-------|-------------|
@@ -997,7 +997,7 @@ The contingency table makes the clustering visible: Ollama backends have ~60 uns
 
 The gap narrows: Ollama has ~86 unsafe samples; FP16 has ~116. The Cramer's V of 0.077 (negligible-small) reflects a real but modest effect.
 
-### B.3 Qwen 2.5 1.5B (X² = 7.83, p = 0.050)
+### B.3 Qwen 2.5 1.5B (X^2 = 7.83, p = 0.050)
 
 | Backend | Safe | Unsafe | Total | Safety Rate |
 |---------|------|--------|-------|-------------|
@@ -1036,13 +1036,13 @@ All values in milliseconds (mean per request). Docker backends (TGI, vLLM) show 
 | Term | Definition |
 |------|------------|
 | Backend | The inference server that hosts and serves the model (Ollama, vLLM, TGI) |
-| BPW | Bits per weight. FP16 = 16.0, Q8_0 = 8.0, Q4_K_M ≈ 4.5 |
+| BPW | Bits per weight. FP16 = 16.0, Q8_0 = 8.0, Q4_K_M ~ 4.5 |
 | Cohen's d | Standardized effect size. < 0.2 trivial, 0.2-0.5 small, 0.5-0.8 medium, > 0.8 large |
 | Cohen's Kappa | Inter-rater agreement corrected for chance. < 0.20 slight, 0.21-0.40 fair, 0.41-0.60 moderate (Landis & Koch 1977) |
 | Cramer's V | Chi-squared effect size. < 0.1 negligible, 0.1-0.3 small, 0.3-0.5 medium, > 0.5 large |
 | GGUF | GPT-Generated Unified Format. Ollama's native weight format, includes embedded chat template and tokenizer |
 | Holm-Bonferroni | Step-down multiple comparison correction. More powerful than Bonferroni, controls FWER |
-| Jaccard Similarity | Token overlap ratio. |A ∩ B| / |A ∪ B|. 1.0 = identical, 0.0 = no overlap |
+| Jaccard Similarity | Token overlap ratio. \|A intersect B\| / \|A union B\|. 1.0 = identical, 0.0 = no overlap |
 | MDE | Minimum Detectable Effect. Smallest effect detectable at given alpha and power |
 | pp | Percentage points. An absolute difference in proportions (e.g., 85% - 60% = 25pp) |
 | TOST | Two One-Sided Tests. Confirms equivalence within a margin (here +/-3pp). Strictly stronger than "not significant" |
@@ -1054,7 +1054,7 @@ All values in milliseconds (mean per request). Docker backends (TGI, vLLM) show 
 ## References
 
 1. Landis, J.R. & Koch, G.G. (1977). The Measurement of Observer Agreement for Categorical Data. *Biometrics*, 33(1), 159-174.
-2. Röttger, P. et al. (2024). HarmBench: A Standardized Evaluation Framework for Automated Red Teaming and Refusal. *NeurIPS 2024*.
+2. Rottger, P. et al. (2024). HarmBench: A Standardized Evaluation Framework for Automated Red Teaming and Refusal. *NeurIPS 2024*.
 3. Mazeika, M. et al. (2024). JailbreakBench: An Open Robustness Benchmark for Jailbreaking Large Language Models. *NeurIPS 2024*.
 4. Parrish, A. et al. (2022). BBQ: A Hand-Built Bias Benchmark for Question Answering. *ACL 2022*.
 5. Lin, S., Hilton, J., & Evans, O. (2022). TruthfulQA: Measuring How Models Mimic Human Falsehoods. *ACL 2022*.

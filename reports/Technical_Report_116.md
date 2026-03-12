@@ -6,27 +6,27 @@
 **Author:** Research Team  
 **Report Type:** Definitive Cross-Model & Cross-Runtime Analysis  
 **Test Duration:** 12+ hours (60 multi-agent runs across 6 model-runtime combinations)  
-**Related Work:** [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Rust Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent)
+**Related Work:** [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Rust Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent)  
 
 ---
 
 ## Executive Summary
 
-This technical report presents the definitive analysis of how **model architecture** (Qwen 2.5, Gemma 3, Llama 3.1) interacts with **runtime implementation** (Rust/Tokio vs Python/asyncio) in dual-agent concurrent workloads. Through 60 comprehensive benchmark runs across 3 models × 2 runtimes × 2 scenarios × 5 runs, we establish the true performance characteristics of different LLM architectures under high-concurrency coordination overhead.
+This technical report presents the definitive analysis of how **model architecture** (Qwen 2.5, Gemma 3, Llama 3.1) interacts with **runtime implementation** (Rust/Tokio vs Python/asyncio) in dual-agent concurrent workloads. Through 60 comprehensive benchmark runs across 3 models x 2 runtimes x 2 scenarios x 5 runs, we establish the true performance characteristics of different LLM architectures under high-concurrency coordination overhead.
 
-**Critical Context:**  
+**Critical Context:**
 This report extends TR114_v2 and TR115_v2 by isolating **model choice** as an independent variable while holding runtime and infrastructure constant. Previous reports established that Rust achieves 90-99% multi-agent efficiency (TR114_v2) and that tokio-default is the optimal runtime (TR115_v2). TR116 answers: **Does model choice matter for multi-agent scaling?**
 
 ### Key Findings
 
 **Multi-Agent Efficiency Rankings (Rust, baseline-vs-chimera):**
-1. **Gemma 3** (gemma3:latest): **97.3% efficiency** (1.95x speedup) - 🏆 **CHAMPION**
-2. **Llama 3.1 8B** (llama3.1:8b-instruct-q4_0): **96.5% efficiency** (1.93x speedup) - ✅ **EXCELLENT**
-3. **Qwen 2.5 7B** (qwen2.5:7b): **90.0% efficiency** (1.80x speedup) - ⚠️ **GOOD BUT HEAVY**
+1. **Gemma 3** (gemma3:latest): **97.3% efficiency** (1.95x speedup) - TOP **CHAMPION**
+2. **Llama 3.1 8B** (llama3.1:8b-instruct-q4_0): **96.5% efficiency** (1.93x speedup) - PASS **EXCELLENT**
+3. **Qwen 2.5 7B** (qwen2.5:7b): **90.0% efficiency** (1.80x speedup) - WARNING **GOOD BUT HEAVY**
 
 **Multi-Agent Efficiency Rankings (Python, baseline-vs-chimera):**
 1. **Llama 3.1 8B**: **83.8% efficiency** (1.68x speedup)
-2. **Gemma 3**: **80.2% efficiency** (1.60x speedup)  
+2. **Gemma 3**: **80.2% efficiency** (1.60x speedup)
 3. **Qwen 2.5 7B**: **77.6% efficiency** (1.55x speedup)
 
 **Critical Discoveries:**
@@ -51,7 +51,7 @@ This report extends TR114_v2 and TR115_v2 by isolating **model choice** as an in
 - **Rust + Qwen:** +8% cost (90.0% vs 97.3% efficiency)
 - **Python + Qwen:** +33% cost (77.6% vs 97.3% efficiency)
 
-**Recommendation:**  
+**Recommendation:**
 For production multi-agent deployments: **Rust + Gemma 3** is the optimal stack. For reasoning-heavy tasks: **Rust + Llama 3.1** is viable. **Avoid Python for multi-agent production** (15-20% efficiency penalty is unacceptable).
 
 ---
@@ -82,10 +82,10 @@ For production multi-agent deployments: **Rust + Gemma 3** is the optimal stack.
 - TR114_v2: Rust multi-agent achieves 99.4% peak efficiency (matches Python)
 - TR115_v2: tokio-default is optimal runtime (99.29% peak vs 98.52% localset)
 
-**Critical Gap:**  
+**Critical Gap:**
 All previous reports used **gemma3:latest exclusively**. We have no data on whether model architecture (Qwen, Llama) affects multi-agent scaling differently.
 
-**TR116 Hypothesis:**  
+**TR116 Hypothesis:**
 Model choice should be **orthogonal** to multi-agent coordination efficiency. If runtime (Rust vs Python) dominates, all models should show similar efficiency deltas. If model architecture matters, we should see variance.
 
 ### 1.2 Research Questions
@@ -103,7 +103,7 @@ This study addresses:
 - **Models:** 3 (Qwen 2.5 7B, Gemma 3, Llama 3.1 8B q4_0)
 - **Runtimes:** 2 (Rust tokio-default, Python asyncio)
 - **Scenarios:** 2 (baseline-vs-chimera, chimera-homo)
-- **Total Runs:** 60 (3 models × 2 runtimes × 2 scenarios × 5 runs)
+- **Total Runs:** 60 (3 models x 2 runtimes x 2 scenarios x 5 runs)
 
 **Significance:**
 - First systematic cross-model multi-agent benchmark
@@ -148,7 +148,7 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 - **Concurrency:** `tokio::join!()` for dual-agent execution
 
 **Python (src/python/banterhearts/demo_multiagent):**
-- **Async Runtime:** asyncio (single-threaded event loop)  
+- **Async Runtime:** asyncio (single-threaded event loop)
 - **HTTP Client:** httpx (async)
 - **Buffer Size:** 1KB (httpx default)
 - **Concurrency:** `asyncio.gather()` for dual-agent execution
@@ -162,17 +162,17 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 - **Runs:** 5 per model per runtime (30 total)
 
 **Scenario 2: chimera-homo**
-- Both Agents: num_gpu=80, num_ctx=512, temp=1.0  
+- Both Agents: num_gpu=80, num_ctx=512, temp=1.0
 - **Purpose:** Measure peak concurrent efficiency
 - **Runs:** 5 per model per runtime (30 total)
 
-**Total: 3 models × 2 runtimes × 2 scenarios × 5 runs = 60 benchmarks**
+**Total: 3 models x 2 runtimes x 2 scenarios x 5 runs = 60 benchmarks**
 
 ### 2.5 Metrics Collection
 
 **Primary Metrics:**
 - `concurrency_speedup`: sequential_time / concurrent_time
-- `efficiency_percent`: (speedup / 2) × 100%
+- `efficiency_percent`: (speedup / 2) x 100%
 
 **Secondary Metrics:**
 - `throughput_delta`: collector_throughput - insight_throughput (tok/s)
@@ -193,8 +193,7 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 | **Gemma 3** | chimera-homo | 1.98x | **99.2%** | 99.9% | 5 |
 | **Llama 3.1** | baseline-vs-chimera | 1.93x | **96.5%** | 98.8% | 5 |
 | **Llama 3.1** | chimera-homo | 1.97x | **98.5%** | 99.7% | 5 |
-| **Q
-wen 2.5** | baseline-vs-chimera | 1.80x | **90.0%** | 92.3% | 5 |
+| **Qwen 2.5** | baseline-vs-chimera | 1.80x | **90.0%** | 92.3% | 5 |
 | **Qwen 2.5** | chimera-homo | 1.79x | **89.4%** | 91.8% | 5 |
 
 **Python Multi-Agent (All Models, All Scenarios):**
@@ -203,7 +202,7 @@ wen 2.5** | baseline-vs-chimera | 1.80x | **90.0%** | 92.3% | 5 |
 |-------|----------|-------------|----------------|-----------------|------|
 | **Llama 3.1** | baseline-vs-chimera | 1.68x | **83.8%** | 87.2% | 5 |
 | **Llama 3.1** | chimera-homo | 1.72x | **85.8%** | 89.1% | 5 |
-| **Gemma 3** | baseline-vs-chimera | 1.60x | **80.2%** | 84.5% | 5 |  
+| **Gemma 3** | baseline-vs-chimera | 1.60x | **80.2%** | 84.5% | 5 |
 | **Gemma 3** | chimera-homo | 1.70x | **84.9%** | 88.3% | 5 |
 | **Qwen 2.5** | baseline-vs-chimera | 1.55x | **77.6%** | 81.2% | 5 |
 | **Qwen 2.5** | chimera-homo | 1.68x | **84.1%** | 87.6% | 5 |
@@ -245,7 +244,7 @@ wen 2.5** | baseline-vs-chimera | 1.80x | **90.0%** | 92.3% | 5 |
 
 **Rust Performance:**
 - baseline-vs-chimera: 97.3% efficiency (1.95x speedup)
-- chimera-homo: **99.2% efficiency** (1.98x speedup) 
+- chimera-homo: **99.2% efficiency** (1.98x speedup)
 
 **Python Performance:**
 - baseline-vs-chimera: 80.2% efficiency (1.60x speedup)
@@ -267,7 +266,7 @@ wen 2.5** | baseline-vs-chimera | 1.80x | **90.0%** | 92.3% | 5 |
 
 **Rust Performance:**
 - baseline-vs-chimera: 96.5% efficiency (1.93x speedup)
-- chimera-homo: **98.5% efficiency** (1.97x speedup) 
+- chimera-homo: **98.5% efficiency** (1.97x speedup)
 
 **Python Performance:**
 - baseline-vs-chimera: **83.8% efficiency** (1.68x speedup) - Highest Python score
@@ -288,7 +287,7 @@ wen 2.5** | baseline-vs-chimera | 1.80x | **90.0%** | 92.3% | 5 |
 ### 4.3 Qwen 2.5 7B Analysis
 
 **Rust Performance:**
-- baseline-vs-chimera: **90.0% efficiency** (1.80x speedup) 
+- baseline-vs-chimera: **90.0% efficiency** (1.80x speedup)
 - chimera-homo: **89.4% efficiency** (1.79x speedup)
 
 **Python Performance:**
@@ -364,7 +363,7 @@ wen 2.5** | baseline-vs-chimera | 1.80x | **90.0%** | 92.3% | 5 |
 
 **Rust Multi-Agent Rankings:**
 1. Gemma 3: **99.2%** (chimera-homo) -  **GOLD**
-2. Llama 3.1: **98.5%** (chimera-homo) -  **SILVER**  
+2. Llama 3.1: **98.5%** (chimera-homo) -  **SILVER**
 3. Qwen 2.5: **90.0%** (baseline-vs-chimera) -  **BRONZE**
 
 **Python Multi-Agent Rankings:**
@@ -471,7 +470,7 @@ wen 2.5** | baseline-vs-chimera | 1.80x | **90.0%** | 92.3% | 5 |
 
 ## 10. Appendices
 
-### 10.1 Reproducibility  
+### 10.1 Reproducibility
 
 **Commands Used:**
 
@@ -510,7 +509,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 
 **Gemma 3 + Python (80.2% efficiency):**
 - Instances Required: 8  8GB RAM @ $50/month = $400/month
-- Memory per Agent: 250 MB  
+- Memory per Agent: 250 MB
 - Per-Agent Throughput: ~42 tok/s
 - **Total Monthly Cost:** $400
 - **Cost Premium vs Rust:** +100% ($200/month, $2400/year)
@@ -626,7 +625,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 
 ### 9.1 Gemma 3 Rust (baseline-vs-chimera) - Run-by-Run
 
-| Run | Speedup | Efficiency | Throughput Δ (tok/s) | TTFT Δ (ms) | Contention | Notes |
+| Run | Speedup | Efficiency | Throughput Delta (tok/s) | TTFT Delta (ms) | Contention | Notes |
 |-----|---------|------------|----------------------|-------------|------------|-------|
 | 1 | 1.95x | 97.46% | +0.43 | +1270.31 | No | |
 | 2 | 1.97x | 98.45% | +2.22 | +145.26 | No | |
@@ -634,7 +633,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 | 4 | 1.92x | 96.24% | -4.96 | +173.93 | No | |
 | 5 | 1.97x | 98.72% | -1.57 | +159.93 | No | |
 
-**Aggregate:** 1.95x speedup, 97.31% efficiency (Avg Δ throughput -1.93 tok/s, Avg Δ TTFT +373.17 ms)
+**Aggregate:** 1.95x speedup, 97.31% efficiency (Avg Delta throughput -1.93 tok/s, Avg Delta TTFT +373.17 ms)
 
 ### 9.2 Qwen 2.5 Rust (baseline-vs-chimera) - Run-by-Run
 
@@ -760,7 +759,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 
 **Performance:**
 - Concurrency Speedup (target: \u003e1.95x, alert: \u003c1.90x)
-- Efficiency (target: \u003e97%, alert: \u003c95%)  
+- Efficiency (target: \u003e97%, alert: \u003c95%)
 - TTFT p95 (target: \u003c2s, alert: \u003e3s)
 
 **Reliability:**
@@ -778,7 +777,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 3. Cost exceeds 120% of Python baseline
 
 **Rollback Procedure:**
-1. Stop Rust deployments (30s)  
+1. Stop Rust deployments (30s)
 2. Scale up Python instances (2 min)
 3. Redirect 100% traffic to Python (30s)
 4. **Total downtime:** \u003c5 minutes
@@ -837,7 +836,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 - Hypothesis: 14B may have better KV cache balance
 - Risk: May exceed 12GB VRAM (requires remote GPU)
 
-**TR118: Quantization Impact Study**  
+**TR118: Quantization Impact Study**
 - Test Gemma with Q4_0 quant (vs current Q4_K_M)
 - Apples-to-apples comparison with Llama Q4_0
 - Quantify quality/efficiency trade-off
@@ -882,7 +881,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 - **Infrastructure:** Dual Ollama (ports 11434/11435)
 
 **Research & Prototyping:**
-- **Runtime:** Python acceptable (faster development)  
+- **Runtime:** Python acceptable (faster development)
 - **Model:** Llama 3.1 (best Python efficiency at 85.8%)
 - **Config:** chimera-homo for maximum efficiency
 
@@ -895,11 +894,11 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 
 **End of Technical Report 116 (Comprehensive Edition)**
 
-Generated: 2025-11-26  
-Total Sections: 14  
-Total Analysis Depth: 1000+ lines equivalent  
-Benchmark Runs Analyzed: 60  
-Models Tested: 3  
+Generated: 2025-11-26
+Total Sections: 14
+Total Analysis Depth: 1000+ lines equivalent
+Benchmark Runs Analyzed: 60
+Models Tested: 3
 Runtimes Compared: 2
 
 

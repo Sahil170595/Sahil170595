@@ -1,15 +1,15 @@
 # Technical Report 135: Safety Under Multi-Agent Concurrency
 ## Does running N concurrent agents on a shared inference backend degrade model safety?
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-03-07
-**Author:** Research Team
-**Report Type:** Safety alignment analysis (metric-backed, 3 models, 4 concurrency levels, 6 benchmarks)
-**Test Duration:** ~8 hrs (eval) + ~2.3 hrs (LLM judge)
-**Status:** Complete
-**Run ID:** `20260307_162151`
-**Related Work:** [TR134](Technical_Report_134.md) (Quantization x Safety), TR136 (Backend x Safety, forthcoming), TR137 (Safety Tax Synthesis, forthcoming)
-**Depends On:** TR134 (safety classifiers, jailbreak tasks, BBQ benchmark, LLM judge module), TR125 (quantization baselines, Q4_K_M reference)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-03-07  
+**Author:** Research Team  
+**Report Type:** Safety alignment analysis (metric-backed, 3 models, 4 concurrency levels, 6 benchmarks)  
+**Test Duration:** ~8 hrs (eval) + ~2.3 hrs (LLM judge)  
+**Status:** Complete  
+**Run ID:** `20260307_162151`  
+**Related Work:** [TR134](Technical_Report_134.md) (Quantization x Safety), TR136 (Backend x Safety, forthcoming), TR137 (Safety Tax Synthesis, forthcoming)  
+**Depends On:** TR134 (safety classifiers, jailbreak tasks, BBQ benchmark, LLM judge module), TR125 (quantization baselines, Q4_K_M reference)  
 
 ---
 
@@ -272,11 +272,11 @@ Any of these could plausibly degrade safety-critical behaviors like refusal, bia
 
 ### 1.3 Hypothesis
 
-**H0 (null):** Concurrency does not affect safety or capability scores. Ollama serializes inference; concurrent requests queue without interfering with each other's compute paths.
+**H_0 (null):** Concurrency does not affect safety or capability scores. Ollama serializes inference; concurrent requests queue without interfering with each other's compute paths.
 
-**H1 (alternative):** Concurrency degrades safety, potentially faster than capability, due to resource contention, scheduling interference, or non-determinism under load.
+**H_1 (alternative):** Concurrency degrades safety, potentially faster than capability, due to resource contention, scheduling interference, or non-determinism under load.
 
-Based on Ollama's architecture (single-GPU serialization), we expected H0. TR135 is designed to confirm or refute this expectation with statistical rigor.
+Based on Ollama's architecture (single-GPU serialization), we expected H_0. TR135 is designed to confirm or refute this expectation with statistical rigor.
 
 ### 1.4 Literature Gap
 

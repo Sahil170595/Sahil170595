@@ -1,15 +1,15 @@
 # Technical Report 132: Serving-Stack GPU Kernel Profiling
 ## In-Container Nsight Systems Analysis of vLLM and TGI Under Multi-Agent Load
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-02-27
-**Author:** Research Team
-**Report Type:** Hardware-level kernel profiling (5-phase, 2 backends, 25 profiled runs, in-container CUPTI)
-**Test Duration:** ~48 minutes
-**Status:** Complete -- continuous batching confirmed as bandwidth amortization mechanism via kernel-level evidence
-**Run ID:** `20260227_123652`
-**Related Work:** [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR130](Technical_Report_130.md) (Serving Stack Benchmarking), [TR131](Technical_Report_131.md) (GPU Kernel Profiling -- Ollama/PyTorch)
-**Depends On:** TR131 (Ollama cross-reference data), TR130 (backend Docker infrastructure), TR129 (degradation baselines)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-02-27  
+**Author:** Research Team  
+**Report Type:** Hardware-level kernel profiling (5-phase, 2 backends, 25 profiled runs, in-container CUPTI)  
+**Test Duration:** ~48 minutes  
+**Status:** Complete -- continuous batching confirmed as bandwidth amortization mechanism via kernel-level evidence  
+**Run ID:** `20260227_123652`  
+**Related Work:** [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR130](Technical_Report_130.md) (Serving Stack Benchmarking), [TR131](Technical_Report_131.md) (GPU Kernel Profiling -- Ollama/PyTorch)  
+**Depends On:** TR131 (Ollama cross-reference data), TR130 (backend Docker infrastructure), TR129 (degradation baselines)  
 
 ---
 
@@ -23,11 +23,11 @@ TR132 provides the causal mechanism. Using a novel in-container Nsight Systems p
 
 Five hypotheses were tested:
 
-- **H1** (per-token kernel count reduces with batching): **CONFIRMED** across all 4 backend-model pairs (8/8 Holm-corrected tests significant).
+- **H_1** (per-token kernel count reduces with batching): **CONFIRMED** across all 4 backend-model pairs (8/8 Holm-corrected tests significant).
 - **H2** (per-token memory bandwidth reduces with batching): **CONFIRMED** (8/8 tests significant).
-- **H3** (GPU utilization increases with batching): **REJECTED** — the `--trace cuda` profile mode does not capture GPU metrics counters (0% utilization is a measurement limitation, not a finding).
-- **H4** (attention kernel signatures differ between backends): **INCONCLUSIVE** — kernel names were not reliably classifiable as PagedAttention vs FlashAttention.
-- **H5** (serving stack N=1 matches PyTorch N=1): **INSUFFICIENT DATA** — TR131 PyTorch data not available in cross-reference format.
+- **H3** (GPU utilization increases with batching): **REJECTED** -- the `--trace cuda` profile mode does not capture GPU metrics counters (0% utilization is a measurement limitation, not a finding).
+- **H4** (attention kernel signatures differ between backends): **INCONCLUSIVE** -- kernel names were not reliably classifiable as PagedAttention vs FlashAttention.
+- **H5** (serving stack N=1 matches PyTorch N=1): **INSUFFICIENT DATA** -- TR131 PyTorch data not available in cross-reference format.
 
 *Methodological contribution:* The in-container nsys profiling technique developed for TR132 solves a fundamental limitation of GPU profiling under WSL2/Docker. This approach is reusable for any CUDA workload running in Docker containers on Windows hosts.
 
@@ -92,7 +92,7 @@ Five hypotheses were tested:
 
 | H | Hypothesis | Verdict | Key Evidence | Holm-Corrected | Confidence |
 |---|-----------|---------|--------------|----------------|------------|
-| H1 | Batching reduces per-token kernel count | **CONFIRMED** | 77--80% reduction, all p < 10^-6, d > 600 | 4/4 significant | **High** |
+| H_1 | Batching reduces per-token kernel count | **CONFIRMED** | 77--80% reduction, all p < 10^-6, d > 600 | 4/4 significant | **High** |
 | H2 | Batching reduces per-token memory bandwidth | **CONFIRMED** | 79--83% reduction, all p < 0.001, d > 21 | 4/4 significant | **High** |
 | H3 | Batched serving achieves higher GPU utilization | **REJECTED** | 0% utilization in all conditions (measurement limitation) | 0/4 significant | Measurement artifact |
 | H4 | PagedAttention vs FlashAttention have distinct signatures | **INCONCLUSIVE** | Kernel names not reliably classifiable | N/A | Low |
@@ -102,13 +102,13 @@ Five hypotheses were tested:
 
 | # | Claim | Evidence | Status |
 |---|-------|----------|--------|
-| 1 | Serving stacks scale better due to "better scheduling" (TR130) | Kernel-level evidence shows kernel count and bandwidth both drop ~80% — this is batched computation, not scheduling | **Reattributed** |
-| 2 | Continuous batching reduces per-token kernel count (H1) | 77–80% reduction, all p < 10⁻⁶, d > 600, 4/4 Holm-significant | **Confirmed** |
-| 3 | Continuous batching reduces per-token memory bandwidth (H2) | 79–83% reduction, all p < 0.001, d > 21, 4/4 Holm-significant | **Confirmed** |
-| 4 | GPU utilization increases with batching (H3) | 0% utilization in all conditions — `--trace cuda` does not capture GPU metrics | **Rejected (measurement)** |
+| 1 | Serving stacks scale better due to "better scheduling" (TR130) | Kernel-level evidence shows kernel count and bandwidth both drop ~80% -- this is batched computation, not scheduling | **Reattributed** |
+| 2 | Continuous batching reduces per-token kernel count (H_1) | 77--80% reduction, all p < 10^-6, d > 600, 4/4 Holm-significant | **Confirmed** |
+| 3 | Continuous batching reduces per-token memory bandwidth (H2) | 79--83% reduction, all p < 0.001, d > 21, 4/4 Holm-significant | **Confirmed** |
+| 4 | GPU utilization increases with batching (H3) | 0% utilization in all conditions -- `--trace cuda` does not capture GPU metrics | **Rejected (measurement)** |
 | 5 | vLLM and TGI use different attention kernels (H4) | Kernel profiles differ structurally but names not classifiable as PagedAttention vs FlashAttention | **Inconclusive** |
 | 6 | Serving stack N=1 overhead ~ PyTorch Direct (H5) | TR131 PyTorch data not available for cross-reference | **Insufficient data** |
-| 7 | Profiling overhead distorts timing | vLLM N=1: 106.3 TPS (profiled) vs TR130 unprofiled ~110 TPS — ~3% overhead | **Negligible** |
+| 7 | Profiling overhead distorts timing | vLLM N=1: 106.3 TPS (profiled) vs TR130 unprofiled ~110 TPS -- ~3% overhead | **Negligible** |
 | 8 | Ollama's 82% degradation is a software bug | Confirmed by TR131 as GPU physics; TR132 shows serving stacks avoid it via batching, not better code | **Reattributed** |
 
 ### Key Decisions for Practitioners
@@ -127,17 +127,17 @@ Five hypotheses were tested:
 
 | Time | Reading Path |
 |------|-------------|
-| **2 min** | Abstract → Executive Summary → Hypothesis Verdicts table → Claim Validation table |
+| **2 min** | Abstract -> Executive Summary -> Hypothesis Verdicts table -> Claim Validation table |
 | **10 min** | Add SS2 (Methodology) + SS8 (Kernel Amortization) + SS13 (Hypothesis Verdicts) + SS18 (Conclusions) |
-| **30 min** | Full report, SS1–SS18 + Appendices |
-| **Deep dive** | SS4–SS5 per-rep data + SS6 bandwidth physics + SS14 causal chain |
+| **30 min** | Full report, SS1--SS18 + Appendices |
+| **Deep dive** | SS4--SS5 per-rep data + SS6 bandwidth physics + SS14 causal chain |
 
 ### When to Use This Report
 
 | Scenario | How This Report Helps |
 |----------|----------------------|
-| Understanding why vLLM/TGI scale better than Ollama | SS8–SS9 show kernel/bandwidth amortization mechanism; SS14 causal chain |
-| Choosing between vLLM and TGI | SS4–SS5 compare throughput; SS7 compares kernel signatures; SS18.3 decision tree |
+| Understanding why vLLM/TGI scale better than Ollama | SS8--SS9 show kernel/bandwidth amortization mechanism; SS14 causal chain |
+| Choosing between vLLM and TGI | SS4--SS5 compare throughput; SS7 compares kernel signatures; SS18.3 decision tree |
 | Profiling CUDA workloads in Docker on Windows | SS1.4 and SS2 document the in-container nsys methodology |
 | Planning multi-agent deployments | SS6 bandwidth demand tables + SS18.3 decision tree |
 | Deciding on GPU profiling tools | SS3 and SS10.2 explain nsys trace mode limitations |
@@ -147,18 +147,18 @@ Five hypotheses were tested:
 
 - [SS1. Introduction and Motivation](#ss1-introduction-and-motivation)
 - [SS2. Methodology](#ss2-methodology)
-- [SS3. Phase 1 — Environment Validation](#ss3-phase-1--environment-validation)
-- [SS4. Phase 2 — vLLM Profiled Serving](#ss4-phase-2--vllm-profiled-serving)
-- [SS5. Phase 3 — TGI Profiled Serving](#ss5-phase-3--tgi-profiled-serving)
+- [SS3. Phase 1 -- Environment Validation](#ss3-phase-1--environment-validation)
+- [SS4. Phase 2 -- vLLM Profiled Serving](#ss4-phase-2--vllm-profiled-serving)
+- [SS5. Phase 3 -- TGI Profiled Serving](#ss5-phase-3--tgi-profiled-serving)
 - [SS6. Throughput Scaling Comparison](#ss6-throughput-scaling-comparison)
 - [SS7. Kernel Signature Analysis (H4)](#ss7-kernel-signature-analysis-h4)
-- [SS8. Kernel Amortization Analysis (H1)](#ss8-kernel-amortization-analysis-h1)
+- [SS8. Kernel Amortization Analysis (H_1)](#ss8-kernel-amortization-analysis-h1)
 - [SS9. Memory Bandwidth Analysis (H2)](#ss9-memory-bandwidth-analysis-h2)
 - [SS10. GPU Utilization Analysis (H3)](#ss10-gpu-utilization-analysis-h3)
 - [SS11. Baseline Overhead Comparison (H5)](#ss11-baseline-overhead-comparison-h5)
 - [SS12. Bandwidth Amortization and Scaling Advantage](#ss12-bandwidth-amortization-and-scaling-advantage)
 - [SS13. Hypothesis Verdicts and Holm Correction](#ss13-hypothesis-verdicts-and-holm-correction)
-- [SS14. Causal Chain — TR129 through TR132](#ss14-causal-chain--tr129-through-tr132)
+- [SS14. Causal Chain -- TR129 through TR132](#ss14-causal-chain--tr129-through-tr132)
 - [SS15. Statistical Power and Data Quality](#ss15-statistical-power-and-data-quality)
 - [SS16. Profiling Overhead Assessment](#ss16-profiling-overhead-assessment)
 - [SS17. Limitations and Future Work](#ss17-limitations-and-future-work)
@@ -196,24 +196,24 @@ TR132 profiles vLLM and TGI at the GPU kernel level using a novel in-container N
 | Serving backend | **Variable** | vLLM vs TGI |
 | Quantization | Controlled (FP16) | Ollama uses Q4_0 (cross-reference only) |
 
-The quantization difference between serving stacks (FP16) and Ollama (Q4_0) affects absolute TPS but not the degradation ratio analysis. FP16 places strictly more memory pressure per parameter (4x), making the serving stack's better scaling even more remarkable — they scale better despite higher per-parameter bandwidth demand.
+The quantization difference between serving stacks (FP16) and Ollama (Q4_0) affects absolute TPS but not the degradation ratio analysis. FP16 places strictly more memory pressure per parameter (4x), making the serving stack's better scaling even more remarkable -- they scale better despite higher per-parameter bandwidth demand.
 
 ### SS1.3 Literature Gap
 
 Published LLM serving benchmarks (Kwon et al. 2023, Patel et al. 2024, Yu et al. 2022) evaluate continuous batching under open-loop arrival distributions (Poisson processes). Multi-agent systems are closed-loop: each agent waits for a response before sending the next request. TR130 provided the first closed-loop cross-backend comparison. TR131 went further by removing the serving stack entirely (PyTorch Direct), isolating GPU physics as the root cause of degradation.
 
-However, neither TR130 nor TR131 measured the GPU-level mechanism by which serving stacks achieve their scaling advantage. The correlation between "uses continuous batching" and "scales better" was established, but the causal link — specifically, that batching reduces per-token kernel launches and memory bandwidth — was untested. TR132 closes this gap by profiling vLLM and TGI at the kernel level using in-container nsys, providing the first CUPTI-level evidence of continuous batching's bandwidth amortization effect in the Banterhearts research series.
+However, neither TR130 nor TR131 measured the GPU-level mechanism by which serving stacks achieve their scaling advantage. The correlation between "uses continuous batching" and "scales better" was established, but the causal link -- specifically, that batching reduces per-token kernel launches and memory bandwidth -- was untested. TR132 closes this gap by profiling vLLM and TGI at the kernel level using in-container nsys, providing the first CUPTI-level evidence of continuous batching's bandwidth amortization effect in the Banterhearts research series.
 
-### SS1.4 The WSL2/WDDM Challenge — Why In-Container nsys
+### SS1.4 The WSL2/WDDM Challenge -- Why In-Container nsys
 
-A critical technical obstacle blocked kernel profiling of Docker-based serving stacks. NVIDIA Nsight Systems on the Windows host cannot see CUDA kernels executing inside Docker containers. This is an architectural limitation of the WSL2/WDDM GPU virtualization layer — confirmed by NVIDIA documentation. The host nsys process captures only GPU context switches, not individual kernel launches.
+A critical technical obstacle blocked kernel profiling of Docker-based serving stacks. NVIDIA Nsight Systems on the Windows host cannot see CUDA kernels executing inside Docker containers. This is an architectural limitation of the WSL2/WDDM GPU virtualization layer -- confirmed by NVIDIA documentation. The host nsys process captures only GPU context switches, not individual kernel launches.
 
 Three approaches were considered:
 
 | Approach | Feasibility | Why Rejected/Selected |
 |----------|-------------|----------------------|
 | Host nsys wrapping `docker run` | Infeasible | WDDM isolation: host nsys sees zero CUDA kernels from container processes |
-| Admin/elevated nsys on host | Infeasible | WDDM is architectural — admin does not bypass container GPU isolation |
+| Admin/elevated nsys on host | Infeasible | WDDM is architectural -- admin does not bypass container GPU isolation |
 | **In-container nsys (selected)** | **Works** | Mount Linux nsys binary, wrap server entrypoint, CUPTI injects inside container |
 
 The in-container approach mounts `target-linux-x64/nsys` from the host Nsight Systems installation into the Docker container as a read-only volume. The server entrypoint is wrapped with `nsys profile --trace cuda`, placing CUPTI injection inside the container where it has direct access to the CUDA context. Traces are volume-mounted back to the host for cross-platform stats export (`.nsys-rep` is a cross-platform binary format).
@@ -222,7 +222,7 @@ This methodology is the primary technical contribution of TR132 beyond the hypot
 
 ### SS1.5 Research Questions
 
-1. **Q1:** Does continuous batching reduce per-token kernel launches? (H1)
+1. **Q1:** Does continuous batching reduce per-token kernel launches? (H_1)
 2. **Q2:** Does continuous batching reduce per-token memory bandwidth demand? (H2)
 3. **Q3:** Does batched serving achieve higher GPU utilization? (H3)
 4. **Q4:** Do vLLM (PagedAttention) and TGI (FlashAttention) have distinct kernel signatures? (H4)
@@ -232,7 +232,7 @@ This methodology is the primary technical contribution of TR132 beyond the hypot
 
 | H | Hypothesis | Rationale | Metric |
 |---|-----------|-----------|--------|
-| H1 | Batching reduces per-token kernel count | Continuous batching fuses operations across requests | kernels_per_token N=1 vs N=8 |
+| H_1 | Batching reduces per-token kernel count | Continuous batching fuses operations across requests | kernels_per_token N=1 vs N=8 |
 | H2 | Batching reduces per-token memory bandwidth | Shared KV-cache reduces per-request memory transfers | mem_time_per_token N=1 vs N=8 |
 | H3 | Batched serving achieves higher GPU utilization | Better scheduling should increase SM occupancy | gpu_utilization_pct N=1 vs N=8 |
 | H4 | PagedAttention vs FlashAttention have distinct signatures | Different attention algorithms produce different kernel mixes | kernel name classification |
@@ -332,11 +332,11 @@ The serving stack backend is used as an HTTP-only client. The NsysContainerDrive
 
 **Observation 2 -- Trace files are substantial.** At 13.59 MB for 3 requests, the traces contain rich kernel-level data. This confirms that `--trace cuda` captures the full CUDA API call graph, not just summary statistics.
 
-**Observation 3 — GPU utilization reads 0%.** This is expected: `--trace cuda` does not enable GPU metric counters. The utilization metric requires `--trace cuda,gpu_metric` which needs additional permissions. This limitation applies to all subsequent phases (SS10).
+**Observation 3 -- GPU utilization reads 0%.** This is expected: `--trace cuda` does not enable GPU metric counters. The utilization metric requires `--trace cuda,gpu_metric` which needs additional permissions. This limitation applies to all subsequent phases (SS10).
 
-**Observation 4 — Validation TPS (128.0–129.8) is lower than Ollama's N=1 (160.4 TPS from TR131).** This is expected: vLLM serves FP16 models (2 bytes/param) while Ollama serves Q4_0 (0.6 bytes/param), so vLLM reads ~3.3x more weight data per token. The 20% lower TPS at N=1 is the cost of FP16 precision — a cost that is more than recovered by continuous batching at N≥2 (SS6).
+**Observation 4 -- Validation TPS (128.0--129.8) is lower than Ollama's N=1 (160.4 TPS from TR131).** This is expected: vLLM serves FP16 models (2 bytes/param) while Ollama serves Q4_0 (0.6 bytes/param), so vLLM reads ~3.3x more weight data per token. The 20% lower TPS at N=1 is the cost of FP16 precision -- a cost that is more than recovered by continuous batching at N>=2 (SS6).
 
-**Observation 5 — The symlink workaround works reliably.** nsys refuses to execute directly from `target-linux-x64/` (an NVIDIA installation convention). The entrypoint creates `ln -sf /nsys_root/target-linux-x64/nsys /tmp/nsys` and invokes `/tmp/nsys`. This workaround was discovered during TR132 development and is documented here for reproducibility. Without it, nsys exits with error code 1 and produces no trace.
+**Observation 5 -- The symlink workaround works reliably.** nsys refuses to execute directly from `target-linux-x64/` (an NVIDIA installation convention). The entrypoint creates `ln -sf /nsys_root/target-linux-x64/nsys /tmp/nsys` and invokes `/tmp/nsys`. This workaround was discovered during TR132 development and is documented here for reproducibility. Without it, nsys exits with error code 1 and produces no trace.
 
 **Gate: PASSED.** All 5 nsys report types (cuda_api_sum, cuda_gpu_kern_sum, cuda_gpu_mem_time_sum, cuda_kern_exec_trace, osrt_sum) extracted successfully. 33,302 kernels confirm full CUPTI visibility. Proceeding to profiled phases.
 
@@ -357,7 +357,7 @@ The serving stack backend is used as an HTTP-only client. The NsysContainerDrive
 
 ### SS4.2 Per-Rep Raw Data
 
-**LLaMA-3.2-1B (vLLM) — N=1**
+**LLaMA-3.2-1B (vLLM) -- N=1**
 
 | Rep | TPS | Tokens | Kernels | GPU Time (ms) | Mem Time (ms) | Trace (MB) |
 |-----|-----|--------|---------|---------------|---------------|------------|
@@ -365,7 +365,7 @@ The serving stack backend is used as an HTTP-only client. The NsysContainerDrive
 | 1 | 106.66 | 640 | 35,154 | 5,309.0 | 792.8 | 14.66 |
 | 2 | 106.59 | 640 | 35,140 | 5,195.9 | 862.4 | 14.28 |
 
-**LLaMA-3.2-1B (vLLM) — N=8**
+**LLaMA-3.2-1B (vLLM) -- N=8**
 
 | Rep | Per-Agent TPS | Total Tokens | Kernels | GPU Time (ms) | Mem Time (ms) | Trace (MB) |
 |-----|---------------|--------------|---------|---------------|---------------|------------|
@@ -373,7 +373,7 @@ The serving stack backend is used as an HTTP-only client. The NsysContainerDrive
 | 1 | 46.98 | 3,072 | 33,263 | 4,748.0 | 722.3 | 14.22 |
 | 2 | 47.10 | 3,072 | 33,318 | 4,837.0 | 735.5 | 14.30 |
 
-**LLaMA-3.2-3B (vLLM) — N=1**
+**LLaMA-3.2-3B (vLLM) -- N=1**
 
 | Rep | TPS | Tokens | Kernels | GPU Time (ms) | Mem Time (ms) | Trace (MB) |
 |-----|-----|--------|---------|---------------|---------------|------------|
@@ -381,7 +381,7 @@ The serving stack backend is used as an HTTP-only client. The NsysContainerDrive
 | 1 | 51.12 | 640 | 48,992 | 9,585.8 | 2,218.7 | 17.53 |
 | 2 | 50.71 | 640 | 49,122 | 9,729.1 | 2,251.7 | 17.45 |
 
-**LLaMA-3.2-3B (vLLM) — N=8**
+**LLaMA-3.2-3B (vLLM) -- N=8**
 
 | Rep | Per-Agent TPS | Total Tokens | Kernels | GPU Time (ms) | Mem Time (ms) | Trace (MB) |
 |-----|---------------|--------------|---------|---------------|---------------|------------|
@@ -400,7 +400,7 @@ The serving stack backend is used as an HTTP-only client. The NsysContainerDrive
 | Std | 0.506 | 0.100 | -- |
 | CV% | 0.48 | 0.21 | -- |
 | Median | 106.59 | 46.98 | -- |
-| p-value | -- | -- | 1.2x10⁻⁵ |
+| p-value | -- | -- | 1.2x10^-5 |
 | Cohen's d | -- | -- | 162.7 |
 
 **LLaMA-3.2-3B (vLLM)**
@@ -412,28 +412,28 @@ The serving stack backend is used as an HTTP-only client. The NsysContainerDrive
 | Std | 0.275 | 0.095 | -- |
 | CV% | 0.54 | 0.31 | -- |
 | Median | 50.71 | 31.12 | -- |
-| p-value | -- | -- | 1.1x10⁻⁵ |
+| p-value | -- | -- | 1.1x10^-5 |
 | Cohen's d | -- | -- | 95.8 |
 
 ### SS4.4 Observations
 
-**Observation 1 — vLLM shows extremely low variance.** CV% ranges from 0.21% to 0.54% across all conditions. The container-per-rep methodology produces highly reproducible traces, confirming that serving stack throughput is deterministic when hardware is isolated. For comparison, Ollama's N=8 CV was 5.4–7.5% (TR131) — 10–25x higher.
+**Observation 1 -- vLLM shows extremely low variance.** CV% ranges from 0.21% to 0.54% across all conditions. The container-per-rep methodology produces highly reproducible traces, confirming that serving stack throughput is deterministic when hardware is isolated. For comparison, Ollama's N=8 CV was 5.4--7.5% (TR131) -- 10--25x higher.
 
-**Observation 2 — Larger models degrade less.** LLaMA-3B degrades 38.7% vs 55.8% for LLaMA-1B. The 3B model has more amortizable GEMM operations (larger weight matrices with more rows per layer), making continuous batching relatively more efficient. This aligns with the theoretical expectation: batching amortizes fixed per-kernel overhead, and larger kernels have proportionally less overhead.
+**Observation 2 -- Larger models degrade less.** LLaMA-3B degrades 38.7% vs 55.8% for LLaMA-1B. The 3B model has more amortizable GEMM operations (larger weight matrices with more rows per layer), making continuous batching relatively more efficient. This aligns with the theoretical expectation: batching amortizes fixed per-kernel overhead, and larger kernels have proportionally less overhead.
 
-**Observation 3 — N=8 variance is even lower than N=1.** The N=8 CV% (0.21–0.31%) is consistently lower than N=1 (0.48–0.54%), suggesting that batched inference smooths out per-request variability. With 8 agents generating tokens, the aggregate workload is more stable — individual request timing jitter averages out.
+**Observation 3 -- N=8 variance is even lower than N=1.** The N=8 CV% (0.21--0.31%) is consistently lower than N=1 (0.48--0.54%), suggesting that batched inference smooths out per-request variability. With 8 agents generating tokens, the aggregate workload is more stable -- individual request timing jitter averages out.
 
-**Observation 4 — Kernel counts are nearly identical between N=1 and N=8.** LLaMA-1B: 35,129 kernels at N=1 vs 33,346 at N=8 (−5%). LLaMA-3B: 49,094 at N=1 vs 47,388 at N=8 (−3.5%). This is the kernel-level signature of continuous batching: 8x more tokens are processed with roughly the *same* number of kernel launches. The kernels get larger (more rows in each GEMM), not more numerous.
+**Observation 4 -- Kernel counts are nearly identical between N=1 and N=8.** LLaMA-1B: 35,129 kernels at N=1 vs 33,346 at N=8 (-5%). LLaMA-3B: 49,094 at N=1 vs 47,388 at N=8 (-3.5%). This is the kernel-level signature of continuous batching: 8x more tokens are processed with roughly the *same* number of kernel launches. The kernels get larger (more rows in each GEMM), not more numerous.
 
-**Observation 5 — GPU time is approximately constant between N=1 and N=8.** LLaMA-1B: 5,221 ms (N=1) vs 4,805 ms (N=8). LLaMA-3B: 9,630 ms (N=1) vs 9,078 ms (N=8). Despite processing 4.8x more tokens at N=8, the total GPU compute time *decreases* slightly. This is the amortization in action: GEMM kernels with 8x more rows are only marginally slower than single-row GEMMs because they better utilize the GPU's parallel compute units.
+**Observation 5 -- GPU time is approximately constant between N=1 and N=8.** LLaMA-1B: 5,221 ms (N=1) vs 4,805 ms (N=8). LLaMA-3B: 9,630 ms (N=1) vs 9,078 ms (N=8). Despite processing 4.8x more tokens at N=8, the total GPU compute time *decreases* slightly. This is the amortization in action: GEMM kernels with 8x more rows are only marginally slower than single-row GEMMs because they better utilize the GPU's parallel compute units.
 
-**Observation 6 — Trace sizes are consistent (~14–17 MB).** Unlike TR131's PyTorch traces that grew to 76–270 MB, serving stack traces remain compact. This reflects the dramatically lower kernel count — 35,000 kernels vs 900,000+ for PyTorch Direct (TR131 SS6). Fewer kernel launches means less CUPTI event data.
+**Observation 6 -- Trace sizes are consistent (~14--17 MB).** Unlike TR131's PyTorch traces that grew to 76--270 MB, serving stack traces remain compact. This reflects the dramatically lower kernel count -- 35,000 kernels vs 900,000+ for PyTorch Direct (TR131 SS6). Fewer kernel launches means less CUPTI event data.
 
-### SS4.5 Interpretation — The Amortization Signature
+### SS4.5 Interpretation -- The Amortization Signature
 
-The per-rep data reveals the fundamental signature of continuous batching at the kernel level. Consider LLaMA-1B: at N=1, vLLM launches 35,094–35,154 kernels to generate 640 tokens (5 requests × 128 tokens). At N=8, it launches 33,263–33,457 kernels to generate 3,072 tokens (8 agents × 3 requests × 128 tokens). The per-token kernel count drops from 54.9 to 10.9 — an 80% reduction.
+The per-rep data reveals the fundamental signature of continuous batching at the kernel level. Consider LLaMA-1B: at N=1, vLLM launches 35,094--35,154 kernels to generate 640 tokens (5 requests x 128 tokens). At N=8, it launches 33,263--33,457 kernels to generate 3,072 tokens (8 agents x 3 requests x 128 tokens). The per-token kernel count drops from 54.9 to 10.9 -- an 80% reduction.
 
-This means continuous batching does not execute 8 independent inference sequences. It fuses the 8 concurrent requests into shared GEMM operations. Where N=1 dispatches a weight matrix × single input vector multiply, N=8 dispatches a weight matrix × 8-row input matrix multiply — a single, wider GEMM kernel. The weight matrix is read from VRAM once, not 8 times. This is the bandwidth amortization mechanism that TR131's physics analysis predicted and TR132 now confirms at the kernel level.
+This means continuous batching does not execute 8 independent inference sequences. It fuses the 8 concurrent requests into shared GEMM operations. Where N=1 dispatches a weight matrix x single input vector multiply, N=8 dispatches a weight matrix x 8-row input matrix multiply -- a single, wider GEMM kernel. The weight matrix is read from VRAM once, not 8 times. This is the bandwidth amortization mechanism that TR131's physics analysis predicted and TR132 now confirms at the kernel level.
 
 ---
 
@@ -452,7 +452,7 @@ This means continuous batching does not execute 8 independent inference sequence
 
 ### SS5.2 Per-Rep Raw Data
 
-**LLaMA-3.2-1B (TGI) — N=1**
+**LLaMA-3.2-1B (TGI) -- N=1**
 
 | Rep | TPS | Tokens | Kernels | GPU Time (ms) | Mem Time (ms) | Trace (MB) |
 |-----|-----|--------|---------|---------------|---------------|------------|
@@ -460,7 +460,7 @@ This means continuous batching does not execute 8 independent inference sequence
 | 1 | 83.74 | 640 | 46,705 | 936.9 | 1,290.8 | 11.80 |
 | 2 | 83.48 | 640 | 46,705 | 956.5 | 1,289.3 | 11.53 |
 
-**LLaMA-3.2-1B (TGI) — N=8**
+**LLaMA-3.2-1B (TGI) -- N=8**
 
 | Rep | Per-Agent TPS | Total Tokens | Kernels | GPU Time (ms) | Mem Time (ms) | Trace (MB) |
 |-----|---------------|--------------|---------|---------------|---------------|------------|
@@ -468,7 +468,7 @@ This means continuous batching does not execute 8 independent inference sequence
 | 1 | 38.26 | 3,072 | 52,599 | 1,549.0 | 1,367.3 | 12.50 |
 | 2 | 38.31 | 3,072 | 52,599 | 1,653.0 | 1,388.9 | 12.35 |
 
-**LLaMA-3.2-3B (TGI) — N=1**
+**LLaMA-3.2-3B (TGI) -- N=1**
 
 | Rep | TPS | Tokens | Kernels | GPU Time (ms) | Mem Time (ms) | Trace (MB) |
 |-----|-----|--------|---------|---------------|---------------|------------|
@@ -476,7 +476,7 @@ This means continuous batching does not execute 8 independent inference sequence
 | 1 | 41.79 | 640 | 55,663 | 1,552.8 | 3,333.5 | 13.73 |
 | 2 | 42.02 | 640 | 55,663 | 1,580.9 | 3,331.4 | 13.77 |
 
-**LLaMA-3.2-3B (TGI) — N=8**
+**LLaMA-3.2-3B (TGI) -- N=8**
 
 | Rep | Per-Agent TPS | Total Tokens | Kernels | GPU Time (ms) | Mem Time (ms) | Trace (MB) |
 |-----|---------------|--------------|---------|---------------|---------------|------------|
@@ -495,7 +495,7 @@ This means continuous batching does not execute 8 independent inference sequence
 | Std | 0.168 | 0.226 | -- |
 | CV% | 0.20 | 0.59 | -- |
 | Median | 83.74 | 38.31 | -- |
-| p-value | -- | -- | 4.2x10⁻⁹ |
+| p-value | -- | -- | 4.2x10^-9 |
 | Cohen's d | -- | -- | 227.2 |
 
 **LLaMA-3.2-3B (TGI)**
@@ -507,28 +507,28 @@ This means continuous batching does not execute 8 independent inference sequence
 | Std | 0.118 | 0.042 | -- |
 | CV% | 0.28 | 0.16 | -- |
 | Median | 41.95 | 25.61 | -- |
-| p-value | -- | -- | 1.9x10⁻⁶ |
+| p-value | -- | -- | 1.9x10^-6 |
 | Cohen's d | -- | -- | 184.8 |
 
 ### SS5.4 Observations
 
-**Observation 1 — TGI throughput is consistently below vLLM.** TGI achieves 79–82% of vLLM's throughput at N=1 and 80–82% at N=8. The gap is consistent across both models, suggesting a fixed overhead difference in TGI's serving infrastructure (its Rust-based request router and attention implementation) rather than a scaling efficiency difference.
+**Observation 1 -- TGI throughput is consistently below vLLM.** TGI achieves 79--82% of vLLM's throughput at N=1 and 80--82% at N=8. The gap is consistent across both models, suggesting a fixed overhead difference in TGI's serving infrastructure (its Rust-based request router and attention implementation) rather than a scaling efficiency difference.
 
-**Observation 2 — TGI kernel counts are perfectly deterministic at N=1.** All three reps produce exactly 46,705 kernels (LLaMA-1B) and 55,663 kernels (LLaMA-3B) with zero variance (std=0.0). TGI's execution graph is fully deterministic for single-request inference — identical tokenization produces identical kernel sequences. This determinism provides an extremely clean baseline for N=1 vs N=8 comparison.
+**Observation 2 -- TGI kernel counts are perfectly deterministic at N=1.** All three reps produce exactly 46,705 kernels (LLaMA-1B) and 55,663 kernels (LLaMA-3B) with zero variance (std=0.0). TGI's execution graph is fully deterministic for single-request inference -- identical tokenization produces identical kernel sequences. This determinism provides an extremely clean baseline for N=1 vs N=8 comparison.
 
-**Observation 3 — TGI's kernel count *increases* at N=8 (unlike vLLM).** LLaMA-1B: 46,705 → 52,594 (+12.6%). LLaMA-3B: 55,663 → 61,871 (+11.2%). This is the opposite of vLLM's pattern (−5%). TGI adds batching-related overhead kernels (scheduling, attention mask computation) that do not appear in the single-request path. Despite this, per-token kernel count still drops 77% because total tokens increase 4.8x.
+**Observation 3 -- TGI's kernel count *increases* at N=8 (unlike vLLM).** LLaMA-1B: 46,705 -> 52,594 (+12.6%). LLaMA-3B: 55,663 -> 61,871 (+11.2%). This is the opposite of vLLM's pattern (-5%). TGI adds batching-related overhead kernels (scheduling, attention mask computation) that do not appear in the single-request path. Despite this, per-token kernel count still drops 77% because total tokens increase 4.8x.
 
-**Observation 4 — TGI degradation matches vLLM almost exactly.** TGI degrades 54.1% for 1B (vs vLLM 55.8%) and 38.9% for 3B (vs vLLM 38.7%). The degradation patterns are model-driven, not backend-driven — both backends hit the same GPU bandwidth wall, and both amortize it with the same continuous batching mechanism.
+**Observation 4 -- TGI degradation matches vLLM almost exactly.** TGI degrades 54.1% for 1B (vs vLLM 55.8%) and 38.9% for 3B (vs vLLM 38.7%). The degradation patterns are model-driven, not backend-driven -- both backends hit the same GPU bandwidth wall, and both amortize it with the same continuous batching mechanism.
 
-**Observation 5 — TGI's GPU time is dramatically lower than vLLM.** LLaMA-1B N=1: TGI 960 ms vs vLLM 5,221 ms (5.4x difference). This likely reflects a measurement artifact: vLLM's trace captures model loading and PagedAttention initialization within the profiling window, while TGI's Rust-based launcher completes initialization before the Python-visible CUDA context starts.
+**Observation 5 -- TGI's GPU time is dramatically lower than vLLM.** LLaMA-1B N=1: TGI 960 ms vs vLLM 5,221 ms (5.4x difference). This likely reflects a measurement artifact: vLLM's trace captures model loading and PagedAttention initialization within the profiling window, while TGI's Rust-based launcher completes initialization before the Python-visible CUDA context starts.
 
-**Observation 6 — TGI's memory time per token is higher than vLLM.** LLaMA-1B N=1: TGI 2.01 ms/token vs vLLM 1.27 ms/token (58% higher). LLaMA-3B N=1: TGI 5.21 ms/token vs vLLM 3.47 ms/token (50% higher). TGI's explicit softmax and reduce kernels (SS7) generate additional memory traffic compared to vLLM's fused attention path.
+**Observation 6 -- TGI's memory time per token is higher than vLLM.** LLaMA-1B N=1: TGI 2.01 ms/token vs vLLM 1.27 ms/token (58% higher). LLaMA-3B N=1: TGI 5.21 ms/token vs vLLM 3.47 ms/token (50% higher). TGI's explicit softmax and reduce kernels (SS7) generate additional memory traffic compared to vLLM's fused attention path.
 
-### SS5.5 Interpretation — TGI vs vLLM Architecture
+### SS5.5 Interpretation -- TGI vs vLLM Architecture
 
-TGI and vLLM implement continuous batching differently at the kernel level, but achieve nearly identical amortization. vLLM's PagedAttention fuses attention computation into fewer, larger kernels — resulting in lower kernel counts, lower memory time, but higher total GPU time (due to model loading captured in trace). TGI uses a traditional softmax-based attention path that generates more kernels (especially `cunn_SoftMaxForward` and `reduce_kernel`) but achieves the same net bandwidth reduction.
+TGI and vLLM implement continuous batching differently at the kernel level, but achieve nearly identical amortization. vLLM's PagedAttention fuses attention computation into fewer, larger kernels -- resulting in lower kernel counts, lower memory time, but higher total GPU time (due to model loading captured in trace). TGI uses a traditional softmax-based attention path that generates more kernels (especially `cunn_SoftMaxForward` and `reduce_kernel`) but achieves the same net bandwidth reduction.
 
-The practical implication: **batching efficiency is not a differentiator between these backends.** Both achieve 4.7–5.8x bandwidth amortization. The 20% throughput gap favoring vLLM is a constant-factor difference (likely attention implementation efficiency), not a scaling difference. For practitioners choosing between vLLM and TGI, the decision should be based on ecosystem factors (API compatibility, deployment tooling), not batching performance.
+The practical implication: **batching efficiency is not a differentiator between these backends.** Both achieve 4.7--5.8x bandwidth amortization. The 20% throughput gap favoring vLLM is a constant-factor difference (likely attention implementation efficiency), not a scaling difference. For practitioners choosing between vLLM and TGI, the decision should be based on ecosystem factors (API compatibility, deployment tooling), not batching performance.
 
 ---
 
@@ -552,13 +552,13 @@ The practical implication: **batching efficiency is not a differentiator between
 | vLLM | 50.81 | 31.13 | -38.7% | 0.613 |
 | TGI | 41.92 | 25.62 | -38.9% | 0.611 |
 
-### SS6.2 Bandwidth Demand — Back-of-Envelope Physics
+### SS6.2 Bandwidth Demand -- Back-of-Envelope Physics
 
 The RTX 4080 Laptop GPU has a peak memory bandwidth of 432 GB/s. Each token generation requires reading the full model weights from VRAM. The bandwidth demand per agent scales linearly with TPS and model weight size.
 
 **FP16 weight sizes:**
-- LLaMA-3.2-1B: 1.2B params × 2 bytes = **2.4 GB**
-- LLaMA-3.2-3B: 3.2B params × 2 bytes = **6.4 GB**
+- LLaMA-3.2-1B: 1.2B params x 2 bytes = **2.4 GB**
+- LLaMA-3.2-3B: 3.2B params x 2 bytes = **6.4 GB**
 
 **Bandwidth demand at N=1 (single agent):**
 
@@ -570,39 +570,39 @@ The RTX 4080 Laptop GPU has a peak memory bandwidth of 432 GB/s. Each token gene
 | TGI | LLaMA-3B | 41.9 | 41.9 | 268.2 | 62.1% |
 | Ollama (Q4_0) | LLaMA-1B | 160.4 | 160.4 | 96.2* | 22.3%* |
 
-*Ollama uses Q4_0 (0.6 bytes/param), so its weight size is 0.72 GB for 1B — much lower bandwidth demand per token.
+*Ollama uses Q4_0 (0.6 bytes/param), so its weight size is 0.72 GB for 1B -- much lower bandwidth demand per token.
 
 **Bandwidth demand at N=8 without batching (Ollama model):**
 
 | Backend | Model | Aggregate TPS | BW Demand (GB/s) | % of Peak | Oversubscribed? |
 |---------|-------|---------------|-------------------|-----------|-----------------|
-| Ollama (Q4_0) | LLaMA-1B | 230.4 (8×28.8) | 138.2 | 32.0% | No, but serialized |
-| Ollama (Q4_0) | LLaMA-3B | 137.5 (8×17.2) | 158.4 | 36.7% | No, but serialized |
+| Ollama (Q4_0) | LLaMA-1B | 230.4 (8x28.8) | 138.2 | 32.0% | No, but serialized |
+| Ollama (Q4_0) | LLaMA-3B | 137.5 (8x17.2) | 158.4 | 36.7% | No, but serialized |
 
 **Bandwidth demand at N=8 with batching (vLLM/TGI model):**
 
 | Backend | Model | Aggregate TPS | BW Amortization | Effective BW (GB/s) | % of Peak |
 |---------|-------|---------------|-----------------|---------------------|-----------|
-| vLLM | LLaMA-1B | 375.9 (8×47.0) | 5.75x | 156.8 | 36.3% |
-| vLLM | LLaMA-3B | 249.1 (8×31.1) | 4.68x | 341.0 | 78.9% |
-| TGI | LLaMA-1B | 307.3 (8×38.4) | 4.65x | 158.6 | 36.7% |
-| TGI | LLaMA-3B | 204.9 (8×25.6) | 4.80x | 273.1 | 63.2% |
+| vLLM | LLaMA-1B | 375.9 (8x47.0) | 5.75x | 156.8 | 36.3% |
+| vLLM | LLaMA-3B | 249.1 (8x31.1) | 4.68x | 341.0 | 78.9% |
+| TGI | LLaMA-1B | 307.3 (8x38.4) | 4.65x | 158.6 | 36.7% |
+| TGI | LLaMA-3B | 204.9 (8x25.6) | 4.80x | 273.1 | 63.2% |
 
-**Interpretation:** Without batching, each of 8 agents would demand 8x the N=1 bandwidth — vastly exceeding the 432 GB/s peak. With batching, the weight matrix is read once per batch iteration (not once per request), reducing effective bandwidth demand by 4.7–5.8x. This keeps the GPU's memory controller below saturation for the 1B model and near-saturation for the 3B model — explaining why the 3B model degrades less (it's already near the bandwidth wall at N=1, so the relative increase at N=8 is smaller).
+**Interpretation:** Without batching, each of 8 agents would demand 8x the N=1 bandwidth -- vastly exceeding the 432 GB/s peak. With batching, the weight matrix is read once per batch iteration (not once per request), reducing effective bandwidth demand by 4.7--5.8x. This keeps the GPU's memory controller below saturation for the 1B model and near-saturation for the 3B model -- explaining why the 3B model degrades less (it's already near the bandwidth wall at N=1, so the relative increase at N=8 is smaller).
 
 ### SS6.3 Observations
 
-**Observation 1 — Ollama is fastest at N=1 but worst at N=8.** Ollama's 160 TPS at N=1 (LLaMA-1B) reflects two advantages: minimal serving overhead (wraps `llama.cpp` directly) and Q4_0 quantization (4x less bandwidth per parameter). But without batching, it collapses to 28.8 TPS at N=8 (below vLLM's 47.0). The Q4_0 bandwidth advantage is overwhelmed by the lack of kernel-level amortization.
+**Observation 1 -- Ollama is fastest at N=1 but worst at N=8.** Ollama's 160 TPS at N=1 (LLaMA-1B) reflects two advantages: minimal serving overhead (wraps `llama.cpp` directly) and Q4_0 quantization (4x less bandwidth per parameter). But without batching, it collapses to 28.8 TPS at N=8 (below vLLM's 47.0). The Q4_0 bandwidth advantage is overwhelmed by the lack of kernel-level amortization.
 
-**Observation 2 — The scaling crossover confirms the batching hypothesis.** At N=1, Ollama > vLLM > TGI. At N=8, vLLM > TGI > Ollama. The crossover occurs between N=1 and N=8, exactly where continuous batching activates. This is not a gradual improvement — it is a phase transition from sequential to batched execution.
+**Observation 2 -- The scaling crossover confirms the batching hypothesis.** At N=1, Ollama > vLLM > TGI. At N=8, vLLM > TGI > Ollama. The crossover occurs between N=1 and N=8, exactly where continuous batching activates. This is not a gradual improvement -- it is a phase transition from sequential to batched execution.
 
-**Observation 3 — vLLM and TGI scaling ratios are nearly identical per model.** LLaMA-1B: 0.442 vs 0.459. LLaMA-3B: 0.613 vs 0.611. The mechanism (continuous batching) is the same; only the constant overhead differs. This rules out the hypothesis that one backend has a fundamentally better batching algorithm.
+**Observation 3 -- vLLM and TGI scaling ratios are nearly identical per model.** LLaMA-1B: 0.442 vs 0.459. LLaMA-3B: 0.613 vs 0.611. The mechanism (continuous batching) is the same; only the constant overhead differs. This rules out the hypothesis that one backend has a fundamentally better batching algorithm.
 
-**Observation 4 — Model size is the dominant scaling factor.** The 3B model retains 61% of per-agent throughput at N=8 (scaling ratio 0.61) vs 44–46% for 1B. Larger GEMM operations amortize more effectively — a 3200×hidden matmul with 8 batched inputs is proportionally cheaper to launch than a 1200×hidden matmul with 8 inputs, because the CUDA launch overhead is amortized over more compute.
+**Observation 4 -- Model size is the dominant scaling factor.** The 3B model retains 61% of per-agent throughput at N=8 (scaling ratio 0.61) vs 44--46% for 1B. Larger GEMM operations amortize more effectively -- a 3200xhidden matmul with 8 batched inputs is proportionally cheaper to launch than a 1200xhidden matmul with 8 inputs, because the CUDA launch overhead is amortized over more compute.
 
-**Observation 5 — The 3B model's better scaling defies naive expectation.** Naively, larger models should degrade *more* under concurrency because they demand more bandwidth. But continuous batching inverts this: larger models have more to amortize. The 3B model's GEMM kernels are compute-bound (more FLOPs per weight byte), while the 1B model's are memory-bound (fewer FLOPs per weight byte). Batching converts memory-bound kernels into compute-bound kernels by increasing the batch dimension — and this conversion is more effective when there is more compute to convert.
+**Observation 5 -- The 3B model's better scaling defies naive expectation.** Naively, larger models should degrade *more* under concurrency because they demand more bandwidth. But continuous batching inverts this: larger models have more to amortize. The 3B model's GEMM kernels are compute-bound (more FLOPs per weight byte), while the 1B model's are memory-bound (fewer FLOPs per weight byte). Batching converts memory-bound kernels into compute-bound kernels by increasing the batch dimension -- and this conversion is more effective when there is more compute to convert.
 
-**Observation 6 — The aggregate throughput advantage of serving stacks is enormous.** At N=8, vLLM delivers 376 tokens/sec total (LLaMA-1B) vs Ollama's 230. For LLaMA-3B, vLLM delivers 249 vs Ollama's 138 — an 80% throughput advantage. This is the practical impact of bandwidth amortization.
+**Observation 6 -- The aggregate throughput advantage of serving stacks is enormous.** At N=8, vLLM delivers 376 tokens/sec total (LLaMA-1B) vs Ollama's 230. For LLaMA-3B, vLLM delivers 249 vs Ollama's 138 -- an 80% throughput advantage. This is the practical impact of bandwidth amortization.
 
 ---
 
@@ -647,17 +647,17 @@ The RTX 4080 Laptop GPU has a peak memory bandwidth of 432 GB/s. Each token gene
 
 **Observation 3 -- Both backends use CUTLASS/cuBLAS GEMM kernels.** The `cutlass_80_wmma_tensorop` and `ampere_fp16_s1688gemm` kernels appear in both backends. These are NVIDIA's optimized matrix multiply implementations that naturally batch across rows.
 
-**Observation 4 — vLLM has a high-frequency utility kernel.** The `vectorized_elementwise_kernel<FillFunctor>` (15,410 instances, 2,708 ms) is a memory initialization kernel that dominates vLLM's kernel count. This is likely PagedAttention's block table initialization — clearing KV-cache blocks before reuse.
+**Observation 4 -- vLLM has a high-frequency utility kernel.** The `vectorized_elementwise_kernel<FillFunctor>` (15,410 instances, 2,708 ms) is a memory initialization kernel that dominates vLLM's kernel count. This is likely PagedAttention's block table initialization -- clearing KV-cache blocks before reuse.
 
-**Observation 5 — GEMM fraction increases with model size for vLLM.** vLLM LLaMA-1B: 68.9% GEMM. vLLM LLaMA-3B: 82.2% GEMM. Larger models have proportionally more GEMM operations because the MLP feed-forward layers (which are pure matmul) scale with hidden dimension squared, while attention scales with sequence length. This explains why larger models amortize better under batching (SS8, SS12) — there are more GEMM operations to fuse.
+**Observation 5 -- GEMM fraction increases with model size for vLLM.** vLLM LLaMA-1B: 68.9% GEMM. vLLM LLaMA-3B: 82.2% GEMM. Larger models have proportionally more GEMM operations because the MLP feed-forward layers (which are pure matmul) scale with hidden dimension squared, while attention scales with sequence length. This explains why larger models amortize better under batching (SS8, SS12) -- there are more GEMM operations to fuse.
 
-**Observation 6 — TGI's attention fraction is nearly constant across model sizes.** TGI LLaMA-1B: 31.6% attention. TGI LLaMA-3B: 22.5% attention. While the absolute fraction decreases slightly (as GEMM grows), TGI consistently shows 5–8x more attention kernel time than vLLM. This is structural: TGI's attention implementation dispatches separate softmax and reduce kernels, while vLLM's fused attention combines these into the GEMM pipeline.
+**Observation 6 -- TGI's attention fraction is nearly constant across model sizes.** TGI LLaMA-1B: 31.6% attention. TGI LLaMA-3B: 22.5% attention. While the absolute fraction decreases slightly (as GEMM grows), TGI consistently shows 5--8x more attention kernel time than vLLM. This is structural: TGI's attention implementation dispatches separate softmax and reduce kernels, while vLLM's fused attention combines these into the GEMM pipeline.
 
-### SS7.4 Interpretation — What Kernel Profiles Reveal About Architecture
+### SS7.4 Interpretation -- What Kernel Profiles Reveal About Architecture
 
-The kernel signature comparison reveals a fundamental architectural difference. vLLM's PagedAttention fuses attention computation into the GEMM pipeline — attention is not visible as separate kernels because it is computed within the same kernel launch as the QKV projection. TGI uses a more traditional path: separate `cunn_SoftMaxForward` (softmax across attention scores), `reduce_kernel` (attention-weighted value aggregation), and CUTLASS GEMM (projection) kernels.
+The kernel signature comparison reveals a fundamental architectural difference. vLLM's PagedAttention fuses attention computation into the GEMM pipeline -- attention is not visible as separate kernels because it is computed within the same kernel launch as the QKV projection. TGI uses a more traditional path: separate `cunn_SoftMaxForward` (softmax across attention scores), `reduce_kernel` (attention-weighted value aggregation), and CUTLASS GEMM (projection) kernels.
 
-Neither approach is strictly better. vLLM's fusion reduces kernel launch overhead and intermediate memory traffic (fewer kernels = fewer VRAM round-trips). TGI's explicit decomposition may offer more flexibility for future optimization (each stage can be independently tuned). The practical consequence is that vLLM achieves ~20% higher throughput at N=1 (SS4 vs SS5), but the batching amortization is nearly identical (SS12) — the fusion helps constant-factor performance but does not change the scaling physics.
+Neither approach is strictly better. vLLM's fusion reduces kernel launch overhead and intermediate memory traffic (fewer kernels = fewer VRAM round-trips). TGI's explicit decomposition may offer more flexibility for future optimization (each stage can be independently tuned). The practical consequence is that vLLM achieves ~20% higher throughput at N=1 (SS4 vs SS5), but the batching amortization is nearly identical (SS12) -- the fusion helps constant-factor performance but does not change the scaling physics.
 
 ### SS7.5 Verdict
 
@@ -665,7 +665,7 @@ Neither approach is strictly better. vLLM's fusion reduces kernel launch overhea
 
 ---
 
-## SS8. Kernel Amortization Analysis (H1)
+## SS8. Kernel Amortization Analysis (H_1)
 
 ### SS8.1 Per-Token Kernel Count
 
@@ -680,10 +680,10 @@ Neither approach is strictly better. vLLM's fusion reduces kernel launch overhea
 
 | Test | p-value | Cohen's d | Effect | Holm Sig. |
 |------|---------|-----------|--------|-----------|
-| H1 vLLM LLaMA-1B | 5.29x10^-11 | 1,057.9 | **Large** | **Yes** |
-| H1 vLLM LLaMA-3B | 1.53x10^-6 | 605.5 | **Large** | **Yes** |
-| H1 TGI LLaMA-1B | 9.66x10^-10 | 26,269.3 | **Large** | **Yes** |
-| H1 TGI LLaMA-3B | 5.52x10^-7 | 1,099.1 | **Large** | **Yes** |
+| H_1 vLLM LLaMA-1B | 5.29x10^-11 | 1,057.9 | **Large** | **Yes** |
+| H_1 vLLM LLaMA-3B | 1.53x10^-6 | 605.5 | **Large** | **Yes** |
+| H_1 TGI LLaMA-1B | 9.66x10^-10 | 26,269.3 | **Large** | **Yes** |
+| H_1 TGI LLaMA-3B | 5.52x10^-7 | 1,099.1 | **Large** | **Yes** |
 
 ### SS8.3 Observations
 
@@ -695,11 +695,11 @@ Neither approach is strictly better. vLLM's fusion reduces kernel launch overhea
 
 **Observation 4 -- The ~80% reduction for 8x concurrency implies ~5:1 amortization.** If kernels scaled linearly with requests, N=8 would have the same per-token count as N=1. The 80% reduction means 8 requests share roughly the kernel budget of 1.6 requests -- a 5:1 amortization.
 
-### SS8.4 Interpretation — The 5:1 Amortization
+### SS8.4 Interpretation -- The 5:1 Amortization
 
-The kernel count data reveals the most striking finding of TR132. Consider the arithmetic: at N=8, if each request executed independently, the per-token kernel count would remain at ~55 (vLLM LLaMA-1B). Instead, it drops to ~11 — meaning 8 requests share a kernel budget that would serve only ~1.6 independent requests. This 5:1 ratio is the kernel-level signature of continuous batching.
+The kernel count data reveals the most striking finding of TR132. Consider the arithmetic: at N=8, if each request executed independently, the per-token kernel count would remain at ~55 (vLLM LLaMA-1B). Instead, it drops to ~11 -- meaning 8 requests share a kernel budget that would serve only ~1.6 independent requests. This 5:1 ratio is the kernel-level signature of continuous batching.
 
-The mechanism is straightforward: instead of 8 separate matrix multiplications `W × x₁, W × x₂, ..., W × x₈`, the serving stack concatenates inputs into a single batch: `W × [x₁; x₂; ...; x₈]`. This is one GEMM call instead of 8. The weight matrix W is read from VRAM once, not 8 times. Each CUDA kernel launch has fixed overhead (dispatch, memory barrier, synchronization) — batching amortizes this across all 8 requests.
+The mechanism is straightforward: instead of 8 separate matrix multiplications `W x x1, W x x2, ..., W x x8`, the serving stack concatenates inputs into a single batch: `W x [x1; x2; ...; x8]`. This is one GEMM call instead of 8. The weight matrix W is read from VRAM once, not 8 times. Each CUDA kernel launch has fixed overhead (dispatch, memory barrier, synchronization) -- batching amortizes this across all 8 requests.
 
 The amortization is not perfectly 8:1 because:
 1. **Not all operations batch equally.** Attention kernels, layer norms, and activation functions often process sequences independently.
@@ -707,11 +707,11 @@ The amortization is not perfectly 8:1 because:
 3. **KV-cache management adds overhead.** PagedAttention (vLLM) and FlashAttention variants add block table management kernels that scale with batch size.
 4. **Scheduling overhead.** The continuous batching scheduler itself requires GPU operations for sequence tracking and token sampling.
 
-Despite these inefficiencies, the net amortization of 4.7–5.8x is remarkably high — capturing 59–72% of the theoretical maximum 8x amortization.
+Despite these inefficiencies, the net amortization of 4.7--5.8x is remarkably high -- capturing 59--72% of the theoretical maximum 8x amortization.
 
 ### SS8.5 Verdict
 
-**H1 CONFIRMED.** Continuous batching reduces per-token kernel count by 77–80% at N=8. All 4 tests are significant after Holm correction (all p < 10⁻⁶). The direction is confirmed in every case. Continuous batching fuses kernel launches across concurrent requests.
+**H_1 CONFIRMED.** Continuous batching reduces per-token kernel count by 77--80% at N=8. All 4 tests are significant after Holm correction (all p < 10^-6). The direction is confirmed in every case. Continuous batching fuses kernel launches across concurrent requests.
 
 ---
 
@@ -737,21 +737,21 @@ Despite these inefficiencies, the net amortization of 4.7–5.8x is remarkably h
 
 ### SS9.3 Observations
 
-**Observation 1 — Memory bandwidth reduction mirrors kernel count reduction.** The 79–83% reduction in per-token memory time closely tracks the 77–80% kernel count reduction (SS8). This tight coupling is expected: each kernel launch triggers a weight matrix read from VRAM, so fewer kernels means proportionally fewer memory transfers. The correlation coefficient between kernel reduction and bandwidth reduction across the 4 backend-model pairs is >0.95.
+**Observation 1 -- Memory bandwidth reduction mirrors kernel count reduction.** The 79--83% reduction in per-token memory time closely tracks the 77--80% kernel count reduction (SS8). This tight coupling is expected: each kernel launch triggers a weight matrix read from VRAM, so fewer kernels means proportionally fewer memory transfers. The correlation coefficient between kernel reduction and bandwidth reduction across the 4 backend-model pairs is >0.95.
 
-**Observation 2 — Larger models have higher absolute memory demand.** LLaMA-3B uses 3.47–5.21 ms/token of memory time at N=1 vs 1.27–2.01 ms/token for LLaMA-1B. The ratio (2.6–2.7x) closely tracks the parameter count ratio (3.2B/1.2B = 2.67x). This linear scaling confirms that memory time is dominated by weight reads — the weight matrix size is proportional to parameter count.
+**Observation 2 -- Larger models have higher absolute memory demand.** LLaMA-3B uses 3.47--5.21 ms/token of memory time at N=1 vs 1.27--2.01 ms/token for LLaMA-1B. The ratio (2.6--2.7x) closely tracks the parameter count ratio (3.2B/1.2B = 2.67x). This linear scaling confirms that memory time is dominated by weight reads -- the weight matrix size is proportional to parameter count.
 
-**Observation 3 — vLLM achieves slightly better memory amortization than TGI.** vLLM's bandwidth reduction is 78.6–82.6% vs TGI's 78.5–79.2%. The difference is small but consistent, suggesting vLLM's PagedAttention may achieve marginally better memory access patterns through its virtual-memory-style KV-cache management — reducing fragmentation-induced extra reads.
+**Observation 3 -- vLLM achieves slightly better memory amortization than TGI.** vLLM's bandwidth reduction is 78.6--82.6% vs TGI's 78.5--79.2%. The difference is small but consistent, suggesting vLLM's PagedAttention may achieve marginally better memory access patterns through its virtual-memory-style KV-cache management -- reducing fragmentation-induced extra reads.
 
-**Observation 4 — TGI's absolute memory demand is higher.** TGI uses 50–58% more memory time per token than vLLM at N=1 (2.01 vs 1.27 for 1B; 5.21 vs 3.47 for 3B). This correlates with TGI's attention-heavy kernel profile (SS7) — explicit `cunn_SoftMaxForward` and `reduce_kernel` operations generate additional memory traffic that vLLM's fused attention avoids.
+**Observation 4 -- TGI's absolute memory demand is higher.** TGI uses 50--58% more memory time per token than vLLM at N=1 (2.01 vs 1.27 for 1B; 5.21 vs 3.47 for 3B). This correlates with TGI's attention-heavy kernel profile (SS7) -- explicit `cunn_SoftMaxForward` and `reduce_kernel` operations generate additional memory traffic that vLLM's fused attention avoids.
 
-**Observation 5 — The bandwidth reduction is the strongest evidence for the batching mechanism.** Memory bandwidth is a physical quantity — it directly measures bytes transferred over the memory bus. The 79–83% reduction in per-token memory time is not an artifact of scheduling or measurement; it reflects 4.7–5.8x fewer bytes read from VRAM per generated token. This is the causal mechanism: continuous batching reduces bandwidth demand, and reduced bandwidth demand enables higher throughput under concurrency.
+**Observation 5 -- The bandwidth reduction is the strongest evidence for the batching mechanism.** Memory bandwidth is a physical quantity -- it directly measures bytes transferred over the memory bus. The 79--83% reduction in per-token memory time is not an artifact of scheduling or measurement; it reflects 4.7--5.8x fewer bytes read from VRAM per generated token. This is the causal mechanism: continuous batching reduces bandwidth demand, and reduced bandwidth demand enables higher throughput under concurrency.
 
-**Observation 6 — Cross-referencing with TR131 completes the picture.** TR131 showed Ollama's memory operation time *increases* 74.4% from N=1 to N=8 (p=6.4×10⁻⁵). TR132 shows serving stacks' memory operation time *decreases* 79–83% per token from N=1 to N=8. The mechanisms are opposite: Ollama serializes independent weight reads (more total bandwidth); serving stacks batch weight reads (less bandwidth per token). This bandwidth divergence — increasing for Ollama, decreasing for serving stacks — is the kernel-level explanation for the 26–44 pp scaling advantage measured in TR130.
+**Observation 6 -- Cross-referencing with TR131 completes the picture.** TR131 showed Ollama's memory operation time *increases* 74.4% from N=1 to N=8 (p=6.4x10^-5). TR132 shows serving stacks' memory operation time *decreases* 79--83% per token from N=1 to N=8. The mechanisms are opposite: Ollama serializes independent weight reads (more total bandwidth); serving stacks batch weight reads (less bandwidth per token). This bandwidth divergence -- increasing for Ollama, decreasing for serving stacks -- is the kernel-level explanation for the 26--44 pp scaling advantage measured in TR130.
 
 ### SS9.4 Verdict
 
-**H2 CONFIRMED.** Continuous batching reduces per-token memory bandwidth demand by 79–83% at N=8. All 4 tests are significant after Holm correction (all p < 0.001). This directly explains the scaling advantage: batched requests share weight reads and KV-cache accesses, reducing the bandwidth demand that TR131 identified as the root cause of degradation.
+**H2 CONFIRMED.** Continuous batching reduces per-token memory bandwidth demand by 79--83% at N=8. All 4 tests are significant after Holm correction (all p < 0.001). This directly explains the scaling advantage: batched requests share weight reads and KV-cache accesses, reducing the bandwidth demand that TR131 identified as the root cause of degradation.
 
 ---
 
@@ -778,11 +778,11 @@ The maximum concurrent kernel count of 1.0 across all conditions means that at t
 
 ### SS10.4 Observations
 
-**Observation 1 — Max concurrent kernels = 1 matches TR131's finding.** TR131 found max_concurrent_kernels = 1 for both Ollama and PyTorch Direct across all 26 runs (Cohen's d = 0 for every comparison). TR132 extends this to vLLM and TGI: kernel serialization is universal across all four backends tested in the Banterhearts program. The GPU hardware enforces serial execution of full-width transformer kernels regardless of software.
+**Observation 1 -- Max concurrent kernels = 1 matches TR131's finding.** TR131 found max_concurrent_kernels = 1 for both Ollama and PyTorch Direct across all 26 runs (Cohen's d = 0 for every comparison). TR132 extends this to vLLM and TGI: kernel serialization is universal across all four backends tested in the Banterhearts program. The GPU hardware enforces serial execution of full-width transformer kernels regardless of software.
 
-**Observation 2 — The 0% utilization is a measurement artifact, not a physical finding.** GPU utilization is computed as `gpu_busy_time / total_trace_time`. With `--trace cuda`, nsys does not record GPU busy/idle transitions, so the numerator is always 0. In reality, serving stacks likely achieve high utilization during active inference — the GEMM kernels occupy all SMs for their duration. This metric should not be interpreted as "the GPU is idle."
+**Observation 2 -- The 0% utilization is a measurement artifact, not a physical finding.** GPU utilization is computed as `gpu_busy_time / total_trace_time`. With `--trace cuda`, nsys does not record GPU busy/idle transitions, so the numerator is always 0. In reality, serving stacks likely achieve high utilization during active inference -- the GEMM kernels occupy all SMs for their duration. This metric should not be interpreted as "the GPU is idle."
 
-**Observation 3 — Continuous batching achieves amortization via wider kernels, not concurrent kernels.** The max_concurrent=1 result clarifies how batching works: it does not launch multiple small kernels in parallel. Instead, it widens each kernel to process more rows (batch dimension). A single GEMM kernel with batch=8 is one kernel launch that keeps all SMs busy longer, not 8 kernel launches running simultaneously. This is consistent with the 80% kernel count reduction (SS8) — fewer launches, not more parallelism.
+**Observation 3 -- Continuous batching achieves amortization via wider kernels, not concurrent kernels.** The max_concurrent=1 result clarifies how batching works: it does not launch multiple small kernels in parallel. Instead, it widens each kernel to process more rows (batch dimension). A single GEMM kernel with batch=8 is one kernel launch that keeps all SMs busy longer, not 8 kernel launches running simultaneously. This is consistent with the 80% kernel count reduction (SS8) -- fewer launches, not more parallelism.
 
 ### SS10.5 Verdict
 
@@ -818,26 +818,26 @@ The maximum concurrent kernel count of 1.0 across all conditions means that at t
 
 **Observation 3 -- Despite kernel overhead, vLLM achieves 81% of Ollama's N=1 TPS.** vLLM: 129.4 TPS vs Ollama: 160.4 TPS for LLaMA-1B. The extra kernels add ~19% overhead at N=1, which is more than recovered by the batching advantage at N>=2.
 
-**Observation 4 — TGI has higher kernel count but lower GPU time than vLLM.** TGI launches 46,705 kernels with 960 ms GPU time (20.5 us/kernel) vs vLLM's 35,129 kernels with 5,221 ms GPU time (148.6 us/kernel). vLLM's kernels are much longer-running on average, consistent with fused attention operations that combine multiple computation stages into a single kernel launch.
+**Observation 4 -- TGI has higher kernel count but lower GPU time than vLLM.** TGI launches 46,705 kernels with 960 ms GPU time (20.5 us/kernel) vs vLLM's 35,129 kernels with 5,221 ms GPU time (148.6 us/kernel). vLLM's kernels are much longer-running on average, consistent with fused attention operations that combine multiple computation stages into a single kernel launch.
 
-**Observation 5 — The kernel count gap narrows at 3B.** LLaMA-1B: vLLM has 35,129 kernels vs TGI's 46,705 (TGI is 1.33x higher). LLaMA-3B: vLLM has 49,094 vs TGI's 55,663 (TGI is 1.13x higher). As model size grows, both backends converge on a similar kernel count because the model-proportional GEMM kernels dominate over the architecture-specific attention and utility kernels.
+**Observation 5 -- The kernel count gap narrows at 3B.** LLaMA-1B: vLLM has 35,129 kernels vs TGI's 46,705 (TGI is 1.33x higher). LLaMA-3B: vLLM has 49,094 vs TGI's 55,663 (TGI is 1.13x higher). As model size grows, both backends converge on a similar kernel count because the model-proportional GEMM kernels dominate over the architecture-specific attention and utility kernels.
 
-**Observation 6 — Ollama's extreme kernel efficiency comes from ggml fusion.** Ollama's 2,257 kernels for LLaMA-1B (vs 35,129 for vLLM) reflect ggml's `mul_mat_q` fused kernels (TR131 SS4). Each ggml kernel performs dequantization + matrix multiplication in a single launch. Serving stacks use separate dequant/compute passes (or run in FP16 natively), multiplying the kernel count. This is a fundamental architectural difference: ggml is optimized for minimal kernel overhead on a single request; serving stacks are optimized for maximal batching efficiency across concurrent requests.
+**Observation 6 -- Ollama's extreme kernel efficiency comes from ggml fusion.** Ollama's 2,257 kernels for LLaMA-1B (vs 35,129 for vLLM) reflect ggml's `mul_mat_q` fused kernels (TR131 SS4). Each ggml kernel performs dequantization + matrix multiplication in a single launch. Serving stacks use separate dequant/compute passes (or run in FP16 natively), multiplying the kernel count. This is a fundamental architectural difference: ggml is optimized for minimal kernel overhead on a single request; serving stacks are optimized for maximal batching efficiency across concurrent requests.
 
-### SS11.3 Interpretation — The N=1 Overhead Tradeoff
+### SS11.3 Interpretation -- The N=1 Overhead Tradeoff
 
-The baseline overhead comparison reveals a critical tradeoff in serving stack design. At N=1, vLLM and TGI pay a substantial overhead: 15–25x more kernel launches and 60–80% of Ollama's throughput. This overhead comes from:
+The baseline overhead comparison reveals a critical tradeoff in serving stack design. At N=1, vLLM and TGI pay a substantial overhead: 15--25x more kernel launches and 60--80% of Ollama's throughput. This overhead comes from:
 
 1. **FP16 vs Q4_0**: FP16 reads 3.3x more weight data per token (2 bytes vs 0.6 bytes per parameter).
 2. **Unfused operations**: Separate kernels for attention, normalization, activation, and GEMM (vs ggml's fused approach).
 3. **PagedAttention/KV-cache management**: Block table initialization, memory allocation tracking, and cache bookkeeping.
-4. **Continuous batching scheduler**: Sequence tracking, token sampling, and batch formation — even for a single request.
+4. **Continuous batching scheduler**: Sequence tracking, token sampling, and batch formation -- even for a single request.
 
-This overhead is the *cost* of enabling continuous batching. At N=1, it is pure waste — Ollama is 24–66% faster. But at N≥2, the batching advantage compounds: each additional concurrent request adds minimal kernel overhead (because requests are fused into existing GEMM calls), while Ollama adds a full independent kernel sequence per request. The crossover point where serving stacks overtake Ollama in total throughput is between N=1 and N=2 (SS6).
+This overhead is the *cost* of enabling continuous batching. At N=1, it is pure waste -- Ollama is 24--66% faster. But at N>=2, the batching advantage compounds: each additional concurrent request adds minimal kernel overhead (because requests are fused into existing GEMM calls), while Ollama adds a full independent kernel sequence per request. The crossover point where serving stacks overtake Ollama in total throughput is between N=1 and N=2 (SS6).
 
 ### SS11.4 Verdict
 
-**H5 INSUFFICIENT DATA.** TR131 PyTorch Direct N=1 data was not available in the cross-reference dataset. The comparison with Ollama shows substantial overhead (15–25x more kernels), but a PyTorch Direct comparison would be needed to determine whether this overhead is from the serving stack software or from the containerized execution environment. The Ollama comparison is further confounded by the Q4_0 vs FP16 quantization difference.
+**H5 INSUFFICIENT DATA.** TR131 PyTorch Direct N=1 data was not available in the cross-reference dataset. The comparison with Ollama shows substantial overhead (15--25x more kernels), but a PyTorch Direct comparison would be needed to determine whether this overhead is from the serving stack software or from the containerized execution environment. The Ollama comparison is further confounded by the Q4_0 vs FP16 quantization difference.
 
 ---
 
@@ -862,21 +862,21 @@ The bandwidth amortization ratio measures how effectively continuous batching re
 
 **Observation 3 -- Scaling advantage grows with model size.** For LLaMA-3B, the advantage over Ollama is 43.3--43.5 pp (vs 26.3--28.0 pp for 1B). Larger models have more GEMM operations per token (more layers, wider dimensions), providing more opportunity for batched kernel fusion.
 
-**Observation 4 — The bandwidth saving directly explains the throughput advantage.** Ollama degrades 82% at N=8 because each of 8 requests reads the full weight matrices independently. vLLM/TGI degrade only 39–56% because they fuse 8 requests into shared GEMM operations, reading weights once for all requests in a batch iteration.
+**Observation 4 -- The bandwidth saving directly explains the throughput advantage.** Ollama degrades 82% at N=8 because each of 8 requests reads the full weight matrices independently. vLLM/TGI degrade only 39--56% because they fuse 8 requests into shared GEMM operations, reading weights once for all requests in a batch iteration.
 
-**Observation 5 — The amortization ratio provides an upper bound on scaling improvement.** If bandwidth amortization were the *only* factor, a 5.75x amortization would reduce degradation from 82% (Ollama) to ~14%. The actual 56% degradation for vLLM LLaMA-1B is worse than this theoretical limit because: (a) not all operations batch equally (attention, layer norms), (b) prefill vs decode phases have different efficiency, and (c) batch scheduling adds its own overhead. The gap between theoretical and actual (14% vs 56%) represents the non-amortizable fraction of the workload.
+**Observation 5 -- The amortization ratio provides an upper bound on scaling improvement.** If bandwidth amortization were the *only* factor, a 5.75x amortization would reduce degradation from 82% (Ollama) to ~14%. The actual 56% degradation for vLLM LLaMA-1B is worse than this theoretical limit because: (a) not all operations batch equally (attention, layer norms), (b) prefill vs decode phases have different efficiency, and (c) batch scheduling adds its own overhead. The gap between theoretical and actual (14% vs 56%) represents the non-amortizable fraction of the workload.
 
-### SS12.3 Interpretation — Why Amortization Is Not 8:1
+### SS12.3 Interpretation -- Why Amortization Is Not 8:1
 
-The theoretical maximum amortization for N=8 is 8:1 — each weight read serves 8 requests. The observed 4.7–5.8x amortization captures 59–72% of this theoretical maximum. The gap comes from three sources:
+The theoretical maximum amortization for N=8 is 8:1 -- each weight read serves 8 requests. The observed 4.7--5.8x amortization captures 59--72% of this theoretical maximum. The gap comes from three sources:
 
-**1. Attention is per-sequence.** Even with continuous batching, the attention computation (Q×K^T×V) operates on per-sequence KV-caches. Each of the 8 sequences has its own key and value tensors, which cannot be fused across sequences. The attention fraction (4–32% of GPU time, SS7) represents the non-amortizable portion.
+**1. Attention is per-sequence.** Even with continuous batching, the attention computation (QxK^TxV) operates on per-sequence KV-caches. Each of the 8 sequences has its own key and value tensors, which cannot be fused across sequences. The attention fraction (4--32% of GPU time, SS7) represents the non-amortizable portion.
 
-**2. Decode-phase inefficiency.** During autoregressive decoding, each token generates a single row of activations. A batch of 8 decoding sequences produces an 8-row activation matrix — still a relatively narrow matrix for GEMM. The GPU's SM occupancy is lower for narrow matrices, reducing compute efficiency compared to the wide matrices in prefill.
+**2. Decode-phase inefficiency.** During autoregressive decoding, each token generates a single row of activations. A batch of 8 decoding sequences produces an 8-row activation matrix -- still a relatively narrow matrix for GEMM. The GPU's SM occupancy is lower for narrow matrices, reducing compute efficiency compared to the wide matrices in prefill.
 
 **3. Scheduling overhead.** The continuous batching scheduler (sequence tracking, token sampling, cache management) adds fixed per-iteration overhead that does not scale with batch size. This overhead is visible in the kernel count data: vLLM's kernel count at N=8 is only 5% lower than N=1 (not 87.5% lower as perfect 8:1 would predict).
 
-Despite these inefficiencies, 59–72% amortization efficiency is remarkably high. It converts a catastrophic 82% degradation (Ollama) into a manageable 39–56% degradation — the difference between a usable multi-agent system and an unusable one.
+Despite these inefficiencies, 59--72% amortization efficiency is remarkably high. It converts a catastrophic 82% degradation (Ollama) into a manageable 39--56% degradation -- the difference between a usable multi-agent system and an unusable one.
 
 ---
 
@@ -888,11 +888,11 @@ Despite these inefficiencies, 59–72% amortization efficiency is remarkably hig
 
 | Rank | Test | p-value | Holm Threshold | Significant |
 |------|------|---------|----------------|-------------|
-| 1 | H1 vLLM LLaMA-1B | 5.29x10^-11 | 0.00417 | **Yes** |
-| 2 | H1 TGI LLaMA-1B | 9.66x10^-10 | 0.00455 | **Yes** |
+| 1 | H_1 vLLM LLaMA-1B | 5.29x10^-11 | 0.00417 | **Yes** |
+| 2 | H_1 TGI LLaMA-1B | 9.66x10^-10 | 0.00455 | **Yes** |
 | 3 | H2 vLLM LLaMA-3B | 5.19x10^-7 | 0.00500 | **Yes** |
-| 4 | H1 TGI LLaMA-3B | 5.52x10^-7 | 0.00556 | **Yes** |
-| 5 | H1 vLLM LLaMA-3B | 1.53x10^-6 | 0.00625 | **Yes** |
+| 4 | H_1 TGI LLaMA-3B | 5.52x10^-7 | 0.00556 | **Yes** |
+| 5 | H_1 vLLM LLaMA-3B | 1.53x10^-6 | 0.00625 | **Yes** |
 | 6 | H2 TGI LLaMA-3B | 7.38x10^-6 | 0.00714 | **Yes** |
 | 7 | H2 TGI LLaMA-1B | 7.67x10^-5 | 0.00833 | **Yes** |
 | 8 | H2 vLLM LLaMA-1B | 2.32x10^-4 | 0.01000 | **Yes** |
@@ -905,7 +905,7 @@ Despite these inefficiencies, 59–72% amortization efficiency is remarkably hig
 
 | H | Hypothesis | Verdict | Tests Confirmed | Holm Significant |
 |---|-----------|---------|-----------------|------------------|
-| H1 | Per-token kernel count reduces with batching | **CONFIRMED** | 4/4 | 4/4 |
+| H_1 | Per-token kernel count reduces with batching | **CONFIRMED** | 4/4 | 4/4 |
 | H2 | Per-token memory bandwidth reduces with batching | **CONFIRMED** | 4/4 | 4/4 |
 | H3 | GPU utilization increases with batching | **REJECTED** | 0/4 | 0/4 |
 | H4 | Distinct attention kernel signatures | **INCONCLUSIVE** | -- | -- |
@@ -913,7 +913,7 @@ Despite these inefficiencies, 59–72% amortization efficiency is remarkably hig
 
 ### SS13.3 Power Caveat
 
-With N=3 reps per condition, the minimum detectable Cohen's d is approximately 4.3. All confirmed effects (H1, H2) have d >> 100, well above this threshold. The verdicts are robust despite the small sample size. The H3 rejection is due to a measurement limitation (0% in all conditions), not insufficient power.
+With N=3 reps per condition, the minimum detectable Cohen's d is approximately 4.3. All confirmed effects (H_1, H2) have d >> 100, well above this threshold. The verdicts are robust despite the small sample size. The H3 rejection is due to a measurement limitation (0% in all conditions), not insufficient power.
 
 ---
 
@@ -930,25 +930,25 @@ With N=3 reps per condition, the minimum detectable Cohen's d is approximately 4
 
 ### SS14.2 The Complete Story
 
-Multi-agent LLM inference degrades because GPU memory bandwidth is a fixed resource. Each token generation requires reading the full model weights from VRAM. At N=1, one request uses the bandwidth. At N=8, eight requests compete for the same bandwidth — a fundamental physical limit (TR131).
+Multi-agent LLM inference degrades because GPU memory bandwidth is a fixed resource. Each token generation requires reading the full model weights from VRAM. At N=1, one request uses the bandwidth. At N=8, eight requests compete for the same bandwidth -- a fundamental physical limit (TR131).
 
-**The Ollama path (no batching):** Each of 8 concurrent requests executes an independent kernel sequence, reading the full weight matrix from VRAM 8 times per token generation step. Ollama's ggml backend processes requests sequentially — `max_concurrent_kernels = 1` in all conditions (TR131 SS11). The GPU serializes weight reads, and the memory controller becomes the bottleneck. Result: 82% per-agent degradation. The 8 agents collectively achieve only 1.4x the throughput of a single agent.
+**The Ollama path (no batching):** Each of 8 concurrent requests executes an independent kernel sequence, reading the full weight matrix from VRAM 8 times per token generation step. Ollama's ggml backend processes requests sequentially -- `max_concurrent_kernels = 1` in all conditions (TR131 SS11). The GPU serializes weight reads, and the memory controller becomes the bottleneck. Result: 82% per-agent degradation. The 8 agents collectively achieve only 1.4x the throughput of a single agent.
 
-**The serving stack path (continuous batching):** vLLM and TGI intercept concurrent requests before they reach the GPU. Instead of dispatching 8 separate `W × x_i` matmuls, they concatenate inputs: `W × [x_1; x_2; ...; x_8]`. This single GEMM reads the weight matrix once and produces 8 outputs simultaneously. The GPU compute is slightly higher (wider matrix multiply), but the memory bandwidth is amortized 4.7–5.8x. Result: 39–56% per-agent degradation. The 8 agents collectively achieve 3.0–4.9x the throughput of a single agent.
+**The serving stack path (continuous batching):** vLLM and TGI intercept concurrent requests before they reach the GPU. Instead of dispatching 8 separate `W x x_i` matmuls, they concatenate inputs: `W x [x_1; x_2; ...; x_8]`. This single GEMM reads the weight matrix once and produces 8 outputs simultaneously. The GPU compute is slightly higher (wider matrix multiply), but the memory bandwidth is amortized 4.7--5.8x. Result: 39--56% per-agent degradation. The 8 agents collectively achieve 3.0--4.9x the throughput of a single agent.
 
-**TR132 provides the kernel-level proof.** Per-token kernel count drops 80% (from 55–87 to 11–20 per token). Per-token memory bandwidth drops 79–83%. The amortization ratio of 4.7–5.8x directly accounts for the 26–44 pp scaling advantage of serving stacks over Ollama. This is not a scheduling optimization — it is a fundamental change in the GPU workload pattern from independent to batched computation.
+**TR132 provides the kernel-level proof.** Per-token kernel count drops 80% (from 55--87 to 11--20 per token). Per-token memory bandwidth drops 79--83%. The amortization ratio of 4.7--5.8x directly accounts for the 26--44 pp scaling advantage of serving stacks over Ollama. This is not a scheduling optimization -- it is a fundamental change in the GPU workload pattern from independent to batched computation.
 
-### SS14.3 The Four-Report Causal Chain — Summary
+### SS14.3 The Four-Report Causal Chain -- Summary
 
 ```
 TR129: "Throughput degrades 63% at N=8"
-  ↓ What causes the degradation?
+  down What causes the degradation?
 TR130: "Serving stacks degrade less (39-56% vs 82%)"
-  ↓ But why? Is it scheduling? Software? Hardware?
+  down But why? Is it scheduling? Software? Hardware?
 TR131: "GPU memory bandwidth saturation is the root cause"
-  ↓ How do serving stacks avoid it?
+  down How do serving stacks avoid it?
 TR132: "Continuous batching amortizes bandwidth 4.7-5.8x via kernel fusion"
-  ↓ COMPLETE — mechanism identified
+  down COMPLETE -- mechanism identified
 ```
 
 The causal chain is now closed. Each TR answers the question left open by its predecessor. TR129 measured the problem. TR130 found a mitigation. TR131 identified the physics. TR132 identified the mechanism. Future work shifts from diagnosis to optimization.
@@ -959,20 +959,20 @@ The causal chain is now closed. Each TR answers the question left open by its pr
 
 ### SS15.1 Power Analysis
 
-With N=3 repetitions per condition and α=0.05 (two-tailed), the minimum detectable Cohen's d at 80% power is approximately 4.3. This means only very large effects (>4 pooled standard deviations) can be detected as statistically significant.
+With N=3 repetitions per condition and alpha=0.05 (two-tailed), the minimum detectable Cohen's d at 80% power is approximately 4.3. This means only very large effects (>4 pooled standard deviations) can be detected as statistically significant.
 
-| Metric | N per group | α | Min detectable d | Interpretation |
+| Metric | N per group | alpha | Min detectable d | Interpretation |
 |--------|-------------|-----|------------------|----------------|
-| All H1/H2 tests | 3 | 0.05 | ~4.3 | Only very large effects detectable |
+| All H_1/H2 tests | 3 | 0.05 | ~4.3 | Only very large effects detectable |
 
 ### SS15.2 Observed Effect Sizes
 
 | Test | Cohen's d | Multiple of d_min | Status |
 |------|-----------|-------------------|--------|
-| H1 vLLM LLaMA-1B | 1,057.9 | 246x | Far above threshold |
-| H1 vLLM LLaMA-3B | 605.5 | 141x | Far above threshold |
-| H1 TGI LLaMA-1B | 26,269.3 | 6,109x | Far above threshold |
-| H1 TGI LLaMA-3B | 1,099.1 | 256x | Far above threshold |
+| H_1 vLLM LLaMA-1B | 1,057.9 | 246x | Far above threshold |
+| H_1 vLLM LLaMA-3B | 605.5 | 141x | Far above threshold |
+| H_1 TGI LLaMA-1B | 26,269.3 | 6,109x | Far above threshold |
+| H_1 TGI LLaMA-3B | 1,099.1 | 256x | Far above threshold |
 | H2 vLLM LLaMA-1B | 21.6 | 5.0x | Above threshold |
 | H2 vLLM LLaMA-3B | 75.1 | 17.5x | Far above threshold |
 | H2 TGI LLaMA-1B | 32.3 | 7.5x | Above threshold |
@@ -993,7 +993,7 @@ All confirmed effects have d >> d_min, with the smallest (H2 vLLM LLaMA-1B, d=21
 
 ### SS15.4 Caveat
 
-The small N (3 reps) means we cannot detect moderate effects (d < 4.3). If GPU utilization (H3) showed a real but moderate change (e.g., d=2), we would miss it. However, H3's rejection is due to a measurement limitation (0% in all conditions), not insufficient power — adding more reps would not change the 0% reading. For H1 and H2, the effects are so large that even N=2 would have been sufficient.
+The small N (3 reps) means we cannot detect moderate effects (d < 4.3). If GPU utilization (H3) showed a real but moderate change (e.g., d=2), we would miss it. However, H3's rejection is due to a measurement limitation (0% in all conditions), not insufficient power -- adding more reps would not change the 0% reading. For H_1 and H2, the effects are so large that even N=2 would have been sufficient.
 
 ---
 
@@ -1014,17 +1014,17 @@ TR130 measured serving stack throughput without nsys profiling. Comparing TR130 
 
 ### SS16.2 Observations
 
-**Observation 1 — Profiling overhead is 3–5%.** The nsys CUPTI injection adds approximately 3–5% overhead to serving stack throughput. This is consistent with NVIDIA's documented nsys overhead range (1–5% for `--trace cuda`).
+**Observation 1 -- Profiling overhead is 3--5%.** The nsys CUPTI injection adds approximately 3--5% overhead to serving stack throughput. This is consistent with NVIDIA's documented nsys overhead range (1--5% for `--trace cuda`).
 
-**Observation 2 — Overhead is symmetric across N=1 and N=8.** Since nsys traces all CUDA activity equally regardless of concurrency level, the overhead is proportional — it does not distort the N=1 vs N=8 ratio. The 80% kernel count reduction and 80% bandwidth reduction are measured under identical profiling conditions.
+**Observation 2 -- Overhead is symmetric across N=1 and N=8.** Since nsys traces all CUDA activity equally regardless of concurrency level, the overhead is proportional -- it does not distort the N=1 vs N=8 ratio. The 80% kernel count reduction and 80% bandwidth reduction are measured under identical profiling conditions.
 
-**Observation 3 — Container-per-rep eliminates cross-contamination.** Each rep starts a fresh container with a fresh nsys instance. There is no cumulative overhead from long-running profiling sessions or growing trace buffers.
+**Observation 3 -- Container-per-rep eliminates cross-contamination.** Each rep starts a fresh container with a fresh nsys instance. There is no cumulative overhead from long-running profiling sessions or growing trace buffers.
 
-**Observation 4 — Overhead is comparable to TR131.** TR131 reported ~0% overhead for Ollama profiling (160.4 TPS profiled vs ~160 TPS unprofiled). The slightly higher overhead for serving stacks (3–5% vs ~0%) is expected because serving stacks launch 15–25x more kernels per inference, and nsys overhead scales with kernel launch rate.
+**Observation 4 -- Overhead is comparable to TR131.** TR131 reported ~0% overhead for Ollama profiling (160.4 TPS profiled vs ~160 TPS unprofiled). The slightly higher overhead for serving stacks (3--5% vs ~0%) is expected because serving stacks launch 15--25x more kernels per inference, and nsys overhead scales with kernel launch rate.
 
 ### SS16.3 Verdict
 
-Profiling overhead is small (3–5%), symmetric across conditions, and does not affect the validity of N=1 vs N=8 comparisons. All hypothesis tests compare profiled-vs-profiled conditions, making the overhead a constant factor that cancels out.
+Profiling overhead is small (3--5%), symmetric across conditions, and does not affect the validity of N=1 vs N=8 comparisons. All hypothesis tests compare profiled-vs-profiled conditions, making the overhead a constant factor that cancels out.
 
 ---
 
@@ -1041,16 +1041,16 @@ Profiling overhead is small (3–5%), symmetric across conditions, and does not 
 
 | Type | Threat | Severity | Mitigation | Residual Risk |
 |------|--------|----------|------------|---------------|
-| Internal | Profiling overhead distorts throughput | Low | Container-per-rep isolation; ~3–5% overhead (SS16) | Relative comparisons unaffected; absolute TPS ~3–5% lower |
-| Internal | N=3 underpowered for moderate effects | Low | All confirmed effects d >> 100 (246x above d_min) | Cannot detect effects < d=4.3; irrelevant for H1/H2 |
-| Internal | Warmup included in trace | Low | Warmup is 3 requests vs 5–24 workload (~6–12% of trace) | Early-trace kernels include model loading; slightly inflates kernel count |
+| Internal | Profiling overhead distorts throughput | Low | Container-per-rep isolation; ~3--5% overhead (SS16) | Relative comparisons unaffected; absolute TPS ~3--5% lower |
+| Internal | N=3 underpowered for moderate effects | Low | All confirmed effects d >> 100 (246x above d_min) | Cannot detect effects < d=4.3; irrelevant for H_1/H2 |
+| Internal | Warmup included in trace | Low | Warmup is 3 requests vs 5--24 workload (~6--12% of trace) | Early-trace kernels include model loading; slightly inflates kernel count |
 | Internal | `--trace cuda` mode misses GPU metrics | High | H3 explicitly rejected due to this limitation | Cannot measure SM utilization, register pressure, or DRAM throughput |
 | External | WSL2/Docker GPU path differs from native Linux | Medium | Results reflect production Docker deployments on Windows | Bare-metal Linux may show different kernel fusion patterns |
-| External | Fixed prompt/generation lengths | Medium | 100–200 token prompts, 128 token generation | Production traffic has variable lengths; amortization may differ |
+| External | Fixed prompt/generation lengths | Medium | 100--200 token prompts, 128 token generation | Production traffic has variable lengths; amortization may differ |
 | External | Only 2 model sizes tested | Medium | Both show consistent patterns | Extrapolation to >7B models is untested |
 | Construct | Kernel count as proxy for computational cost | Low | Corroborated by memory time reduction (independent metric) | Some kernels may vary dramatically in cost |
 | Construct | Attention kernel classification from names | High | H4 explicitly marked INCONCLUSIVE | Cannot distinguish PagedAttention vs FlashAttention reliably |
-| Statistical | Multiple testing (12 tests) | Low | Holm step-down correction at α=0.05 | 8/12 tests significant after correction; conservative |
+| Statistical | Multiple testing (12 tests) | Low | Holm step-down correction at alpha=0.05 | 8/12 tests significant after correction; conservative |
 
 ### SS17.3 Future Work
 
@@ -1068,45 +1068,45 @@ Profiling overhead is small (3–5%), symmetric across conditions, and does not 
 
 **Q1: Does continuous batching reduce per-token kernel launches?**
 
-Yes. Continuous batching reduces per-token kernel count by 77–80% at N=8. This was confirmed across all four backend-model pairs with overwhelming statistical significance (all p < 10⁻⁶, all d > 600, all surviving Holm correction). The mechanism is kernel-level fusion: instead of launching 8 independent matrix multiplications per layer, the serving stack concatenates 8 inputs into a single batched GEMM call. The weight matrix is read once, not 8 times. This is the most direct evidence of continuous batching's computational benefit ever measured in the Banterhearts research program.
+Yes. Continuous batching reduces per-token kernel count by 77--80% at N=8. This was confirmed across all four backend-model pairs with overwhelming statistical significance (all p < 10^-6, all d > 600, all surviving Holm correction). The mechanism is kernel-level fusion: instead of launching 8 independent matrix multiplications per layer, the serving stack concatenates 8 inputs into a single batched GEMM call. The weight matrix is read once, not 8 times. This is the most direct evidence of continuous batching's computational benefit ever measured in the Banterhearts research program.
 
 **Q2: Does continuous batching reduce per-token memory bandwidth demand?**
 
-Yes. Per-token memory operation time drops 79–83% at N=8, confirmed across all pairs (all p < 0.001, all d > 21, all surviving Holm correction). The bandwidth reduction mirrors the kernel count reduction (correlation >0.95), confirming that fewer kernels means proportionally fewer weight reads. This is the causal link between continuous batching and the 26–44 pp scaling advantage over Ollama: batching reduces the bandwidth demand that TR131 identified as the root cause of degradation.
+Yes. Per-token memory operation time drops 79--83% at N=8, confirmed across all pairs (all p < 0.001, all d > 21, all surviving Holm correction). The bandwidth reduction mirrors the kernel count reduction (correlation >0.95), confirming that fewer kernels means proportionally fewer weight reads. This is the causal link between continuous batching and the 26--44 pp scaling advantage over Ollama: batching reduces the bandwidth demand that TR131 identified as the root cause of degradation.
 
 **Q3: Does batched serving achieve higher GPU utilization?**
 
-Cannot determine. The `--trace cuda` profiling mode does not capture GPU performance counters (SM occupancy, utilization). GPU utilization reads 0% in all conditions — this is a measurement limitation of the profiling configuration, not evidence of low utilization. Future work should explore `--trace cuda,gpu_metric` inside containers.
+Cannot determine. The `--trace cuda` profiling mode does not capture GPU performance counters (SM occupancy, utilization). GPU utilization reads 0% in all conditions -- this is a measurement limitation of the profiling configuration, not evidence of low utilization. Future work should explore `--trace cuda,gpu_metric` inside containers.
 
 **Q4: Do PagedAttention and FlashAttention have distinct kernel signatures?**
 
-Partially. The kernel profiles show clear structural differences: vLLM is GEMM-dominated (69–82% of GPU time) while TGI is attention-heavy (22–32% in softmax/reduce kernels). However, kernel names could not be reliably classified as "PagedAttention" vs "FlashAttention" — both backends use CUTLASS/cuBLAS GEMM kernels for matmul, and the attention implementation is reflected in different kernel mixes rather than distinct kernel names. Nsight Compute source correlation would be needed for definitive attribution.
+Partially. The kernel profiles show clear structural differences: vLLM is GEMM-dominated (69--82% of GPU time) while TGI is attention-heavy (22--32% in softmax/reduce kernels). However, kernel names could not be reliably classified as "PagedAttention" vs "FlashAttention" -- both backends use CUTLASS/cuBLAS GEMM kernels for matmul, and the attention implementation is reflected in different kernel mixes rather than distinct kernel names. Nsight Compute source correlation would be needed for definitive attribution.
 
 **Q5: Is serving-stack N=1 overhead comparable to PyTorch?**
 
-Cannot determine. TR131 PyTorch Direct N=1 data was not available in the cross-reference dataset. The comparison with Ollama shows that serving stacks launch 15–25x more kernels at N=1 but achieve 66–81% of Ollama's throughput — suggesting significant kernel overhead that is more than compensated by batching at N≥2.
+Cannot determine. TR131 PyTorch Direct N=1 data was not available in the cross-reference dataset. The comparison with Ollama shows that serving stacks launch 15--25x more kernels at N=1 but achieve 66--81% of Ollama's throughput -- suggesting significant kernel overhead that is more than compensated by batching at N>=2.
 
 ### SS18.2 The Central Finding
 
-**Continuous batching works by kernel-level amortization.** When 8 requests arrive concurrently, vLLM and TGI do not execute 8 independent kernel sequences. They fuse requests into shared GEMM operations, reducing per-token kernel count by 80% and per-token memory bandwidth by 80%. This 4.7–5.8x bandwidth amortization is the mechanism that gives serving stacks their 26–44 percentage-point scaling advantage over Ollama.
+**Continuous batching works by kernel-level amortization.** When 8 requests arrive concurrently, vLLM and TGI do not execute 8 independent kernel sequences. They fuse requests into shared GEMM operations, reducing per-token kernel count by 80% and per-token memory bandwidth by 80%. This 4.7--5.8x bandwidth amortization is the mechanism that gives serving stacks their 26--44 percentage-point scaling advantage over Ollama.
 
-This finding reattributes the TR130 conclusion. TR130 stated: "the serving stack is the bottleneck, and it is Ollama that suffers." TR131 showed the bottleneck is GPU memory physics, not software. TR132 completes the picture: serving stacks don't merely "schedule better" — they fundamentally change the GPU workload from N independent weight reads to 1 batched weight read. The scaling advantage is a consequence of bandwidth physics, not scheduling quality.
+This finding reattributes the TR130 conclusion. TR130 stated: "the serving stack is the bottleneck, and it is Ollama that suffers." TR131 showed the bottleneck is GPU memory physics, not software. TR132 completes the picture: serving stacks don't merely "schedule better" -- they fundamentally change the GPU workload from N independent weight reads to 1 batched weight read. The scaling advantage is a consequence of bandwidth physics, not scheduling quality.
 
 ### SS18.3 Decision Tree
 
 ```
 Is your workload multi-agent (N > 1)?
-├── No → Ollama is simplest and fastest at N=1
-│         (160 TPS vs 106 for vLLM, 84 for TGI)
-└── Yes → How many agents?
-    ├── N = 2-3 → Any serving stack provides acceptable scaling
-    │              vLLM retains ~70% per-agent TPS at N=2
-    └── N ≥ 4 → Use vLLM or TGI (continuous batching required)
-        ├── API compatibility matters? → TGI (HuggingFace ecosystem)
-        ├── Need highest throughput? → vLLM (+20-27% vs TGI)
-        └── Model size?
-            ├── ≤1B → Expect ~56% degradation at N=8 (26 pp advantage over Ollama)
-            └── ≥3B → Expect ~39% degradation at N=8 (43 pp advantage over Ollama)
+|-- No -> Ollama is simplest and fastest at N=1
+|         (160 TPS vs 106 for vLLM, 84 for TGI)
++-- Yes -> How many agents?
+    |-- N = 2-3 -> Any serving stack provides acceptable scaling
+    |              vLLM retains ~70% per-agent TPS at N=2
+    +-- N >= 4 -> Use vLLM or TGI (continuous batching required)
+        |-- API compatibility matters? -> TGI (HuggingFace ecosystem)
+        |-- Need highest throughput? -> vLLM (+20-27% vs TGI)
+        +-- Model size?
+            |-- <=1B -> Expect ~56% degradation at N=8 (26 pp advantage over Ollama)
+            +-- >=3B -> Expect ~39% degradation at N=8 (43 pp advantage over Ollama)
 ```
 
 ### SS18.4 One-Number Summaries
@@ -1116,14 +1116,14 @@ Is your workload multi-agent (N > 1)?
 - **80%**: Per-token memory bandwidth reduction at N=8
 - **43.5 pp**: Maximum scaling advantage over Ollama (vLLM, LLaMA-3B)
 - **100%**: Trace capture success rate (24/24 profiled runs)
-- **8/8**: Holm-corrected significant tests for H1 + H2
+- **8/8**: Holm-corrected significant tests for H_1 + H2
 - **48 min**: Total experiment runtime (5 phases)
 
 ### SS18.5 What Changes for the Banterhearts Research Program
 
 1. **The degradation mechanism is now fully characterized** from measurement (TR129) through physics (TR131) to mechanism (TR132). The four-report causal chain provides complete attribution: degradation is GPU memory bandwidth saturation (TR131), and serving stacks mitigate it via kernel-level bandwidth amortization (TR132).
 
-2. **Serving stack selection is validated** by kernel-level evidence. vLLM and TGI achieve comparable amortization (4.7–5.8x vs 4.7–4.8x); the choice between them is operational (API compatibility, deployment ecosystem), not performance-fundamental. The 20% throughput gap is a constant-factor difference, not a scaling difference.
+2. **Serving stack selection is validated** by kernel-level evidence. vLLM and TGI achieve comparable amortization (4.7--5.8x vs 4.7--4.8x); the choice between them is operational (API compatibility, deployment ecosystem), not performance-fundamental. The 20% throughput gap is a constant-factor difference, not a scaling difference.
 
 3. **In-container nsys profiling is a reusable methodology.** Future TRs can profile any Docker-based CUDA workload on Windows using the same approach: mount Linux nsys binary, wrap entrypoint, volume-mount traces. The 100% capture rate across 24 runs validates reliability.
 

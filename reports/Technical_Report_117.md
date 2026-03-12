@@ -3,7 +3,7 @@
 **Version:** 1.1 (Revised)  
 **Date:** 2025-12-08  
 **Author:** Banterhearts Team  
-**Status:** Complete (Data-Consistent Revision)
+**Status:** Complete (Data-Consistent Revision)  
 
 ---
 
@@ -21,7 +21,7 @@ This report presents a comprehensive benchmark of **5 inference backends** for l
 
 ### Honest Limitations
 
-⚠️ **This report reflects ACTUAL test results, not aspirations:**
+WARNING **This report reflects ACTUAL test results, not aspirations:**
 - **NO accuracy metrics** (accuracy column empty in all 3,017 runs)
 - **TensorRT/ONNX NOT tested** (546/546 runs degraded due to missing engines)
 - **Model skew:** 55% runs on tiny-gpt2 (124M), rest on Ollama models (270M-8B)
@@ -43,12 +43,12 @@ Local-first LLM inference requires choosing the optimal backend for speed, cost,
 ### 1.2 Scope
 
 **Tested:**
-- ✅ PyTorch transformers (CPU, GPU, CPU-compile, GPU-compile)
-- ✅ Ollama (llama.cpp backend with 6 models)
+- PASS PyTorch transformers (CPU, GPU, CPU-compile, GPU-compile)
+- PASS Ollama (llama.cpp backend with 6 models)
 
 **Failed (Infrastructure Issues):**
-- ❌ TensorRT (273 runs → 100% degraded, missing .plan files)
-- ❌ ONNXRuntime (273 runs → 100% degraded, ONNX export failures)
+- FAIL TensorRT (273 runs -> 100% degraded, missing .plan files)
+- FAIL ONNXRuntime (273 runs -> 100% degraded, ONNX export failures)
 
 **Test Matrix:**
 - Models: tiny-gpt2 (124M), gemma3 (270M, 1B, 3B), qwen2.5 (7B), llama3.1 (8B-q4)
@@ -93,7 +93,7 @@ Local-first LLM inference requires choosing the optimal backend for speed, cost,
 | dual_medium | 20-30 words | dual | Two-agent prompts |
 | stress | 80+ words | single | "Generate 500-word essay..." |
 
-**7 scenarios × 7 repetitions = 49 runs per backend/model combination**
+**7 scenarios x 7 repetitions = 49 runs per backend/model combination**
 
 ### 2.4 Metrics
 
@@ -147,7 +147,7 @@ Local-first LLM inference requires choosing the optimal backend for speed, cost,
 
 **Key Observations:**
 - **Best mean:** GPU-compile (389ms)
-- **Best median:** Plain GPU (323ms) ← **compile paradox**
+- **Best median:** Plain GPU (323ms) <- **compile paradox**
 - **Best cost:** GPU-compile ($0.045/1M)
 - **Best consistency:** CPU-compile (std 103.5ms)
 - **Worst performance:** Ollama (8.8x slower than GPU-compile)
@@ -157,18 +157,18 @@ Local-first LLM inference requires choosing the optimal backend for speed, cost,
 
 ```
 Total Runs: 3,017
-├─ Successful: 2,471 (82%)
-├─ Degraded:     546 (18%)
-│   ├─ TensorRT:     273 (missing .plan engines)
-│   └─ ONNXRuntime:  273 (ONNX export failures)
-└─ Hard Errors:      0 (0%)
+|- Successful: 2,471 (82%)
+|- Degraded:     546 (18%)
+|   |- TensorRT:     273 (missing .plan engines)
+|   +- ONNXRuntime:  273 (ONNX export failures)
++- Hard Errors:      0 (0%)
 ```
 
 ### 3.3 Compile Paradox
 
 **Discovery:** torch.compile() improves **mean** but degrades **median**:
-- Mean: 404ms → 389ms (3.7% faster)
-- Median: 323ms → 329ms (1.9% slower)
+- Mean: 404ms -> 389ms (3.7% faster)
+- Median: 323ms -> 329ms (1.9% slower)
 
 **Hypothesis:** Compile reduces outliers (better tail latency) but adds overhead to typical requests.
 
@@ -176,7 +176,7 @@ Total Runs: 3,017
 
 ## 4. Backend Deep Dive
 
-### 4.1 transformers-gpu-compile 🏆
+### 4.1 transformers-gpu-compile TOP
 
 **Winner on mean latency and cost.**
 
@@ -188,15 +188,15 @@ Total Runs: 3,017
 - Throughput: 215.2 tok/s (highest)
 
 **Strengths:**
-- ✅ Best mean latency
-- ✅ Lowest cost
-- ✅ Highest throughput
-- ✅ Better consistency (lower std dev)
+- PASS Best mean latency
+- PASS Lowest cost
+- PASS Highest throughput
+- PASS Better consistency (lower std dev)
 
 **Weaknesses:**
-- ❌ Median 1.9% slower than plain GPU
-- ❌ 30s compilation overhead on first run
-- ❌ GPU required
+- FAIL Median 1.9% slower than plain GPU
+- FAIL 30s compilation overhead on first run
+- FAIL GPU required
 
 **Recommendation:** Production default for cost-sensitive workloads.
 
@@ -214,14 +214,14 @@ Total Runs: 3,017
 - Throughput: 211.7 tok/s
 
 **Strengths:**
-- ✅ Best median (1.9% faster than GPU-compile)
-- ✅ No compilation overhead
-- ✅ Simpler debugging
+- PASS Best median (1.9% faster than GPU-compile)
+- PASS No compilation overhead
+- PASS Simpler debugging
 
 **Weaknesses:**
-- ❌ Mean 3.7% slower than GPU-compile
-- ❌ Higher variance (outliers up to 3.3s)
-- ❌ GPU required
+- FAIL Mean 3.7% slower than GPU-compile
+- FAIL Higher variance (outliers up to 3.3s)
+- FAIL GPU required
 
 **Recommendation:** Development/prototyping, p50 SLAs.
 
@@ -237,13 +237,13 @@ Total Runs: 3,017
 - Throughput: 137.3 tok/s
 
 **Strengths:**
-- ✅ No GPU required
-- ✅ Best consistency (lowest std dev)
+- PASS No GPU required
+- PASS Best consistency (lowest std dev)
 
 **Weaknesses:**
-- ❌ Only 2% faster than plain CPU (p=0.826, **not significant**)
-- ❌ 1.44x slower than GPU
-- ❌ 1.57x more expensive than GPU
+- FAIL Only 2% faster than plain CPU (p=0.826, **not significant**)
+- FAIL 1.44x slower than GPU
+- FAIL 1.57x more expensive than GPU
 
 **Recommendation:** CPU-only environments (but compile brings minimal benefit).
 
@@ -259,12 +259,12 @@ Total Runs: 3,017
 - Throughput: 132.2 tok/s (lowest for transformers)
 
 **Strengths:**
-- ✅ No GPU required
-- ✅ Baseline for comparison
+- PASS No GPU required
+- PASS Baseline for comparison
 
 **Weaknesses:**
-- ❌ 1.47x slower than GPU
-- ❌ 1.64x more expensive than GPU
+- FAIL 1.47x slower than GPU
+- FAIL 1.64x more expensive than GPU
 
 **Recommendation:** Development on CPU-only machines.
 
@@ -280,21 +280,21 @@ Total Runs: 3,017
 - Throughput: 91.9 tok/s (lowest)
 
 **Strengths:**
-- ✅ Multi-model flexibility (6 models tested)
-- ✅ Simple API (swap models on demand)
-- ✅ Good for experimentation
+- PASS Multi-model flexibility (6 models tested)
+- PASS Simple API (swap models on demand)
+- PASS Good for experimentation
 
 **Weaknesses:**
-- ❌ 8.8x slower than GPU-compile (mean)
-- ❌ 2.35x more expensive
-- ❌ Catastrophic variance (173ms to 27,964ms - 161x range!)
-- ❌ Unreliable for production SLAs
+- FAIL 8.8x slower than GPU-compile (mean)
+- FAIL 2.35x more expensive
+- FAIL Catastrophic variance (173ms to 27,964ms - 161x range!)
+- FAIL Unreliable for production SLAs
 
 **Recommendation:** Use only when model flexibility matters more than performance.
 
 ---
 
-### 4.6 tensorrt ❌
+### 4.6 tensorrt FAIL
 
 **Status:** NOT TESTED (100% degraded)
 
@@ -304,7 +304,7 @@ Total Runs: 3,017
 
 ---
 
-### 4.7 onnxruntime ❌
+### 4.7 onnxruntime FAIL
 
 **Status:** NOT TESTED (100% degraded)
 
@@ -322,7 +322,7 @@ Total Runs: 3,017
 
 **Test:** One-way ANOVA on 5 backends (excludes TRT/ORT).
 
-**Result:** F = 45.86, p < 10⁻¹⁵ ✅ **HIGHLY SIGNIFICANT**
+**Result:** F = 45.86, p < 10^-15 PASS **HIGHLY SIGNIFICANT**
 
 **Interpretation:** Backend choice critically affects latency.
 
@@ -332,25 +332,25 @@ Total Runs: 3,017
 
 **GPU-compile vs GPU:**
 - Mean difference: -14.8ms (GPU-compile faster)
-- p-value: < 0.05 ✅ Significant
+- p-value: < 0.05 PASS Significant
 - Cohen's d: 0.14 (small effect)
 - **Finding:** GPU-compile 3.7% faster on mean, but median paradox exists
 
 **GPU vs CPU:**
 - Mean difference: -166.5ms (GPU faster)
-- p-value: < 0.001 ✅ Highly significant
+- p-value: < 0.001 PASS Highly significant
 - Cohen's d: 1.48 (large effect)
 - **Finding:** GPU 1.41x faster, 1.61x cheaper
 
 **GPU-compile vs Ollama:**
 - Mean difference: -3,021.3ms (GPU-compile faster)
-- p-value: < 10⁻¹⁵ ✅ Astronomically significant
+- p-value: < 10^-15 PASS Astronomically significant
 - Cohen's d: 1.60 (huge effect)
 - **Finding:** GPU-compile 8.8x faster, 2.35x cheaper
 
 **CPU-compile vs CPU:**
 - Mean difference: -11.2ms (CPU-compile faster)
-- p-value: 0.826 ❌ **NOT significant**
+- p-value: 0.826 FAIL **NOT significant**
 - Cohen's d: 0.10 (negligible)
 - **Finding:** Compilation ineffective on CPU
 
@@ -383,7 +383,7 @@ Assumptions:
 
 ### 7.1 Missing Data
 
-**⚠️ Accuracy Metrics: NOT COLLECTED**
+**WARNING Accuracy Metrics: NOT COLLECTED**
 
 The `metrics.csv` accuracy column is **100% NULL** (0/3,017 values). The report CANNOT make accuracy claims.
 
@@ -428,7 +428,7 @@ The `metrics.csv` accuracy column is **100% NULL** (0/3,017 values). The report 
 ### 7.4 Single Hardware
 
 All tests on **one laptop** (RTX 4080). Findings may not generalize to:
-- Data center GPUs (A100, H100)
+- Data center GPUs (A100, H_100)
 - AMD GPUs
 - Apple Silicon
 - Cloud providers (AWS, Azure, GCP)
@@ -486,9 +486,9 @@ Only viable when model swapping > performance
 ```
 
 **NOT RECOMMENDED:**
-- ❌ CPU-only: 1.4x slower, 1.6x more expensive than GPU
-- ❌ CPU-compile: Only 2% faster than CPU (not significant)
-- ❌ TensorRT/ONNX: Infrastructure not ready (100% degraded)
+- FAIL CPU-only: 1.4x slower, 1.6x more expensive than GPU
+- FAIL CPU-compile: Only 2% faster than CPU (not significant)
+- FAIL TensorRT/ONNX: Infrastructure not ready (100% degraded)
 
 ---
 
@@ -521,7 +521,7 @@ Only viable when model swapping > performance
 - Bottleneck identification
 
 **TR123: Multi-Hardware Validation (Week of 2026-01-13)**
-- A100, H100, AMD, Apple Silicon
+- A100, H_100, AMD, Apple Silicon
 - AWS g5, Azure NC, GCP A2
 - Real production workload traces
 
@@ -542,15 +542,15 @@ Only viable when model swapping > performance
 **transformers-gpu-compile** for cost-sensitive production workloads.
 
 **Decision Matrix:**
-- **Need lowest mean latency + cost?** → GPU-compile
-- **Need best median (p50 SLA)?** → Plain GPU
-- **Need multi-model flexibility?** → Ollama (accept 8.8x penalty)
-- **CPU-only?** → Plain CPU (compile brings no benefit)
-- **TensorRT/ONNX?** → Wait for TR118 (currently 100% broken)
+- **Need lowest mean latency + cost?** -> GPU-compile
+- **Need best median (p50 SLA)?** -> Plain GPU
+- **Need multi-model flexibility?** -> Ollama (accept 8.8x penalty)
+- **CPU-only?** -> Plain CPU (compile brings no benefit)
+- **TensorRT/ONNX?** -> Wait for TR118 (currently 100% broken)
 
 ### 9.3 Scientific Integrity
 
-⚠️ **This report reflects ACTUAL test results:**
+WARNING **This report reflects ACTUAL test results:**
 - **NO accuracy data** (column empty)
 - **TensorRT/ONNX NOT tested** (100% degraded)
 - **Model skew** (55% tiny-gpt2)

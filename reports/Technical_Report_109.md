@@ -6,7 +6,7 @@
 **Test Duration:** 1 day (Oct 9, 2025)  
 **Total Benchmark Runs:** 20+ configurations tested across 3 experimental phases  
 **Models Evaluated:** Gemma3:latest, Llama3.1:8b-instruct-q4_0  
-**Related Work:** [Technical Report 108](Technical_Report_108.md)
+**Related Work:** [Technical Report 108](Technical_Report_108.md)  
 
 ---
 
@@ -20,7 +20,7 @@ This technical report extends the findings of Technical Report 108 by evaluating
 - GPU layer allocation optimal range: 60-80 layers for Gemma3:latest in agent workflows (vs 999 for single inference)
 - Temperature settings significantly impact agent output quality and latency trade-offs
 - Model warmth benefits are masked by process isolation and task complexity
-- Single-run measurements insufficient: ≥3 runs required for statistical significance
+- Single-run measurements insufficient: >=3 runs required for statistical significance
 
 **Critical Discovery:**
 Configurations optimal for single-inference tasks (Technical Report 108) do **not** transfer directly to agent workflows. Agent tasks require distinct optimization strategies that balance throughput, latency, quality, and resource efficiency across multi-step operations.
@@ -178,16 +178,16 @@ Expected: 102.31 tok/s, 0.128s TTFT
 
 **Single Run Comparison:**
 
-| Metric | Baseline (Ollama Default) | Chimera (TR108 Config) | Δ |
+| Metric | Baseline (Ollama Default) | Chimera (TR108 Config) | Delta |
 |--------|---------------------------|------------------------|---|
-| **Throughput** | 99.34 tok/s | 98.55 tok/s | **-0.8%** ❌ |
-| **TTFT** | 354.41 ms | 1501.78 ms | **-323.7%** ❌ |
-| **Duration** | 23.55 s | 27.95 s | **+18.7%** ❌ |
+| **Throughput** | 99.34 tok/s | 98.55 tok/s | **-0.8%** FAIL |
+| **TTFT** | 354.41 ms | 1501.78 ms | **-323.7%** FAIL |
+| **Duration** | 23.55 s | 27.95 s | **+18.7%** FAIL |
 
 **Analysis:**
 The Technical Report 108 configuration **regressed** in agent workflow context:
 - **Throughput decreased** by 0.8% despite expectations of 102.31 tok/s
-- **TTFT increased 4.2x** (354ms → 1502ms) vs expected 128ms
+- **TTFT increased 4.2x** (354ms -> 1502ms) vs expected 128ms
 - **Total duration increased** by 18.7%
 
 **Root Cause Analysis:**
@@ -203,7 +203,7 @@ The Technical Report 108 configuration **regressed** in agent workflow context:
 ### 3.4 Protocol Clarification
 
 **Important Note on TTFT Measurements:**
-The 354ms baseline TTFT in §3.2 represents a **warm-cache, non-isolated** measurement from Phase 1 initial testing. All subsequent measurements (Phase 2 onwards) use the **process-isolation protocol** (§2.4), where the representative baseline TTFT is **1437 ± 75 ms** (n=3 runs).
+The 354ms baseline TTFT in Sec. 3.2 represents a **warm-cache, non-isolated** measurement from Phase 1 initial testing. All subsequent measurements (Phase 2 onwards) use the **process-isolation protocol** (Sec. 2.4), where the representative baseline TTFT is **1437 +/- 75 ms** (n=3 runs).
 
 **Why the difference?**
 - **Warm cache (354ms):** Model already loaded in Ollama, immediate inference start
@@ -234,7 +234,7 @@ Total combinations: 18
 
 **Ranked by Throughput Improvement (Single Run):**
 
-| Rank | Config | Throughput Δ | TTFT Δ | Duration Δ |
+| Rank | Config | Throughput Delta | TTFT Delta | Duration Delta |
 |------|--------|--------------|---------|-----------|
 | 1 | `gpu=60, ctx=512, temp=0.8` | **+2.18 tok/s (+2.2%)** | **-973.75 ms (+68.4%)** | -10.49s |
 | 2 | `gpu=120, ctx=512, temp=0.8` | +0.48 tok/s (+0.5%) | -245.32 ms (+17.2%) | -3.12s |
@@ -254,11 +254,11 @@ Total combinations: 18
 
 Configuration: `num_gpu=60, num_ctx=1024, temperature=0.3`
 
-| Metric | Baseline (mean ± σ) | Chimera (mean ± σ) | Δ |
+| Metric | Baseline (mean +/- sigma) | Chimera (mean +/- sigma) | Delta |
 |--------|---------------------|-------------------|---|
-| **Throughput** | 99.16 ± 0.25 tok/s | 98.94 ± 0.18 tok/s | **-0.2%** |
-| **TTFT** | 1437.06 ± 75.12 ms | 1566.10 ± 108.34 ms | **-9.0%** |
-| **Duration** | 25.89 ± 0.61 s | 26.05 ± 0.74 s | **+0.6%** |
+| **Throughput** | 99.16 +/- 0.25 tok/s | 98.94 +/- 0.18 tok/s | **-0.2%** |
+| **TTFT** | 1437.06 +/- 75.12 ms | 1566.10 +/- 108.34 ms | **-9.0%** |
+| **Duration** | 25.89 +/- 0.61 s | 26.05 +/- 0.74 s | **+0.6%** |
 
 **Analysis:**
 The single-run +2.2% throughput improvement **did not replicate** across multiple runs. Mean performance showed:
@@ -267,11 +267,11 @@ The single-run +2.2% throughput improvement **did not replicate** across multipl
 - Minimal duration change (+0.6%)
 
 **Statistical Significance:**
-With σ=0.25 tok/s for baseline and σ=0.18 tok/s for Chimera, the -0.22 tok/s difference is within 1 standard deviation. **Not statistically significant.**
+With sigma=0.25 tok/s for baseline and sigma=0.18 tok/s for Chimera, the -0.22 tok/s difference is within 1 standard deviation. **Not statistically significant.**
 
 ### 4.4 Key Finding
 
-**Single-run performance spikes are unreliable.** The +2.2% throughput improvement observed in a single run vanished when averaged across 3 runs. Agent workflow optimization requires ≥3 runs for statistical confidence.
+**Single-run performance spikes are unreliable.** The +2.2% throughput improvement observed in a single run vanished when averaged across 3 runs. Agent workflow optimization requires >=3 runs for statistical confidence.
 
 ---
 
@@ -294,20 +294,20 @@ With σ=0.25 tok/s for baseline and σ=0.18 tok/s for Chimera, the -0.22 tok/s d
 | Metric | TR108 (Reference) | Baseline Agent | Chimera Agent | Chimera vs Baseline |
 |--------|-------------------|----------------|---------------|-------------------|
 | **Word Count** | 6,234 | 489 (7.8%) | 487 (7.8%) | -0.4% |
-| **Sections** | 85 | 2 | 6 | **+200%** ✅ |
-| **Technical Depth** | 0.800 | 0.667 | 0.467 | **-30.0%** ❌ |
-| **Citations** | 341 | 11 | 22 | **+100%** ✅ |
-| **Data Analysis** | 0.833 | 0.222 | 0.278 | **+25.2%** ✅ |
+| **Sections** | 85 | 2 | 6 | **+200%** PASS |
+| **Technical Depth** | 0.800 | 0.667 | 0.467 | **-30.0%** FAIL |
+| **Citations** | 341 | 11 | 22 | **+100%** PASS |
+| **Data Analysis** | 0.833 | 0.222 | 0.278 | **+25.2%** PASS |
 | **Structure** | 1.000 | 0.857 | 0.857 | 0.0% |
-| **Overall Quality** | 0.898 | 0.670 (74.6%) | 0.624 (69.4%) | **-6.9%** ❌ |
+| **Overall Quality** | 0.898 | 0.670 (74.6%) | 0.624 (69.4%) | **-6.9%** FAIL |
 
 ### 5.3 Quality-Performance Trade-off Analysis
 
 **Chimera Configuration Effects:**
 
 1. **Structural Improvements:**
-   - **+200% more sections** (2 → 6): Better organization
-   - **+100% more citations** (11 → 22): More data references
+   - **+200% more sections** (2 -> 6): Better organization
+   - **+100% more citations** (11 -> 22): More data references
    - **+25% better data analysis**: More metrics and statistics
 
 2. **Quality Degradations:**
@@ -316,9 +316,9 @@ With σ=0.25 tok/s for baseline and σ=0.18 tok/s for Chimera, the -0.22 tok/s d
    - **Similar word count**: Both agents generate ~8% of TR108 length
 
 3. **Performance Impact:**
-   - Higher temperature (0.8) → More creative but less technical
-   - Smaller context (512) → Less coherent long-form content
-   - Partial GPU offload (60) → Faster but potentially lower quality
+   - Higher temperature (0.8) -> More creative but less technical
+   - Smaller context (512) -> Less coherent long-form content
+   - Partial GPU offload (60) -> Faster but potentially lower quality
 
 ### 5.4 Key Finding
 
@@ -352,7 +352,7 @@ Large contexts add evaluation overhead without benefit.
 | Context Size | Throughput | TTFT | Quality |
 |--------------|------------|------|---------|
 | 256 tokens | 99.1 tok/s | 1380 ms | Low (incomplete) |
-| 512 tokens | **101.1 tok/s** | **449 ms** | **Balanced** ✅ |
+| 512 tokens | **101.1 tok/s** | **449 ms** | **Balanced** PASS |
 | 1024 tokens | 98.9 tok/s | 1566 ms | Good |
 | 4096 tokens | 98.6 tok/s | 1502 ms | High (but slow) |
 
@@ -374,14 +374,14 @@ Reason: Partial offload reduces initialization overhead
 while maintaining throughput for multi-step tasks.
 ```
 
-**Note on Layer Count Semantics:** The "60-80 layers" recommendation refers to the `num_gpu` parameter value (GPU offload budget), not the model's literal transformer layer count. As explained in §2.2, values ≥ model depth are clamped to full offload; 999 is an alias for "all layers". The optimal range represents a balance between GPU utilization and initialization overhead for agent workflows.
+**Note on Layer Count Semantics:** The "60-80 layers" recommendation refers to the `num_gpu` parameter value (GPU offload budget), not the model's literal transformer layer count. As explained in Sec. 2.2, values >= model depth are clamped to full offload; 999 is an alias for "all layers". The optimal range represents a balance between GPU utilization and initialization overhead for agent workflows.
 
 **Performance Impact:**
 
 | GPU Layers | Throughput | TTFT | Load Time |
 |------------|------------|------|-----------|
 | 40 layers | 98.5 tok/s | 1620 ms | 1.8s |
-| 60 layers | **101.1 tok/s** | **449 ms** | **1.2s** ✅ |
+| 60 layers | **101.1 tok/s** | **449 ms** | **1.2s** PASS |
 | 80 layers | 99.8 tok/s | 512 ms | 1.4s |
 | 120 layers | 99.2 tok/s | 678 ms | 1.6s |
 | 999 layers | 98.6 tok/s | 1502 ms | 2.3s |
@@ -411,7 +411,7 @@ for analysis and report generation steps.
 | 0.3 | 98.9 tok/s | 1566 ms | 0.624 |
 | 0.4 | 98.6 tok/s | 1502 ms | 0.638 |
 | 0.6 | 99.8 tok/s | 512 ms | 0.652 |
-| 0.8 | **101.1 tok/s** | **449 ms** | **0.645** ✅ |
+| 0.8 | **101.1 tok/s** | **449 ms** | **0.645** PASS |
 
 **Recommendation:** **Temperature 0.8 optimal** for agent workflows balancing creativity and coherence.
 
@@ -423,10 +423,10 @@ for analysis and report generation steps.
 
 **Results:**
 
-| Scenario | Chimera (Warm) | Baseline (Cold) | Δ |
+| Scenario | Chimera (Warm) | Baseline (Cold) | Delta |
 |----------|----------------|-----------------|---|
-| **Throughput** | 74.16 tok/s | 74.65 tok/s | **-0.7%** ❌ |
-| **TTFT** | 1723 ms | 1518 ms | **+13.5%** ❌ |
+| **Throughput** | 74.16 tok/s | 74.65 tok/s | **-0.7%** FAIL |
+| **TTFT** | 1723 ms | 1518 ms | **+13.5%** FAIL |
 
 **Analysis:**
 Model warmth benefits were **negated** by:
@@ -463,7 +463,7 @@ Model warmth benefits were **negated** by:
 # Measure: Quality scores, creativity
 # Select: Balance quality and diversity
 
-# Phase 4: Statistical validation (≥3 runs)
+# Phase 4: Statistical validation (>=3 runs)
 # Confirm: Performance gains replicate
 ```
 
@@ -481,17 +481,17 @@ Model warmth benefits were **negated** by:
 ### 7.3 Statistical Validation Requirements
 
 **Minimum Testing Standards:**
-- **≥3 runs per configuration:** Required for mean/variance
-- **≥5 runs for production:** Recommended for confidence intervals
-- **Report mean ± standard deviation:** Transparency on variance
+- **>=3 runs per configuration:** Required for mean/variance
+- **>=5 runs for production:** Recommended for confidence intervals
+- **Report mean +/- standard deviation:** Transparency on variance
 - **Calculate 95% confidence intervals:** Statistical significance
 
 **Example:**
 ```
 Configuration: num_gpu=60, num_ctx=512, temp=0.8
 Runs: 5
-Throughput: 100.8 ± 1.2 tok/s (95% CI: [99.6, 102.0])
-TTFT: 465 ± 45 ms (95% CI: [420, 510])
+Throughput: 100.8 +/- 1.2 tok/s (95% CI: [99.6, 102.0])
+TTFT: 465 +/- 45 ms (95% CI: [420, 510])
 ```
 
 ### 7.4 Threats to Validity
@@ -514,7 +514,7 @@ TTFT: 465 ± 45 ms (95% CI: [420, 510])
 
 **Mitigation Strategies:**
 - Process isolation reduces background process interference
-- Multiple runs (n≥3) capture variance
+- Multiple runs (n>=3) capture variance
 - Documented environment enables replication on similar hardware
 - Statistical testing quantifies confidence in results
 
@@ -537,15 +537,15 @@ chimera_agent_config = {
 ```
 
 **Expected Performance:**
-- Throughput: ~101 tok/s (±1.2 tok/s)
-- TTFT: ~450 ms (±45 ms)
-- Quality Score: 0.645 (±0.02)
+- Throughput: ~101 tok/s (+/-1.2 tok/s)
+- TTFT: ~450 ms (+/-45 ms)
+- Quality Score: 0.645 (+/-0.02)
 
 **Trade-offs:**
-- ✅ 2.2% faster throughput than baseline
-- ✅ 68% faster TTFT than baseline
-- ❌ 6.9% lower quality score than baseline
-- ❌ 30% lower technical depth than baseline
+- PASS 2.2% faster throughput than baseline
+- PASS 68% faster TTFT than baseline
+- FAIL 6.9% lower quality score than baseline
+- FAIL 30% lower technical depth than baseline
 
 ### 8.2 When to Use Baseline vs Chimera
 
@@ -649,7 +649,7 @@ agent_performance_test:
 
 **All 18 Configurations Tested:**
 
-| Config | num_gpu | num_ctx | temp | Throughput Δ | TTFT Δ | Quality Δ |
+| Config | num_gpu | num_ctx | temp | Throughput Delta | TTFT Delta | Quality Delta |
 |--------|---------|---------|------|--------------|---------|-----------|
 | 1 | 60 | 512 | 0.8 | +2.18 tok/s | -973.75 ms | -6.9% |
 | 2 | 120 | 512 | 0.8 | +0.48 tok/s | -245.32 ms | -5.2% |
@@ -683,7 +683,7 @@ agent_performance_test:
 The composite Overall Quality Score is calculated as a weighted average of component metrics:
 
 ```
-Overall Quality = 0.35 × Technical Depth + 0.25 × Data Analysis + 0.20 × Structure + 0.20 × Citations
+Overall Quality = 0.35 x Technical Depth + 0.25 x Data Analysis + 0.20 x Structure + 0.20 x Citations
 ```
 
 **Rationale for Weights:**
@@ -729,7 +729,7 @@ structure_elements = [
     r'^\*\*.*\*\*',  # Bold text
     r'^\|.*\|',      # Tables
     r'^\d+\.\s+',    # Numbered lists
-    r'^-\s+',        # Bullet points
+    r'?\s+',        # Bullet points
 ]
 
 def calculate_structure_score(content):
@@ -744,10 +744,10 @@ def calculate_structure_score(content):
 
 **C.1 Statistical Testing Methodology**
 
-All statistical comparisons use **Welch's two-sample t-test** (unequal variances assumed) with significance threshold α = 0.05. This test is appropriate for comparing means between independent samples with potentially different variances.
+All statistical comparisons use **Welch's two-sample t-test** (unequal variances assumed) with significance threshold alpha = 0.05. This test is appropriate for comparing means between independent samples with potentially different variances.
 
 **Test Parameters:**
-- **Sample size:** n ≥ 3 per configuration (n = 5 recommended for production)
+- **Sample size:** n >= 3 per configuration (n = 5 recommended for production)
 - **Confidence intervals:** 95% (calculated using t-distribution)
 - **Null hypothesis:** No difference in means between configurations
 - **Alternative hypothesis:** Two-tailed (difference exists in either direction)
@@ -756,9 +756,9 @@ All statistical comparisons use **Welch's two-sample t-test** (unequal variances
 
 | Configuration | Throughput (tok/s) | TTFT (ms) | Quality Score |
 |---------------|-------------------|-----------|---------------|
-| Baseline | 99.16 ± 0.25 | 1437 ± 75 | 0.670 ± 0.02 |
-| Chimera (60/512/0.8) | 101.08 ± 1.2 | 449 ± 45 | 0.624 ± 0.02 |
-| Chimera (60/1024/0.3) | 98.94 ± 0.18 | 1566 ± 108 | 0.624 ± 0.02 |
+| Baseline | 99.16 +/- 0.25 | 1437 +/- 75 | 0.670 +/- 0.02 |
+| Chimera (60/512/0.8) | 101.08 +/- 1.2 | 449 +/- 45 | 0.624 +/- 0.02 |
+| Chimera (60/1024/0.3) | 98.94 +/- 0.18 | 1566 +/- 108 | 0.624 +/- 0.02 |
 
 **C.3 Statistical Significance Tests**
 - **Throughput:** Chimera (60/512/0.8) vs Baseline: p < 0.05 (significant)
@@ -777,7 +777,7 @@ All statistical comparisons use **Welch's two-sample t-test** (unequal variances
 | Chimera (120 layers) | 3.2 | 73.3% | 88.7 | 31.0 |
 | Chimera (999 layers) | 3.1 | 74.2% | 87.2 | 31.8 |
 
-**Note:** VRAM Headroom = (12 GB total - used) / 12 GB × 100%
+**Note:** VRAM Headroom = (12 GB total - used) / 12 GB x 100%
 
 **CPU Utilization:**
 - Baseline: 12.3% average CPU usage
@@ -836,8 +836,8 @@ Technical Report 109 demonstrates that **agent workflow optimization requires di
 **Key Contributions:**
 1. **Identified agent-specific optimal configurations:** 60 GPU layers, 512-token context, temperature 0.8
 2. **Quantified quality-performance trade-offs:** 2.2% throughput gain vs 6.9% quality loss
-3. **Established statistical validation requirements:** ≥3 runs for reliable measurements
-4. **Created comprehensive optimization framework:** Context → GPU → Temperature → Validation
+3. **Established statistical validation requirements:** >=3 runs for reliable measurements
+4. **Created comprehensive optimization framework:** Context -> GPU -> Temperature -> Validation
 
 **Production Impact:**
 - **Speed-critical applications:** Use Chimera configuration (60/512/0.8) for 2.2% throughput improvement
@@ -860,22 +860,22 @@ This report establishes a foundation for agent workflow optimization that comple
 1. **Report Quality Enhancement**
    - Applied comprehensive feedback from technical review
    - Fixed TTFT measurement inconsistencies (354ms vs 1437ms protocol clarification)
-   - Added statistical test methodology (Welch's t-test, α=0.05)
+   - Added statistical test methodology (Welch's t-test, alpha=0.05)
    - Documented quality metric weights (Technical Depth: 35%, Data Analysis: 25%, Structure: 20%, Citations: 20%)
    - Clarified num_gpu parameter semantics (999 = "all layers" alias)
 
 2. **Scientific Rigor Improvements**
-   - Added "Threats to Validity" section (§7.4) covering internal, external, and construct validity
+   - Added "Threats to Validity" section (Sec. 7.4) covering internal, external, and construct validity
    - Enhanced Appendix C with complete statistical testing methodology
    - Added VRAM headroom analysis to hardware utilization metrics
-   - Renamed §7.2 to "Deployment Playbook by Goal" for better actionability
+   - Renamed Sec. 7.2 to "Deployment Playbook by Goal" for better actionability
 
 3. **Production Readiness**
    - Added quality regression threshold (3% max drop vs 28-day median) to CI/CD recommendations
    - Enhanced reproducibility documentation with complete environment specifications
    - Updated hardware specifications to reflect actual system (i9-13980HX, 16GB RAM)
 
-**Technical Report 109 Status:** ✅ **Publication Ready**
+**Technical Report 109 Status:** PASS **Publication Ready**
 - All valid critiques addressed without introducing fabricated data
 - Maintains scientific integrity while improving clarity and rigor
 - Ready for integration into Chimera ecosystem documentation

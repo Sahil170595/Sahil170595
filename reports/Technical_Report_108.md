@@ -5,7 +5,7 @@
 **Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), 13th Gen Intel i9  
 **Test Duration:** ~2 weeks (Oct 2025)  
 **Total Benchmark Runs:** 158+ configurations tested  
-**Models Evaluated:** Llama3.1 (3 quantizations) + Gemma3 (3 variants)
+**Models Evaluated:** Llama3.1 (3 quantizations) + Gemma3 (3 variants)  
 
 ---
 
@@ -144,7 +144,7 @@ Five representative gaming scenarios from `prompts/banter_prompts.txt`:
 - 0.4 (balanced)
 - 0.8 (creative)
 
-**Total Configurations per Model:** 4 × 3 × 3 = 36 configurations
+**Total Configurations per Model:** 4 x 3 x 3 = 36 configurations
 
 ### 2.5 Test Execution Protocol
 
@@ -248,7 +248,7 @@ Five representative gaming scenarios from `prompts/banter_prompts.txt`:
    - Recommendation: Use smallest context that fits use case
 
 3. **Temperature Effects:**
-   - Minimal impact on throughput (±2%)
+   - Minimal impact on throughput (+/-2%)
    - 0.4-0.8 range performs best
    - 0.2 can cause TTFT spikes with lower GPU layers
    - Temperature affects quality more than speed
@@ -258,7 +258,7 @@ Five representative gaming scenarios from `prompts/banter_prompts.txt`:
 **GPU Metrics (during inference):**
 ```
 Utilization: 33% average, 93% peak
-Temperature: 54.7°C average, 63°C peak
+Temperature: 54.7degC average, 63degC peak
 Power Draw: 64.4W average, 142.6W peak
 Memory Used: ~6-7 GB (model + context buffers)
 ```
@@ -271,7 +271,7 @@ Memory: 72.1% average (system total, not LLM-specific)
 
 **Analysis:**
 - GPU utilization spikes during prompt eval, stabilizes during token generation
-- RTX 4080 running well below thermal limits (max 83°C)
+- RTX 4080 running well below thermal limits (max 83degC)
 - Significant headroom for multi-user or batched scenarios
 - CPU overhead minimal (inference fully GPU-accelerated)
 
@@ -746,7 +746,7 @@ For LLM inference workloads:
 1. **VRAM Capacity:** Primary factor
    - Minimum: 12 GB (RTX 4080/3080 Ti class)
    - Recommended: 16-24 GB (RTX 4090/A5000)
-   - Optimal: 24+ GB (A6000/H100)
+   - Optimal: 24+ GB (A6000/H_100)
 
 2. **Memory Bandwidth:** Secondary factor
    - Throughput scales with bandwidth
@@ -795,25 +795,25 @@ Recommended Ollama Configuration:
 
 ```
 START
-│
-├─ Need ultra-low latency (<100ms TTFT)?
-│  ├─ YES: Gemma3:270m
-│  └─ NO: Continue
-│
-├─ Quality absolutely critical?
-│  ├─ YES: Llama3.1:q4_0 or Gemma3:latest
-│  └─ NO: Continue
-│
-├─ Memory constrained (<4GB VRAM)?
-│  ├─ YES: Gemma3:270m or Gemma3:1b-qat
-│  └─ NO: Continue
-│
-├─ Need high concurrency (5+ users)?
-│  ├─ YES: Gemma3:270m or Gemma3:1b-qat
-│  └─ NO: Continue
-│
-└─ Balanced use case?
-   └─ YES: Gemma3:latest or Gemma3:1b-qat
+|
+|- Need ultra-low latency (<100ms TTFT)?
+|  |- YES: Gemma3:270m
+|  +- NO: Continue
+|
+|- Quality absolutely critical?
+|  |- YES: Llama3.1:q4_0 or Gemma3:latest
+|  +- NO: Continue
+|
+|- Memory constrained (<4GB VRAM)?
+|  |- YES: Gemma3:270m or Gemma3:1b-qat
+|  +- NO: Continue
+|
+|- Need high concurrency (5+ users)?
+|  |- YES: Gemma3:270m or Gemma3:1b-qat
+|  +- NO: Continue
+|
++- Balanced use case?
+   +- YES: Gemma3:latest or Gemma3:1b-qat
 ```
 
 ### 7.4 Runtime Optimization
@@ -841,13 +841,13 @@ class ContextualChat:
         self.model = model
         self.history = []
         self.max_ctx = max_ctx
-    
+
     def chat(self, message):
         # Maintain rolling context window
         self.history.append({"role": "user", "content": message})
         if len(self.history) > self.max_ctx / 100:  # Rough token estimate
             self.history = self.history[-10:]  # Keep last 10 messages
-        
+
         return ollama.chat(self.model, self.history)
 ```
 
@@ -876,17 +876,17 @@ class LLMCache:
     def __init__(self, max_size=1000):
         self.cache = {}
         self.max_size = max_size
-    
+
     def get_key(self, prompt, model, options):
         """Generate cache key"""
         key_str = f"{model}:{prompt}:{options}"
         return hashlib.md5(key_str.encode()).hexdigest()
-    
+
     def get(self, prompt, model, options):
         """Retrieve cached response"""
         key = self.get_key(prompt, model, options)
         return self.cache.get(key)
-    
+
     def set(self, prompt, model, options, response):
         """Cache response"""
         if len(self.cache) >= self.max_size:
@@ -906,7 +906,7 @@ class SemanticCache:
         self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
         self.cache = []  # [(embedding, response), ...]
         self.threshold = similarity_threshold
-    
+
     def find_similar(self, prompt):
         """Find cached response for similar prompt"""
         embedding = self.encoder.encode(prompt)
@@ -923,9 +923,9 @@ class SemanticCache:
 ```python
 # BAD: Verbose prompt (slow prompt eval)
 bad_prompt = """
-Please generate a witty and engaging piece of character dialogue 
-for a video game scenario where the player has just successfully 
-completed a difficult mission. The tone should be celebratory 
+Please generate a witty and engaging piece of character dialogue
+for a video game scenario where the player has just successfully
+completed a difficult mission. The tone should be celebratory
 and encouraging. Keep it under 100 words.
 """
 
@@ -980,14 +980,14 @@ class RequestMetrics:
     total_duration: float
     tokens_generated: int
     tokens_per_second: float
-    
+
 class PerformanceMonitor:
     def __init__(self):
         self.metrics: List[RequestMetrics] = []
-    
+
     def record(self, metric: RequestMetrics):
         self.metrics.append(metric)
-    
+
     def get_percentiles(self, metric_name='ttft'):
         values = [getattr(m, metric_name) for m in self.metrics]
         return {
@@ -1121,7 +1121,7 @@ Justification:
 - Deploy multiple Ollama instances
 - Load balance across GPUs
 - Expected gain: Linear with GPU count
-- Cost: GPU cost × count
+- Cost: GPU cost x count
 - Best for: High-concurrency production
 
 **Hybrid Approach:**
@@ -1140,18 +1140,18 @@ class LLMService:
         self.primary_model = "gemma3:latest"
         self.fallback_model = "gemma3:270m"
         self.cache = SemanticCache()
-    
+
     def generate(self, prompt, timeout=5.0):
         # Try cache first
         cached = self.cache.find_similar(prompt)
         if cached:
             return cached
-        
+
         try:
             # Try primary model
             response = ollama.generate(
-                self.primary_model, 
-                prompt, 
+                self.primary_model,
+                prompt,
                 timeout=timeout
             )
             self.cache.add(prompt, response)
@@ -1160,8 +1160,8 @@ class LLMService:
             # Fallback to faster model
             logger.warning("Primary model timeout, using fallback")
             response = ollama.generate(
-                self.fallback_model, 
-                prompt, 
+                self.fallback_model,
+                prompt,
                 timeout=timeout/2
             )
             return response
@@ -1185,7 +1185,7 @@ class LLMService:
 ```
 Local Deployment (RTX 4080):
 - Hardware Cost: $1,200 (one-time)
-- Power: ~150W × $0.12/kWh × 24h = $0.43/day
+- Power: ~150W x $0.12/kWh x 24h = $0.43/day
 - Amortized (3 years): $1.52/day
 - Total: ~$1.95/day
 
@@ -1296,7 +1296,7 @@ class UOllamaService : public UActorComponent {
 public:
     UFUNCTION(BlueprintCallable)
     void GenerateBanter(FString prompt, FBanterCallback callback);
-    
+
 private:
     FOllamaClient* Client;
     FString ModelName = "gemma3:latest";
@@ -1309,10 +1309,10 @@ private:
 async def voice_banter(scenario):
     # Generate text
     text = await ollama_generate(scenario)
-    
+
     # Synthesize speech (parallel to display text)
     audio = await tts_engine.synthesize(text)
-    
+
     return {"text": text, "audio": audio}
 ```
 
@@ -1422,8 +1422,8 @@ All reported metrics use:
 **Confidence Intervals:**
 
 Given limited sample sizes (n=5 for baseline), confidence intervals are wide:
-- Throughput: ±3-5 tok/s (95% CI)
-- TTFT: ±0.01-0.02s (95% CI)
+- Throughput: +/-3-5 tok/s (95% CI)
+- TTFT: +/-0.01-0.02s (95% CI)
 
 **Recommendation:** Repeat measurements for production deployment verification.
 
@@ -1439,7 +1439,7 @@ Given limited sample sizes (n=5 for baseline), confidence intervals are wide:
 
 **Temperature:** Sampling randomness. 0 = deterministic, 1+ = creative.
 
-**Quantization:** Weight precision reduction (FP16 → INT8/INT4) to reduce model size and increase speed.
+**Quantization:** Weight precision reduction (FP16 -> INT8/INT4) to reduce model size and increase speed.
 
 **QAT (Quantization-Aware Training):** Training process that accounts for future quantization, preserving quality better than post-training quantization.
 
@@ -1491,8 +1491,8 @@ The comprehensive data presented in this report enables informed decision-making
 
 ---
 
-**Report Authors:** Banterhearts Development Team  
-**Date:** October 8, 2025  
-**Version:** 1.0  
+**Report Authors:** Banterhearts Development Team
+**Date:** October 8, 2025
+**Version:** 1.0
 **Total Pages:** 108 (equivalent)
 

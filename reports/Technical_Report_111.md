@@ -5,7 +5,7 @@
 **Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), Intel i9-13980HX  
 **Model:** gemma3:latest (4.3B parameters, Q4_K_M quantization)  
 **Configurations Tested:** 18 parameter combinations  
-**Related Work:** [TR108](Technical_Report_108.md), [TR109](Technical_Report_109.md), [TR110](Technical_Report_110.md)
+**Related Work:** [TR108](Technical_Report_108.md), [TR109](Technical_Report_109.md), [TR110](Technical_Report_110.md)  
 
 ---
 
@@ -82,7 +82,7 @@ Based on Rust's language characteristics:
 **Key Features:**
 - Streaming API with true TTFT measurement (first token timing)
 - Multiple runs per configuration (typically 3)
-- Statistical aggregation (mean ± stddev)
+- Statistical aggregation (mean +/- stddev)
 - Comprehensive metrics: throughput, TTFT, prompt eval, generation, load times
 - JSON output for programmatic analysis
 
@@ -105,7 +105,7 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 **Primary Metrics:**
 - **Throughput (tok/s):** Tokens generated per second
 - **TTFT (ms):** Time to first token
-- **Improvement %:** (Chimera - Baseline) / Baseline × 100%
+- **Improvement %:** (Chimera - Baseline) / Baseline x 100%
 
 **Secondary Metrics:**
 - Prompt evaluation duration
@@ -126,12 +126,12 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 | Throughput Range | 97.88 - 99.53 tok/s |
 | Mean Throughput | 98.86 tok/s |
 | Throughput Stddev | 0.40 tok/s |
-| Throughput CV | **0.40%** ✅ |
+| Throughput CV | **0.40%** PASS |
 | | |
 | TTFT Range | 3513.7 - 4040.3 ms |
 | Mean TTFT | 3793.4 ms |
 | TTFT Stddev | 103.2 ms |
-| TTFT CV | **2.72%** ✅ |
+| TTFT CV | **2.72%** PASS |
 
 **Consistency Analysis:**
 - Coefficient of Variation (CV) for throughput: **0.40%** - exceptionally consistent
@@ -142,7 +142,7 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 
 **By Throughput Improvement:**
 
-| Rank | GPU | CTX | TEMP | Baseline | Chimera | Δ (%) | TTFT Δ (%) |
+| Rank | GPU | CTX | TEMP | Baseline | Chimera | Delta (%) | TTFT Delta (%) |
 |------|-----|-----|------|----------|---------|-------|------------|
 | 1 | 60 | 1024 | 0.8 | 98.64 | 99.24 | **+0.606** | -0.5 |
 | 2 | 80 | 256 | 0.8 | 98.87 | 99.43 | **+0.566** | +9.1 |
@@ -152,7 +152,7 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 
 **By TTFT Improvement (Lowest Latency):**
 
-| Rank | GPU | CTX | TEMP | TTFT (ms) | Δ vs Baseline (%) |
+| Rank | GPU | CTX | TEMP | TTFT (ms) | Delta vs Baseline (%) |
 |------|-----|-----|------|-----------|-------------------|
 | 1 | 80 | 1024 | 0.8 | 3575.6 | **+7.0** |
 | 2 | 120 | 1024 | 0.8 | 3513.7 | **+8.7** |
@@ -166,7 +166,7 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 
 | Outcome | Count | Percentage |
 |---------|-------|------------|
-| Positive Throughput Improvement | 13 | **72.2%** ✅ |
+| Positive Throughput Improvement | 13 | **72.2%** PASS |
 | Negative Throughput Change | 5 | 27.8% |
 | | | |
 | Mean Improvement | +0.138% | (positive overall) |
@@ -183,11 +183,11 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 
 **Performance by GPU Setting:**
 
-| GPU Layers | Configs | Positive Rate | Mean Δ (%) | Best Config |
+| GPU Layers | Configs | Positive Rate | Mean Delta (%) | Best Config |
 |------------|---------|---------------|------------|-------------|
 | 60 | 6 | 50.0% | +0.140 | CTX=1024, TEMP=0.8 (+0.606%) |
-| 80 | 6 | 83.3% ✅ | +0.217 | CTX=256, TEMP=0.8 (+0.566%) |
-| 120 | 6 | 83.3% ✅ | +0.055 | None significantly positive |
+| 80 | 6 | 83.3% PASS | +0.217 | CTX=256, TEMP=0.8 (+0.566%) |
+| 120 | 6 | 83.3% PASS | +0.055 | None significantly positive |
 
 **Finding:** **GPU=80 layers optimal** for Rust agents, showing highest average improvement and 83.3% success rate.
 
@@ -195,11 +195,11 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 
 **Performance by Context:**
 
-| Context | Configs | Positive Rate | Mean Δ (%) | Best Config |
+| Context | Configs | Positive Rate | Mean Delta (%) | Best Config |
 |---------|---------|---------------|------------|-------------|
 | 256 | 6 | 66.7% | +0.061 | GPU=80, TEMP=0.8 (+0.566%) |
 | 512 | 6 | 66.7% | +0.077 | GPU=80, TEMP=0.8 (+0.194%) |
-| 1024 | 6 | 83.3% ✅ | +0.276 | GPU=60, TEMP=0.8 (+0.606%) |
+| 1024 | 6 | 83.3% PASS | +0.276 | GPU=60, TEMP=0.8 (+0.606%) |
 
 **Finding:** **CTX=1024 optimal** - highest success rate (83.3%) and highest average improvement (+0.276%).
 
@@ -207,18 +207,18 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 
 **Performance by Temperature:**
 
-| Temperature | Configs | Positive Rate | Mean Δ (%) |
+| Temperature | Configs | Positive Rate | Mean Delta (%) |
 |-------------|---------|---------------|------------|
 | 0.6 | 9 | 66.7% | +0.078 |
-| 0.8 | 9 | 77.8% ✅ | +0.197 |
+| 0.8 | 9 | 77.8% PASS | +0.197 |
 
-**Finding:** **TEMP=0.8 optimal** - higher success rate and nearly 2.5× better improvement than TEMP=0.6.
+**Finding:** **TEMP=0.8 optimal** - higher success rate and nearly 2.5x better improvement than TEMP=0.6.
 
 ### 4.4 Optimal Configuration Matrix
 
 **Recommended Production Configs:**
 
-| Use Case | GPU | CTX | TEMP | Expected Δ | Characteristics |
+| Use Case | GPU | CTX | TEMP | Expected Delta | Characteristics |
 |----------|-----|-----|------|------------|-----------------|
 | **Max Throughput** | 60 | 1024 | 0.8 | +0.606% | Best overall throughput gain |
 | **Balanced** | 80 | 256 | 0.8 | +0.566% | High success rate, low latency |
@@ -298,16 +298,16 @@ OllamaOptions {
 ### 6.2 When to Use Rust Agents
 
 **Rust Advantages:**
-- ✅ **Consistency:** 0.4% CV vs 2-5% for Python
-- ✅ **Success Rate:** 72% vs 39% optimization success
-- ✅ **Memory:** Lower overhead (~60-80MB vs 80-120MB Python)
-- ✅ **Deployment:** Single binary, no runtime dependencies
+- PASS **Consistency:** 0.4% CV vs 2-5% for Python
+- PASS **Success Rate:** 72% vs 39% optimization success
+- PASS **Memory:** Lower overhead (~60-80MB vs 80-120MB Python)
+- PASS **Deployment:** Single binary, no runtime dependencies
 
 **Python Advantages:**
-- ✅ **Peak Gains:** Can achieve higher peaks (+2.2% in TR109)
-- ✅ **TTFT Improvements:** Better TTFT optimization potential
-- ✅ **Ecosystem:** Richer AI/ML libraries
-- ✅ **Development Speed:** Faster iteration
+- PASS **Peak Gains:** Can achieve higher peaks (+2.2% in TR109)
+- PASS **TTFT Improvements:** Better TTFT optimization potential
+- PASS **Ecosystem:** Richer AI/ML libraries
+- PASS **Development Speed:** Faster iteration
 
 ### 6.3 Hybrid Strategy
 
@@ -326,10 +326,10 @@ OllamaOptions {
 | Metric | Python (TR109) | Rust (TR111) | Delta |
 |--------|----------------|--------------|-------|
 | **Throughput Range** | 98.7-101.1 tok/s | 97.9-99.5 tok/s | Rust 1.0 tok/s lower |
-| **Throughput CV** | ~2-5% | 0.40% | **Rust 5-12× more consistent** |
-| **Optimization Success** | 38.9% | 72.2% | **Rust 1.86× higher** |
+| **Throughput CV** | ~2-5% | 0.40% | **Rust 5-12x more consistent** |
+| **Optimization Success** | 38.9% | 72.2% | **Rust 1.86x higher** |
 | **Mean Improvement** | +0.095% | +0.138% | Rust +45% better |
-| **Best Config Gain** | +2.20% | +0.606% | Python 3.6× higher peak |
+| **Best Config Gain** | +2.20% | +0.606% | Python 3.6x higher peak |
 | **TTFT Behavior** | -9.4% avg | +2.1% avg | Different trade-off |
 
 ### 7.2 Interpretation
@@ -431,15 +431,15 @@ cargo build --release
 
 - **Test Type:** Paired comparison (baseline vs chimera per config)
 - **Runs per Config:** 1-3 (depending on initial stability)
-- **Significance Level:** α = 0.05
-- **Metrics:** Mean ± stddev reported
-- **Consistency Metric:** Coefficient of Variation (CV = σ/μ × 100%)
+- **Significance Level:** alpha = 0.05
+- **Metrics:** Mean +/- stddev reported
+- **Consistency Metric:** Coefficient of Variation (CV = sigma/mu x 100%)
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** November 10, 2025  
-**Status:** ✅ Publication Ready
+**Document Version:** 1.0
+**Last Updated:** November 10, 2025
+**Status:** PASS Publication Ready
 
 ---
 

@@ -1,20 +1,20 @@
 # Conclusive Report 134-137: The Safety Cost of Inference Optimization
 ## A dissertation-style synthesis of quantization-induced alignment erosion, concurrency invariance, backend-driven template divergence, and cross-axis safety taxonomy for local-first LLM deployment
 
-Project: Banterhearts LLM Performance Research
-Date: 2026-03-08
-Author: Research Team
-Report Type: Conclusive synthesis across TR134-TR137 (artifact-backed, 4 technical reports)
-Scope: TR134 (Alignment Robustness Under Quantization), TR135 (Concurrency x Safety), TR136 (Cross-Backend Safety Consistency), TR137 (Safety Tax Synthesis)
-Hardware Baseline: NVIDIA RTX consumer GPU, single-GPU inference
-Measurement Corpus: 74,254 evaluated samples across 4 technical reports
-Primary Sources:
+Project: Banterhearts LLM Performance Research  
+Date: 2026-03-08  
+Author: Research Team  
+Report Type: Conclusive synthesis across TR134-TR137 (artifact-backed, 4 technical reports)  
+Scope: TR134 (Alignment Robustness Under Quantization), TR135 (Concurrency x Safety), TR136 (Cross-Backend Safety Consistency), TR137 (Safety Tax Synthesis)  
+Hardware Baseline: NVIDIA RTX consumer GPU, single-GPU inference  
+Measurement Corpus: 74,254 evaluated samples across 4 technical reports  
+Primary Sources:  
 - PublishReady/reports/Technical_Report_134.md (Alignment Robustness Under Quantization)
 - PublishReady/reports/Technical_Report_135.md (Multi-Agent Concurrency x Safety)
 - PublishReady/reports/Technical_Report_136.md (Cross-Backend Safety Consistency)
 - PublishReady/reports/Technical_Report_137.md (Synthesis meta-analysis)
-Predecessor Synthesis: PublishReady/reports/Technical_Report_Conclusive_123-133.md (Phase 2: Performance)
-Predecessor Phase: PublishReady/reports/Technical_Report_Conclusive_117-122.md (Phase 1: Methodology)
+Predecessor Synthesis: PublishReady/reports/Technical_Report_Conclusive_123-133.md (Phase 2: Performance)  
+Predecessor Phase: PublishReady/reports/Technical_Report_Conclusive_117-122.md (Phase 1: Methodology)  
 
 ---
 
@@ -1411,10 +1411,10 @@ Fitted via linear regression of normalized safety score (safety / baseline) vers
 ### A.7 TOST Equivalence Test
 
 ```
-H0_lower: delta <= -margin
-H0_upper: delta >= +margin
+H_0_lower: delta <= -margin
+H_0_upper: delta >= +margin
 
-Reject both H0 at alpha=0.05 to conclude equivalence.
+Reject both H_0 at alpha=0.05 to conclude equivalence.
 Margin = +/-3pp (0.03) for safety comparisons.
 ```
 
@@ -1693,8 +1693,8 @@ The MDE column shows the smallest effect each task can detect. AdvBench and jail
 ### I.5 TOST Details
 
 TOST equivalence testing at +/-3pp requires that both one-sided tests reject at alpha=0.05:
-- Test 1: H0: delta <= -0.03. If rejected, delta is not too far below zero.
-- Test 2: H0: delta >= +0.03. If rejected, delta is not too far above zero.
+- Test 1: H_0: delta <= -0.03. If rejected, delta is not too far below zero.
+- Test 2: H_0: delta >= +0.03. If rejected, delta is not too far above zero.
 
 Both must reject to conclude equivalence within the +/-3pp margin. With binary data and moderate sample sizes (100-200 per group), the power of TOST at +/-3pp is low for effects near the margin. This explains why even trivially small effects (d < 0.03, vLLM vs TGI) fail TOST: the CI bounds extend beyond +/-3pp due to sampling variability, even though the point estimate is near zero.
 
@@ -2232,8 +2232,8 @@ The concurrency column shows negligible variation (max 0.4pp across N=1 to N=8),
 The one-way ANOVA across 3 model families (Llama, Mistral, Qwen) tests whether the RLHF recipe affects quantization safety resilience:
 
 ```
-H0: Mean safety slope is equal across families
-H1: At least one family mean differs
+H_0: Mean safety slope is equal across families
+H_1: At least one family mean differs
 
 F-statistic: 2.50
 p-value: 0.1370
@@ -2344,8 +2344,8 @@ For the cross-axis effect ranking (TR137), the bootstrap is applied to the model
 Two One-Sided Tests (Schuirmann, 1987) for equivalence at +/-3pp margin:
 
 ```
-Test 1: H0: delta <= -0.03 vs H1: delta > -0.03 (one-sided z-test or t-test)
-Test 2: H0: delta >= +0.03 vs H1: delta < +0.03 (one-sided z-test or t-test)
+Test 1: H_0: delta <= -0.03 vs H_1: delta > -0.03 (one-sided z-test or t-test)
+Test 2: H_0: delta >= +0.03 vs H_1: delta < +0.03 (one-sided z-test or t-test)
 
 Equivalence confirmed if and only if BOTH tests reject at alpha = 0.05.
 ```

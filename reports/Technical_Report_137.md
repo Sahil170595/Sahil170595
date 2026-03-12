@@ -1,15 +1,15 @@
 # Technical Report 137: The Safety Tax of Inference Optimization
 ## Unified synthesis of quantization, concurrency, and backend effects on LLM safety alignment
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-03-08 (synthesis of TR134: Mar 5-6, TR135: Mar 7, TR136: Mar 8)
-**Author:** Research Team
-**Report Type:** Meta-analysis / synthesis (3 source experiments, 18 analysis passes, 74,254 total samples)
-**Compute Time:** <5 seconds (pure meta-analysis on pre-computed results)
-**Status:** Complete -- all 3 source experiments delivered, full synthesis run
-**Run ID:** `20260308_180727`
-**Related Work:** [TR134](Technical_Report_134.md) (Alignment Under Quantization), [TR135](Technical_Report_135.md) (Concurrency x Safety), [TR136](Technical_Report_136.md) (Cross-Backend Safety)
-**Depends On:** TR134 (quantization safety data), TR135 (concurrency safety data), TR136 (backend safety data)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-03-08 (synthesis of TR134: Mar 5-6, TR135: Mar 7, TR136: Mar 8)  
+**Author:** Research Team  
+**Report Type:** Meta-analysis / synthesis (3 source experiments, 18 analysis passes, 74,254 total samples)  
+**Compute Time:** <5 seconds (pure meta-analysis on pre-computed results)  
+**Status:** Complete -- all 3 source experiments delivered, full synthesis run  
+**Run ID:** `20260308_180727`  
+**Related Work:** [TR134](Technical_Report_134.md) (Alignment Under Quantization), [TR135](Technical_Report_135.md) (Concurrency x Safety), [TR136](Technical_Report_136.md) (Cross-Backend Safety)  
+**Depends On:** TR134 (quantization safety data), TR135 (concurrency safety data), TR136 (backend safety data)  
 
 ---
 
@@ -67,7 +67,7 @@ Key findings: (1) Quantization accounts for 57% of total safety cost, backend ch
 
 3. **Qwen size mismatch.** TR134 tested Qwen 2.5 7B, TR135 tested Qwen 2.5 3B, TR136 tested Qwen 2.5 1.5B. These are different models from the same family, not the same model. Cross-TR Qwen comparisons are family-level, not model-level.
 
-4. **Consumer hardware only.** All experiments ran on a single NVIDIA RTX GPU. Datacenter hardware (A100, H100) may behave differently, particularly for vLLM/TGI optimizations that leverage tensor parallelism.
+4. **Consumer hardware only.** All experiments ran on a single NVIDIA RTX GPU. Datacenter hardware (A100, H_100) may behave differently, particularly for vLLM/TGI optimizations that leverage tensor parallelism.
 
 5. **Automated scoring only.** Safety scores come from regex classifiers (RefusalDetector, BiasDetector, TruthfulnessScorer). LLM judge validation (Qwen 2.5 7B Q8_0) was applied in TR134 only. Cohen's kappa between regex and judge is 0.147 (poor overall), limiting confidence in classification accuracy.
 
@@ -117,13 +117,13 @@ Key findings: (1) Quantization accounts for 57% of total safety cost, backend ch
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
 | 1 | Quantization is the most dangerous axis | Mean 20.6pp delta, Cohen's d = 1.93 (Llama 1B) | **Validated** for Llama 1B; **Mixed** at aggregate level (CI includes negative) |
-| 2 | Concurrency is safety-neutral | Max delta 0.4pp, I² = 0.0%, all slopes ~0 | **Validated** |
+| 2 | Concurrency is safety-neutral | Max delta 0.4pp, I^2 = 0.0%, all slopes ~0 | **Validated** |
 | 3 | Backend choice matters more than quantization for some models | Llama 1B: backend d = -0.60 vs quant d = 0.05 within TR136 | **Validated** for within-backend comparison |
 | 4 | No backend pair is equivalent at +/-3pp | All 18 TOST tests fail (from TR136) | **Validated** |
 | 5 | Effects are additive across axes | No factorial design to test; additive model used | **Assumed, not validated** |
 | 6 | Safety degrades faster than capability | Only 3/10 model-axis combinations | **Refuted** as universal claim |
 | 7 | Jailbreak vulnerability increases at lower quant | All 4 technique slopes negative | **Validated** |
-| 8 | Model families agree on which axis is dangerous | ANOVA p = 0.1370, I² = 99.9% on quant | **Refuted** -- extreme disagreement |
+| 8 | Model families agree on which axis is dangerous | ANOVA p = 0.1370, I^2 = 99.9% on quant | **Refuted** -- extreme disagreement |
 
 ### Key Decisions for Practitioners
 
@@ -364,7 +364,7 @@ The central question: which optimization axis produces the largest safety degrad
 
 ### 6.1 Aggregate Ranking
 
-| Rank | Axis | Mean |Delta| (pp) | 95% Bootstrap CI | N Models |
+| Rank | Axis | Mean \|Delta\| (pp) | 95% Bootstrap CI | N Models |
 |------|------|----------------|-------------------|----------|
 | 1 | Quantization | 20.6 | [-6.0, 35.2] | 2 |
 | 2 | Backend | 14.8 | [4.4, 25.1] | 2 |
@@ -815,7 +815,7 @@ What percentage of total safety cost comes from each optimization axis?
 |----|----------|--------|
 | 1 | Most dangerous axis? | Quantization (57% of cost, mean 20.6pp) |
 | 2 | Safety faster than capability? | Only 3/10 model-axis combinations (not universal) |
-| 3 | Models agree? | No. I² = 99.9% (quant), 99.5% (backend), 0.0% (concurrency) |
+| 3 | Models agree? | No. I^2 = 99.9% (quant), 99.5% (backend), 0.0% (concurrency) |
 | 4 | Combined cost? | Additive projection: 1.1-5.0pp at Q4_K_M; 34.7-35.2pp at Q2_K |
 | 5 | Jailbreak patterns consistent? | Quant amplifies (all negative slopes). Concurrency does not (all zero). |
 | 6 | Most vulnerable bias category? | Nationality (slope -0.010). Least: Race/Ethnicity (+0.015). |
@@ -856,7 +856,7 @@ Several extensions would strengthen the synthesis:
 
 3. **Human annotation validation.** The poor judge kappa (0.147) suggests that automated scoring introduces systematic uncertainty. A 500-sample human annotation study at key quant levels (FP16, Q4_K_M, Q2_K) would calibrate the automated classifiers.
 
-4. **Datacenter hardware.** All results are from consumer NVIDIA GPUs. Replication on A100/H100 hardware with tensor parallelism would test generalization to production infrastructure.
+4. **Datacenter hardware.** All results are from consumer NVIDIA GPUs. Replication on A100/H_100 hardware with tensor parallelism would test generalization to production infrastructure.
 
 5. **Stochastic sampling.** All experiments used temperature 0. A temperature-0.7 variant would reveal whether stochastic sampling introduces additional safety variance that interacts with optimization axes.
 

@@ -1,21 +1,21 @@
 # Technical Report 123: KV-Cache Production Economics
 ## Phase-split $/token with cached decode across MHA and GQA architectures
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-02-17
-**Author:** Research Team
-**Report Type:** Frontier cost/energy deep dive (phase-split)
-**Test Duration:** ~1.5 hours (benchmark) + ~10 min (Docker compile runs)
-**Status:** Frontier Report (artifact-backed)
-**Run ID:** `20260216_181539`
-**Related Work:** [TR119](Technical_Report_119.md), [TR121](Technical_Report_121.md)
-**Depends On:** TR119 (uncached baseline), TR121 (scaling methodology)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-02-17  
+**Author:** Research Team  
+**Report Type:** Frontier cost/energy deep dive (phase-split)  
+**Test Duration:** ~1.5 hours (benchmark) + ~10 min (Docker compile runs)  
+**Status:** Frontier Report (artifact-backed)  
+**Run ID:** `20260216_181539`  
+**Related Work:** [TR119](Technical_Report_119.md), [TR121](Technical_Report_121.md)  
+**Depends On:** TR119 (uncached baseline), TR121 (scaling methodology)  
 
 ---
 
 ## Abstract
 
-TR119 established cost-per-token economics using `use_cache=False` — an intentionally
+TR119 established cost-per-token economics using `use_cache=False` -- an intentionally
 pessimistic measurement that ignores KV-cache reuse during autoregressive decode.
 This report measures **production-grade inference** with KV-cache enabled, separating
 prefill (prompt processing) and decode (token generation) into distinct cost phases.
@@ -27,14 +27,14 @@ per cell (420 valid measurements + 105 backend-skip entries = 525 total cells, 0
 
 Key findings:
 - **Best-cost backend:** `transformers-gpu-compile` at **$0.013/1M tokens** (GPT-2, chat blend, consumer RTX 4080).
-- **torch.compile speedup:** 1.2x–2.5x decode throughput improvement across all models.
-- **GQA memory advantage:** Qwen2.5-1.5B (2 KV heads) uses **56 MB** at 2K context vs Phi-2's **640 MB** (32 KV heads) — an 11.4x difference at comparable parameter counts.
-- **Crossover points:** GQA models sustain 56K–108K tokens before KV cache exceeds model weights; MHA models cross over at 6.7K–16.5K tokens.
-- **Phase asymmetry:** Prefill is 10–100x faster than decode per token, validating separate input/output pricing as practiced by commercial LLM providers.
-- **Infra dominates cost:** Infrastructure (compute-time) accounts for 66–99% of total cost; energy cost is a rounding error at consumer scale but becomes material for GPU-compile backends where high power draw accompanies high throughput.
+- **torch.compile speedup:** 1.2x--2.5x decode throughput improvement across all models.
+- **GQA memory advantage:** Qwen2.5-1.5B (2 KV heads) uses **56 MB** at 2K context vs Phi-2's **640 MB** (32 KV heads) -- an 11.4x difference at comparable parameter counts.
+- **Crossover points:** GQA models sustain 56K--108K tokens before KV cache exceeds model weights; MHA models cross over at 6.7K--16.5K tokens.
+- **Phase asymmetry:** Prefill is 10--100x faster than decode per token, validating separate input/output pricing as practiced by commercial LLM providers.
+- **Infra dominates cost:** Infrastructure (compute-time) accounts for 66--99% of total cost; energy cost is a rounding error at consumer scale but becomes material for GPU-compile backends where high power draw accompanies high throughput.
 - **Best energy efficiency (decode):** GPT-2/CPU at 51.2M tok/kWh (low power draw), but GPT-2/compile is the best *GPU* option at 36.2M tok/kWh.
 - **Lowest carbon footprint (chat blend):** GPT-2/CPU at 3.4 gCO2e/1M tokens; GPT-2/compile at 4.6 gCO2e/1M tokens.
-- **Consumer vs cloud:** Self-hosted consumer hardware is 95.4% cheaper than AWS on-demand for the same throughput — the dominant economic lever.
+- **Consumer vs cloud:** Self-hosted consumer hardware is 95.4% cheaper than AWS on-demand for the same throughput -- the dominant economic lever.
 - **TCO at 1B tok/month:** GPT-2/compile costs **$153/year** on consumer hardware vs **$2,880/year** on AWS on-demand.
 - Runs: **420** measured, **105** skipped (intentional), **0** degraded (0.0%).
 
@@ -85,36 +85,36 @@ Formula: `$/1M_blend = input_ratio * $/1M_prefill + output_ratio * $/1M_decode`
 
 TR123 answers: **what does production KV-cached inference actually cost**, and how do architecture choices (MHA vs GQA) and compilation (torch.compile) affect economics?
 
-Across this matrix (5 models × 3 backends × 5 scenarios × 7 reps = 525 cells, with backend_skip for infeasible combos), the rankings are:
+Across this matrix (5 models x 3 backends x 5 scenarios x 7 reps = 525 cells, with backend_skip for infeasible combos), the rankings are:
 
 ### Key Findings
 
 1. **Best-cost model/backend (chat blend, consumer):** GPT-2 / `transformers-gpu-compile` at **$0.013/1M tokens**.
 2. **Best-cost at scale (>1B params, chat blend):** Llama-3.2-1B / compile at **$0.047/1M tokens**.
-3. **torch.compile benefit:** 1.9–2.5x decode speedup for small/medium models (GPT-2, Llama-1B, Qwen-1.5B); 1.2–1.4x for larger Phi-2 (diminishing returns at memory-bandwidth saturation).
-4. **GPU vs CPU gap:** 4–8x cost difference. CPU inference only viable for GPT-2 (124M).
-5. **GQA vs MHA at 2K context:** Qwen2.5-1.5B KV cache = 56 MB; Phi-2 = 640 MB (11.4x). At scale, GQA enables 3–7x longer contexts before memory exhaustion.
-6. **Phase asymmetry:** Prefill throughput is 50–500x higher than decode throughput. Decode dominates cost in all workload profiles.
+3. **torch.compile benefit:** 1.9--2.5x decode speedup for small/medium models (GPT-2, Llama-1B, Qwen-1.5B); 1.2--1.4x for larger Phi-2 (diminishing returns at memory-bandwidth saturation).
+4. **GPU vs CPU gap:** 4--8x cost difference. CPU inference only viable for GPT-2 (124M).
+5. **GQA vs MHA at 2K context:** Qwen2.5-1.5B KV cache = 56 MB; Phi-2 = 640 MB (11.4x). At scale, GQA enables 3--7x longer contexts before memory exhaustion.
+6. **Phase asymmetry:** Prefill throughput is 50--500x higher than decode throughput. Decode dominates cost in all workload profiles.
 7. **Pricing tier lever:** Consumer hardware ($0.046/hr) is 95.4% cheaper than AWS on-demand ($1.006/hr). Spot pricing saves 70% vs on-demand. Infrastructure choice dominates backend choice.
-8. **Energy cost is negligible:** Infra cost accounts for 66–99% of total cost. Energy is a second-order effect for cost optimization but remains relevant for carbon reporting.
+8. **Energy cost is negligible:** Infra cost accounts for 66--99% of total cost. Energy is a second-order effect for cost optimization but remains relevant for carbon reporting.
 
 ### Key Decision
 
 - For **cost-minimal inference** on consumer GPU: use `transformers-gpu-compile` with Triton. It halves decode cost for GPT-2 and Qwen.
 - For **production at 1B+ scale**: Llama-3.2-1B with compile offers the best cost/capability tradeoff ($0.047/1M vs $0.075 vanilla GPU).
-- For **long-context workloads**: prefer GQA architectures (Llama, Qwen) — their KV cache memory scales 3–11x slower than MHA (GPT-2, Phi-2).
+- For **long-context workloads**: prefer GQA architectures (Llama, Qwen) -- their KV cache memory scales 3--11x slower than MHA (GPT-2, Phi-2).
 
 ### Claim Validation
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | KV-cached decode is cheaper than uncached | Phase-split cost tables (§5.3) vs TR119 baseline | **Validated** |
-| 2 | torch.compile provides 1.2–2.5x decode speedup | 12 model/scenario comparisons (§9.1) | **Validated** |
-| 3 | GQA reduces KV memory 3–11x vs MHA | Theoretical + empirical at 2K context (§8.3), 30/30 exact | **Validated** |
-| 4 | Infra cost dominates over energy cost | Cost decomposition: 66–99% infra across 12 combos (§6.1) | **Validated** |
-| 5 | Consumer hardware is 95% cheaper than cloud | Multi-tier pricing across 11 tiers (§10.1) | **Validated** |
-| 6 | KV cache memory formula is exact | 30/30 empirical matches (§8.2) | **Validated** |
-| 7 | Prefill is 10–100x cheaper than decode per token | 50 phase-split measurements (§5.3) | **Validated** |
+| 1 | KV-cached decode is cheaper than uncached | Phase-split cost tables (Sec. 5.3) vs TR119 baseline | **Validated** |
+| 2 | torch.compile provides 1.2--2.5x decode speedup | 12 model/scenario comparisons (Sec. 9.1) | **Validated** |
+| 3 | GQA reduces KV memory 3--11x vs MHA | Theoretical + empirical at 2K context (Sec. 8.3), 30/30 exact | **Validated** |
+| 4 | Infra cost dominates over energy cost | Cost decomposition: 66--99% infra across 12 combos (Sec. 6.1) | **Validated** |
+| 5 | Consumer hardware is 95% cheaper than cloud | Multi-tier pricing across 11 tiers (Sec. 10.1) | **Validated** |
+| 6 | KV cache memory formula is exact | 30/30 empirical matches (Sec. 8.2) | **Validated** |
+| 7 | Prefill is 10--100x cheaper than decode per token | 50 phase-split measurements (Sec. 5.3) | **Validated** |
 
 ---
 
@@ -126,37 +126,37 @@ TR123 is the reference for KV-cached inference economics. Use it when you need p
 
 **Question:** "Which model should I deploy for a chatbot on my RTX 4080?"
 
-**Answer:** Consult the cost ranking table (§5.6) and deployment recommendations (§14.2). For lowest absolute cost, use GPT-2/compile ($0.013/1M). For best quality-per-dollar at 1B+ params, use Llama-3.2-1B/compile ($0.047/1M).
+**Answer:** Consult the cost ranking table (Sec. 5.6) and deployment recommendations (Sec. 14.2). For lowest absolute cost, use GPT-2/compile ($0.013/1M). For best quality-per-dollar at 1B+ params, use Llama-3.2-1B/compile ($0.047/1M).
 
 ### Scenario 2: Estimating Monthly Cloud Cost
 
 **Question:** "What will it cost to serve 1B tokens/month on AWS?"
 
-**Answer:** Use the TCO table (§6.7). Llama-3.2-1B/compile costs $8,584/year on AWS on-demand vs $561/year on consumer hardware. The multi-tier pricing table (§10.1) lets you adjust for spot, reserved, or other providers.
+**Answer:** Use the TCO table (Sec. 6.7). Llama-3.2-1B/compile costs $8,584/year on AWS on-demand vs $561/year on consumer hardware. The multi-tier pricing table (Sec. 10.1) lets you adjust for spot, reserved, or other providers.
 
 ### Scenario 3: Choosing Between MHA and GQA Architectures
 
 **Question:** "Should I use Phi-2 (MHA) or Qwen2.5-1.5B (GQA) for long-context tasks?"
 
-**Answer:** Consult the KV-cache memory analysis (§8). At 2K context, Phi-2 uses 640 MB for KV cache vs Qwen's 56 MB (11.4x difference). Qwen's crossover point is 108K tokens vs Phi-2's 16K. For any context > 4K tokens, GQA is strongly preferred.
+**Answer:** Consult the KV-cache memory analysis (Sec. 8). At 2K context, Phi-2 uses 640 MB for KV cache vs Qwen's 56 MB (11.4x difference). Qwen's crossover point is 108K tokens vs Phi-2's 16K. For any context > 4K tokens, GQA is strongly preferred.
 
 ### Scenario 4: Justifying Self-Hosted vs Cloud
 
 **Question:** "Should we buy a GPU or use AWS?"
 
-**Answer:** Use the break-even analysis (§11.4) and ROI table (§6.5). Consumer hardware is 95.4% cheaper than AWS on-demand. An RTX 4080 ($1,200) pays for itself in 0.3–2.7 months at 10M requests/month, depending on model. See the capacity planning table (§11.2) for workers-per-model calculations.
+**Answer:** Use the break-even analysis (Sec. 11.4) and ROI table (Sec. 6.5). Consumer hardware is 95.4% cheaper than AWS on-demand. An RTX 4080 ($1,200) pays for itself in 0.3--2.7 months at 10M requests/month, depending on model. See the capacity planning table (Sec. 11.2) for workers-per-model calculations.
 
 ### Scenario 5: Deciding Whether to Enable torch.compile
 
 **Question:** "Is the Docker overhead for torch.compile worth it?"
 
-**Answer:** Consult the compile deep dive (§9). For GPT-2 through Qwen-1.5B, compile provides 1.9–2.5x decode speedup and halves cost. For Phi-2 (2.7B), the speedup drops to 1.2–1.4x due to memory-bandwidth saturation. If you're running sustained inference (not cold-start), compile is almost always worth it.
+**Answer:** Consult the compile deep dive (Sec. 9). For GPT-2 through Qwen-1.5B, compile provides 1.9--2.5x decode speedup and halves cost. For Phi-2 (2.7B), the speedup drops to 1.2--1.4x due to memory-bandwidth saturation. If you're running sustained inference (not cold-start), compile is almost always worth it.
 
 ### Scenario 6: Reporting Carbon Footprint of Inference
 
 **Question:** "What's the carbon footprint of our LLM inference pipeline?"
 
-**Answer:** Use the carbon footprint table (§6.3). GPT-2/compile produces 4.6 gCO2e per 1M tokens. At 1B tokens/month, that's 4.6 kg CO2e/month. Note that torch.compile *increases* carbon despite reducing cost — consult §6.2 for the energy-efficiency tradeoff.
+**Answer:** Use the carbon footprint table (Sec. 6.3). GPT-2/compile produces 4.6 gCO2e per 1M tokens. At 1B tokens/month, that's 4.6 kg CO2e/month. Note that torch.compile *increases* carbon despite reducing cost -- consult Sec. 6.2 for the energy-efficiency tradeoff.
 
 ---
 
@@ -183,7 +183,7 @@ TR123 is the reference for KV-cached inference economics. Use it when you need p
 
 ## 1. Introduction & Research Motivation
 
-TR119 established the first cost/energy benchmark for local inference, but used `use_cache=False` — generating each token by recomputing attention over the full sequence. This is intentionally pessimistic; production LLM serving uses KV-cached decode where attention keys/values are stored and reused.
+TR119 established the first cost/energy benchmark for local inference, but used `use_cache=False` -- generating each token by recomputing attention over the full sequence. This is intentionally pessimistic; production LLM serving uses KV-cached decode where attention keys/values are stored and reused.
 
 TR123 closes this gap by measuring **production-realistic two-phase inference** and extends the scope from a single GPT-2 model to 5 architecturally diverse models.
 
@@ -200,7 +200,7 @@ TR123 closes this gap by measuring **production-realistic two-phase inference** 
 ### 1.2 Scope
 
 - **Hardware:** Single consumer machine (RTX 4080 Laptop, 12GB VRAM). Results are hardware-specific.
-- **Models:** 5 models, 124M–3.2B parameters, MHA and GQA architectures.
+- **Models:** 5 models, 124M--3.2B parameters, MHA and GQA architectures.
 - **Backends:** 3 (GPU, GPU+compile, CPU). ONNX removed (no pre-exported models for modern architectures).
 - **Batch size:** Always 1 (single-sequence focus). Multi-batch economics deferred to TR128.
 - **torch.compile:** Run in Docker (`nvcr.io/nvidia/pytorch:25.08-py3`) with Triton 3.3.1 (Triton is Linux-only).
@@ -209,9 +209,9 @@ TR123 closes this gap by measuring **production-realistic two-phase inference** 
 
 | Reference | Contribution | How TR123 Extends It |
 |-----------|-------------|---------------------|
-| TokenPowerBench (arXiv:2512.03024, Dec 2025) | Phase-aligned energy attribution on H100 clusters | We apply phase-tagging on consumer hardware with PhasePowerSampler |
-| Brenndoerfer (2025) | KV-cache memory formula: `KV = 2×L×B×T×H_kv×D_h×prec` | We validate empirically across 5 models, measure crossover points |
-| SPAD / DuetServe (2025) | Prefill-decode disaggregation for scheduling | We quantify the cost differential: prefill is 10–100x cheaper per token |
+| TokenPowerBench (arXiv:2512.03024, Dec 2025) | Phase-aligned energy attribution on H_100 clusters | We apply phase-tagging on consumer hardware with PhasePowerSampler |
+| Brenndoerfer (2025) | KV-cache memory formula: `KV = 2xLxBxTxH_kvxD_hxprec` | We validate empirically across 5 models, measure crossover points |
+| SPAD / DuetServe (2025) | Prefill-decode disaggregation for scheduling | We quantify the cost differential: prefill is 10--100x cheaper per token |
 | KV-Cache Optimization Survey (arXiv:2407.18003) | GQA reduces cache to `n_kv/n_h` of MHA | We measure the real memory and cost impact across MHA/GQA pairs |
 
 **Gap filled:** No existing work measures phase-split $/tok on consumer hardware across multiple architectures and backends with telemetry-backed energy attribution.
@@ -225,7 +225,7 @@ TR123 closes this gap by measuring **production-realistic two-phase inference** 
 - **Latency:** Prefill (ms), decode (ms), total (ms). CUDA events for GPU-side timing + `time.perf_counter()` for wall-clock.
 - **Throughput:** Prefill tok/s, decode tok/s.
 - **Power:** Per-phase GPU power mean (W) via NVML PhasePowerSampler with `mark_phase()`.
-- **Temperature:** GPU temp (°C), throttle detection at 80°C.
+- **Temperature:** GPU temp (degC), throttle detection at 80degC.
 - **Memory:** Peak GPU allocation after prefill, after decode, KV-cache direct tensor measurement.
 
 ### 2.2 Benchmark Matrix
@@ -254,9 +254,9 @@ Phase-split cost accounting:
 prefill_tok/s = prompt_tokens / (prefill_ms / 1000)
 decode_tok/s  = gen_tokens   / (decode_ms / 1000)
 
-$/1M_prefill = (1,000,000 / prefill_tok/s / 3600) × hourly_rate + energy_cost
-$/1M_decode  = (1,000,000 / decode_tok/s  / 3600) × hourly_rate + energy_cost
-$/1M_blend   = input_ratio × $/1M_prefill + output_ratio × $/1M_decode
+$/1M_prefill = (1,000,000 / prefill_tok/s / 3600) x hourly_rate + energy_cost
+$/1M_decode  = (1,000,000 / decode_tok/s  / 3600) x hourly_rate + energy_cost
+$/1M_blend   = input_ratio x $/1M_prefill + output_ratio x $/1M_decode
 ```
 
 ### 2.4 Telemetry Collection
@@ -302,7 +302,7 @@ Each measurement row in `raw_measurements.jsonl` contains:
 | `model` | string | Model identifier (e.g., `gpt2`, `llama-3.2-1b`) |
 | `backend` | string | Backend name (`transformers-gpu`, `-gpu-compile`, `-cpu`) |
 | `scenario` | string | Workload scenario name |
-| `rep` | int | Repetition index (0–6); warmup runs are excluded |
+| `rep` | int | Repetition index (0--6); warmup runs are excluded |
 | `status` | string | `ok`, `skipped`, or `error` |
 | `prompt_tokens` | int | Number of input tokens |
 | `gen_tokens` | int | Number of generated tokens |
@@ -314,7 +314,7 @@ Each measurement row in `raw_measurements.jsonl` contains:
 | `gpu_peak_prefill_mb` | float | Peak GPU memory after prefill |
 | `gpu_peak_total_mb` | float | Peak GPU memory after decode |
 | `gpu_clock_mhz` | float | GPU clock speed during measurement |
-| `gpu_temp_c` | float | GPU temperature (°C) |
+| `gpu_temp_c` | float | GPU temperature (degC) |
 | `phase_power.prefill` | object | `{power_mean_w, temp_mean_c, clock_mean_mhz, n_samples}` |
 | `phase_power.decode` | object | Same structure for decode phase |
 
@@ -377,15 +377,15 @@ Each measurement row in `raw_measurements.jsonl` contains:
 
 ### 4.2 Why These Models
 
-- **Size range:** 124M → 3.2B (26x range). All fit in 12GB VRAM in FP16.
-- **MHA vs GQA contrast:** GPT-2 and Phi-2 use full multi-head attention (n_kv_heads = n_heads). Llama and Qwen use grouped-query attention with 2–8 KV heads shared across many query heads.
-- **Extreme GQA:** Qwen2.5-1.5B has only **2 KV heads** — the most aggressive KV compression in our lineup, with a 6:1 query-to-KV ratio.
+- **Size range:** 124M -> 3.2B (26x range). All fit in 12GB VRAM in FP16.
+- **MHA vs GQA contrast:** GPT-2 and Phi-2 use full multi-head attention (n_kv_heads = n_heads). Llama and Qwen use grouped-query attention with 2--8 KV heads shared across many query heads.
+- **Extreme GQA:** Qwen2.5-1.5B has only **2 KV heads** -- the most aggressive KV compression in our lineup, with a 6:1 query-to-KV ratio.
 - **Architectural diversity:** d_head ranges from 64 to 128, layer count from 12 to 32.
 
 ### 4.3 KV-Cache Memory Formula
 
 ```
-KV_bytes = 2 × n_layers × batch_size × seq_len × n_kv_heads × d_head × precision_bytes
+KV_bytes = 2 x n_layers x batch_size x seq_len x n_kv_heads x d_head x precision_bytes
 ```
 
 The factor of 2 accounts for both Key and Value tensors per layer. For GQA models, `n_kv_heads < n_heads`, which directly reduces cache size proportional to the GQA ratio.
@@ -398,7 +398,7 @@ This section summarizes observed performance, telemetry, and derived cost/energy
 
 ### 5.1 Latency & Throughput Summary (Mean Across Scenarios)
 
-| Model | Backend | Prefill (ms) | Prefill 95% CI | Decode (ms) | Decode 95% CI | Prefill tok/s | Decode tok/s | Power Prefill (W) | Power Decode (W) | Temp (°C) | Degraded |
+| Model | Backend | Prefill (ms) | Prefill 95% CI | Decode (ms) | Decode 95% CI | Prefill tok/s | Decode tok/s | Power Prefill (W) | Power Decode (W) | Temp (degC) | Degraded |
 |-------|---------|-------------|---------------|------------|--------------|--------------|-------------|-------------------|------------------|-----------|----------|
 | gpt2 | gpu-compile | 7.7 | [6.2, 9.1] | 555.0 | [422.0, 688.1] | 33,862 | 396.4 | 27.7 | 39.4 | 49.9 | 0/35 |
 | gpt2 | gpu | 9.8 | [8.5, 11.0] | 1,122.7 | [841.4, 1403.9] | 27,071 | 195.0 | 9.6 | 27.7 | 45.7 | 0/35 |
@@ -417,9 +417,9 @@ This section summarizes observed performance, telemetry, and derived cost/energy
 
 - Prefill and KV-cached decode operate in different cost regimes because decode is sequential and memory-bandwidth-bound while prefill processes all tokens in one batched pass.
 - Under time-based pricing, higher throughput almost always implies lower $/token; power differences matter most when power varies dramatically at similar throughput.
-- **torch.compile draws significantly more power** (82–119 W decode vs 47–67 W vanilla GPU) but this is more than offset by its 1.2–2.5x throughput improvement.
-- CPU backends draw only 2.7–3.5 W (GPU idle power) but their throughput is so low that total energy per token is comparable to GPU backends.
-- No thermal throttling observed (all temps < 72°C, well below 80°C threshold).
+- **torch.compile draws significantly more power** (82--119 W decode vs 47--67 W vanilla GPU) but this is more than offset by its 1.2--2.5x throughput improvement.
+- CPU backends draw only 2.7--3.5 W (GPU idle power) but their throughput is so low that total energy per token is comparable to GPU backends.
+- No thermal throttling observed (all temps < 72degC, well below 80degC threshold).
 - Treat CPU backends as fallbacks unless GPU is unavailable; the gap in throughput and cost per token is large.
 
 ### 5.2 Latency, Throughput, and Telemetry (Per Backend/Scenario)
@@ -544,9 +544,9 @@ This section summarizes observed performance, telemetry, and derived cost/energy
 
 #### Interpretation
 
-- **Decode dominates cost** in every scenario. Even in `long_context` (1024 prompt tokens, 128 generated), decode cost is 30–100x higher than prefill cost.
+- **Decode dominates cost** in every scenario. Even in `long_context` (1024 prompt tokens, 128 generated), decode cost is 30--100x higher than prefill cost.
 - **torch.compile halves decode cost** for small/medium models: GPT-2 decode drops from $0.065 to $0.034 per 1M tokens.
-- **CPU is 4–5x more expensive** than GPU for GPT-2 and impractical (>$0.50/1M) for larger models.
+- **CPU is 4--5x more expensive** than GPU for GPT-2 and impractical (>$0.50/1M) for larger models.
 - **Cost scales sub-linearly with parameters:** Llama-3.2-3B (3.2B) costs only 2x more than Llama-3.2-1B (1.2B), not 2.6x.
 
 ### 5.4 Prefill Deep Dive
@@ -556,7 +556,7 @@ Prefill is the prompt-processing phase. Under time-based pricing, the dominant d
 - Best prefill backend by cost (mean across scenarios): **GPT-2/gpu-compile** at **$0.0006/1M prefill tokens**.
 - GPT-2/gpu-compile prefill throughput: ~**33,862 tok/s**; mean power: ~**27.7 W**; energy share: ~**14.6%** of total cost.
 - Worst prefill: **Qwen2.5-1.5B/cpu** at ~$0.015/1M prefill tokens (25x more expensive).
-- Prefill cost is negligible relative to decode in all cases — even at 95% input ratio (RAG-heavy), decode's per-token cost still dominates the blend.
+- Prefill cost is negligible relative to decode in all cases -- even at 95% input ratio (RAG-heavy), decode's per-token cost still dominates the blend.
 
 ### 5.5 Decode Deep Dive (KV-Cached)
 
@@ -565,7 +565,7 @@ Decode is the production-realistic KV-cached token generation phase. Every step 
 - Best decode backend by cost: **GPT-2/gpu-compile** at **$0.034/1M decode tokens**.
 - GPT-2/gpu-compile decode throughput: ~**396 tok/s**; mean power: ~**39.4 W**.
 - At 1B+ scale: **Llama-3.2-1B/compile** at **$0.120/1M decode tokens** (135 tok/s).
-- Decode cost is 30–100x higher than prefill per token, confirming the industry practice of charging 2–4x more for output tokens than input tokens.
+- Decode cost is 30--100x higher than prefill per token, confirming the industry practice of charging 2--4x more for output tokens than input tokens.
 
 ### 5.6 Cost Ranking (Chat Blend, Consumer Hardware)
 
@@ -603,8 +603,8 @@ Decode is the production-realistic KV-cached token generation phase. Every step 
 - Validation status: **PASS with warnings** (13 IQR outlier flags; no completeness/timing failures)
 - 420/420 measurements OK (0 errors in final merged dataset)
 - 105 skipped (intentional backend_skip for infeasible combos)
-- Timing sanity: prefill_ms + decode_ms ≈ total_ms (within 5% for all rows)
-- Monotonicity: longer prompts → longer prefill (confirmed for all backends)
+- Timing sanity: prefill_ms + decode_ms ~ total_ms (within 5% for all rows)
+- Monotonicity: longer prompts -> longer prefill (confirmed for all backends)
 
 ### 5.7 Measurement Stability & Warmup Analysis
 
@@ -612,40 +612,40 @@ Warmup runs are executed but **not recorded** in the JSONL. The benchmark engine
 
 #### Warmup Effectiveness
 
-We compare rep=0 (first measured run after warmup) against reps 1–6 using the warmup ratio (mean decode_ms for rep=0 / mean decode_ms for reps 1–6):
+We compare rep=0 (first measured run after warmup) against reps 1--6 using the warmup ratio (mean decode_ms for rep=0 / mean decode_ms for reps 1--6):
 
 | Model | Backend | Worst Warmup Ratio | Worst Scenario | Interpretation |
 |-------|---------|-------------------|----------------|---------------|
-| gpt2 | gpu-compile | 1.086 | long_context | 8.6% residual — small model, negligible absolute delta |
-| gpt2 | gpu | 1.104 | medium_prompt | 10.4% — ~70 ms on a 670 ms measurement; within noise |
-| gpt2 | cpu | 1.077 | short_prompt | 7.7% — normal CPU jitter |
-| llama-3.2-1b | gpu-compile | 1.042 | long_prompt | 4.2% — compile warmup effective with 5 warmup runs |
-| llama-3.2-1b | gpu | 1.012 | short_prompt | 1.2% — excellent stability |
-| llama-3.2-1b | cpu | 1.013 | short_prompt | 1.3% — consistent |
-| qwen2.5-1.5b | gpu-compile | 1.064 | long_context | 6.4% — moderate |
-| qwen2.5-1.5b | gpu | 1.047 | medium_prompt | 4.7% — good |
-| qwen2.5-1.5b | cpu | 1.001 | decode_heavy | 0.1% — excellent |
-| phi-2 | gpu-compile | 1.005 | short_prompt | 0.5% — excellent |
-| phi-2 | gpu | 1.017 | long_prompt | 1.7% — stable |
-| llama-3.2-3b | gpu | 1.026 | long_prompt | 2.6% — good |
+| gpt2 | gpu-compile | 1.086 | long_context | 8.6% residual -- small model, negligible absolute delta |
+| gpt2 | gpu | 1.104 | medium_prompt | 10.4% -- ~70 ms on a 670 ms measurement; within noise |
+| gpt2 | cpu | 1.077 | short_prompt | 7.7% -- normal CPU jitter |
+| llama-3.2-1b | gpu-compile | 1.042 | long_prompt | 4.2% -- compile warmup effective with 5 warmup runs |
+| llama-3.2-1b | gpu | 1.012 | short_prompt | 1.2% -- excellent stability |
+| llama-3.2-1b | cpu | 1.013 | short_prompt | 1.3% -- consistent |
+| qwen2.5-1.5b | gpu-compile | 1.064 | long_context | 6.4% -- moderate |
+| qwen2.5-1.5b | gpu | 1.047 | medium_prompt | 4.7% -- good |
+| qwen2.5-1.5b | cpu | 1.001 | decode_heavy | 0.1% -- excellent |
+| phi-2 | gpu-compile | 1.005 | short_prompt | 0.5% -- excellent |
+| phi-2 | gpu | 1.017 | long_prompt | 1.7% -- stable |
+| llama-3.2-3b | gpu | 1.026 | long_prompt | 2.6% -- good |
 
-All warmup ratios are below 1.11, confirming that pre-measurement warmup is effective. The worst case (GPT-2/GPU at 1.104) reflects the small model's sensitivity to timing jitter in absolute terms — a 70 ms delta on a 670 ms measurement.
+All warmup ratios are below 1.11, confirming that pre-measurement warmup is effective. The worst case (GPT-2/GPU at 1.104) reflects the small model's sensitivity to timing jitter in absolute terms -- a 70 ms delta on a 670 ms measurement.
 
 #### Coefficient of Variation
 
-Per-group coefficient of variation (CV = std/mean × 100%) across 7 repetitions:
+Per-group coefficient of variation (CV = std/mean x 100%) across 7 repetitions:
 
 | CV Range | Groups | Interpretation |
 |----------|--------|---------------|
 | < 1% | 19/60 (32%) | Excellent reproducibility |
-| 1–3% | 28/60 (47%) | Good — typical for GPU benchmarks |
-| 3–5% | 9/60 (15%) | Acceptable — minor thermal/clock variation |
-| 5–10% | 4/60 (7%) | Moderate — investigate if critical |
-| > 10% | 0/60 (0%) | None — no unstable measurements |
+| 1--3% | 28/60 (47%) | Good -- typical for GPU benchmarks |
+| 3--5% | 9/60 (15%) | Acceptable -- minor thermal/clock variation |
+| 5--10% | 4/60 (7%) | Moderate -- investigate if critical |
+| > 10% | 0/60 (0%) | None -- no unstable measurements |
 
 **Worst stability:** Phi-2/GPU on `long_context` (CV=9.02%, max/min ratio=1.27). This single outlier is attributable to dynamic GPU clock scaling under sustained load on the laptop GPU. All other groups have CV <= 8.2%.
 
-**Conclusion:** Measurement variance is well-controlled. No group exceeds 10% CV, and 90% of groups are below 5% CV. The 7-rep design provides sufficient statistical power for the analyses in §7.
+**Conclusion:** Measurement variance is well-controlled. No group exceeds 10% CV, and 90% of groups are below 5% CV. The 7-rep design provides sufficient statistical power for the analyses in Sec. 7.
 
 ---
 
@@ -672,14 +672,14 @@ The cost per 1M tokens is decomposed into infrastructure (compute-time) and ener
 
 #### Interpretation
 
-- **Infra cost dominates** for all backends, accounting for 66–99% of total cost.
-- **Energy share is highest for GPU-compile backends** (30–34% for Llama-1B/compile, Qwen/compile, Phi-2/compile). This is because compile draws more power (100–120 W) while its dramatically higher throughput reduces the infra share.
-- **CPU energy is negligible** (1.2–1.4%) — low power draw (2.7–3.5 W) but the infra cost from low throughput is overwhelming.
+- **Infra cost dominates** for all backends, accounting for 66--99% of total cost.
+- **Energy share is highest for GPU-compile backends** (30--34% for Llama-1B/compile, Qwen/compile, Phi-2/compile). This is because compile draws more power (100--120 W) while its dramatically higher throughput reduces the infra share.
+- **CPU energy is negligible** (1.2--1.4%) -- low power draw (2.7--3.5 W) but the infra cost from low throughput is overwhelming.
 - **Optimization priority:** Improve throughput first (backend/compile), reduce pricing tier second, energy optimization is a distant third.
 
 ### 6.2 Energy Efficiency Ranking
 
-Backends ranked by decode tokens per kWh (higher is better — more tokens per unit of energy):
+Backends ranked by decode tokens per kWh (higher is better -- more tokens per unit of energy):
 
 | Rank | Model | Backend | Decode tok/kWh | Decode J/tok | Decode kWh/1M |
 |------|-------|---------|---------------|-------------|-------------|
@@ -698,8 +698,8 @@ Backends ranked by decode tokens per kWh (higher is better — more tokens per u
 
 #### Interpretation
 
-- **CPU is most energy-efficient** per token — it draws very little power. But this doesn't make it cost-efficient because throughput is so low.
-- **GPT-2/compile is best GPU energy efficiency** at 36.2M tok/kWh — its high throughput produces many tokens per watt-second.
+- **CPU is most energy-efficient** per token -- it draws very little power. But this doesn't make it cost-efficient because throughput is so low.
+- **GPT-2/compile is best GPU energy efficiency** at 36.2M tok/kWh -- its high throughput produces many tokens per watt-second.
 - **torch.compile *reduces* energy efficiency** for larger models despite improving throughput. Phi-2/compile draws 119 W vs 67 W vanilla GPU; the power increase exceeds the throughput gain, yielding 1.88M vs 2.54M tok/kWh.
 - **Energy efficiency and cost-efficiency diverge.** CPU wins on tok/kWh but loses badly on $/tok. This confirms TR119's finding: throughput, not power, drives economic rankings.
 
@@ -723,7 +723,7 @@ Backends ranked by decode tokens per kWh (higher is better — more tokens per u
 - **Lowest carbon:** GPT-2/CPU at 3.4 gCO2e/1M tokens; GPT-2/compile at 4.6 gCO2e/1M tokens.
 - **Highest carbon:** Phi-2/compile at 89.1 gCO2e/1M tokens.
 - **Range:** 85.7 gCO2e/1M tokens (26x spread).
-- **torch.compile increases carbon** for all models — more power draw per token outweighs the throughput gain from an energy perspective.
+- **torch.compile increases carbon** for all models -- more power draw per token outweighs the throughput gain from an energy perspective.
 
 ### 6.4 Energy per Token (J/tok, Per Scenario)
 
@@ -748,7 +748,7 @@ Backends ranked by decode tokens per kWh (higher is better — more tokens per u
 
 - **Decode J/tok scales with model size:** GPT-2 decode uses ~0.09 J/tok; Phi-2 uses ~1.9 J/tok (21x more).
 - **torch.compile *increases* J/tok for decode** in larger models: Phi-2/compile = 1.86 J/tok vs vanilla GPU = 1.32 J/tok. Higher power draw outpaces the throughput improvement.
-- **Prefill energy is 10–100x lower** than decode energy per token, mirroring the latency and cost asymmetry.
+- **Prefill energy is 10--100x lower** than decode energy per token, mirroring the latency and cost asymmetry.
 
 ### 6.5 ROI by Pricing Tier
 
@@ -794,7 +794,7 @@ Assumptions: prompt_tokens=256, generate_tokens=128. Consumer pricing.
 - **Best request-level cost:** GPT-2/compile at **$0.0000049/request** ($4.9 per million requests) on consumer hardware.
 - **At 1B+ scale:** Llama-3.2-1B/compile at **$0.0000181/request** ($18.10 per million requests).
 - **On-demand pricing inflates by 20x:** Same GPT-2/compile request costs $0.000093 on AWS on-demand vs $0.0000049 consumer.
-- **Decode time dominates:** Even with the fastest backend, decode takes 42–98x longer than prefill for a 256-in/128-out request.
+- **Decode time dominates:** Even with the fastest backend, decode takes 42--98x longer than prefill for a 256-in/128-out request.
 
 ### 6.7 TCO Summary
 
@@ -820,13 +820,13 @@ Assumptions: 1,000,000,000 tokens/month (1B), 12 months, chat blend (67/33). Upf
 - **GPT-2/compile at $153/year** is remarkably cheap for 12B tokens/year on consumer hardware.
 - **Cloud on-demand inflates 19x:** The same Llama-3.2-1B/compile workload costs $561/year consumer vs $8,584/year AWS on-demand.
 - **Break-even on consumer hardware:** An RTX 4080 ($1,200) pays for itself in **2.5 months** at 1B tok/month vs AWS on-demand Llama-3.2-1B pricing.
-- **CPU is uneconomical** at scale: Qwen/CPU costs $8,319/year consumer — more than buying another GPU.
+- **CPU is uneconomical** at scale: Qwen/CPU costs $8,319/year consumer -- more than buying another GPU.
 
 ---
 
 ## 7. Statistical Analysis
 
-We test whether observed cost differences are statistically significant across backends within each model. Tests use Welch's t-test on per-measurement decode cost (consumer pricing, n=35 per group, 7 reps × 5 scenarios).
+We test whether observed cost differences are statistically significant across backends within each model. Tests use Welch's t-test on per-measurement decode cost (consumer pricing, n=35 per group, 7 reps x 5 scenarios).
 
 ### 7.1 GPT-2 (3 backends)
 
@@ -880,7 +880,7 @@ All comparisons significant (p < 0.001). GPU-to-compile improvement (90%) is eve
 | cpu vs compile | +$1.805 | +1323% | 120.49 | 28.80 |
 | **gpu vs compile** | **+$0.185** | **+135%** | **103.38** | **24.71** |
 
-GPU-to-compile improvement for Qwen (135%) is the **largest of any model** — consistent with its extreme GQA (2 KV heads) being more amenable to Triton optimization. Cohen's d=24.71 indicates the largest effect size in the entire experiment.
+GPU-to-compile improvement for Qwen (135%) is the **largest of any model** -- consistent with its extreme GQA (2 KV heads) being more amenable to Triton optimization. Cohen's d=24.71 indicates the largest effect size in the entire experiment.
 
 ### 7.4 Phi-2 (2 backends)
 
@@ -893,14 +893,14 @@ GPU-to-compile improvement for Qwen (135%) is the **largest of any model** — c
 |-----------|------|----------|--------|----------|
 | **gpu vs compile** | **+$0.064** | **+31%** | **14.48** | **3.46** |
 
-Significant (p < 0.001) but a much smaller effect (d=3.46) than the smaller models (d=11–25). Phi-2's 2.7B parameters saturate memory bandwidth, limiting how much Triton can help.
+Significant (p < 0.001) but a much smaller effect (d=3.46) than the smaller models (d=11--25). Phi-2's 2.7B parameters saturate memory bandwidth, limiting how much Triton can help.
 
 ### 7.5 Summary of Statistical Findings
 
 - **All backend comparisons are highly significant** (p < 0.001) with very large effect sizes (Cohen's d > 3 for all GPU vs compile comparisons).
-- **Compile benefit is inversely correlated with model size:** d=22.6 (GPT-2) → d=17.6 (Llama-1B) → d=24.7 (Qwen-1.5B) → d=3.5 (Phi-2). Qwen breaks the trend due to its GQA-friendly architecture.
+- **Compile benefit is inversely correlated with model size:** d=22.6 (GPT-2) -> d=17.6 (Llama-1B) -> d=24.7 (Qwen-1.5B) -> d=3.5 (Phi-2). Qwen breaks the trend due to its GQA-friendly architecture.
 - **CPU vs GPU effects are enormous** (d > 20), confirming that CPU backends are fundamentally in a different cost tier.
-- **Practical significance:** The smallest statistically significant difference (Phi-2 gpu→compile, $0.064/1M) translates to $768/year savings at 1B tok/month — economically meaningful.
+- **Practical significance:** The smallest statistically significant difference (Phi-2 gpu->compile, $0.064/1M) translates to $768/year savings at 1B tok/month -- economically meaningful.
 
 ---
 
@@ -920,7 +920,7 @@ Significant (p < 0.001) but a much smaller effect (d=3.46) than the smaller mode
 
 ### 8.2 Empirical Validation
 
-Empirical measurements (direct KV tensor size inspection via `past_key_values`) match theoretical predictions **exactly** for all 30 model × context-length combinations:
+Empirical measurements (direct KV tensor size inspection via `past_key_values`) match theoretical predictions **exactly** for all 30 model x context-length combinations:
 
 | Model | Context | Theoretical (MB) | Empirical (MB) | Alloc with KV (MB) | After Cleanup (MB) | Match |
 |-------|---------|------------------|----------------|--------------------|--------------------|-------|
@@ -939,7 +939,7 @@ Empirical measurements (direct KV tensor size inspection via `past_key_values`) 
 
 *GPT-2's max_position_embeddings is 1024, so 2048-token requests are clamped.*
 
-**Conclusion:** The Brenndoerfer formula `KV = 2×L×B×T×H_kv×D_h×prec` is exact for these architectures. No hidden overhead from allocator fragmentation or internal buffers was observed. The "Alloc with KV" vs "After Cleanup" columns confirm that GPU memory is properly reclaimed.
+**Conclusion:** The Brenndoerfer formula `KV = 2xLxBxTxH_kvxD_hxprec` is exact for these architectures. No hidden overhead from allocator fragmentation or internal buffers was observed. The "Alloc with KV" vs "After Cleanup" columns confirm that GPU memory is properly reclaimed.
 
 ### 8.3 MHA vs GQA Comparison at 2K Context
 
@@ -951,7 +951,7 @@ Empirical measurements (direct KV tensor size inspection via `past_key_values`) 
 | qwen2.5-1.5b | 1.54B | GQA (6:1) | 56.0 | 1.9% |
 | llama-3.2-3b | 3.21B | GQA (3:1) | 224.0 | 3.7% |
 
-**Key insight:** At 2K context, Phi-2 (MHA) devotes **640 MB** to KV cache — more than Qwen2.5-1.5B's entire model weights (2,943 MB × 1.9% = 56 MB cache). GQA achieves an **11.4x memory reduction** over MHA for similar parameter counts.
+**Key insight:** At 2K context, Phi-2 (MHA) devotes **640 MB** to KV cache -- more than Qwen2.5-1.5B's entire model weights (2,943 MB x 1.9% = 56 MB cache). GQA achieves an **11.4x memory reduction** over MHA for similar parameter counts.
 
 ### 8.4 Crossover Points
 
@@ -959,11 +959,11 @@ The crossover point is the context length where KV-cache memory equals model wei
 
 | Model | Params | Attention | Crossover (tokens) | Interpretation |
 |-------|--------|-----------|-------------------|---------------|
-| gpt2 | 124M | MHA | 6,727 | Cache dominates quickly — practical limit ~3K tokens on 12GB GPU |
-| phi-2 | 2.7B | MHA | 16,479 | Moderate — cache hits 50% of VRAM at ~8K |
-| llama-3.2-3b | 3.21B | GQA (3:1) | 56,030 | Excellent — long-context friendly |
+| gpt2 | 124M | MHA | 6,727 | Cache dominates quickly -- practical limit ~3K tokens on 12GB GPU |
+| phi-2 | 2.7B | MHA | 16,479 | Moderate -- cache hits 50% of VRAM at ~8K |
+| llama-3.2-3b | 3.21B | GQA (3:1) | 56,030 | Excellent -- long-context friendly |
 | llama-3.2-1b | 1.24B | GQA (4:1) | 75,439 | Very long contexts feasible |
-| qwen2.5-1.5b | 1.54B | GQA (6:1) | 107,631 | **Extreme** — effectively unlimited for consumer use |
+| qwen2.5-1.5b | 1.54B | GQA (6:1) | 107,631 | **Extreme** -- effectively unlimited for consumer use |
 
 **Implication for deployment:** On a 12GB GPU, Phi-2 can serve a maximum context of ~8K tokens before KV cache exceeds free VRAM (after weights). Qwen2.5-1.5B can theoretically serve 50K+ tokens within the same VRAM budget.
 
@@ -1000,11 +1000,11 @@ torch.compile with Triton kernel compilation (run via Docker on Linux) vs vanill
 
 ### 9.2 Analysis
 
-- **Small/medium models (GPT-2, Llama-1B, Qwen-1.5B):** 1.9–2.5x speedup. At these sizes, the model fits comfortably in GPU memory and compile can optimize attention kernels, memory access patterns, and fuse operations.
-- **Large model (Phi-2, 2.7B):** Only 1.2–1.4x speedup. Diminishing returns because decode is already fully memory-bandwidth-bound at this scale — the bottleneck is moving data through memory hierarchy, not kernel execution overhead.
-- **Qwen2.5-1.5B benefits most** (up to 2.52x) — likely because its extreme GQA (only 2 KV heads) makes the KV-cache access pattern simpler for Triton to optimize.
-- **Cost implications:** Compile turns a $0.025/1M model (GPT-2/GPU) into a $0.013/1M model — a 48% cost reduction for zero quality change.
-- **Energy tradeoff:** Compile draws 2–3x more power (39–119 W vs 28–67 W vanilla GPU) but the throughput gain (1.2–2.5x) yields net cost savings. Energy efficiency *decreases* for larger models (see §6.2).
+- **Small/medium models (GPT-2, Llama-1B, Qwen-1.5B):** 1.9--2.5x speedup. At these sizes, the model fits comfortably in GPU memory and compile can optimize attention kernels, memory access patterns, and fuse operations.
+- **Large model (Phi-2, 2.7B):** Only 1.2--1.4x speedup. Diminishing returns because decode is already fully memory-bandwidth-bound at this scale -- the bottleneck is moving data through memory hierarchy, not kernel execution overhead.
+- **Qwen2.5-1.5B benefits most** (up to 2.52x) -- likely because its extreme GQA (only 2 KV heads) makes the KV-cache access pattern simpler for Triton to optimize.
+- **Cost implications:** Compile turns a $0.025/1M model (GPT-2/GPU) into a $0.013/1M model -- a 48% cost reduction for zero quality change.
+- **Energy tradeoff:** Compile draws 2--3x more power (39--119 W vs 28--67 W vanilla GPU) but the throughput gain (1.2--2.5x) yields net cost savings. Energy efficiency *decreases* for larger models (see Sec. 6.2).
 
 ### 9.3 Platform Consideration
 
@@ -1046,18 +1046,18 @@ docker run --gpus all --ipc=host \
 | AWS g5.xlarge | gpt2/compile | $0.240 | $0.073 | $0.121 |
 | Azure NC T4 v3 | gpt2/compile | $0.215 | $0.066 | $0.101 |
 | GCP A2 High-GPU | gpt2/compile | $0.286 | $0.087 | $0.134 |
-| Consumer RTX 4080 | gpt2/compile | **$0.013** | — | — |
+| Consumer RTX 4080 | gpt2/compile | **$0.013** | -- | -- |
 
 - **Lowest on-demand cloud:** Azure/gpt2-compile at $0.215/1M tokens.
 - **Lowest spot cloud:** Azure/gpt2-compile at $0.066/1M tokens.
-- **Consumer is 5–22x cheaper** than any cloud tier.
+- **Consumer is 5--22x cheaper** than any cloud tier.
 
 ### 10.3 Interpretation
 
-- **Consumer hardware is 6–22x cheaper** per token than cloud, depending on tier. This makes self-hosted inference compelling for sustained workloads (>$1K/month cloud spend).
-- **Spot pricing** narrows the gap to 5–7x, making it the best cloud option for batch/async workloads.
+- **Consumer hardware is 6--22x cheaper** per token than cloud, depending on tier. This makes self-hosted inference compelling for sustained workloads (>$1K/month cloud spend).
+- **Spot pricing** narrows the gap to 5--7x, making it the best cloud option for batch/async workloads.
 - **The pricing-tier lever is larger than the backend lever.** Switching from on-demand to consumer saves 95%; switching from vanilla GPU to compile saves 48%. Both matter, but infrastructure choice dominates.
-- **Azure offers the lowest cloud pricing** across all tiers — ~10% cheaper than AWS, ~25% cheaper than GCP.
+- **Azure offers the lowest cloud pricing** across all tiers -- ~10% cheaper than AWS, ~25% cheaper than GCP.
 
 ![cost_tier_comparison](../../research/tr123/results/20260216_181539/plots/cost_tier_comparison.png)
 
@@ -1128,7 +1128,7 @@ Cost per 1,000 requests across 4 canonical request mixes (consumer tier, $0.046/
 
 #### Scenario pack interpretation
 
-- **Chat-default** (short prompts, short responses): GPT-2/compile at $0.0021/1k requests — effectively free.
+- **Chat-default** (short prompts, short responses): GPT-2/compile at $0.0021/1k requests -- effectively free.
 - **Agent-tool-step** (short prompt, long output): Decode-heavy; costs scale 4x vs chat. Compile benefit is amplified.
 - **Codegen-medium** (medium prompt, long output): Most expensive scenario; Llama-3.2-1B/compile at $0.049/1k requests remains practical.
 - **Long-context-summary** (long prompt, short output): Prefill-heavy but still dominated by decode cost. GQA models (Qwen, Llama) are preferred due to KV memory scaling.
@@ -1148,13 +1148,13 @@ An RTX 4080 Laptop GPU costs $1,200. How quickly does it pay for itself vs AWS o
 | phi-2 | gpu | $0.385 | $0.018 | $0.368 | 3.3 mo | 0.3 mo | < 0.1 mo |
 | llama-3.2-3b | gpu | $0.493 | $0.023 | $0.471 | 2.5 mo | 0.3 mo | < 0.1 mo |
 
-*Break-even uses the chat_default mix (128p+64g). Break-even months = $1,200 / (savings_per_req × monthly_volume).*
+*Break-even uses the chat_default mix (128p+64g). Break-even months = $1,200 / (savings_per_req x monthly_volume).*
 
 **Key findings:**
 - At **10M requests/month**, every configuration breaks even within **3 months**.
 - At **100M requests/month**, break-even is under **1 month** for all configurations.
 - **Larger models break even faster** (paradoxically) because the absolute cost gap with cloud is larger.
-- For GPT-2/compile at low volume (1M req/mo), break-even is 27 months — the cheapest model has the smallest absolute savings per request.
+- For GPT-2/compile at low volume (1M req/mo), break-even is 27 months -- the cheapest model has the smallest absolute savings per request.
 
 ---
 
@@ -1164,13 +1164,13 @@ An RTX 4080 Laptop GPU costs $1,200. How quickly does it pay for itself vs AWS o
 
 | Finding | Evidence Sections | Confidence |
 |---------|------------------|------------|
-| Decode cost dominates all workloads | §5.3, §5.4, §5.5 | High (50 measurements, all show 30–100x gap) |
-| torch.compile benefit diminishes with model size | §9.1, §7.5 | High (4 models, monotonic trend except Qwen GQA) |
-| GQA provides 3–11x KV memory reduction | §8.3, §8.4 | High (exact formula match, 30/30 empirical) |
-| Infra cost >> energy cost at consumer scale | §6.1 | High (66–99% infra across all 12 combos) |
-| Consumer hardware is 95% cheaper than cloud | §6.5, §10.1 | High (pure rate ratio, model-independent) |
-| CPU backends are impractical above 124M params | §5.6, §11.2 | High (>1,500 workers for 100 rps at 1B+ params) |
-| Measurement stability is excellent (90% groups < 5% CV) | §5.7 | High (420 measurements, 7 reps per group) |
+| Decode cost dominates all workloads | Sec. 5.3, Sec. 5.4, Sec. 5.5 | High (50 measurements, all show 30--100x gap) |
+| torch.compile benefit diminishes with model size | Sec. 9.1, Sec. 7.5 | High (4 models, monotonic trend except Qwen GQA) |
+| GQA provides 3--11x KV memory reduction | Sec. 8.3, Sec. 8.4 | High (exact formula match, 30/30 empirical) |
+| Infra cost >> energy cost at consumer scale | Sec. 6.1 | High (66--99% infra across all 12 combos) |
+| Consumer hardware is 95% cheaper than cloud | Sec. 6.5, Sec. 10.1 | High (pure rate ratio, model-independent) |
+| CPU backends are impractical above 124M params | Sec. 5.6, Sec. 11.2 | High (>1,500 workers for 100 rps at 1B+ params) |
+| Measurement stability is excellent (90% groups < 5% CV) | Sec. 5.7 | High (420 measurements, 7 reps per group) |
 
 ### 12.2 Uncertainty Propagation
 
@@ -1178,16 +1178,16 @@ Phase-split cost computation involves multiple measured quantities. Here we char
 
 | Stage | Source | Typical Uncertainty | Impact on $/1M |
 |-------|--------|--------------------|--------------------|
-| Decode timing | Wall-clock jitter | CV < 5% (90% of groups) | ± 5% on decode $/1M |
+| Decode timing | Wall-clock jitter | CV < 5% (90% of groups) | +/- 5% on decode $/1M |
 | Prefill timing | Wall-clock jitter | CV < 3% (prefill is fast) | Negligible (prefill is < 3% of blend cost) |
-| GPU power sampling | NVML 100ms polling | ± 10–15% for short phases | ± 10% on energy cost (1–34% of total) |
+| GPU power sampling | NVML 100ms polling | +/- 10--15% for short phases | +/- 10% on energy cost (1--34% of total) |
 | Hourly rate | Fixed configuration input | 0% (deterministic) | N/A |
 | Token count | Deterministic (fixed prompts) | 0% | N/A |
 
 **Propagated uncertainty on total $/1M tokens:**
 - Dominated by decode timing uncertainty (CV < 5%)
-- Energy uncertainty (± 10%) affects only 1–34% of total cost → ± 0.1–3.4% propagated
-- **Total uncertainty: ± 5–7%** on $/1M blend cost (95% CI from §5.1 confirms this range)
+- Energy uncertainty (+/- 10%) affects only 1--34% of total cost -> +/- 0.1--3.4% propagated
+- **Total uncertainty: +/- 5--7%** on $/1M blend cost (95% CI from Sec. 5.1 confirms this range)
 
 ### 12.3 Measurement Invariants
 
@@ -1195,32 +1195,32 @@ The following invariants were verified across all 420 measurements:
 
 | Invariant | Check | Result |
 |-----------|-------|--------|
-| prefill_ms + decode_ms ≈ total_ms | Within 5% | **PASS** (all rows) |
-| Prefill monotonicity | More prompt tokens → longer prefill | **PASS** (all backends) |
-| Decode monotonicity | More gen tokens → longer decode | **PASS** (all backends) |
+| prefill_ms + decode_ms ~ total_ms | Within 5% | **PASS** (all rows) |
+| Prefill monotonicity | More prompt tokens -> longer prefill | **PASS** (all backends) |
+| Decode monotonicity | More gen tokens -> longer decode | **PASS** (all backends) |
 | KV formula accuracy | Theoretical = empirical | **PASS** (30/30 exact) |
-| No thermal throttling | GPU temp < 80°C | **PASS** (max 71°C) |
+| No thermal throttling | GPU temp < 80degC | **PASS** (max 71degC) |
 | No clock degradation | GPU clock stable | **PASS** (0/420 degraded) |
-| Warmup effectiveness | Rep=0 within 11% of reps 1–6 | **PASS** (worst ratio: 1.104) |
+| Warmup effectiveness | Rep=0 within 11% of reps 1--6 | **PASS** (worst ratio: 1.104) |
 
 ### 12.4 Correlation Between Experiments
 
 ```
 TR119 (uncached baseline)
-    ↓ provides: uncached $/tok baseline
+    down provides: uncached $/tok baseline
 TR121 (scaling laws)
-    ↓ provides: two-phase measurement pattern, CUDA event timing
-TR123 (KV-cache production economics) ← this report
-    ↓ consumes: TR119 baselines for comparison
-    ↓ consumes: TR121 measurement methodology
-    ↓ produces: production-grade $/tok tables for downstream capacity planning
+    down provides: two-phase measurement pattern, CUDA event timing
+TR123 (KV-cache production economics) <- this report
+    down consumes: TR119 baselines for comparison
+    down consumes: TR121 measurement methodology
+    down produces: production-grade $/tok tables for downstream capacity planning
 ```
 
 ### 12.5 What This Report Does NOT Validate
 
 - **Multi-batch economics.** All measurements use batch_size=1. Concurrent request handling changes both throughput and KV memory pressure. Deferred to TR128.
 - **Quantization effects.** INT8/INT4 quantization would reduce model weights and KV cache, potentially changing MHA vs GQA comparisons.
-- **Server GPU behavior.** A100/H100 have different memory bandwidth, power profiles, and compile behavior.
+- **Server GPU behavior.** A100/H_100 have different memory bandwidth, power profiles, and compile behavior.
 - **Production serving frameworks.** vLLM, TensorRT-LLM, and other frameworks with continuous batching may alter both phase timing and cost structure.
 - **Cross-architecture quality.** We measure cost, not quality. A cheaper model may produce worse outputs.
 
@@ -1230,18 +1230,18 @@ TR123 (KV-cache production economics) ← this report
 
 ### 13.1 What to Always Do
 
-1. **Separate prefill and decode in cost models.** They have different cost structures (10–100x gap per token). A single "tokens/second" metric hides this.
+1. **Separate prefill and decode in cost models.** They have different cost structures (10--100x gap per token). A single "tokens/second" metric hides this.
 2. **Use KV-cached generation.** `use_cache=True` is 2x+ faster than uncached for decode. There is no legitimate reason to use `use_cache=False` in production.
-3. **Warm up models before serving traffic.** Run 2–5 throwaway inferences after loading. Without warmup, first-request latency can be 10% higher (§5.7).
-4. **Monitor GPU temperature under sustained load.** Our laptop GPU stayed below 71°C, but tower GPUs with restricted airflow may throttle at 80°C+.
+3. **Warm up models before serving traffic.** Run 2--5 throwaway inferences after loading. Without warmup, first-request latency can be 10% higher (Sec. 5.7).
+4. **Monitor GPU temperature under sustained load.** Our laptop GPU stayed below 71degC, but tower GPUs with restricted airflow may throttle at 80degC+.
 5. **Choose pricing tier before choosing backend.** Consumer vs cloud (95% savings) is a bigger lever than GPU vs compile (48% savings).
 
 ### 13.2 What to Never Do
 
 1. **Never use `use_cache=False` for production cost estimates.** It dramatically overstates cost. TR119's uncached numbers are intentionally pessimistic baselines.
 2. **Never deploy MHA models for long-context tasks** without checking KV memory at target sequence length. GPT-2 (MHA) exhausts 12GB VRAM at ~3K tokens of context.
-3. **Never extrapolate consumer GPU results to server GPUs.** A100/H100 have 4–8x more memory bandwidth; the compile speedup profile will differ.
-4. **Never compare $/1M tokens across reports** without checking the blend ratio. RAG-heavy (95/5) and code-gen (25/75) differ by 3–5x for the same model.
+3. **Never extrapolate consumer GPU results to server GPUs.** A100/H_100 have 4--8x more memory bandwidth; the compile speedup profile will differ.
+4. **Never compare $/1M tokens across reports** without checking the blend ratio. RAG-heavy (95/5) and code-gen (25/75) differ by 3--5x for the same model.
 
 ### 13.3 Operational Checklist
 
@@ -1249,25 +1249,25 @@ Before deploying any model/backend from this report:
 
 - [ ] Verify model fits in target GPU VRAM (FP16 weights + KV cache at max context)
 - [ ] Run 5-iteration warmup before accepting traffic
-- [ ] Confirm torch.compile availability (requires Triton → Linux or Docker)
-- [ ] Set max_context_length to stay below KV crossover point (§8.4)
-- [ ] Monitor power draw — compile backends draw 2–3x more than vanilla GPU
-- [ ] Choose pricing tier and compute break-even (§11.4) before committing to hardware purchase
+- [ ] Confirm torch.compile availability (requires Triton -> Linux or Docker)
+- [ ] Set max_context_length to stay below KV crossover point (Sec. 8.4)
+- [ ] Monitor power draw -- compile backends draw 2--3x more than vanilla GPU
+- [ ] Choose pricing tier and compute break-even (Sec. 11.4) before committing to hardware purchase
 
 ### 13.4 Decision Tree
 
 ```
 Q: Is latency-sensitivity high (< 500ms per request)?
-  → Yes: Use GPT-2/compile (330ms per 256+128 request) or Llama-1B/compile (970ms)
-  → No: Continue
+  -> Yes: Use GPT-2/compile (330ms per 256+128 request) or Llama-1B/compile (970ms)
+  -> No: Continue
 
 Q: Is context length > 4K tokens?
-  → Yes: Use GQA model (Qwen or Llama). Avoid GPT-2 and Phi-2 (MHA).
-  → No: Continue
+  -> Yes: Use GQA model (Qwen or Llama). Avoid GPT-2 and Phi-2 (MHA).
+  -> No: Continue
 
 Q: Is budget the primary constraint?
-  → Yes: Use GPT-2/compile ($0.013/1M) on consumer hardware
-  → No: Use Llama-3.2-1B/compile ($0.047/1M) for better quality
+  -> Yes: Use GPT-2/compile ($0.013/1M) on consumer hardware
+  -> No: Use Llama-3.2-1B/compile ($0.047/1M) for better quality
 ```
 
 ---
@@ -1276,9 +1276,9 @@ Q: Is budget the primary constraint?
 
 ### 14.1 What Matters Most
 
-- **Throughput dominates $/token** under the configured pricing inputs; energy cost is 1–34% of total and rarely changes rankings.
-- **Pricing tier is the second lever**: consumer vs cloud shifts total cost by 6–22x.
-- **Backend choice is the third lever**: compile vs vanilla saves 30–50% within the same pricing tier.
+- **Throughput dominates $/token** under the configured pricing inputs; energy cost is 1--34% of total and rarely changes rankings.
+- **Pricing tier is the second lever**: consumer vs cloud shifts total cost by 6--22x.
+- **Backend choice is the third lever**: compile vs vanilla saves 30--50% within the same pricing tier.
 - **torch.compile benefit diminishes with model size**: massive for GPT-2 and Qwen (d > 11), marginal for Phi-2 (d = 3.5).
 
 ### 14.2 Deployment Recommendations
@@ -1290,7 +1290,7 @@ Q: Is budget the primary constraint?
 | Long-context workloads | Qwen2.5-1.5B | gpu-compile | $0.065 | 2 KV heads, 108K token crossover |
 | Maximum model quality (12GB) | Llama-3.2-3B | gpu | $0.148 | Largest model that fits; no compile (VRAM) |
 | CPU-only fallback | GPT-2 (124M) | cpu | $0.097 | Only viable for smallest model |
-| Lowest carbon | GPT-2 (124M) | cpu | $0.097 | 3.4 gCO2e/1M — but also slowest |
+| Lowest carbon | GPT-2 (124M) | cpu | $0.097 | 3.4 gCO2e/1M -- but also slowest |
 | Best energy efficiency (GPU) | GPT-2 (124M) | gpu-compile | $0.013 | 36.2M tok/kWh decode |
 
 ### 14.3 Decision Matrix
@@ -1309,7 +1309,7 @@ Q: Is budget the primary constraint?
 
 ### 14.4 Operational Considerations
 
-- `transformers-gpu-compile`: best cost efficiency, but requires Docker (Triton is Linux-only). Compilation overhead adds 30–120s on first run per model. Suitable for sustained serving, not cold-start scenarios.
+- `transformers-gpu-compile`: best cost efficiency, but requires Docker (Triton is Linux-only). Compilation overhead adds 30--120s on first run per model. Suitable for sustained serving, not cold-start scenarios.
 - `transformers-gpu`: simplest integration path, no Docker required, moderate cost. Good default when compile infrastructure is not available.
 - `transformers-cpu`: viable only for GPT-2 (124M). At 1B+ parameters, throughput is so low that even consumer GPU-hours are cheaper per token. Use only as a GPU-unavailable fallback.
 - **GQA architectures** (Llama, Qwen) should be preferred for any deployment expecting context lengths > 4K tokens. MHA models (GPT-2, Phi-2) exhaust VRAM on KV cache at moderate contexts.
@@ -1318,10 +1318,10 @@ Q: Is budget the primary constraint?
 
 #### 14.5.1 Single Hardware Target
 
-All results are specific to the NVIDIA RTX 4080 Laptop GPU (12,282 MB VRAM, Ada Lovelace architecture, compute capability 8.9). Server-class GPUs (A100, H100) have:
-- 4–8x more memory bandwidth → different compile speedup profiles
-- Higher TDP → different energy/carbon numbers
-- More VRAM → larger models and longer contexts feasible
+All results are specific to the NVIDIA RTX 4080 Laptop GPU (12,282 MB VRAM, Ada Lovelace architecture, compute capability 8.9). Server-class GPUs (A100, H_100) have:
+- 4--8x more memory bandwidth -> different compile speedup profiles
+- Higher TDP -> different energy/carbon numbers
+- More VRAM -> larger models and longer contexts feasible
 
 Expected impact: absolute $/1M will differ, but relative rankings (compile > vanilla > CPU) likely hold.
 
@@ -1348,11 +1348,11 @@ torch.compile requires Triton (Linux-only). Our compile results required Docker 
 #### 14.5.5 Consumer-Grade Telemetry
 
 NVML power sampling at 100ms intervals introduces measurement uncertainty for short phases:
-- Prefill phases < 50ms may have only 0–1 power samples
+- Prefill phases < 50ms may have only 0--1 power samples
 - Phase power attribution is mean-based, not time-integrated
 - Enterprise telemetry (DCGM, Redfish, out-of-band) would be more precise
 
-Estimated impact: ± 10–15% on per-phase power, propagating to ± 0.1–3.4% on total cost (§12.2).
+Estimated impact: +/- 10--15% on per-phase power, propagating to +/- 0.1--3.4% on total cost (Sec. 12.2).
 
 #### 14.5.6 No Quality Metrics
 
@@ -1365,7 +1365,7 @@ This report measures cost and performance, not output quality. A model that cost
 | VRAM OOM on compile | `torch.cuda.OutOfMemoryError` | Use vanilla GPU backend or reduce max_context_length |
 | Triton not found (Windows) | `Cannot find a working triton installation` | Run in Docker with `nvcr.io/nvidia/pytorch` image |
 | Thermal throttling | GPU clock drops, latency spikes | Improve cooling; monitor `gpu_temp_c`; add delays between measurements |
-| KV cache exceeds VRAM | OOM during long-context decode | Check crossover point (§8.4); use GQA model |
+| KV cache exceeds VRAM | OOM during long-context decode | Check crossover point (Sec. 8.4); use GQA model |
 | First-request latency spike | 10%+ higher than steady-state | Run warmup iterations before accepting traffic |
 
 ### 14.7 Recommended Follow-Ups
@@ -1373,10 +1373,10 @@ This report measures cost and performance, not output quality. A model that cost
 | ID | Description | Priority | Effort | Expected Impact |
 |----|-------------|----------|--------|--------------------|
 | TR128 | Multi-batch economics (batch_size > 1) | High | 2 weeks | KV memory scaling, throughput multipliers |
-| — | INT4/INT8 KV quantization study | High | 1 week | 75% cache reduction, new MHA viability |
-| — | Server GPU replication (A100/H100) | Medium | 1 week | Validate ranking transferability |
-| — | vLLM/TensorRT-LLM comparison | Medium | 2 weeks | Production framework impact on $/tok |
-| — | Quality-adjusted cost ($/quality-point) | Low | 3 weeks | Cost-effectiveness incorporating output quality |
+| -- | INT4/INT8 KV quantization study | High | 1 week | 75% cache reduction, new MHA viability |
+| -- | Server GPU replication (A100/H_100) | Medium | 1 week | Validate ranking transferability |
+| -- | vLLM/TensorRT-LLM comparison | Medium | 2 weeks | Production framework impact on $/tok |
+| -- | Quality-adjusted cost ($/quality-point) | Low | 3 weeks | Cost-effectiveness incorporating output quality |
 
 ### 14.8 Open Research Questions
 
@@ -1395,7 +1395,7 @@ This report measures cost and performance, not output quality. A model that cost
 # Prerequisites
 pip install torch transformers pyyaml pynvml scipy numpy matplotlib
 
-# Full pipeline (smoke test → benchmark → analysis → plots → report)
+# Full pipeline (smoke test -> benchmark -> analysis -> plots -> report)
 python -m research.tr123.run_experiment -v
 
 # Re-analyze existing results (skip benchmark)
@@ -1419,7 +1419,7 @@ research/tr123/
   configs/matrix_compile_only.yaml             # Docker compile-only config
   configs/matrix_compile_remaining.yaml        # Docker remaining-models config
   run_benchmark.py                             # Two-phase measurement engine
-  analyze_results.py                           # JSONL → cost pipeline
+  analyze_results.py                           # JSONL -> cost pipeline
   kv_cache_analysis.py                         # KV memory formulas + empirical measurement
   cross_reference_tr119.py                     # Cached vs uncached comparison
   visualize.py                                 # 11 plot types
@@ -1445,8 +1445,8 @@ research/tr123/
 - **105 skipped** (intentional backend_skip for infeasible combos).
 - **0 degraded runs** (no thermal throttling, no clock drops).
 - **KV memory: 30/30 exact match** between theoretical formula and empirical tensor measurement.
-- **Timing consistency:** prefill_ms + decode_ms ≈ total_ms within 5% for all rows.
-- **Monotonicity:** longer prompts → longer prefill (confirmed for all backends).
+- **Timing consistency:** prefill_ms + decode_ms ~ total_ms within 5% for all rows.
+- **Monotonicity:** longer prompts -> longer prefill (confirmed for all backends).
 - **Outlier detection:** IQR-based flagging across all groups (statistical warnings only, no data removed).
 - **Statistical significance:** All backend comparisons significant at p < 0.001.
 
@@ -1471,27 +1471,27 @@ research/tr123/
 
 | Term | Definition |
 |------|------------|
-| **MHA** | Multi-Head Attention — every attention head has its own K and V projections (n_kv_heads = n_heads) |
-| **GQA** | Grouped-Query Attention — multiple query heads share fewer KV heads (n_kv_heads < n_heads) |
+| **MHA** | Multi-Head Attention -- every attention head has its own K and V projections (n_kv_heads = n_heads) |
+| **GQA** | Grouped-Query Attention -- multiple query heads share fewer KV heads (n_kv_heads < n_heads) |
 | **KV cache** | Stored Key and Value tensors from previous tokens, reused during autoregressive decode |
 | **Prefill** | Initial forward pass processing all prompt tokens in parallel, producing KV cache |
 | **Decode** | Sequential token generation using KV-cached attention, one token per step |
 | **Crossover point** | Context length at which KV cache memory equals model weight memory |
 | **Phase power** | GPU power consumption measured separately for prefill and decode phases |
 | **Blend cost** | Weighted average of prefill and decode $/1M based on workload input/output ratio |
-| **TCO** | Total Cost of Ownership — annualized infrastructure + energy + hardware amortization |
+| **TCO** | Total Cost of Ownership -- annualized infrastructure + energy + hardware amortization |
 | **Warmup** | Throwaway inference runs that prime GPU caches, JIT compilers, and memory allocators |
-| **CV** | Coefficient of Variation — std/mean × 100%, measuring measurement reproducibility |
-| **Cohen's d** | Effect size metric — (mean_A - mean_B) / pooled_std; d > 0.8 is "large" |
+| **CV** | Coefficient of Variation -- std/mean x 100%, measuring measurement reproducibility |
+| **Cohen's d** | Effect size metric -- (mean_A - mean_B) / pooled_std; d > 0.8 is "large" |
 
 ---
 
 ## References
 
-- TR119: Cost & Energy Analysis — Local-first inference TCO (Banterhearts, Dec 2025)
-- TR121: Comprehensive Scaling Analysis — Scaling fits across model sizes (Banterhearts, Jan 2026)
-- TokenPowerBench (arXiv:2512.03024, Dec 2025) — Phase-aligned energy attribution
-- SPAD: Specialized Prefill and Decode Hardware (2025) — Phase disaggregation
+- TR119: Cost & Energy Analysis -- Local-first inference TCO (Banterhearts, Dec 2025)
+- TR121: Comprehensive Scaling Analysis -- Scaling fits across model sizes (Banterhearts, Jan 2026)
+- TokenPowerBench (arXiv:2512.03024, Dec 2025) -- Phase-aligned energy attribution
+- SPAD: Specialized Prefill and Decode Hardware (2025) -- Phase disaggregation
 - Brenndoerfer (2025): KV Cache Memory Calculation for LLM Inference
 - Keep the Cost Down: KV-Cache Optimization Survey (arXiv:2407.18003)
 - DuetServe (2025): Disaggregated prefill-decode serving

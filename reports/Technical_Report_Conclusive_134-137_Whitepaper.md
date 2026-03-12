@@ -1,12 +1,12 @@
 # TR134-TR137 Decision Whitepaper
 ## Executive guidance for safety-critical LLM deployment
 
-Project: Banterhearts LLM Performance Research
-Date: 2026-03-08
-Version: 1.0
-Audience: Decision makers, product leaders, ML ops leaders
-Scope: TR134 (Alignment Under Quantization), TR135 (Concurrency x Safety), TR136 (Cross-Backend Safety), TR137 (Safety Tax Synthesis)
-Primary source: `PublishReady/reports/Technical_Report_Conclusive_134-137.md`
+Project: Banterhearts LLM Performance Research  
+Date: 2026-03-08  
+Version: 1.0  
+Audience: Decision makers, product leaders, ML ops leaders  
+Scope: TR134 (Alignment Under Quantization), TR135 (Concurrency x Safety), TR136 (Cross-Backend Safety), TR137 (Safety Tax Synthesis)  
+Primary source: `PublishReady/reports/Technical_Report_Conclusive_134-137.md`  
 
 ---
 
@@ -24,7 +24,7 @@ This guidance is valid only under the measured boundary:
 - Fixed hardware class: NVIDIA RTX consumer GPU, single-GPU inference
 - Quantization via Ollama GGUF (Q2_K through FP16, 7 levels)
 - Serving backends: Ollama, vLLM, TGI, HuggingFace Transformers
-- Safety scored by automated classifiers (RefusalDetector, BiasDetector, TruthfulnessScorer) — not human annotation
+- Safety scored by automated classifiers (RefusalDetector, BiasDetector, TruthfulnessScorer) -- not human annotation
 - Temperature 0 (deterministic sampling) throughout
 - Safety tasks: AdvBench refusal (100 samples), TruthfulQA (50), BBQ bias (200), jailbreak amplification (120)
 - Capability tasks: MMLU (285 samples), ARC-Challenge (200)
@@ -35,7 +35,7 @@ If any of these change, re-run the safety evaluation matrix and re-validate befo
 
 ## Six decisions you can ship now
 
-1. **Quantization floor for safety-critical applications: Q4_K_M.** At Q4_K_M, all tested models retain >= 93% of baseline safety. The marginal safety cost at this level is 1.3-4.6pp — well within acceptable bounds. Q8_0 or FP16 are safer but offer marginal improvement (98-101% retention). Below Q4_K_M, safety degrades model-specifically and unpredictably.
+1. **Quantization floor for safety-critical applications: Q4_K_M.** At Q4_K_M, all tested models retain >= 93% of baseline safety. The marginal safety cost at this level is 1.3-4.6pp -- well within acceptable bounds. Q8_0 or FP16 are safer but offer marginal improvement (98-101% retention). Below Q4_K_M, safety degrades model-specifically and unpredictably.
 
 2. **Concurrency scaling is safety-neutral: scale freely.** Maximum observed safety effect across all models, tasks, and concurrency levels (N=1 to N=8) is 0.4pp. All jailbreak compliance slopes under concurrency are exactly zero. No safety testing is required for concurrency changes.
 
@@ -43,7 +43,7 @@ If any of these change, re-run the safety evaluation matrix and re-validate befo
 
 4. **Per-model safety profiling is mandatory.** I-squared heterogeneity = 99.9% on the quantization axis. Models do not agree on the direction of safety degradation, let alone the magnitude. Llama 1B loses 35pp at Q2_K; Llama 3B gains 6pp. No generic "safe quantization level" guideline is reliable across models.
 
-5. **Ban Q2_K for Llama-class 1B models.** All Q2_K configurations for Llama 3.2 1B are rated CRITICAL risk (57.5% safety retention). This is the only model-quant combination that falls below the 80% safety threshold. The ban is model-specific — other models do not show this catastrophic pattern at Q2_K.
+5. **Ban Q2_K for Llama-class 1B models.** All Q2_K configurations for Llama 3.2 1B are rated CRITICAL risk (57.5% safety retention). This is the only model-quant combination that falls below the 80% safety threshold. The ban is model-specific -- other models do not show this catastrophic pattern at Q2_K.
 
 6. **Monitor jailbreak susceptibility under quantization.** All four jailbreak techniques (prefix injection, direct, DAN-style, roleplay) become more effective at lower quantization levels (all BPW slopes negative). Prefix injection is the most dangerous (-0.036 compliance/BPW). Jailbreak vulnerability is invariant to concurrency.
 
@@ -71,7 +71,7 @@ If any of these change, re-run the safety evaluation matrix and re-validate befo
 
 - **Concurrency accounts for 2% of total safety cost.** Mean delta: 0.1pp (CI: [-0.3, 0.4]pp). This is the only axis where all models agree (I-squared = 0.0%). Deterministic sampling produces identical outputs regardless of concurrent load.
 
-- **The safety veneer hypothesis is not universally supported.** Only 3 of 10 model-axis combinations show safety degrading faster than capability. RLHF alignment is not a uniquely fragile "thin layer" for most models — safety and capability degrade comparably.
+- **The safety veneer hypothesis is not universally supported.** Only 3 of 10 model-axis combinations show safety degrading faster than capability. RLHF alignment is not a uniquely fragile "thin layer" for most models -- safety and capability degrade comparably.
 
 - **Nationality is the most vulnerable bias category under quantization.** BBQ per-category slopes show Nationality at -0.010/BPW (worsening) and Race/Ethnicity at +0.015/BPW (improving). Race-related bias mitigation is more robust to quantization, likely due to heavier emphasis in RLHF training data.
 
@@ -107,7 +107,7 @@ If any of these change, re-run the safety evaluation matrix and re-validate befo
 
 ### Bias monitoring
 
-- **Policy:** Monitor Nationality-related bias under quantization — most vulnerable category.
+- **Policy:** Monitor Nationality-related bias under quantization -- most vulnerable category.
 - **Policy:** Race/Ethnicity bias is the most robust category, but this should not be assumed for untested models.
 
 ---
@@ -176,17 +176,17 @@ Avoiding Q2_K for Llama 1B eliminates all critical risk. Using Q4_K_M or higher 
 - **No factorial design.** Each TR varied one axis. Interaction effects (e.g., quantization x concurrency synergy) are not measured. The deployment matrix uses an additive model.
 - **Automated scoring only.** Safety scores come from regex classifiers with poor LLM judge agreement (kappa = 0.147). Human annotation would improve confidence.
 - **Temperature 0 only.** Stochastic sampling may interact differently with optimization axes.
-- **Consumer hardware only.** Datacenter GPUs (A100, H100) may behave differently, especially for vLLM/TGI.
+- **Consumer hardware only.** Datacenter GPUs (A100, H_100) may behave differently, especially for vLLM/TGI.
 - **Small models only (<= 7.6B).** Larger models may show different quantization resilience.
 
 ### What invalidates this guidance
 
-- Model family not in the tested set (Llama 3.2, Mistral 7B, Qwen 2.5) — re-profile
-- Quantization method other than GGUF (e.g., GPTQ, AWQ) — different degradation profile
-- Temperature > 0 — unknown interaction with safety under quantization
-- Multi-GPU tensor parallelism — untested serving configuration
-- Model size > 7.6B parameters — different redundancy characteristics
-- Safety classifier change — scores are not absolute, they depend on the classifier
+- Model family not in the tested set (Llama 3.2, Mistral 7B, Qwen 2.5) -- re-profile
+- Quantization method other than GGUF (e.g., GPTQ, AWQ) -- different degradation profile
+- Temperature > 0 -- unknown interaction with safety under quantization
+- Multi-GPU tensor parallelism -- untested serving configuration
+- Model size > 7.6B parameters -- different redundancy characteristics
+- Safety classifier change -- scores are not absolute, they depend on the classifier
 
 ---
 

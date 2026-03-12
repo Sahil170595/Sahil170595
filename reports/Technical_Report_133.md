@@ -1,15 +1,15 @@
 # Technical Report 133: Predictive Capacity Planner
 ## Operationalising 70,000+ Measurements Into a Decision Tool
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-02-28
-**Author:** Research Team
-**Report Type:** Software tool + model validation (6 predictive models, 19,676 training records, 3,939 validation records, 10 spot checks)
-**Pipeline Duration:** <1 second (data ingest + model fitting + validation)
-**Status:** Complete -- all 4 validation targets met, 10/10 spot checks pass, CLI shipped as ChimeraForge Phase 1
-**Run ID:** `20260228_102432`
-**Related Work:** [TR123](Technical_Report_123.md) (KV-cache economics), [TR124](Technical_Report_124.md) (quality baselines), [TR125](Technical_Report_125.md) (quantization matrix), [TR127](Technical_Report_127.md) (long-context), [TR128](Technical_Report_128.md) (production workloads), [TR129](Technical_Report_129.md) (N-agent scaling), [TR130](Technical_Report_130.md) (serving stacks)
-**Depends On:** TR123--TR130 (all empirical data sources)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-02-28  
+**Author:** Research Team  
+**Report Type:** Software tool + model validation (6 predictive models, 19,676 training records, 3,939 validation records, 10 spot checks)  
+**Pipeline Duration:** <1 second (data ingest + model fitting + validation)  
+**Status:** Complete -- all 4 validation targets met, 10/10 spot checks pass, CLI shipped as ChimeraForge Phase 1  
+**Run ID:** `20260228_102432`  
+**Related Work:** [TR123](Technical_Report_123.md) (KV-cache economics), [TR124](Technical_Report_124.md) (quality baselines), [TR125](Technical_Report_125.md) (quantization matrix), [TR127](Technical_Report_127.md) (long-context), [TR128](Technical_Report_128.md) (production workloads), [TR129](Technical_Report_129.md) (N-agent scaling), [TR130](Technical_Report_130.md) (serving stacks)  
+**Depends On:** TR123--TR130 (all empirical data sources)  
 
 ---
 
@@ -21,7 +21,7 @@ TR133 closes this gap. We built a predictive capacity planner that ingests empir
 
 The 6 models are: (1) VRAM -- first-principles weight + KV-cache + activation memory formula with fitted overhead and quadratic activation coefficients; (2) Throughput -- lookup table with quantization multiplier and power-law size fallbacks; (3) Scaling -- Amdahl's law with per-(model, backend) serial fractions from TR129/TR130; (4) Quality -- lookup table with FP16 baselines and average quantization deltas from TR124/TR125; (5) Cost -- algebraic $/token from throughput and hardware cost; (6) Latency -- M/D/1 queueing approximation with 70% utilisation safety cap from TR128.
 
-All 4 validation targets are met: VRAM R² = 0.968 (target: 0.95), throughput R² = 0.859 (target: 0.85), quality RMSE = 0.062 (target: < 0.10), latency MAPE = 1.05% (target: < 25%). All 10 spot checks pass. The planner is shipped as the `chimeraforge` CLI (Phase 1), installable via `pip install chimeraforge`, with 57 unit tests passing.
+All 4 validation targets are met: VRAM R^2 = 0.968 (target: 0.95), throughput R^2 = 0.859 (target: 0.85), quality RMSE = 0.062 (target: < 0.10), latency MAPE = 1.05% (target: < 25%). All 10 spot checks pass. The planner is shipped as the `chimeraforge` CLI (Phase 1), installable via `pip install chimeraforge`, with 57 unit tests passing.
 
 ---
 
@@ -29,17 +29,17 @@ All 4 validation targets are met: VRAM R² = 0.968 (target: 0.95), throughput R�
 
 ### Key Findings
 
-1. **Six predict-only models are sufficient for capacity planning.** No gradient descent, no neural networks -- lookup tables, first-principles formulas, and Amdahl's law cover the entire decision space with R² > 0.85 for throughput and > 0.96 for VRAM.
+1. **Six predict-only models are sufficient for capacity planning.** No gradient descent, no neural networks -- lookup tables, first-principles formulas, and Amdahl's law cover the entire decision space with R^2 > 0.85 for throughput and > 0.96 for VRAM.
 
-2. **VRAM prediction achieves R² = 0.968.** The two-pass formula (weight overhead from low-context data, quadratic activation coefficient from residuals) predicts GPU memory within 1.71 GB RMSE across 17 validation groups spanning 512--32K context lengths. Overhead factor fitted at 1.058x (vs theoretical 1.0x), capturing runtime allocator fragmentation.
+2. **VRAM prediction achieves R^2 = 0.968.** The two-pass formula (weight overhead from low-context data, quadratic activation coefficient from residuals) predicts GPU memory within 1.71 GB RMSE across 17 validation groups spanning 512--32K context lengths. Overhead factor fitted at 1.058x (vs theoretical 1.0x), capturing runtime allocator fragmentation.
 
-3. **Throughput prediction achieves R² = 0.859.** The 22-entry lookup table covers all measured (model, backend, quant) combinations. The power-law fallback (72.1 * params^-0.089) handles unseen models, and quantization multipliers (1.0x--2.3x from FP16 to Q2_K) enable quant-aware prediction without per-quant measurements for every model.
+3. **Throughput prediction achieves R^2 = 0.859.** The 22-entry lookup table covers all measured (model, backend, quant) combinations. The power-law fallback (72.1 * params^-0.089) handles unseen models, and quantization multipliers (1.0x--2.3x from FP16 to Q2_K) enable quant-aware prediction without per-quant measurements for every model.
 
 4. **Latency prediction achieves MAPE = 1.05%.** The M/D/1 queueing model with median service times per (model, backend) predicts p95 latency within 22 ms RMSE across 9 validation groups. The 70% utilisation safety cap flags configurations approaching saturation before they hit the wall.
 
 5. **Quality prediction achieves RMSE = 0.062.** The lookup table with 35 entries covers 5 models x 7 quant levels. Average quant deltas (-0.104 for Q2_K to +0.018 for Q4_K_M) enable predictions for model-quant combinations without direct measurements.
 
-6. **Scaling prediction is the weakest model (R² = 0.647).** Amdahl serial fractions from 9 (model, backend) pairs capture the trend but miss interaction effects. The MAPE of 27.8% reflects high variance in multi-agent throughput measurements. This is expected -- scaling behaviour is inherently noisier than single-request performance.
+6. **Scaling prediction is the weakest model (R^2 = 0.647).** Amdahl serial fractions from 9 (model, backend) pairs capture the trend but miss interaction effects. The MAPE of 27.8% reflects high variance in multi-agent throughput measurements. This is expected -- scaling behaviour is inherently noisier than single-request performance.
 
 7. **The 4-gate search eliminates infeasible configurations before ranking.** Gate 1 (VRAM) drops configs that won't fit. Gate 2 (quality) drops configs below the user's quality target. Gate 3 (latency) drops configs that violate the p95 SLO. Gate 4 (budget) drops configs that exceed monthly cost. Survivors are ranked by cost-then-quality.
 
@@ -53,8 +53,8 @@ All 4 validation targets are met: VRAM R² = 0.968 (target: 0.95), throughput R�
 
 | Target | Metric | Required | Achieved | Margin | Status |
 |--------|--------|----------|----------|--------|--------|
-| VRAM accuracy | R² | >= 0.95 | **0.968** | +0.018 | PASS |
-| Throughput accuracy | R² | >= 0.85 | **0.859** | +0.009 | PASS |
+| VRAM accuracy | R^2 | >= 0.95 | **0.968** | +0.018 | PASS |
+| Throughput accuracy | R^2 | >= 0.85 | **0.859** | +0.009 | PASS |
 | Quality accuracy | RMSE | <= 0.10 | **0.062** | -0.038 | PASS |
 | Latency accuracy | MAPE | <= 0.25 | **0.011** | -0.239 | PASS |
 
@@ -63,11 +63,11 @@ All 4 validation targets are met: VRAM R² = 0.968 (target: 0.95), throughput R�
 | # | Claim | Evidence | Status |
 |---|-------|----------|--------|
 | 1 | Lookup tables + first-principles models suffice for capacity planning | 4/4 validation targets met; no ML needed | **Confirmed** |
-| 2 | VRAM can be predicted from architecture metadata alone | R²=0.968 using only params, BPW, KV-head count, context | **Confirmed** |
-| 3 | Throughput is predictable from (model, backend, quant) tuple | R²=0.859 with 22-entry lookup + fallbacks | **Confirmed** |
-| 4 | Amdahl's law captures multi-agent scaling | R²=0.647 -- captures trend but misses interactions | **Partially confirmed** |
+| 2 | VRAM can be predicted from architecture metadata alone | R^2=0.968 using only params, BPW, KV-head count, context | **Confirmed** |
+| 3 | Throughput is predictable from (model, backend, quant) tuple | R^2=0.859 with 22-entry lookup + fallbacks | **Confirmed** |
+| 4 | Amdahl's law captures multi-agent scaling | R^2=0.647 -- captures trend but misses interactions | **Partially confirmed** |
 | 5 | Quality degrades monotonically with quantization | Q4_K_M--Q8_0 show positive deltas due to base-vs-instruct confound | **Refuted (confound)** |
-| 6 | M/D/1 queueing predicts p95 latency | MAPE=1.05%, R²=0.999 on validation set | **Confirmed (with caveat)** |
+| 6 | M/D/1 queueing predicts p95 latency | MAPE=1.05%, R^2=0.999 on validation set | **Confirmed (with caveat)** |
 | 7 | A single model fit generalises across GPUs | Bandwidth scaling is untested -- no multi-GPU validation data | **Unverified** |
 | 8 | The planner recommends cost-optimal configurations | 4-gate search + cost ranking produces plausible results in spot checks | **Confirmed (face validity)** |
 
@@ -186,7 +186,7 @@ The planner ships as the `chimeraforge` CLI, the first software deliverable of t
 
 ### SS1.3 Scope
 
-TR133 covers models from 0.49B (Qwen2.5-0.5B) to 8.03B (LLaMA-3.1-8B) parameters, backends Ollama/vLLM/TGI, quantisation levels FP16 through Q2_K, and 15 GPU specifications from the RTX 4060 to the H100. All empirical data was collected on a single RTX 4080 Laptop GPU (12GB VRAM). Cross-GPU predictions use bandwidth-ratio scaling.
+TR133 covers models from 0.49B (Qwen2.5-0.5B) to 8.03B (LLaMA-3.1-8B) parameters, backends Ollama/vLLM/TGI, quantisation levels FP16 through Q2_K, and 15 GPU specifications from the RTX 4060 to the H_100. All empirical data was collected on a single RTX 4080 Laptop GPU (12GB VRAM). Cross-GPU predictions use bandwidth-ratio scaling.
 
 ### SS1.4 What This Report Is Not
 
@@ -284,7 +284,7 @@ Each model is fitted independently on the training split:
 
 2. **ThroughputModel:** Three-step fit. Step 1: aggregate N=1 measurements into (model, backend, quant) lookup table (mean tok/s). Step 2: compute per-quant multipliers as ratio to FP16 baseline per model, then average across models. Step 3: fit power law `a * params^(-b)` via scipy `curve_fit` with bounds [0, 0] to [10000, 5], maxfev=5000.
 
-3. **ScalingModel:** Store per-(model, backend) Amdahl serial fractions from TR129/TR130 analysis.json files, keeping the fit with highest R². No re-fitting -- these come pre-fitted from upstream TRs.
+3. **ScalingModel:** Store per-(model, backend) Amdahl serial fractions from TR129/TR130 analysis.json files, keeping the fit with highest R^2. No re-fitting -- these come pre-fitted from upstream TRs.
 
 4. **QualityModel:** Build (model, quant) lookup from mean composite_quality per group. Derive FP16 baselines. Compute average quant delta across models for each quant level.
 
@@ -298,11 +298,11 @@ Each model is validated against the held-out 20% split using appropriate metrics
 
 | Model | Primary Metric | Why This Metric |
 |-------|---------------|-----------------|
-| VRAM | R² | Continuous prediction; variance explanation matters |
-| Throughput | R² | Continuous prediction; mean accuracy matters |
-| Quality | RMSE | Used for pass/fail gating; absolute error matters more than R² |
+| VRAM | R^2 | Continuous prediction; variance explanation matters |
+| Throughput | R^2 | Continuous prediction; mean accuracy matters |
+| Quality | RMSE | Used for pass/fail gating; absolute error matters more than R^2 |
 | Latency | MAPE | Predictions span wide range; relative error normalises across scales |
-| Scaling | R² | Continuous prediction of efficiency ratio |
+| Scaling | R^2 | Continuous prediction of efficiency ratio |
 
 ### SS3.4 Design Principles
 
@@ -365,7 +365,7 @@ Two-pass procedure on 408 training records:
 | RMSE | 1.71 GB |
 | MAE | 1.01 GB |
 | MAPE | 8.9% |
-| R² | **0.968** |
+| R^2 | **0.968** |
 | Actual mean | 8.86 GB |
 | Predicted mean | 9.11 GB |
 | Mean bias | +0.25 GB (overprediction -- safe direction) |
@@ -446,12 +446,12 @@ This is nearly flat (exponent -0.089) because within the 0.5--8B range on consum
 | RMSE | 23.7 tok/s |
 | MAE | 15.9 tok/s |
 | MAPE | 40.3% |
-| R² | **0.859** |
+| R^2 | **0.859** |
 | Actual mean | 102.4 tok/s |
 | Predicted mean | 101.5 tok/s |
 | Mean bias | -0.9 tok/s (nearly unbiased) |
 
-**Why high MAPE with good R²?** The MAPE is inflated by low-throughput configurations (transformers-cpu at 6--9 tok/s) where small absolute errors produce large percentage errors. The R² of 0.859 better reflects the model's overall utility. The mean prediction is nearly unbiased at -0.9 tok/s.
+**Why high MAPE with good R^2?** The MAPE is inflated by low-throughput configurations (transformers-cpu at 6--9 tok/s) where small absolute errors produce large percentage errors. The R^2 of 0.859 better reflects the model's overall utility. The mean prediction is nearly unbiased at -0.9 tok/s.
 
 ---
 
@@ -467,7 +467,7 @@ where `s` is the serial fraction and `eta(N)` is per-agent efficiency at N concu
 
 ### SS6.2 Fitted Serial Fractions
 
-| Model | Backend | Serial Fraction (s) | Upstream R² | eta(2) | eta(4) | eta(8) |
+| Model | Backend | Serial Fraction (s) | Upstream R^2 | eta(2) | eta(4) | eta(8) |
 |-------|---------|-------|--------|--------|--------|--------|
 | llama3.2-1b | ollama | 0.533 | 0.96+ | 0.677 | 0.416 | 0.228 |
 | llama3.2-3b | ollama | 0.387 | 0.96+ | 0.721 | 0.474 | 0.270 |
@@ -479,7 +479,7 @@ where `s` is the serial fraction and `eta(N)` is per-agent efficiency at N concu
 | llama3.2-3b | tgi | 0.915 | 0.99+ | 0.522 | 0.274 | 0.135 |
 | qwen2.5-1.5b | tgi | 0.896 | 0.99+ | 0.528 | 0.280 | 0.139 |
 
-**Critical caveat (from TR130):** The vLLM/TGI serial fractions appear higher than Ollama because the Amdahl model is a poor fit for continuous-batching backends. TR130 showed that vLLM/TGI follow a **power law** (eta ~ N^-alpha), not Amdahl mechanics. Force-fitting Amdahl to power-law data inflates the serial fraction. The planner uses these values for conservative scaling predictions; actual vLLM/TGI scaling may be better than predicted.
+**Critical caveat (from TR130):** The vLLM/TGI serial fractions appear higher than Ollama because the Amdahl model is a poor fit for continuous-batching backends. TR130 showed that vLLM/TGI follow a **power law** (eta ~ N?alpha), not Amdahl mechanics. Force-fitting Amdahl to power-law data inflates the serial fraction. The planner uses these values for conservative scaling predictions; actual vLLM/TGI scaling may be better than predicted.
 
 ### SS6.3 Default Fallbacks
 
@@ -498,7 +498,7 @@ For (model, backend) pairs without empirical scaling data:
 | RMSE | 0.150 |
 | MAE | 0.100 |
 | MAPE | 27.8% |
-| R² | **0.647** |
+| R^2 | **0.647** |
 | Actual mean eta | 0.434 |
 | Predicted mean eta | 0.425 |
 
@@ -506,7 +506,7 @@ For (model, backend) pairs without empirical scaling data:
 
 The scaling model is the weakest component. Breaking down errors by backend:
 
-| Backend | n (val) | Mean |Actual eta| | Mean |Predicted eta| | Mean Error | Direction |
+| Backend | n (val) | Mean \|Actual eta\| | Mean \|Predicted eta\| | Mean Error | Direction |
 |---------|---------|-----|-----|------|------|
 | ollama | ~900 | 0.31 | 0.30 | -0.01 | Slight underprediction (conservative) |
 | vllm | ~430 | 0.57 | 0.55 | -0.02 | Slight underprediction (conservative) |
@@ -584,7 +584,7 @@ The positive deltas for Q4_K_M--Q8_0 are counterintuitive. They reflect the base
 | n | 5 |
 | RMSE | **0.062** |
 | MAE | 0.044 |
-| R² | 0.758 |
+| R^2 | 0.758 |
 | Lookup entries | 35 |
 | FP16 baselines | 5 |
 
@@ -610,7 +610,7 @@ monthly_cost = hw_cost_per_hour * 24 * 30
 | RTX 4080 12GB | 0.035 | Consumer amortised (reference) | $25.20 |
 | RTX 4090 24GB | 0.060 | Consumer amortised | $43.20 |
 | A100 80GB | 1.60 | Cloud rental | $1,152 |
-| H100 80GB | 2.50 | Cloud rental | $1,800 |
+| H_100 80GB | 2.50 | Cloud rental | $1,800 |
 
 Consumer amortisation formula: `purchase_price / (useful_life_hours)`. Example: RTX 4080 at $1,500 / (5 years * 365 days * 8 hrs/day) = $0.103/hr amortised. Adding electricity (~$0.035/hr at 200W * $0.15/kWh) but discounting for non-continuous use yields ~$0.035/hr effective.
 
@@ -666,11 +666,11 @@ The 70% utilisation cap (`rho < 0.70`) flags configurations approaching queueing
 | RMSE | 21.9 ms |
 | MAE | 9.8 ms |
 | MAPE | **1.05%** |
-| R² | **0.999** |
+| R^2 | **0.999** |
 | Actual mean | 1,357 ms |
 | Predicted mean | 1,366 ms |
 
-**Caveat:** The impressive R² reflects validation against median service times that the model was fitted on. The model is essentially a lookup table for N=1 service times. Predictive power for novel configurations (different request rates, different N values) is driven by the queueing theory formula, which has not been independently validated against real queueing data.
+**Caveat:** The impressive R^2 reflects validation against median service times that the model was fitted on. The model is essentially a lookup table for N=1 service times. Predictive power for novel configurations (different request rates, different N values) is driven by the queueing theory formula, which has not been independently validated against real queueing data.
 
 ---
 
@@ -724,8 +724,8 @@ Stratified 80/20 split by (model, backend) within each record category. This ens
 
 | Model | Metric | Target | Rationale |
 |-------|--------|--------|-----------|
-| VRAM | R² | >= 0.95 | VRAM prediction is critical -- OOM is catastrophic |
-| Throughput | R² | >= 0.85 | Throughput drives cost and latency estimates |
+| VRAM | R^2 | >= 0.95 | VRAM prediction is critical -- OOM is catastrophic |
+| Throughput | R^2 | >= 0.85 | Throughput drives cost and latency estimates |
 | Quality | RMSE | <= 0.10 | Quality is used for pass/fail gating, 0.10 threshold allows +-10pp |
 | Latency | MAPE | <= 0.25 | Latency predictions should be within 25% for SLO planning |
 
@@ -733,13 +733,13 @@ Stratified 80/20 split by (model, backend) within each record category. This ens
 
 | Model | Target Met? | Margin | Confidence |
 |-------|-------------|--------|------------|
-| VRAM | Yes | +0.018 | High (n=17, strong R²) |
+| VRAM | Yes | +0.018 | High (n=17, strong R^2) |
 | Throughput | Yes | +0.009 | Moderate (n=403, borderline pass) |
 | Quality | Yes | -0.038 | Moderate (n=5, small validation set) |
 | Latency | Yes | -0.239 | High (n=9, very low MAPE) |
-| Scaling | No target set | R²=0.647 | Low (weakest model) |
+| Scaling | No target set | R^2=0.647 | Low (weakest model) |
 
-**Throughput is the closest to failing** at R²=0.859 vs target 0.85. A different random seed for the split could produce R² < 0.85. The model is borderline and would benefit from more training data.
+**Throughput is the closest to failing** at R^2=0.859 vs target 0.85. A different random seed for the split could produce R^2 < 0.85. The model is borderline and would benefit from more training data.
 
 ---
 
@@ -904,7 +904,7 @@ All empirical measurements were collected on one GPU (RTX 4080 Laptop, 12GB). Cr
 
 ### SS14.2 Scaling Model Weakness
 
-The Amdahl model (R² = 0.647) is the weakest component. It uses a single serial fraction per (model, backend) pair, missing:
+The Amdahl model (R^2 = 0.647) is the weakest component. It uses a single serial fraction per (model, backend) pair, missing:
 - Non-linear effects at high N (memory pressure, thermal throttling)
 - Interaction between model size and concurrency
 - Serving stack-specific batch scheduling dynamics
@@ -939,7 +939,7 @@ The `fitted_models.json` is baked into the CLI package. It does not update with 
 
 ### SS14.8 Throughput Model Near Target
 
-The throughput R² of 0.859 passes the 0.85 target by only 0.009. A different random seed or slight data change could cause failure. The model would benefit from more diverse training data (e.g., quantized throughput measurements per backend).
+The throughput R^2 of 0.859 passes the 0.85 target by only 0.009. A different random seed or slight data change could cause failure. The model would benefit from more diverse training data (e.g., quantized throughput measurements per backend).
 
 ---
 
@@ -982,7 +982,7 @@ The model is consistently conservative (predicts worse scaling than actual), whi
 
 How much better is the planner than simple heuristics?
 
-| Approach | Throughput R² | VRAM R² | Method |
+| Approach | Throughput R^2 | VRAM R^2 | Method |
 |----------|-------------|---------|--------|
 | **TR133 planner** | **0.859** | **0.968** | Fitted models |
 | Global mean baseline | 0.000 | 0.000 | Predicts mean for everything |
@@ -1063,7 +1063,7 @@ Planner prediction: `VRAM = 3.21 * 16/8 * 1.058 + KV(28 layers, 8 heads, 128 dim
 
 ### SS17.3 TR129 Cross-Check: Scaling at N=8
 
-TR129 measured llama3.2-3b/ollama at N=8: eta ≈ 0.16--0.18 (from throughput curve).
+TR129 measured llama3.2-3b/ollama at N=8: eta ~ 0.16--0.18 (from throughput curve).
 
 Planner prediction with s=0.387: `eta(8) = 1 / (0.387 + 0.613 * 8) = 0.189`
 
@@ -1152,7 +1152,7 @@ The `fitted_models.json` artifact is the bridge between research (Banterhearts) 
 ### SS20.1 Scaling Model Improvement
 
 Replace Amdahl's law with backend-specific models:
-- **Ollama:** Keep Amdahl (good fit, R²=0.96+)
+- **Ollama:** Keep Amdahl (good fit, R^2=0.96+)
 - **vLLM/TGI:** Switch to power law `eta = N^(-alpha)` per TR130 findings
 
 ### SS20.2 VRAM Model Intercept
@@ -1188,7 +1188,7 @@ TR133 transforms 70,000+ research measurements into a <1-second decision tool. T
 
 The key insight is that capacity planning for local LLM inference doesn't require sophisticated ML. Lookup tables for quality, first-principles formulas for VRAM, Amdahl's law for scaling, and queueing theory for latency -- these classical tools, fitted to empirical data, outperform intuition and eliminate the need to read 25 technical reports.
 
-The scaling model (R² = 0.647) is the clear area for improvement. Multi-agent performance is governed by interactions between GPU memory bandwidth, serving stack batching, and model architecture that a single-parameter Amdahl fit cannot capture. The cross-validation in SS17.4 confirms: the planner predicts 169 tok/s total for vLLM at N=8, while the actual measurement is 559 tok/s. Replacing Amdahl with per-backend power laws is the highest-leverage improvement.
+The scaling model (R^2 = 0.647) is the clear area for improvement. Multi-agent performance is governed by interactions between GPU memory bandwidth, serving stack batching, and model architecture that a single-parameter Amdahl fit cannot capture. The cross-validation in SS17.4 confirms: the planner predicts 169 tok/s total for vLLM at N=8, while the actual measurement is 559 tok/s. Replacing Amdahl with per-backend power laws is the highest-leverage improvement.
 
 Three strengths of the approach:
 1. **Interpretability.** Every prediction can be traced to a formula with named parameters. No black-box models.
@@ -1227,7 +1227,7 @@ The CLI ships as ChimeraForge Phase 1 -- the first pip-installable deliverable o
 | RTX 3080 10GB | 10 | 760 | 0.025 | 1.37x |
 | A100 40GB | 40 | 1,555 | 1.10 | 2.80x |
 | A100 80GB | 80 | 2,039 | 1.60 | 3.67x |
-| H100 80GB | 80 | 3,352 | 2.50 | 6.03x |
+| H_100 80GB | 80 | 3,352 | 2.50 | 6.03x |
 | L4 24GB | 24 | 300 | 0.50 | 0.54x |
 | T4 16GB | 16 | 320 | 0.35 | 0.58x |
 
@@ -1235,8 +1235,8 @@ The CLI ships as ChimeraForge Phase 1 -- the first pip-installable deliverable o
 
 | Target | Value | Rationale |
 |--------|-------|-----------|
-| VRAM R² >= 0.95 | 0.95 | OOM is catastrophic. VRAM prediction must be highly accurate. |
-| Throughput R² >= 0.85 | 0.85 | Throughput feeds cost and latency. 85% is sufficient for "right ballpark" planning. |
+| VRAM R^2 >= 0.95 | 0.95 | OOM is catastrophic. VRAM prediction must be highly accurate. |
+| Throughput R^2 >= 0.85 | 0.85 | Throughput feeds cost and latency. 85% is sufficient for "right ballpark" planning. |
 | Quality RMSE <= 0.10 | 0.10 | Used for pass/fail gating. 0.10 RMSE means predictions within ~10pp. |
 | Latency MAPE <= 0.25 | 0.25 | SLOs typically have 2--3x safety margins. 25% error is acceptable. |
 
@@ -1321,14 +1321,14 @@ defaults:
 
 | Term | Definition |
 |------|-----------|
-| BPW | Bits per weight. FP16 = 16, Q4_K_M ≈ 4.5. |
+| BPW | Bits per weight. FP16 = 16, Q4_K_M ~ 4.5. |
 | eta(N) | Per-agent efficiency at N concurrent agents. eta(1) = 1.0 by definition. |
 | GQA | Grouped Query Attention. Uses fewer KV heads than query heads (n_kv_heads < n_heads). Reduces KV-cache size. |
 | KV-cache | Key-Value cache. Stores previously computed attention keys and values to avoid recomputation during autoregressive decode. |
 | M/D/1 | Markovian arrivals, Deterministic service, 1 server. A queueing theory model. |
 | MAPE | Mean Absolute Percentage Error. |
 | MHA | Multi-Head Attention. n_kv_heads == n_heads. Larger KV-cache than GQA. |
-| R² | Coefficient of determination. 1.0 = perfect prediction, 0.0 = no better than mean. |
+| R^2 | Coefficient of determination. 1.0 = perfect prediction, 0.0 = no better than mean. |
 | RMSE | Root Mean Square Error. |
 | Serial fraction (s) | Amdahl's law parameter. Fraction of work that cannot be parallelised. Higher s = worse scaling. |
 | SLO | Service Level Objective. A target latency or throughput guarantee. |

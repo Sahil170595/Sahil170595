@@ -2,15 +2,15 @@
 ## Local-first inference TCO with telemetry (prefill + generate)
 
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2025-12-20
-**Author:** Research Team
-**Report Type:** Frontier cost/energy deep dive
-**Test Duration:** 2.0 hours
-**Status:** Frontier Report (artifact-backed)
-**Version:** 1.1
-**Git SHA:** `fa75edf8367dce1e12e6762d23f3319ffd8e97b5`
-**Related Work:** [TR117](Technical_Report_117.md), [TR118_v2.2](Technical_Report_118_v2.2.md)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2025-12-20  
+**Author:** Research Team  
+**Report Type:** Frontier cost/energy deep dive  
+**Test Duration:** 2.0 hours  
+**Status:** Frontier Report (artifact-backed)  
+**Version:** 1.1  
+**Git SHA:** `fa75edf8367dce1e12e6762d23f3319ffd8e97b5`  
+**Related Work:** [TR117](Technical_Report_117.md), [TR118_v2.2](Technical_Report_118_v2.2.md)  
 
 ---
 

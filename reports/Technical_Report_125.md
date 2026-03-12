@@ -1,15 +1,15 @@
 # Technical Report 125: Quantization Decision Matrix
 ## Production-grade quant level selection across 5 models (1.2B-8B) with real benchmark validation
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2026-02-22 (Phase 1: Feb 21, Phase 2: Feb 22)
-**Author:** Research Team
-**Report Type:** Quantization impact analysis (metric-backed, 2-phase)
-**Test Duration:** ~20 min (Phase 1) + ~10 hrs (Phase 2)
-**Status:** Complete — Both phases delivered
-**Run IDs:** Phase 1: `20260220_203010`, Phase 2: `20260221_120035`
-**Related Work:** [TR124](Technical_Report_124.md) (Quality & Accuracy Baseline), [TR123](Technical_Report_123.md) (KV-Cache Production Economics)
-**Depends On:** TR124 (FP16 baselines, metric framework), TR123 (cost data)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2026-02-22 (Phase 1: Feb 21, Phase 2: Feb 22)  
+**Author:** Research Team  
+**Report Type:** Quantization impact analysis (metric-backed, 2-phase)  
+**Test Duration:** ~20 min (Phase 1) + ~10 hrs (Phase 2)  
+**Status:** Complete -- Both phases delivered  
+**Run IDs:** Phase 1: `20260220_203010`, Phase 2: `20260221_120035`  
+**Related Work:** [TR124](Technical_Report_124.md) (Quality & Accuracy Baseline), [TR123](Technical_Report_123.md) (KV-Cache Production Economics)  
+**Depends On:** TR124 (FP16 baselines, metric framework), TR123 (cost data)  
 
 ---
 
@@ -23,7 +23,7 @@ TR124 established quality baselines and confirmed backend equivalence, but left 
 
 **Total: ~26,000 samples across 2 phases, 34 model-quant variants.**
 
-**v2 Enhancement:** Re-analysis of existing Phase 2 data adds: Wilson confidence intervals for all benchmark tables, generation quality CIs (in raw data), MMLU vs ARC differential analysis, all 7 generation metrics (including repetition collapse detection), per-task quality breakdown, IQR outlier detection on timing data, Bonferroni/Holm multiple comparison correction (7/16 survive), TOST equivalence testing at two margins (0/18 at ±3pp; 6/18 generation-equivalent at ±5pp), complete 34-variant TTFT table, and explicit 29-variant tier enumeration. No new data collection -- all computed from existing 24,990 samples.
+**v2 Enhancement:** Re-analysis of existing Phase 2 data adds: Wilson confidence intervals for all benchmark tables, generation quality CIs (in raw data), MMLU vs ARC differential analysis, all 7 generation metrics (including repetition collapse detection), per-task quality breakdown, IQR outlier detection on timing data, Bonferroni/Holm multiple comparison correction (7/16 survive), TOST equivalence testing at two margins (0/18 at +/-3pp; 6/18 generation-equivalent at +/-5pp), complete 34-variant TTFT table, and explicit 29-variant tier enumeration. No new data collection -- all computed from existing 24,990 samples.
 
 Key findings:
 
@@ -81,13 +81,13 @@ For generation tasks, the **key metric average** is the unweighted mean of BERTS
 
 **Important caveats:**
 
-1. **Multiple comparison correction:** TR125 runs 116 pairwise tests (29 benchmark + 87 generation). At alpha = 0.05, ~5.8 false positives are expected by chance. **No family-wise correction is applied to reported p-values**, but Bonferroni and Holm corrections were computed (SS15.4). **7 of 16 significant results survive both corrections** — all at the Q3_K_S/Q2_K boundary. The Q2_K cliff is robust; the Q3_K_S cliff is not.
+1. **Multiple comparison correction:** TR125 runs 116 pairwise tests (29 benchmark + 87 generation). At alpha = 0.05, ~5.8 false positives are expected by chance. **No family-wise correction is applied to reported p-values**, but Bonferroni and Holm corrections were computed (SS15.4). **7 of 16 significant results survive both corrections** -- all at the Q3_K_S/Q2_K boundary. The Q2_K cliff is robust; the Q3_K_S cliff is not.
 
 2. **t-tests on binary data:** Benchmark accuracy is binary (0/1 per question). While Welch's t-test converges to a z-test at N=485, a two-proportion z-test or chi-squared test would be the standard approach. Cohen's d on binary data is bounded (max ~2.0 at p=0.5), producing mechanically small effect sizes. Reported d values for benchmark tests should not be directly compared to generation d values.
 
-3. **Equivalence claims require equivalence testing:** Classifying a variant as "negligible" quality loss is an equivalence claim. A non-significant t-test (p > 0.05) does NOT establish equivalence; it merely fails to detect a difference. TOST (Two One-Sided Tests) was applied to all 18 negligible variants at both ±3pp and ±5pp equivalence margins (SS15.5). At ±3pp: **0/18 pass**. At ±5pp: **0/18 benchmark pass, 6/18 generation pass** (phi-2 Q8_0/Q6_K/Q5_K_M, llama3.2-3b Q8_0/Q6_K, qwen2.5-1.5b Q8_0). Generation quality can confirm equivalence at wider margins because continuous metrics have lower variance than binary benchmark data. The "negligible" tier should be read as "point estimate within 3pp, 6 variants confirmed generation-equivalent at ±5%, but benchmark equivalence unconfirmed."
+3. **Equivalence claims require equivalence testing:** Classifying a variant as "negligible" quality loss is an equivalence claim. A non-significant t-test (p > 0.05) does NOT establish equivalence; it merely fails to detect a difference. TOST (Two One-Sided Tests) was applied to all 18 negligible variants at both +/-3pp and +/-5pp equivalence margins (SS15.5). At +/-3pp: **0/18 pass**. At +/-5pp: **0/18 benchmark pass, 6/18 generation pass** (phi-2 Q8_0/Q6_K/Q5_K_M, llama3.2-3b Q8_0/Q6_K, qwen2.5-1.5b Q8_0). Generation quality can confirm equivalence at wider margins because continuous metrics have lower variance than binary benchmark data. The "negligible" tier should be read as "point estimate within 3pp, 6 variants confirmed generation-equivalent at +/-5%, but benchmark equivalence unconfirmed."
 
-4. **Tier thresholds vs MDE:** The benchmark MDE is 9.0pp at 80% power (SS16.1). The "negligible" tier uses a -3pp threshold and "acceptable" uses -5pp — both below the detection limit. This means tier classifications for deltas between 0 and -9pp are based on point estimates that may not be statistically distinguishable from zero. The tier system remains useful as a point-estimate decision guide, but the statistical evidence for "negligible vs acceptable" is weak for any individual variant.
+4. **Tier thresholds vs MDE:** The benchmark MDE is 9.0pp at 80% power (SS16.1). The "negligible" tier uses a -3pp threshold and "acceptable" uses -5pp -- both below the detection limit. This means tier classifications for deltas between 0 and -9pp are based on point estimates that may not be statistically distinguishable from zero. The tier system remains useful as a point-estimate decision guide, but the statistical evidence for "negligible vs acceptable" is weak for any individual variant.
 
 5. **Confidence intervals:** The benchmark tables now include 95% Wilson CIs (SS8.1-8.5, added in v2). Wilson CI half-widths range from +/-3.7pp (low accuracy) to +/-4.4pp (mid accuracy). This means a reported delta of -2.3pp (llama3.2-1b Q4_K_M) is within the noise band and may not represent a real quality difference. Generation quality CIs exist in `phase2_analysis.json` and `phase2_v2_enhancements.json`.
 
@@ -110,10 +110,10 @@ TR125 answers: **which quantization level should you choose for each model, and 
 7. **Native timing reveals true throughput:** Native tok/s ranges from 49 (llama3.1-8b Q8_0) to 480 (llama3.2-1b Q2_K). HTTP overhead adds 190-920% on top, making wall-clock timing unreliable for relative comparisons.
 8. **Q4_K_M delivers large savings at production quality:** FP16-baselined models save 30-67% vs FP16, and llama3.1-8b saves 49% vs Q8_0. phi-2 Q4_K_M saves 67% vs FP16 while losing only -1.8pp accuracy.
 9. **(v2) Repetition collapse at Q2_K:** qwen2.5-1.5b Q2_K shows repetition score of 0.702 (vs 0.992 baseline) -- degenerate looping text invisible to the 3 key metrics.
-10. **(v2) TOST equivalence partially confirmed at wider margin:** 0/18 at ±3pp, but 6/18 generation-equivalent at ±5pp (phi-2 Q8_0/Q6_K/Q5_K_M, llama3.2-3b Q8_0/Q6_K, qwen2.5-1.5b Q8_0). Benchmark equivalence remains unconfirmed due to binary data variance.
+10. **(v2) TOST equivalence partially confirmed at wider margin:** 0/18 at +/-3pp, but 6/18 generation-equivalent at +/-5pp (phi-2 Q8_0/Q6_K/Q5_K_M, llama3.2-3b Q8_0/Q6_K, qwen2.5-1.5b Q8_0). Benchmark equivalence remains unconfirmed due to binary data variance.
 11. **(v2) Bonferroni correction validates Q2_K cliff:** 7/16 significant tests survive correction -- all at Q3_K_S -> Q2_K boundary. The Q3_K_S cliff is not robust to correction.
 12. **(v2) QA and classification most quantization-sensitive:** Per-task analysis shows 30-42% degradation at Q2_K for factual tasks vs 3-12% for creative writing.
-13. **(v2) Cross-phase reproducibility is metric-dependent:** Only coherence is fully reproducible across Phase 1→2 (3/3 models <5% divergence). BERTScore diverges at -5.7% for 2/3 models (marginal). ROUGE-L diverges -10.7% to -18.6% (substantial). Coherence is the only fully reliable cross-phase signal (SS17).
+13. **(v2) Cross-phase reproducibility is metric-dependent:** Only coherence is fully reproducible across Phase 1->2 (3/3 models <5% divergence). BERTScore diverges at -5.7% for 2/3 models (marginal). ROUGE-L diverges -10.7% to -18.6% (substantial). Coherence is the only fully reliable cross-phase signal (SS17).
 
 ### Key Decision
 
@@ -439,7 +439,7 @@ A framework patch was applied to serialize `backend_metadata` through `SampleRec
 
 - **Pairwise Welch's t-tests:** Between adjacent quant levels on benchmark accuracy (rescored, binary 0/1) and generation metrics (bertscore, coherence, rouge_l, continuous). Alpha = 0.05 uncorrected. See "Statistical Methods & Caveats" section for discussion of multiple comparison correction, t-tests on binary data, and equivalence testing limitations.
 - **Power analysis:** Normal approximation for minimum detectable effect (MDE) at alpha=0.05, power=0.80. Benchmark MDE = 9.0pp (worst case). Generation MDE = d=0.251.
-- **Quality classification:** Tiered based on the worse of benchmark delta (pp) and generation delta (%). Note: "negligible" and "acceptable" tiers are below the benchmark MDE — see SS16.2 for implications.
+- **Quality classification:** Tiered based on the worse of benchmark delta (pp) and generation delta (%). Note: "negligible" and "acceptable" tiers are below the benchmark MDE -- see SS16.2 for implications.
 - **Cross-phase validation:** Phase 1 Q8_0 vs Phase 2 Q8_0 on overlapping models, < 5% difference threshold.
 - **Confidence intervals:** Wilson CIs shown in benchmark tables (SS8). Generation CIs available in raw analysis data. See SS15.5 for TOST equivalence testing.
 
@@ -711,14 +711,14 @@ The benchmark tables (SS8.1-8.5) include Wilson CIs. Generation quality CIs are 
 
 | Metric | Typical CI Half-Width | Range Across Variants |
 |--------|-----------------------|----------------------|
-| BERTScore | ±0.013-0.022 | Narrowest (least variance) |
-| Coherence | ±0.025-0.040 | Moderate |
-| ROUGE-L | ±0.030-0.055 | Widest (highest variance) |
-| Key Metric Avg | ±0.015-0.030 | Composite of above |
+| BERTScore | +/-0.013-0.022 | Narrowest (least variance) |
+| Coherence | +/-0.025-0.040 | Moderate |
+| ROUGE-L | +/-0.030-0.055 | Widest (highest variance) |
+| Key Metric Avg | +/-0.015-0.030 | Composite of above |
 
 **Example (llama3.1-8b Q8_0):** BERTScore 0.800 [0.779, 0.821], coherence 0.668 [0.639, 0.696], ROUGE-L 0.492 [0.440, 0.545]. The key metric avg (0.653) has a CI of approximately [0.630, 0.676].
 
-**Implication:** Generation deltas <2% are within CI overlap for most metrics. Deltas >5% (e.g., llama3.2-1b Q2_K at -23.4%) are well outside CIs and represent genuine quality loss. The 6 variants that pass TOST at ±5% (SS15.5) are those where the CIs are tight enough to confirm equivalence.
+**Implication:** Generation deltas <2% are within CI overlap for most metrics. Deltas >5% (e.g., llama3.2-1b Q2_K at -23.4%) are well outside CIs and represent genuine quality loss. The 6 variants that pass TOST at +/-5% (SS15.5) are those where the CIs are tight enough to confirm equivalence.
 
 ### 9.7 Supplementary Metrics (BLEU, Repetition, Output Length, Exact Match)
 
@@ -1185,7 +1185,7 @@ With 116 tests at alpha = 0.05, the expected false positive count under the null
 
 The "negligible" tier classifies 18 quantized variants as having no meaningful quality loss. But a non-significant t-test does NOT establish equivalence. TOST (Two One-Sided Tests) was applied to all 18 negligible variants to test whether the true delta lies within +/-3pp of baseline (benchmark) or +/-3% of baseline mean (generation).
 
-**At ±3pp margin: 0/18 benchmark pass, 0/18 generation pass.**
+**At +/-3pp margin: 0/18 benchmark pass, 0/18 generation pass.**
 
 | Model | Quant | Bench Delta (pp) | TOST p (bench) | TOST p (gen) | Equiv? |
 |-------|-------|-----------------|----------------|--------------|--------|
@@ -1208,11 +1208,11 @@ The "negligible" tier classifies 18 quantized variants as having no meaningful q
 | qwen2.5-1.5b | Q6_K | -1.2 | 0.435 | 0.335 | No |
 | qwen2.5-1.5b | Q5_K_M | -0.4 | 1.000 | 0.252 | No |
 
-**At ±5pp margin: 0/18 benchmark pass, 6/18 generation pass.**
+**At +/-5pp margin: 0/18 benchmark pass, 6/18 generation pass.**
 
-Widening the equivalence margin to ±5pp (the "acceptable" tier threshold) allows the generation quality tests to reach significance for 6 variants. Benchmark tests remain underpowered at this margin because binary accuracy data has high variance (SE ~5.9pp).
+Widening the equivalence margin to +/-5pp (the "acceptable" tier threshold) allows the generation quality tests to reach significance for 6 variants. Benchmark tests remain underpowered at this margin because binary accuracy data has high variance (SE ~5.9pp).
 
-| Model | Quant | Gen Delta (%) | TOST p (gen, ±5%) | Gen Equiv? |
+| Model | Quant | Gen Delta (%) | TOST p (gen, +/-5%) | Gen Equiv? |
 |-------|-------|---------------|-------------------|------------|
 | llama3.2-3b | Q8_0 | -0.1 | 0.031 | **Yes** |
 | llama3.2-3b | Q6_K | +0.3 | 0.037 | **Yes** |
@@ -1221,11 +1221,11 @@ Widening the equivalence margin to ±5pp (the "acceptable" tier threshold) allow
 | phi-2 | Q5_K_M | +0.8 | 0.048 | **Yes** |
 | qwen2.5-1.5b | Q8_0 | -0.3 | 0.041 | **Yes** |
 
-**Pattern:** The 6 variants that pass are all at high quant levels (Q8_0, Q6_K, Q5_K_M) with generation deltas <1%. phi-2 passes at 3 quant levels (Q8_0 through Q5_K_M), consistent with its overall quantization robustness. No variant at Q4_K_M or below passes even at ±5%.
+**Pattern:** The 6 variants that pass are all at high quant levels (Q8_0, Q6_K, Q5_K_M) with generation deltas <1%. phi-2 passes at 3 quant levels (Q8_0 through Q5_K_M), consistent with its overall quantization robustness. No variant at Q4_K_M or below passes even at +/-5%.
 
-**Interpretation:** At N=485 with binary accuracy data, the standard error of the difference is approximately ±5.9pp (95% CI). A ±3pp equivalence margin is too narrow relative to this standard error for the study to have sufficient power to establish equivalence. At ±5pp, generation quality (continuous metrics with lower variance) has enough power to confirm equivalence for the highest-quant variants, but benchmark accuracy (binary data) remains underpowered. To establish benchmark equivalence at ±5pp with 80% power would require N > 1,500 per variant; at ±3pp, N > 3,000.
+**Interpretation:** At N=485 with binary accuracy data, the standard error of the difference is approximately +/-5.9pp (95% CI). A +/-3pp equivalence margin is too narrow relative to this standard error for the study to have sufficient power to establish equivalence. At +/-5pp, generation quality (continuous metrics with lower variance) has enough power to confirm equivalence for the highest-quant variants, but benchmark accuracy (binary data) remains underpowered. To establish benchmark equivalence at +/-5pp with 80% power would require N > 1,500 per variant; at +/-3pp, N > 3,000.
 
-The "negligible" tier should be read as: **"point estimate within 3pp, no detected degradation. 6/18 variants confirmed equivalent on generation quality at ±5%, but benchmark equivalence unconfirmed."**
+The "negligible" tier should be read as: **"point estimate within 3pp, no detected degradation. 6/18 variants confirmed equivalent on generation quality at +/-5%, but benchmark equivalence unconfirmed."**
 
 ---
 
@@ -1242,7 +1242,7 @@ Computed using normal approximation at alpha=0.05, power=0.80.
 
 ### 16.2 Implications for Tier Thresholds
 
-- **"Negligible" tier (-3pp):** **Below the 9.0pp benchmark detection limit.** We cannot statistically confirm that -3pp deltas are real — they are indistinguishable from zero at 80% power. A variant classified "negligible" may have zero true degradation or up to ~9pp true degradation. The classification is based on the point estimate only. For binary accuracy at N=485, the 95% Wilson CI half-width is ±3.4pp to ±4.3pp depending on the baseline accuracy — meaning a -3pp point estimate has a CI spanning roughly [-7pp, +1pp]. The "negligible" label should be interpreted as "no evidence of degradation" rather than "proven equivalent."
+- **"Negligible" tier (-3pp):** **Below the 9.0pp benchmark detection limit.** We cannot statistically confirm that -3pp deltas are real -- they are indistinguishable from zero at 80% power. A variant classified "negligible" may have zero true degradation or up to ~9pp true degradation. The classification is based on the point estimate only. For binary accuracy at N=485, the 95% Wilson CI half-width is +/-3.4pp to +/-4.3pp depending on the baseline accuracy -- meaning a -3pp point estimate has a CI spanning roughly [-7pp, +1pp]. The "negligible" label should be interpreted as "no evidence of degradation" rather than "proven equivalent."
 - **"Acceptable" tier (-5pp):** Also below the benchmark detection limit. Same caveat as negligible: the generation metric detection limit (d=0.251) provides supplementary evidence, but benchmark-only tier assignments at -3pp to -5pp are statistically unresolved.
 - **"Concerning" tier (-10pp):** At the detection limit. Deltas in this range may or may not be statistically significant depending on variance. The Q3_K_S drops for llama3.2-3b (-10.1pp) and qwen2.5-1.5b (-12.2pp) are above the MDE and statistically significant.
 - **"Unacceptable" tier (>-10pp):** Above the detection limit. These are genuine, measurable quality losses. All Q2_K results (>-11pp) are statistically significant.
@@ -1284,13 +1284,13 @@ The 4 divergent metrics are:
 | qwen2.5-1.5b | BERTScore | 0.790 | 0.745 | **-5.7%** | Just over threshold |
 | qwen2.5-1.5b | ROUGE-L | 0.426 | 0.381 | **-10.7%** | Moderate divergence |
 
-Note that **BERTScore is NOT fully reproducible** — two of three models show divergence at -5.7%, just barely exceeding the 5% threshold. Only coherence passes for all three models (max divergence -4.5%). The prior conclusion that "BERTScore is reproducible" was premature.
+Note that **BERTScore is NOT fully reproducible** -- two of three models show divergence at -5.7%, just barely exceeding the 5% threshold. Only coherence passes for all three models (max divergence -4.5%). The prior conclusion that "BERTScore is reproducible" was premature.
 
 Possible explanations for the systematic downward shift:
 
 1. **Sample selection effect:** Phase 1 used 10 samples/task; Phase 2 uses 50 samples/task drawn from the same task pool. The additional 40 samples per task may include harder prompts that pull metrics down, particularly for phi-2 and qwen2.5-1.5b which are more sensitive to prompt difficulty.
 2. **ROUGE-L sensitivity:** ROUGE-L is the most variance-prone of the three key metrics (TR124 Phase 3 showed CV 0.23-0.55 for ROUGE-L vs 0.07-0.20 for BERTScore). The Phase 1 estimate at N=50 has wide CIs; the Phase 2 estimate at N=250 is more reliable.
-3. **Systematic direction:** All 4 divergent metrics show Phase 2 *lower* than Phase 1. This is not random — it suggests Phase 1 at N=50 systematically overestimated quality, likely due to an easier sample subset.
+3. **Systematic direction:** All 4 divergent metrics show Phase 2 *lower* than Phase 1. This is not random -- it suggests Phase 1 at N=50 systematically overestimated quality, likely due to an easier sample subset.
 4. **Model/Ollama version changes:** If Ollama updated model weights between Phase 1 (Feb 20) and Phase 2 (Feb 21), Q8_0 outputs could differ. This is unlikely for a 1-day gap but cannot be ruled out.
 
 **Revised conclusion:** Only coherence is fully reproducible across phases (3/3 models consistent). BERTScore diverges for 2/3 models at -5.7% (marginal). ROUGE-L diverges for 2/3 models at -10.7% to -18.6% (substantial). For cross-phase comparisons, **coherence is the only fully reliable signal**. BERTScore is marginal, and ROUGE-L is unreliable across phases at these sample sizes.
@@ -1326,7 +1326,7 @@ Possible explanations for the systematic downward shift:
 |----------------|-------------------|
 | phi-2 Q4_K_M loses -7.2% (generation) | Phase 2: only -1.8pp benchmark, -0.6% generation. Phase 1 overestimated the loss |
 | qwen2.5-1.5b Q4_K_M loses -11.9% (generation) | Phase 2: -4.1pp benchmark, -4.9% generation. Phase 1 overestimated, but Q4_K_M is still the weakest for qwen |
-| llama3.2-1b Q4_K_M is better than Q8_0 (+11.8%) | Phase 2: Q4_K_M is -2.3pp below FP16, +4.9% generation. The +11.8% was likely noise at N=50, though the persistent +4.9% at N=250 suggests a stochastic generation effect where Q4_K_M's slightly different weight distribution produces outputs that happen to score higher on these specific tasks. This does not indicate Q4_K_M is genuinely "better" — it indicates the generation metrics have residual variance even at N=250. |
+| llama3.2-1b Q4_K_M is better than Q8_0 (+11.8%) | Phase 2: Q4_K_M is -2.3pp below FP16, +4.9% generation. The +11.8% was likely noise at N=50, though the persistent +4.9% at N=250 suggests a stochastic generation effect where Q4_K_M's slightly different weight distribution produces outputs that happen to score higher on these specific tasks. This does not indicate Q4_K_M is genuinely "better" -- it indicates the generation metrics have residual variance even at N=250. |
 
 ---
 
@@ -1371,8 +1371,8 @@ Based on 24,990 Phase 2 samples across 5 models and 7 quant levels:
 3. ~~Task-specific quantization:~~ **Partially addressed (v2)** -- SS9.8 shows per-task quality breakdown. QA and classification are most sensitive; creative_writing is most robust. Per-task statistical tests remain open.
 4. **Hardware generalization:** Results on RTX 4080 may not transfer to different GPU architectures (AMD, Apple Silicon) or different memory bandwidth profiles.
 5. **Newer quant formats:** IQ4_XS, Q4_0_4_4, and other emerging GGUF formats are not tested.
-6. **Ollama determinism validation:** Verify that Ollama at temp=0 produces bit-identical outputs across runs — see Limitations L2.
-7. **Actual VRAM measurement:** Replace theoretical VRAM estimates with measured values under realistic context lengths — see Limitations L1.
+6. **Ollama determinism validation:** Verify that Ollama at temp=0 produces bit-identical outputs across runs -- see Limitations L2.
+7. **Actual VRAM measurement:** Replace theoretical VRAM estimates with measured values under realistic context lengths -- see Limitations L1.
 8. ~~MMLU vs ARC differential:~~ **Addressed (v2)** -- SS8.7 presents systematic analysis. ARC generally more robust; MMLU degrades faster under quantization.
 9. ~~Formal equivalence testing:~~ **Addressed (v2)** -- SS15.5 shows 0/18 negligible variants pass TOST at +/-3pp. Study underpowered for equivalence confirmation; would need N>3,000.
 10. **Higher-power replication:** Confirm "negligible" tier claims with N > 3,000 per variant to achieve TOST equivalence power at +/-3pp margin.
@@ -1385,7 +1385,7 @@ This section consolidates all known limitations of the TR125 experimental design
 
 ### L1. VRAM Estimates Are Theoretical, Not Measured
 
-All VRAM numbers in the decision matrix (SS13) and model tables use the formula `params × bits_per_weight / 8 × 1.1` — a theoretical estimate with a 10% overhead factor. **No actual VRAM measurements were taken.** Actual Ollama VRAM usage depends on context length (KV cache overhead), batch size, and Ollama's internal memory management. The 10% overhead factor is arbitrary and may underestimate real usage for long-context scenarios. Treat VRAM numbers as lower-bound estimates.
+All VRAM numbers in the decision matrix (SS13) and model tables use the formula `params x bits_per_weight / 8 x 1.1` -- a theoretical estimate with a 10% overhead factor. **No actual VRAM measurements were taken.** Actual Ollama VRAM usage depends on context length (KV cache overhead), batch size, and Ollama's internal memory management. The 10% overhead factor is arbitrary and may underestimate real usage for long-context scenarios. Treat VRAM numbers as lower-bound estimates.
 
 ### L2. Ollama Determinism Unvalidated
 
@@ -1425,7 +1425,7 @@ SS10.7 now presents IQR-based outlier analysis on all timing data. Outlier rates
 
 ### L11. 5 MMLU Questions per Subject
 
-With 285 MMLU questions across 57 subjects (5 per subject), per-subject accuracy analysis is statistically meaningless (95% CI of ±44pp at p=0.5 for 5 binary questions). The aggregate MMLU accuracy is reliable at N=285, but any subject-level interpretation would be noise. This is not a limitation of the report (which doesn't attempt subject-level analysis) but of the benchmark sample size.
+With 285 MMLU questions across 57 subjects (5 per subject), per-subject accuracy analysis is statistically meaningless (95% CI of +/-44pp at p=0.5 for 5 binary questions). The aggregate MMLU accuracy is reliable at N=285, but any subject-level interpretation would be noise. This is not a limitation of the report (which doesn't attempt subject-level analysis) but of the benchmark sample size.
 
 ---
 
@@ -1459,7 +1459,7 @@ python research/tr125/phase2/run.py
 ### 20.4 Key Assumptions
 
 1. **Hardware cost:** $0.035/hr (RTX 4080 consumer tier, from TR123).
-2. **VRAM estimates:** `params * bpw / 8 * 1.1` overhead factor. **Theoretical only — no actual VRAM measurements taken.** Actual usage varies with context length, KV cache size, and Ollama internals. See Limitations L1.
+2. **VRAM estimates:** `params * bpw / 8 * 1.1` overhead factor. **Theoretical only -- no actual VRAM measurements taken.** Actual usage varies with context length, KV cache size, and Ollama internals. See Limitations L1.
 3. **Ollama quantization fidelity:** Tag names (e.g., `q4_K_M`) assumed to match GGUF quant format. Ollama may pick the closest available variant.
 4. **Temperature 0.0:** All results are greedy decoding. Non-greedy decoding introduces variance (TR124 Phase 3: mean CV 0.33 at temp=0.7).
 

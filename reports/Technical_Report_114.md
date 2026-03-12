@@ -6,7 +6,7 @@
 **Date:** November 13, 2025  
 **Test Duration:** 6 hours 15 minutes (150 benchmark runs)  
 **Framework:** Demo_rust_multiagent (Rust async/tokio + Dual Ollama)  
-**Related:** [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111](Technical_Report_111.md) (Rust Single-Agent), [TR112](Technical_Report_112.md) (Rust vs Python Single-Agent), [TR113](Technical_Report_113.md) (Rust Multi-Agent Single Ollama)
+**Related:** [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111](Technical_Report_111.md) (Rust Single-Agent), [TR112](Technical_Report_112.md) (Rust vs Python Single-Agent), [TR113](Technical_Report_113.md) (Rust Multi-Agent Single Ollama)  
 
 ---
 
@@ -16,13 +16,13 @@ This report validates TR113's architectural hypothesis that single Ollama instan
 
 ### Key Findings
 
-1. **Hypothesis Confirmed (✓):** Dual Ollama architecture delivers **+17.3pp efficiency gain** (72.0% → 89.3%) and **+24% speedup improvement** (1.440x → 1.785x), validating TR113's prediction of +15-18pp improvement from eliminating server-level resource contention.
+1. **Hypothesis Confirmed (Yes):** Dual Ollama architecture delivers **+17.3pp efficiency gain** (72.0% -> 89.3%) and **+24% speedup improvement** (1.440x -> 1.785x), validating TR113's prediction of +15-18pp improvement from eliminating server-level resource contention.
 
 2. **Peak Performance Achievement:** Best configuration (GPU=80/100, CTX=512/1024, heterogeneous) reached **1.914x speedup with 95.7% efficiency**, compared to TR113's 1.644x/82.2%. This represents **83% reduction in gap to theoretical 2.0x ideal**.
 
 3. **Consistent Excellence Across Phases:** All three test phases achieved >87% average efficiency:
    - Phase 1 (Core Sweep): 89.3% (90 runs)
-   - Phase 2 (Temp/Context): 89.7% (45 runs)  
+   - Phase 2 (Temp/Context): 89.7% (45 runs)
    - Phase 3 (Validation): 87.6% (15 runs)
 
 4. **Contention Near-Elimination:** Resource contention dropped from 63% (TR113) to **6% (TR114)**, a **10x reduction**, proving dual Ollama isolation prevents server-level serialization.
@@ -66,7 +66,7 @@ This report validates that hypothesis through comprehensive benchmarking matchin
 - **Hardware:** RTX 4080 (12GB VRAM), i9-13980HX (24 cores)
 - **Test Matrix:** 30 configurations, 5 runs each = 150 total benchmarks
 - **Metrics:** Concurrency speedup, parallel efficiency, TTFT delta, throughput delta, resource contention frequency
-- **Baselines:** 
+- **Baselines:**
   - TR113 (Rust single Ollama): 19 configs
   - TR110 (Python dual Ollama): 30 configs, 150 runs
 
@@ -94,7 +94,7 @@ This report validates that hypothesis through comprehensive benchmarking matchin
 | Aspect | TR113 (Single Ollama) | TR114 (Dual Ollama) |
 |--------|----------------------|---------------------|
 | **Ollama Instances** | 1 server (port 11434) | 2 servers (ports 11434, 11435) |
-| **Agent Isolation** | Shared server → serialized | Dedicated servers → parallel |
+| **Agent Isolation** | Shared server -> serialized | Dedicated servers -> parallel |
 | **VRAM Allocation** | Sequential handoff | Simultaneous allocation |
 | **Model Loading** | Sequential (Agent 2 waits) | Parallel (both agents start) |
 | **Contention Risk** | High (63% of runs) | Low (6% of runs) |
@@ -122,31 +122,31 @@ This report validates that hypothesis through comprehensive benchmarking matchin
 - Agent 1: Baseline Ollama defaults (no config overrides)
 - Agent 2: Chimera-optimized config
 - **Goal:** Quantify mixed deployment overhead with dual Ollama
-- **TR114 Tests:** 6 configs × 5 runs = 30 benchmarks (Phase 1 + Phase 3)
+- **TR114 Tests:** 6 configs x 5 runs = 30 benchmarks (Phase 1 + Phase 3)
 - **TR110 Baseline:** 97.9% peak efficiency (Test 202)
 
 #### Scenario 2: Heterogeneous Chimera (`chimera_hetero`)
 - Agent 1: Chimera config A
 - Agent 2: Chimera config B (different parameters)
 - **Goal:** Test asymmetric optimization with dual Ollama
-- **TR114 Tests:** 7 configs × 5 runs = 35 benchmarks
+- **TR114 Tests:** 7 configs x 5 runs = 35 benchmarks
 - **TR110 Baseline:** 99.0% peak efficiency (Test 201)
 
 #### Scenario 3: Homogeneous Chimera (`chimera_homo`)
 - Both agents: Identical Chimera config
 - **Goal:** Measure peak concurrent efficiency
-- **TR114 Tests:** 17 configs × 5 runs = 85 benchmarks
+- **TR114 Tests:** 17 configs x 5 runs = 85 benchmarks
 - **TR110 Baseline:** 99.25% peak efficiency (Test 108: GPU=80, CTX=2048, TEMP=1.0)
 
 ### 2.4 Test Phases (30 Configs, 150 Runs)
 
 **Phase 1: Core Parameter Sweep (18 configs, 90 runs)**
-- 3 scenarios × 3 GPU layers (60/80/120) × 2 contexts (512/1024) × 5 runs
+- 3 scenarios x 3 GPU layers (60/80/120) x 2 contexts (512/1024) x 5 runs
 - Temperature fixed at 0.8 (TR110's default)
 - Identifies best GPU layer allocation per scenario
 
 **Phase 2: Temperature & Context Analysis (9 configs, 45 runs)**
-- 1 scenario (chimera_homo) × GPU=80 × 3 contexts (512/1024/2048) × 3 temperatures (0.6/0.8/1.0) × 5 runs
+- 1 scenario (chimera_homo) x GPU=80 x 3 contexts (512/1024/2048) x 3 temperatures (0.6/0.8/1.0) x 5 runs
 - Fine-tunes optimal configuration
 - Tests TR110's best config (GPU=80, CTX=2048, TEMP=1.0)
 
@@ -190,7 +190,7 @@ This report validates that hypothesis through comprehensive benchmarking matchin
 | 120 | 512 | 1.762x | 88.1% | 92.3% | 1/5 |
 | 120 | 1024 | 1.838x | 91.9% | 94.7% | 1/5 |
 
-**Best Config:** GPU=120, CTX=1024 → **1.838x speedup, 91.9% efficiency**
+**Best Config:** GPU=120, CTX=1024 -> **1.838x speedup, 91.9% efficiency**
 
 **Key Observations:**
 
@@ -222,13 +222,13 @@ Python's asyncio handles mixed configurations more gracefully, suggesting Rust's
 | 120 | 512 | 140 | 1024 | 1.777x | 88.8% | 93.1% | 0/5 |
 | 120 | 1024 | 140 | 2048 | 1.783x | 89.2% | 93.8% | 1/5 |
 
-**Best Config:** GPU=80/100, CTX=512/1024 → **1.826x mean, 95.7% peak efficiency**
+**Best Config:** GPU=80/100, CTX=512/1024 -> **1.826x mean, 95.7% peak efficiency**
 
 **Key Observations:**
 
 1. **Absolute Peak Performance:** The 95.7% efficiency (GPU=80/100, CTX=512/1024) is TR114's **highest single result**, surpassing all homogeneous configs. This suggests **asymmetric GPU allocation benefits Rust's work-stealing scheduler** by preventing thread starvation.
 
-2. **CTX=2048 Struggles:** Configs with CTX=2048 on either agent show 81-89% efficiency vs 88-91% for CTX≤1024. At 2048 context, KV cache pressure approaches VRAM limits even with dual Ollama, causing occasional evictions.
+2. **CTX=2048 Struggles:** Configs with CTX=2048 on either agent show 81-89% efficiency vs 88-91% for CTX<=1024. At 2048 context, KV cache pressure approaches VRAM limits even with dual Ollama, causing occasional evictions.
 
 3. **Sweet Spot: GPU=80/100:** Mid-range asymmetric allocation (80+100=180 total layers) achieves better efficiency (91.3%) than heavy allocation (120+140=260, 88.8%). Supports TR110's finding of a ~160-layer budget ceiling for RTX 4080.
 
@@ -254,7 +254,7 @@ Python achieved 99% with **symmetric** GPU allocation (80/80), while Rust peaked
 | 120 | 512 | 1.799x | 89.9% | 95.0% | 0/5 |
 | 120 | 1024 | 1.787x | 89.4% | 93.5% | 0/5 |
 
-**Best Config (Phase 1):** GPU=60/80/120, CTX=512 → **1.800x speedup, 90.0% efficiency (tie)**
+**Best Config (Phase 1):** GPU=60/80/120, CTX=512 -> **1.800x speedup, 90.0% efficiency (tie)**
 
 **Key Observations:**
 
@@ -291,7 +291,7 @@ Python's 99.1% in Phase 1 suggests asyncio reaches near-theoretical 2.0x limit f
 | 2048 | 0.8 | 1.780x | 89.0% | 93.3% | 0/5 |
 | 2048 | 1.0 | 1.809x | 90.5% | 94.8% | 1/5 |
 
-**Best Config:** GPU=80, CTX=512, TEMP=1.0 → **1.809x mean, 95.2% peak efficiency**
+**Best Config:** GPU=80, CTX=512, TEMP=1.0 -> **1.809x mean, 95.2% peak efficiency**
 
 #### 3.2.1 Temperature Effects
 
@@ -305,7 +305,7 @@ Python's 99.1% in Phase 1 suggests asyncio reaches near-theoretical 2.0x limit f
 
 **Key Findings:**
 
-1. **Temperature Near-Neutral:** ±0.4pp variance across 0.6-1.0 range. Unlike TR113 (8-14pp TEMP variance), dual Ollama makes temperature **operationally insignificant** for efficiency.
+1. **Temperature Near-Neutral:** +/-0.4pp variance across 0.6-1.0 range. Unlike TR113 (8-14pp TEMP variance), dual Ollama makes temperature **operationally insignificant** for efficiency.
 
 2. **TEMP=1.0 Peak Advantage:** Highest individual efficiency (95.2%) at TEMP=1.0, matching TR110's finding that higher temperature improves concurrent scheduling by creating more diverse token generation patterns.
 
@@ -328,15 +328,15 @@ Python's 99.1% in Phase 1 suggests asyncio reaches near-theoretical 2.0x limit f
 
 **Key Findings:**
 
-1. **CTX=512 and 2048 Tied:** Both achieve 90.0% average efficiency, while CTX=1024 lags at 89.4%. This **non-monotonic relationship** (512 < 1024 < 2048 → 90.0% < 89.4% < 90.0%) suggests KV cache fragmentation at CTX=1024 specifically.
+1. **CTX=512 and 2048 Tied:** Both achieve 90.0% average efficiency, while CTX=1024 lags at 89.4%. This **non-monotonic relationship** (512 < 1024 < 2048 -> 90.0% < 89.4% < 90.0%) suggests KV cache fragmentation at CTX=1024 specifically.
 
 2. **CTX=512 Peak:** Absolute best efficiency (95.2%) at CTX=512, TEMP=1.0. Smaller context enables tighter cache coordination between agents, reducing memory bandwidth contention.
 
-3. **CTX=2048 Contention:** Only context size with contention (2/15 runs). At 2048 tokens, combined KV cache (2 agents × 436MB each = 872MB) approaches L2 cache eviction thresholds, causing occasional TTFT spikes.
+3. **CTX=2048 Contention:** Only context size with contention (2/15 runs). At 2048 tokens, combined KV cache (2 agents x 436MB each = 872MB) approaches L2 cache eviction thresholds, causing occasional TTFT spikes.
 
 **Comparison to TR110 (Python):**
-- TR110 Best: GPU=80, CTX=2048, TEMP=1.0 → 99.25% (Test 108)
-- TR114 Best: GPU=80, CTX=512, TEMP=1.0 → 95.2%
+- TR110 Best: GPU=80, CTX=2048, TEMP=1.0 -> 99.25% (Test 108)
+- TR114 Best: GPU=80, CTX=512, TEMP=1.0 -> 95.2%
 - **Divergence:** Python peaks at **largest context**, Rust peaks at **smallest context**
 
 This reveals a fundamental difference: **Python's asyncio scales better with large contexts** (single-threaded, no cache thrashing), while **Rust's tokio prefers small contexts** (work-stealing causes cache pollution at large KV sizes).
@@ -353,7 +353,7 @@ This reveals a fundamental difference: **Python's asyncio scales better with lar
 | chimera_hetero | GPU=80/80, CTX=512/1024, TEMP=0.8 | 1.711x | 85.6% | 90.5% | 1/5 |
 | chimera_homo | GPU=80, CTX=2048, TEMP=1.0 | 1.809x | 90.5% | 94.8% | 0/5 |
 
-**Best Overall:** chimera_homo (GPU=80, CTX=2048, TEMP=1.0) → **1.809x, 90.5% mean**
+**Best Overall:** chimera_homo (GPU=80, CTX=2048, TEMP=1.0) -> **1.809x, 90.5% mean**
 
 **Key Observations:**
 
@@ -386,7 +386,7 @@ This reveals a fundamental difference: **Python's asyncio scales better with lar
 
 TR113 predicted dual Ollama would deliver **+15-18pp efficiency gain**. Actual result: **+17.3pp mean improvement**, with peak improvement of **+13.5pp**.
 
-**✓ HYPOTHESIS CONFIRMED**
+**Yes HYPOTHESIS CONFIRMED**
 
 The 17.3pp gain falls squarely in the predicted 15-18pp range, validating that single Ollama instance serialization was the root cause of TR113's underperformance.
 
@@ -414,7 +414,7 @@ The 17.3pp gain falls squarely in the predicted 15-18pp range, validating that s
 - GPU=120: 13% contention (6/55 runs, mostly CTX=2048)
 - **Overall:** 6% (9/150 runs)
 
-**Critical Finding:** Contention is now **context-dependent** rather than GPU-dependent. All 9 contention events occurred at **CTX≥1024**, with 7/9 at **CTX=2048**. Dual Ollama eliminates server-level contention but doesn't prevent VRAM pressure at extreme context sizes.
+**Critical Finding:** Contention is now **context-dependent** rather than GPU-dependent. All 9 contention events occurred at **CTX>=1024**, with 7/9 at **CTX=2048**. Dual Ollama eliminates server-level contention but doesn't prevent VRAM pressure at extreme context sizes.
 
 ### 4.4 Configuration Sensitivity
 
@@ -461,14 +461,14 @@ Both TR114 (Rust) and TR110 (Python) use dual Ollama instances (ports 11434/1143
 ### 5.3 Configuration Divergence
 
 **Python Optimal Configs (TR110):**
-- Baseline vs Chimera: GPU=80, CTX=512, TEMP=0.8 → 97.9%
-- Heterogeneous: GPU=80/80, CTX=512/1024, TEMP varied → 99.0%
-- Homogeneous: GPU=80, CTX=2048, TEMP=1.0 → 99.25%
+- Baseline vs Chimera: GPU=80, CTX=512, TEMP=0.8 -> 97.9%
+- Heterogeneous: GPU=80/80, CTX=512/1024, TEMP varied -> 99.0%
+- Homogeneous: GPU=80, CTX=2048, TEMP=1.0 -> 99.25%
 
 **Rust Optimal Configs (TR114):**
-- Baseline vs Chimera: GPU=120, CTX=1024, TEMP=0.8 → 91.9%
-- Heterogeneous: GPU=80/100, CTX=512/1024, TEMP=0.8 → 91.3%
-- Homogeneous: GPU=80, CTX=512, TEMP=1.0 → 90.5% (validation: CTX=2048)
+- Baseline vs Chimera: GPU=120, CTX=1024, TEMP=0.8 -> 91.9%
+- Heterogeneous: GPU=80/100, CTX=512/1024, TEMP=0.8 -> 91.3%
+- Homogeneous: GPU=80, CTX=512, TEMP=1.0 -> 90.5% (validation: CTX=2048)
 
 **Key Differences:**
 
@@ -508,7 +508,7 @@ Generation cycles: ~50-100 per agent
 Task switches per cycle: ~2 (HTTP request/response)
 Overhead per switch: 3ms (average)
 
-Total overhead = 2 agents × 75 cycles × 2 switches × 3ms = 900ms
+Total overhead = 2 agents x 75 cycles x 2 switches x 3ms = 900ms
 Typical run duration = 10-15s
 Overhead percentage = 900ms / 12.5s = 7.2%
 ```
@@ -524,7 +524,7 @@ Overhead percentage = 900ms / 12.5s = 7.2%
 
 **Mechanism:**
 - Rust's `reqwest` client buffers streaming responses in **8KB chunks**
-- Creates bursty I/O pattern: receive 8KB → process → yield → receive 8KB
+- Creates bursty I/O pattern: receive 8KB -> process -> yield -> receive 8KB
 - Python's `httpx` uses **1KB buffering** for smoother interleaving
 
 **Impact:**
@@ -533,8 +533,8 @@ Response size: ~500-700 tokens = ~2-3KB text
 8KB buffering: 1 HTTP read per response (monolithic)
 1KB buffering: 3-4 HTTP reads per response (interleaved)
 
-Rust agents: Sequential (Agent 1 reads 8KB → Agent 2 reads 8KB)
-Python agents: Interleaved (Agent 1 reads 1KB → Agent 2 reads 1KB → ...)
+Rust agents: Sequential (Agent 1 reads 8KB -> Agent 2 reads 8KB)
+Python agents: Interleaved (Agent 1 reads 1KB -> Agent 2 reads 1KB -> ...)
 ```
 
 **Estimated contribution:** **-2pp to -3pp efficiency loss**
@@ -552,8 +552,8 @@ Safety checks per token: ~10 (conservative estimate)
 Tokens per agent: 500-700
 Additional cycles: 5,000-7,000 per agent
 
-At 5.6 GHz boost: 5,000 cycles = 0.89μs
-Total for both agents: ~1.8μs
+At 5.6 GHz boost: 5,000 cycles = 0.89mus
+Total for both agents: ~1.8mus
 Percentage of 10-15s runtime: negligible (<0.01%)
 ```
 
@@ -563,9 +563,9 @@ Percentage of 10-15s runtime: negligible (<0.01%)
 
 ```
 Python Peak Efficiency: 99.25%
-- Tokio Overhead: -6pp → 93.25%
-- Reqwest Buffering: -2.5pp → 90.75%
-- Safety Checks: -0.3pp → 90.45%
+- Tokio Overhead: -6pp -> 93.25%
+- Reqwest Buffering: -2.5pp -> 90.75%
+- Safety Checks: -0.3pp -> 90.45%
 Predicted Rust Efficiency: 90.45%
 
 Actual Rust Peak Efficiency: 95.7%
@@ -669,7 +669,7 @@ tokio::task::LocalSet::new().block_on(async {
 **Key Differences:**
 - Rust prefers **CTX=512** for peak efficiency; Python prefers **CTX=2048**
 - Rust benefits from **asymmetric GPU** in heterogeneous (80/100); Python uses **symmetric** (80/80)
-- Rust configs are **less sensitive** (±0.5pp variance); Python configs require **precise tuning** (±3pp variance)
+- Rust configs are **less sensitive** (+/-0.5pp variance); Python configs require **precise tuning** (+/-3pp variance)
 
 ---
 
@@ -681,28 +681,28 @@ tokio::task::LocalSet::new().block_on(async {
 
 2. **Rust is Production-Viable:** With dual Ollama, Rust achieves **89.3% mean / 95.7% peak efficiency**, making it a **credible alternative to Python** for multi-agent LLM deployments where consistency and memory safety justify a -3.6pp peak throughput trade-off.
 
-3. **Architectural Parity ≠ Performance Parity:** Despite matching Python's dual Ollama architecture, Rust trails by 3.6pp due to **runtime-level differences** (tokio work-stealing, reqwest buffering) that are independent of deployment architecture.
+3. **Architectural Parity != Performance Parity:** Despite matching Python's dual Ollama architecture, Rust trails by 3.6pp due to **runtime-level differences** (tokio work-stealing, reqwest buffering) that are independent of deployment architecture.
 
-4. **Configuration Simplification:** Dual Ollama makes Rust operationally simpler than Python—GPU/temperature choices have <1pp impact on efficiency, enabling **deploy-and-forget** configurations.
+4. **Configuration Simplification:** Dual Ollama makes Rust operationally simpler than Python--GPU/temperature choices have <1pp impact on efficiency, enabling **deploy-and-forget** configurations.
 
 5. **Consistency Over Peak:** Rust's **26% lower variance** (5.5pp vs 7.4pp StdDev) and **81% fewer contention events** (6% vs 33%) make it preferable for **SLA-driven workloads** even if Python achieves higher best-case throughput.
 
-6. **Context Size Divergence:** Rust peaks at **CTX=512**, Python peaks at **CTX=2048**. This fundamental difference stems from tokio's work-stealing causing cache thrashing at large KV sizes—a language-level constraint that dual Ollama cannot overcome.
+6. **Context Size Divergence:** Rust peaks at **CTX=512**, Python peaks at **CTX=2048**. This fundamental difference stems from tokio's work-stealing causing cache thrashing at large KV sizes--a language-level constraint that dual Ollama cannot overcome.
 
 ### 8.2 When to Use Rust Multi-Agent (Post-TR114)
 
 Rust multi-agent with dual Ollama is justified when:
 
-✓ **Memory safety is non-negotiable** (regulated industries)  
-✓ **Consistent P95/P99 latency matters more than peak throughput**  
-✓ **Operational simplicity preferred** (flat performance across configs)  
-✓ **Contention avoidance critical** (6% vs 33% failure rate)  
-✓ **95.7% efficiency meets SLA requirements** (vs Python's 99.25% if needed)
+Yes **Memory safety is non-negotiable** (regulated industries)
+Yes **Consistent P95/P99 latency matters more than peak throughput**
+Yes **Operational simplicity preferred** (flat performance across configs)
+Yes **Contention avoidance critical** (6% vs 33% failure rate)
+Yes **95.7% efficiency meets SLA requirements** (vs Python's 99.25% if needed)
 
 Rust is **not justified** when:
-✗ Absolute peak throughput is priority (Python's +3.6pp wins)  
-✗ Large context windows required (CTX=2048: Python wins by 5pp)  
-✗ Existing Python infrastructure makes Rust adoption costly
+No Absolute peak throughput is priority (Python's +3.6pp wins)
+No Large context windows required (CTX=2048: Python wins by 5pp)
+No Existing Python infrastructure makes Rust adoption costly
 
 ### 8.3 Future Work
 
@@ -716,7 +716,7 @@ Rust is **not justified** when:
 
 5. **Model Size Analysis:** Repeat TR114 with larger models (e.g., Llama 3.1 8B) to determine if Rust's overhead is proportional or fixed across model sizes.
 
-6. **Dedicated Hardware:** Test on dual-GPU setup (e.g., 2× RTX 4080) where each agent gets a full GPU to eliminate any remaining VRAM contention at CTX=2048.
+6. **Dedicated Hardware:** Test on dual-GPU setup (e.g., 2x RTX 4080) where each agent gets a full GPU to eliminate any remaining VRAM contention at CTX=2048.
 
 ### 8.4 Final Verdict
 
@@ -734,8 +734,8 @@ Rust is **not justified** when:
 
 ### 9.1 Complete Test Results
 
-**Full Dataset:** `Demo_rust_multiagent/Demo_rust_multiagent_results_tr110_dual/` (150 metrics.json files)  
-**Analysis Scripts:** `analyze_tr114_results.py`  
+**Full Dataset:** `Demo_rust_multiagent/Demo_rust_multiagent_results_tr110_dual/` (150 metrics.json files)
+**Analysis Scripts:** `analyze_tr114_results.py`
 **Comparison Data:** TR113 (19 runs), TR110 (150 runs)
 
 ### 9.2 Test Execution Timeline
@@ -781,9 +781,9 @@ Rust is **not justified** when:
 | Report | Focus | Key Finding | Relation to TR114 |
 |--------|-------|-------------|-------------------|
 | **TR108** | Single-inference optimization | GPU=80, CTX=512 optimal | Informs multi-agent GPU allocation |
-| **TR109** | Python single-agent | Agent workflows ≠ single-inference configs | Baseline for TR110 |
+| **TR109** | Python single-agent | Agent workflows != single-inference configs | Baseline for TR110 |
 | **TR110** | Python multi-agent | 99.25% peak with dual Ollama | Direct comparison target |
-| **TR111** | Rust single-agent | Rust ≈ Python (98.9 vs 99.2 tok/s) | Shows single-agent parity |
+| **TR111** | Rust single-agent | Rust ~ Python (98.9 vs 99.2 tok/s) | Shows single-agent parity |
 | **TR112** | Rust vs Python single-agent | Throughput equivalent, Rust more consistent | Establishes baseline gap |
 | **TR113** | Rust multi-agent (single Ollama) | 82.2% peak, identifies architectural issue | Validates TR114 improvement |
 
@@ -799,8 +799,8 @@ Rust is **not justified** when:
 
 ---
 
-**Report Generated:** November 13, 2025  
-**Benchmark Data:** `Demo_rust_multiagent/Demo_rust_multiagent_results_tr110_dual/`  
-**Analysis Scripts:** `analyze_tr114_results.py`  
+**Report Generated:** November 13, 2025
+**Benchmark Data:** `Demo_rust_multiagent/Demo_rust_multiagent_results_tr110_dual/`
+**Analysis Scripts:** `analyze_tr114_results.py`
 **Framework:** Demo_rust_multiagent v1.0 (Rust + Tokio + Dual Ollama)
 

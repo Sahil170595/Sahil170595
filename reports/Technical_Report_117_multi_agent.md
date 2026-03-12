@@ -6,9 +6,9 @@
 **Author:** Research Team  
 **Report Type:** Definitive Root Cause Analysis  
 **Test Duration:** 8+ hours (Invasive instrumentation across 3 research phases)  
-**Related Work:** [TR116](Technical_Report_116.md) (Cross-Model Benchmarks), [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent)
+**Related Work:** [TR116](Technical_Report_116.md) (Cross-Model Benchmarks), [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent)  
 
-**Canonical note:** In this repo, `Technical_Report_117.md` is used for the inference-track TR117 report; this report is the multi-agent TR117 root-cause audit.
+**Canonical note:** In this repo, `Technical_Report_117.md` is used for the inference-track TR117 report; this report is the multi-agent TR117 root-cause audit.  
 
 ---
 
@@ -34,16 +34,16 @@ TR117 was chartered to **"peel back the layers"** using three invasive research 
 1. **Loop Lag Spikes:** Mean lag **5.33 ms**, p99 **12.13 ms**, max **15.22 ms** (Gemma, default buffer, latest runs)
 2. **Chunk Storm:** ~5.2k chunks over ~52s (dual agents), chunk gaps mean ~24ms (p99 ~30ms); lag remains driven by chunk cadence
 3. **CPU-Bound Serialization:** Each chunk triggers `json.loads` + `httpx` buffer allocation, monopolizing the single-threaded event loop
-4. **Efficiency Correlation:** Loop lag p99 (16.13ms) + chunk gap mean (24.08ms) = **40ms cycle time** → caps Python efficiency near ~91% (latest runs) versus Rust ~99%
+4. **Efficiency Correlation:** Loop lag p99 (16.13ms) + chunk gap mean (24.08ms) = **40ms cycle time** -> caps Python efficiency near ~91% (latest runs) versus Rust ~99%
 
 **The Qwen Mystery (Software-Bound):**
 1. **PCIe Not Saturated:** `gpu_metrics.csv` shows no "redlining" on PCIe RX/TX
 2. **Tokenizer Overhead:** BPE tokenizers can be 2-3x slower than SentencePiece (CPU-bound)
-3. **Chunk Amplification:** More tokens → more chunks → more loop lag (Python) or work-stealing overhead (Rust)
+3. **Chunk Amplification:** More tokens -> more chunks -> more loop lag (Python) or work-stealing overhead (Rust)
 
 **The Ranking Flip (Backpressure Relief?):**
 1. **Tortoise & Hare Experiment:** Throttling Gemma 3 to 60 tok/s **reduced** efficiency to ~88.5% (unthrottled ~90.8%)
-2. **Mechanism:** Slower generation = fewer events/sec → event loop has "breathing room" → lower lag → higher efficiency
+2. **Mechanism:** Slower generation = fewer events/sec -> event loop has "breathing room" -> lower lag -> higher efficiency
 3. **Validation:** Current data does not show slower-is-faster; ranking flip remains unproven here
 
 ### Business Impact
@@ -162,7 +162,7 @@ class LoopLagMonitor:
         self.loop = loop
         self.interval = interval_ms / 1000.0
         self.lag_samples = []
-    
+
     async def monitor(self):
         while True:
             scheduled_time = self.loop.time()
@@ -182,7 +182,7 @@ async for chunk in response.aiter_bytes():
     # Parse JSON
     data = json.loads(chunk)
     parse_duration = (time.perf_counter() - chunk_start) * 1000.0
-    
+
     # Log: timestamp, agent_id, bytes, inter_chunk_gap, parse_time
     chunk_metrics.append({
         'timestamp': chunk_start,
@@ -221,14 +221,14 @@ class TokenBucket:
         self.rate = rate_tokens_per_sec
         self.tokens = 0.0
         self.last_update = time.perf_counter()
-    
+
     async def acquire(self, amount=1):
         # Refill bucket based on elapsed time
         now = time.perf_counter()
         elapsed = now - self.last_update
         self.tokens += elapsed * self.rate
         self.last_update = now
-        
+
         # Wait if insufficient tokens
         if self.tokens < amount:
             wait_time = (amount - self.tokens) / self.rate
@@ -257,7 +257,7 @@ class TokenBucket:
 
 **Phase 3 (Flow Dynamics):**
 - **Primary:** 60 tok/s throttling **increases** efficiency vs unthrottled baseline
-- **Secondary:** Efficiency delta **≥ 2pp** (statistical significance)
+- **Secondary:** Efficiency delta **>= 2pp** (statistical significance)
 
 ---
 
@@ -329,8 +329,8 @@ For each incoming HTTP chunk, the event loop must:
 **Total per-chunk cost:** ~0.30-1.00ms (mean ~0.50ms)
 
 **At 200 chunks/sec (dual agents):**
-- **CPU Time Consumed:** 200 × 0.50ms = **100ms/sec = 10% CPU utilization**
-- **Event Loop Blocking:** Single-threaded → **all processing is serialized**
+- **CPU Time Consumed:** 200 x 0.50ms = **100ms/sec = 10% CPU utilization**
+- **Event Loop Blocking:** Single-threaded -> **all processing is serialized**
 - **Result:** High-frequency micro-tasks monopolize the event loop, starving other agents
 
 ### 3.5 Correlation Analysis: Loop Lag vs Efficiency
@@ -347,7 +347,7 @@ For each incoming HTTP chunk, the event loop must:
 
 **Pearson Correlation (Loop Lag p99 vs Efficiency):** **r = -0.94** (p < 0.01)
 
-**Interpretation:** Across our 15 instrumented runs, loop lag p99 explains **88% of the variance** in efficiency (r² = 0.88). This is a **smoking gun** correlation, definitively proving that event loop saturation is the root cause of the Python ceiling within this experimental setup.
+**Interpretation:** Across our 15 instrumented runs, loop lag p99 explains **88% of the variance** in efficiency (r^2 = 0.88). This is a **smoking gun** correlation, definitively proving that event loop saturation is the root cause of the Python ceiling within this experimental setup.
 
 ### 3.6 Buffer Size A/B Test
 
@@ -379,6 +379,7 @@ Instead, we rely on:
 3. **Theoretical bandwidth analysis** based on model size and inference patterns
 
 **Observed Metrics (Qwen 2.5 7B, Dual-Agent, Chimera Homo):**
+
 | Metric | Observed Range | Notes |
 |--------|----------------|-------|
 | Power Draw (W) | 180-220 W | Within TDP (320W), no throttling |
@@ -402,10 +403,10 @@ Instead, we rely on:
 
 **Software Bottleneck Hypothesis (LIKELY, PENDING VALIDATION):**
 - **Tokenizer Overhead (Hypothesis):** Qwen uses a BPE tokenizer which **may be** 2-3x slower than Llama's/Gemma's optimized tokenizers in CPU-bound operations
-- **Chunk Amplification:** More tokens → more HTTP chunks → more event loop events (Python) or work-stealing overhead (Rust)
+- **Chunk Amplification:** More tokens -> more HTTP chunks -> more event loop events (Python) or work-stealing overhead (Rust)
 - **Throughput Imbalance:** TR116 data shows Qwen exhibits **+12 tok/s throughput delta** between agents (vs Gemma's +1 tok/s), suggesting tokenizer or decode variance
 
-**Note:** The tokenizer overhead hypothesis is **plausible but not yet definitively proven**. A follow-up micro-benchmark (see §4.3) is planned to quantify tokenizer CPU costs directly.
+**Note:** The tokenizer overhead hypothesis is **plausible but not yet definitively proven**. A follow-up micro-benchmark (see Sec. 4.3) is planned to quantify tokenizer CPU costs directly.
 
 **Evidence:**
 From TR116 Rust data (Qwen Chimera Homo):
@@ -437,7 +438,7 @@ Tokenize 10MB of identical text through:
 - **Baseline Efficiency:** 84.8% (TR116 Python Chimera Homo average)
 
 **Experimental Group:** Gemma 3 Throttled (Token Bucket at 60 tok/s)
-- **Hypothesis:** Lower token rate → fewer events/sec → less loop lag → **higher efficiency**
+- **Hypothesis:** Lower token rate -> fewer events/sec -> less loop lag -> **higher efficiency**
 
 ### 5.2 Results Summary
 
@@ -452,7 +453,7 @@ Tokenize 10MB of identical text through:
 | 5 | 1.73x | **86.72%** | 49.88 | 289.8 |
 
 **Aggregate Statistics:**
-- **Mean Efficiency:** **86.82%** (±0.07pp)
+- **Mean Efficiency:** **86.82%** (+/-0.07pp)
 - **Baseline (Unthrottled):** 84.8% (TR116)
 - **Improvement:** **+2.02pp** (+2.4% relative improvement)
 - **Statistical Significance:** p < 0.001 (t-test vs TR116 baseline)
@@ -463,15 +464,15 @@ Tokenize 10MB of identical text through:
 
 **Unthrottled (100 tok/s):**
 - Chunk Rate: ~200 chunks/sec (dual agents)
-- Event Loop Load: 200 events/sec × 0.5ms/event = 100ms/sec = **10% saturation**
+- Event Loop Load: 200 events/sec x 0.5ms/event = 100ms/sec = **10% saturation**
 - Loop Lag: p99 16ms (from Phase 1)
-- **Result:** System operates at edge of stability → 84.8% efficiency
+- **Result:** System operates at edge of stability -> 84.8% efficiency
 
 **Throttled (60 tok/s):**
 - Chunk Rate: ~120 chunks/sec (dual agents)
-- Event Loop Load: 120 events/sec × 0.5ms/event = 60ms/sec = **6% saturation**
+- Event Loop Load: 120 events/sec x 0.5ms/event = 60ms/sec = **6% saturation**
 - Loop Lag: (estimated) p99 <5ms (40% reduction due to lower event frequency)
-- **Result:** System has "breathing room" → 86.8% efficiency
+- **Result:** System has "breathing room" -> 86.8% efficiency
 
 **The "Goldilocks Zone":**
 The data suggests there's an optimal token rate for Python multi-agent systems:
@@ -487,9 +488,9 @@ The data suggests there's an optimal token rate for Python multi-agent systems:
 3. Qwen 2.5: **84.12%** efficiency, ~76 tok/s
 
 **Phase 3 Findings Explain This:**
-- **Llama 3.1 (68 tok/s):** Naturally within the "Goldilocks Zone" → highest efficiency
-- **Gemma 3 (100 tok/s):** Above the zone → higher loop lag → lower efficiency
-- **Qwen 2.5 (76 tok/s):** + tokenizer overhead → even higher loop lag → lowest efficiency
+- **Llama 3.1 (68 tok/s):** Naturally within the "Goldilocks Zone" -> highest efficiency
+- **Gemma 3 (100 tok/s):** Above the zone -> higher loop lag -> lower efficiency
+- **Qwen 2.5 (76 tok/s):** + tokenizer overhead -> even higher loop lag -> lowest efficiency
 
 **Conclusion:** The "Ranking Flip" is **not** a model architecture issue; it's a **runtime bottleneck** where slower models accidentally avoid saturating the event loop.
 
@@ -515,18 +516,18 @@ The data suggests there's an optimal token rate for Python multi-agent systems:
 | **Throttle Rate** | -0.88 | -0.91 | 0.96 | 1.00 |
 
 **Key Findings:**
-1. **Loop Lag ↔ Chunk Rate:** r = 0.92 (chunk storm drives lag)
-2. **Loop Lag ↔ Efficiency:** r = -0.94 (lag kills efficiency)
-3. **Throttle Rate ↔ Efficiency:** r = 0.96 (throttling improves efficiency)
+1. **Loop Lag <-> Chunk Rate:** r = 0.92 (chunk storm drives lag)
+2. **Loop Lag <-> Efficiency:** r = -0.94 (lag kills efficiency)
+3. **Throttle Rate <-> Efficiency:** r = 0.96 (throttling improves efficiency)
 
 ### 6.2 Regression Analysis: Predicting Efficiency
 
-**Model:** `Efficiency = β₀ + β₁(Loop_Lag_p99) + β₂(Chunk_Rate) + ε`
+**Model:** `Efficiency = beta0 + beta1(Loop_Lag_p99) + beta2(Chunk_Rate) + epsilon`
 
 **Results:**
-- **R²:** 0.91 (91% of variance explained)
-- **β₁ (Loop Lag):** -0.52 (p < 0.001) → Each 1ms increase in lag → -0.52pp efficiency
-- **β₂ (Chunk Rate):** -0.18 (p < 0.01) → Each 10 chunks/sec → -1.8pp efficiency
+- **R^2:** 0.91 (91% of variance explained)
+- **beta1 (Loop Lag):** -0.52 (p < 0.001) -> Each 1ms increase in lag -> -0.52pp efficiency
+- **beta2 (Chunk Rate):** -0.18 (p < 0.01) -> Each 10 chunks/sec -> -1.8pp efficiency
 
 **Interpretation:** The regression model validates that **loop lag is the primary driver** of efficiency loss, with chunk rate as a secondary (but still significant) factor.
 
@@ -569,7 +570,7 @@ The data suggests there's an optimal token rate for Python multi-agent systems:
 
 **Root Cause Attribution:**
 - **Event Loop Architecture:** Single-threaded (Python) vs Multi-threaded work-stealing (Rust)
-- **Consequence:** Python serializes all I/O events → lag spikes → 86% ceiling
+- **Consequence:** Python serializes all I/O events -> lag spikes -> 86% ceiling
 
 ### 7.2 Model Efficiency Consistency
 
@@ -608,7 +609,7 @@ The data suggests there's an optimal token rate for Python multi-agent systems:
 
 ### 8.1 Decision Tree: Python Mitigation vs Rust Migration
 
-**IF aggregate throughput ≤ 60 tok/s:**
+**IF aggregate throughput <= 60 tok/s:**
 - **Recommendation:** Python with Token Bucket throttling
 - **Expected Efficiency:** 86-87%
 - **Cost:** $0 (no migration)
@@ -639,7 +640,7 @@ class AdaptiveThrottler:
         self.bucket = TokenBucket(initial_rate)
         self.target_eff = target_efficiency
         self.current_eff = 0.0
-    
+
     def adjust_rate(self, measured_eff):
         """Dynamically adjust throttle rate based on observed efficiency"""
         if measured_eff < self.target_eff:
@@ -656,11 +657,11 @@ async def batched_stream(response, batch_interval_ms=50):
     """Accumulate chunks for 50ms before processing"""
     buffer = []
     last_process = time.perf_counter()
-    
+
     async for chunk in response.aiter_bytes():
         buffer.append(chunk)
         now = time.perf_counter()
-        
+
         if (now - last_process) * 1000 >= batch_interval_ms:
             # Process entire batch at once
             yield b''.join(buffer)
@@ -673,25 +674,25 @@ async def batched_stream(response, batch_interval_ms=50):
 import uvloop
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 ```
-**Expected Gain:** +20-30% event loop throughput → reduces lag from 16ms to ~11ms → +1-2pp efficiency
+**Expected Gain:** +20-30% event loop throughput -> reduces lag from 16ms to ~11ms -> +1-2pp efficiency
 
 ### 8.3 Rust Migration Roadmap
 
 **Phase 1: Proof of Concept (Week 1-2)**
 - Port single-agent logic to Rust (use TR111_v2 codebase)
 - Validate parity with Python (throughput, TTFT)
-- **Success Criteria:** Rust single-agent ≥ Python +10% throughput
+- **Success Criteria:** Rust single-agent >= Python +10% throughput
 
 **Phase 2: Multi-Agent Orchestration (Week 3-4)**
 - Implement `tokio::join!()` for concurrent agent execution
 - Add resource coordinator (semaphore for dual Ollama)
-- **Success Criteria:** Efficiency ≥ 95% (close to TR114_v2 baseline)
+- **Success Criteria:** Efficiency >= 95% (close to TR114_v2 baseline)
 
 **Phase 3: Production Hardening (Week 5-6)**
 - Error handling, retries, logging
 - Deployment automation
 - Load testing (100+ concurrent agents)
-- **Success Criteria:** P99 latency < 200ms, efficiency ≥ 98%
+- **Success Criteria:** P99 latency < 200ms, efficiency >= 98%
 
 **Total Estimated Effort:** 6 weeks, 2 engineers, $35-50k
 **Break-even:** 15 months (assuming 1M requests/month, $0.03/1k tokens, 13pp efficiency gain = 15% cost reduction)
@@ -703,7 +704,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 ### 9.1 Definitive Answers to Research Questions
 
 **Q1: What causes the Python ~91% efficiency ceiling?**
-**A:** **Event loop saturation (moderate).** At ~100 chunks/sec per agent (dual agents ~200 chunks/sec total), the single-threaded `asyncio` loop experiences loop lag with mean 5.33ms and p99 12.13ms. While this creates some serialization overhead, Python multi-agent systems can sustain ~91% efficiency (speedup ~1.82x) under these conditions—higher than initially hypothesized (86%) but still below Rust's 98-99%.
+**A:** **Event loop saturation (moderate).** At ~100 chunks/sec per agent (dual agents ~200 chunks/sec total), the single-threaded `asyncio` loop experiences loop lag with mean 5.33ms and p99 12.13ms. While this creates some serialization overhead, Python multi-agent systems can sustain ~91% efficiency (speedup ~1.82x) under these conditions--higher than initially hypothesized (86%) but still below Rust's 98-99%.
 
 **Q2: Is Qwen's inefficiency hardware or software?**
 **A:** **Software-bound (high confidence).** No evidence of PCIe saturation (<0.2% bandwidth utilized) or VRAM limits (83% utilization). The most likely causes are: (1) BPE tokenizer CPU overhead, (2) higher chunk rate amplifying loop lag. A follow-up tokenizer micro-benchmark would provide definitive confirmation.
@@ -814,7 +815,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 - **Mean Efficiency:** 86.82%
 - **Std Dev:** 0.07pp
 - **CV:** 0.08% (extremely consistent)
-- **Throughput Balance:** Δ < 1 tok/s (excellent load balancing via throttling)
+- **Throughput Balance:** Delta < 1 tok/s (excellent load balancing via throttling)
 
 **Comparison to TR116 Baseline (Unthrottled Python Gemma 3, Chimera Homo):**
 - **Unthrottled Mean:** 84.85%
@@ -835,7 +836,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 **Key Observations:**
 1. **TR110 Anomaly:** Python achieved 99.25% in TR110 but only 84.85% in TR116/TR117. **Root cause:** TR110 used slower models (~68 tok/s) which accidentally avoided saturating the event loop.
 2. **Rust Consistency:** Rust maintains 98-99% efficiency across all reports and all models (except Qwen's software-bound 89%).
-3. **Throttling Recovery:** TR117 throttling recovered 2pp (84.85% → 86.82%), but still 12.4pp below Rust's 99.22%.
+3. **Throttling Recovery:** TR117 throttling recovered 2pp (84.85% -> 86.82%), but still 12.4pp below Rust's 99.22%.
 
 ### Appendix E: Correlation Matrix (All Phases)
 
@@ -853,26 +854,26 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 | **Throughput** | -0.85 | -0.82 | -0.88 | 0.83 | 0.91 | 0.91 | 0.94 | 1.00 |
 
 **Strongest Correlations:**
-1. **Loop Lag p99 ↔ Efficiency:** r = -0.94 (lag kills efficiency)
-2. **Throttle ↔ Efficiency:** r = 0.96 (throttling improves efficiency)
-3. **Chunk Rate ↔ Loop Lag:** r = 0.92 (chunk storm drives lag)
+1. **Loop Lag p99 <-> Efficiency:** r = -0.94 (lag kills efficiency)
+2. **Throttle <-> Efficiency:** r = 0.96 (throttling improves efficiency)
+3. **Chunk Rate <-> Loop Lag:** r = 0.92 (chunk storm drives lag)
 
 ### Appendix F: Recommendations Summary
 
 **Python Optimization Checklist:**
-- ☐ Implement Token Bucket throttling (60-70 tok/s per agent)
-- ☐ Migrate to `uvloop` for +20-30% event loop performance
-- ☐ Batch chunk processing (50ms intervals instead of per-token)
-- ☐ Profile with `py-spy` to identify additional CPU hotspots
-- ☐ Consider `orjson` (faster JSON parsing, +30% vs `json` module)
+- [ ] Implement Token Bucket throttling (60-70 tok/s per agent)
+- [ ] Migrate to `uvloop` for +20-30% event loop performance
+- [ ] Batch chunk processing (50ms intervals instead of per-token)
+- [ ] Profile with `py-spy` to identify additional CPU hotspots
+- [ ] Consider `orjson` (faster JSON parsing, +30% vs `json` module)
 
 **Rust Migration Checklist:**
-- ☐ Port agent logic to Rust (reuse TR111_v2 codebase)
-- ☐ Implement `tokio::join!()` for multi-agent orchestration
-- ☐ Add resource coordinator (semaphore for dual Ollama)
-- ☐ Validate parity (throughput, TTFT, efficiency vs Python)
-- ☐ Load test (100+ concurrent agents, p99 latency < 200ms)
-- ☐ Deploy and monitor (target 98-99% efficiency)
+- [ ] Port agent logic to Rust (reuse TR111_v2 codebase)
+- [ ] Implement `tokio::join!()` for multi-agent orchestration
+- [ ] Add resource coordinator (semaphore for dual Ollama)
+- [ ] Validate parity (throughput, TTFT, efficiency vs Python)
+- [ ] Load test (100+ concurrent agents, p99 latency < 200ms)
+- [ ] Deploy and monitor (target 98-99% efficiency)
 
 ---
 
@@ -891,9 +892,9 @@ To reproduce this analysis:
 
 ---
 
-**Report Status:** ✅ COMPLETE (Publication-Ready)  
-**Total Word Count:** ~6,500 words  
-**Total Pages:** ~25 pages (PDF equivalent)  
+**Report Status:** PASS COMPLETE (Publication-Ready)
+**Total Word Count:** ~6,500 words
+**Total Pages:** ~25 pages (PDF equivalent)
 **Last Updated:** November 27, 2025
 
 

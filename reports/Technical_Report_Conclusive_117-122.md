@@ -1,12 +1,12 @@
 # Conclusive Report 117-122: From Benchmarking to Decision-Grade Inference
 ## A dissertation-style synthesis of performance, cost, scaling, compiler behavior, and physical limits
 
-Project: Banterhearts LLM Performance Research
-Date: 2025-12-26
-Author: Research Team
-Report Type: Conclusive synthesis across TR117-TR122 (artifact-backed)
-Scope: TR117, TR118_v2.2, TR119v1, TR120, TR121v1, TR122
-Primary Sources:
+Project: Banterhearts LLM Performance Research  
+Date: 2025-12-26  
+Author: Research Team  
+Report Type: Conclusive synthesis across TR117-TR122 (artifact-backed)  
+Scope: TR117, TR118_v2.2, TR119v1, TR120, TR121v1, TR122  
+Primary Sources:  
 - PublishReady/reports/Technical_Report_117.md
 - PublishReady/reports/Technical_Report_118_v2.2.md
 - PublishReady/reports/Technical_Report_119v1.md

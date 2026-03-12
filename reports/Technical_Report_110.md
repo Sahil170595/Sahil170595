@@ -6,7 +6,7 @@
 **Date:** October 10, 2025  
 **Test Duration:** 3 hours 15 minutes (150 benchmark runs)  
 **Framework:** Banterhearts Chimera Multi-Agent System  
-**Related:** [TR108](../../reports/Technical_Report_108.md), [TR109](../../reports/Technical_Report_109.md)
+**Related:** [TR108](../../reports/Technical_Report_108.md), [TR109](../../reports/Technical_Report_109.md)  
 
 ---
 
@@ -18,13 +18,13 @@ This report presents a comprehensive empirical analysis of concurrent multi-agen
 
 1. **Peak Concurrent Efficiency:** Homogeneous Chimera agents achieved **99.25% parallel efficiency** with 1.985x speedup (Test 108: GPU=80, CTX=2048, TEMP=1.0), demonstrating near-perfect resource utilization when both agents use identical optimized configurations.
 
-2. **Baseline vs Chimera Gap:** Mixed deployments (baseline + Chimera) exhibited **97.93% efficiency** at best (Test 202), but showed significant degradation under resource contention—dropping to 73.15% when configurations were suboptimal (Test 2: GPU=60, CTX=1024).
+2. **Baseline vs Chimera Gap:** Mixed deployments (baseline + Chimera) exhibited **97.93% efficiency** at best (Test 202), but showed significant degradation under resource contention--dropping to 73.15% when configurations were suboptimal (Test 2: GPU=60, CTX=1024).
 
-3. **Context Scaling Validation:** Increasing context from 512→1024→2048 tokens showed monotonic efficiency gains in homogeneous Chimera scenarios, with 2048-token context achieving the highest speedups (1.979-1.985x) across all temperature settings.
+3. **Context Scaling Validation:** Increasing context from 512->1024->2048 tokens showed monotonic efficiency gains in homogeneous Chimera scenarios, with 2048-token context achieving the highest speedups (1.979-1.985x) across all temperature settings.
 
-4. **Temperature Independence:** Temperature variation (0.6/0.8/1.0) had minimal impact on concurrency speedup (Δ<3%), with TEMP=1.0 slightly edging out lower values at 2048 context (99.25% vs 98.93% efficiency).
+4. **Temperature Independence:** Temperature variation (0.6/0.8/1.0) had minimal impact on concurrency speedup (Delta<3%), with TEMP=1.0 slightly edging out lower values at 2048 context (99.25% vs 98.93% efficiency).
 
-5. **Resource Contention Patterns:** Tests with GPU=60 exhibited resource contention in 60% of baseline_vs_chimera runs, while GPU≥80 showed zero contention in chimera_homo scenarios, indicating **80 layers as the minimum threshold** for contention-free concurrent execution on RTX 4080 (12GB VRAM).
+5. **Resource Contention Patterns:** Tests with GPU=60 exhibited resource contention in 60% of baseline_vs_chimera runs, while GPU>=80 showed zero contention in chimera_homo scenarios, indicating **80 layers as the minimum threshold** for contention-free concurrent execution on RTX 4080 (12GB VRAM).
 
 ### Business Impact
 
@@ -75,8 +75,8 @@ Following [TR108's](../../reports/Technical_Report_108.md) single-agent LLM perf
 ### 2.2 Concurrent Execution Architecture
 
 **Two-Agent System:**
-- **Agent 1 (DataCollector):** Ingests benchmark CSVs, aggregates metrics → Ollama instance 1 (port 11434)
-- **Agent 2 (Insight):** Analyzes data, generates technical insights → Ollama instance 2 (port 11435)
+- **Agent 1 (DataCollector):** Ingests benchmark CSVs, aggregates metrics -> Ollama instance 1 (port 11434)
+- **Agent 2 (Insight):** Analyzes data, generates technical insights -> Ollama instance 2 (port 11435)
 
 **Isolation Strategy:**
 - Dedicated Ollama servers per agent to prevent model state sharing
@@ -109,11 +109,11 @@ Following [TR108's](../../reports/Technical_Report_108.md) single-agent LLM perf
 ### 2.4 Test Phases
 
 **Phase 1: Core Parameter Sweep (18 tests, 90 runs)**
-- 3 scenarios × 3 GPU layers (60/80/120) × 2 contexts (512/1024) × 5 runs
+- 3 scenarios x 3 GPU layers (60/80/120) x 2 contexts (512/1024) x 5 runs
 - Identifies best GPU layer allocation per scenario
 
 **Phase 2: Temperature & Context Analysis (9 tests, 45 runs)**
-- 1 scenario (chimera_homo) × best GPU from Phase 1 × 3 contexts (512/1024/2048) × 3 temperatures (0.6/0.8/1.0) × 5 runs
+- 1 scenario (chimera_homo) x best GPU from Phase 1 x 3 contexts (512/1024/2048) x 3 temperatures (0.6/0.8/1.0) x 5 runs
 - Fine-tunes optimal configuration
 
 **Phase 3: Resource & Quality Analysis (3 tests, 15 runs)**
@@ -128,7 +128,7 @@ Following [TR108's](../../reports/Technical_Report_108.md) single-agent LLM perf
 
 **Configuration Matrix:**
 
-| Test ID | GPU (Chimera) | CTX | Speedup | Efficiency | TTFT Δ (ms) | TP Δ (tok/s) | Contention |
+| Test ID | GPU (Chimera) | CTX | Speedup | Efficiency | TTFT Delta (ms) | TP Delta (tok/s) | Contention |
 |---------|---------------|-----|---------|------------|-------------|--------------|------------|
 | 1       | 60            | 512 | 1.598x  | 79.9%      | +29,659     | -1.64        | 3/5 runs   |
 | 2       | 60            | 1024| 1.463x  | 73.1%      | +31,727     | -10.93       | 5/5 runs   |
@@ -147,13 +147,13 @@ Tests 1 and 2 reveal a **catastrophic failure mode** at GPU=60 layer allocation 
 - Chimera agent (GPU=60, CTX=512): ~3.2 GB VRAM
 - **Total demand: 6.7 GB** on a 12 GB card leaves only 5.3 GB headroom
 - RTX 4080's OS/driver overhead: ~2 GB
-- **Actual free memory: 3.3 GB** — insufficient for KV cache growth during generation
+- **Actual free memory: 3.3 GB** -- insufficient for KV cache growth during generation
 
 **Why CTX=1024 Triggers 100% Contention:**
 The context size impact is non-linear due to KV cache memory requirements:
 ```
-KV_cache_size = 2 × num_layers × hidden_dim × context_length × sizeof(fp16)
-              = 2 × 26 × 2048 × 1024 × 2 bytes
+KV_cache_size = 2 x num_layers x hidden_dim x context_length x sizeof(fp16)
+              = 2 x 26 x 2048 x 1024 x 2 bytes
               = 218 MB per agent at CTX=1024 (vs 109 MB at CTX=512)
 ```
 
@@ -167,7 +167,7 @@ Test 202's 1.959x speedup with only +223ms TTFT represents **optimal baseline-Ch
 - Baseline: ~3.5 GB (unchanged)
 - Chimera (GPU=80, CTX=512): ~3.8 GB (+0.6 GB vs GPU=60)
 - **Total: 7.3 GB** with 4.7 GB headroom
-- KV cache headroom: Sufficient for 3× context expansion without swapping
+- KV cache headroom: Sufficient for 3x context expansion without swapping
 
 **Scheduling Synergy:**
 The near-2x speedup indicates both agents execute with minimal blocking. Analysis of per-run timing shows:
@@ -191,15 +191,15 @@ Test 5 achieves 89.1% efficiency (1.781x speedup) despite GPU=120 providing more
 - GPU=80 config: 340 GB/s effective bandwidth (67% of RTX 4080's 504 GB/s)
 - GPU=120 config: 420 GB/s effective bandwidth (83% saturation)
 
-At 83% saturation, CUDA's scheduler begins introducing **fairness delays** to prevent starvation, adding ~50-100ms overhead per agent—enough to reduce efficiency from 97.9% to 89.1%.
+At 83% saturation, CUDA's scheduler begins introducing **fairness delays** to prevent starvation, adding ~50-100ms overhead per agent--enough to reduce efficiency from 97.9% to 89.1%.
 
-**Critical Finding:** For mixed deployments, **GPU=80 is optimal**—not because it's the fastest single-agent config, but because it maximizes concurrent throughput by avoiding memory bandwidth contention.
+**Critical Finding:** For mixed deployments, **GPU=80 is optimal**--not because it's the fastest single-agent config, but because it maximizes concurrent throughput by avoiding memory bandwidth contention.
 
 ### 3.2 Scenario 2: Heterogeneous Chimera
 
 **Configuration Matrix:**
 
-| Test ID | GPU 1 | CTX 1 | GPU 2 | CTX 2 | Speedup | Efficiency | TTFT Δ (ms) | TP Δ (tok/s) | Contention |
+| Test ID | GPU 1 | CTX 1 | GPU 2 | CTX 2 | Speedup | Efficiency | TTFT Delta (ms) | TP Delta (tok/s) | Contention |
 |---------|-------|-------|-------|-------|---------|------------|-------------|--------------|------------|
 | 7       | 60    | 512   | 80    | 1024  | 1.700x  | 85.0%      | -26,597     | +1.56        | 2/5 runs   |
 | 8       | 60    | 1024  | 80    | 2048  | 1.455x  | 72.7%      | -32,671     | +14.42       | 5/5 runs   |
@@ -221,26 +221,26 @@ Test 8's catastrophic 72.7% efficiency stems from **bidirectional resource starv
 
 **Agent 2 (GPU=80, CTX=2048) Resource Profile:**
 - Model layers: 80/26 = full offload (clamped)
-- Base VRAM: 3.8 GB  
+- Base VRAM: 3.8 GB
 - KV cache (CTX=2048): 436 MB
 - **Total: 4.24 GB**
 
 **Contention Mechanism:**
 The 0.82 GB delta between agents creates a **memory allocation race condition**. During concurrent execution:
-1. Agent 1 requests 3.42 GB → allocated at address 0x000
-2. Agent 2 requests 4.24 GB → CUDA attempts contiguous allocation at 0x000 + 3.42 GB
-3. Fragmentation causes reallocation → Agent 1's KV cache evicted
-4. Agent 1 re-requests → Agent 2's activations evicted
+1. Agent 1 requests 3.42 GB -> allocated at address 0x000
+2. Agent 2 requests 4.24 GB -> CUDA attempts contiguous allocation at 0x000 + 3.42 GB
+3. Fragmentation causes reallocation -> Agent 1's KV cache evicted
+4. Agent 1 re-requests -> Agent 2's activations evicted
 5. **Thrashing cycle**: 5/5 runs exhibit this pattern, adding 32+ second overhead
 
-This is distinct from simple VRAM exhaustion—total demand (7.66 GB) fits comfortably in 12 GB. The issue is **allocation fragmentation** due to asymmetric sizing.
+This is distinct from simple VRAM exhaustion--total demand (7.66 GB) fits comfortably in 12 GB. The issue is **allocation fragmentation** due to asymmetric sizing.
 
 #### 3.2.2 The KV Cache Prefetch Phenomenon
 
 Tests 7, 8, and 9 exhibit **negative TTFT deltas** (-7s to -33s), a counterintuitive result where heterogeneous configs are *faster* than homogeneous baselines. This reveals an unexpected optimization:
 
 **Cache Locality Exploitation:**
-When Agent 1 (smaller context) completes prompt evaluation before Agent 2, its KV cache resides in L2 cache. Agent 2's subsequent prompt evaluation **reuses these cache lines** if prompts share common prefixes (which they do in our benchmark—all prompts start with "Analyze the following benchmark CSV...").
+When Agent 1 (smaller context) completes prompt evaluation before Agent 2, its KV cache resides in L2 cache. Agent 2's subsequent prompt evaluation **reuses these cache lines** if prompts share common prefixes (which they do in our benchmark--all prompts start with "Analyze the following benchmark CSV...").
 
 **Evidence from Test 7:**
 - Agent 1 (GPU=60, CTX=512) TTFT: 1,076 ms
@@ -252,33 +252,33 @@ The negative delta indicates Agent 2 benefited from Agent 1's L2 cache warming. 
 2. Combined working set fits in L2 (16 MB on RTX 4080)
 3. No context eviction occurs between agents
 
-**Critical Insight:** Heterogeneous configs can **outperform homogeneous** when carefully tuned to exploit cache hierarchy, but this is fragile—Test 8 shows it breaks down with larger contexts.
+**Critical Insight:** Heterogeneous configs can **outperform homogeneous** when carefully tuned to exploit cache hierarchy, but this is fragile--Test 8 shows it breaks down with larger contexts.
 
 #### 3.2.3 The 160-Layer Budget Ceiling
 
 Tests 11 and 12 both use GPU budgets exceeding 160 layers (120+140=260) and exhibit 89-90% efficiency despite zero contention. This reveals a **soft limit** on total GPU layer allocation:
 
 **CUDA Scheduling Overhead:**
-RTX 4080 has 46 Streaming Multiprocessors (SMs). When total offloaded layers exceed ~6× SM count (46 × 3.5 ≈ 160), CUDA's scheduler introduces **inter-agent synchronization points**:
+RTX 4080 has 46 Streaming Multiprocessors (SMs). When total offloaded layers exceed ~6x SM count (46 x 3.5 ~ 160), CUDA's scheduler introduces **inter-agent synchronization points**:
 
 ```
-Synchronization_overhead = (total_layers / SM_count) × context_switch_penalty
-                        = (260 / 46) × 22 ms
+Synchronization_overhead = (total_layers / SM_count) x context_switch_penalty
+                        = (260 / 46) x 22 ms
                         = 124 ms per generation cycle
 ```
 
-With 50-100 generation cycles per agent, this accumulates to 6-12 seconds of pure scheduling overhead—explaining the ~10% efficiency loss.
+With 50-100 generation cycles per agent, this accumulates to 6-12 seconds of pure scheduling overhead--explaining the ~10% efficiency loss.
 
 **Test 201's 99.0% Efficiency:**
 GPU=80+80=160 layers sits *exactly* at the threshold, avoiding synchronization penalties while maximizing memory bandwidth (340 GB/s combined). The -31ms TTFT delta shows slight cache benefits without fragmentation risks.
 
-**Design Principle:** For multi-agent deployments, **total GPU layer budget should not exceed 3.5× SM count** (161 layers for RTX 4080) to maintain >95% efficiency.
+**Design Principle:** For multi-agent deployments, **total GPU layer budget should not exceed 3.5x SM count** (161 layers for RTX 4080) to maintain >95% efficiency.
 
 ### 3.3 Scenario 3: Homogeneous Chimera (Phase 1 + Phase 2)
 
 **Phase 1 Results (GPU Sweep, CTX=512/1024, TEMP=0.8):**
 
-| Test ID | GPU | CTX  | Speedup | Efficiency | TTFT Δ (ms) | TP Δ (tok/s) | Contention |
+| Test ID | GPU | CTX  | Speedup | Efficiency | TTFT Delta (ms) | TP Delta (tok/s) | Contention |
 |---------|-----|------|---------|------------|-------------|--------------|------------|
 | 13      | 60  | 512  | 1.972x  | 98.6%      | -12         | -0.88        | 0/5        |
 | 14      | 60  | 1024 | 1.970x  | 98.5%      | -106        | +1.02        | 0/5        |
@@ -289,7 +289,7 @@ GPU=80+80=160 layers sits *exactly* at the threshold, avoiding synchronization p
 
 **Phase 2 Results (GPU=80, CTX=512/1024/2048, TEMP=0.6/0.8/1.0):**
 
-| Test ID | CTX  | TEMP | Speedup | Efficiency | TTFT Δ (ms) | TP Δ (tok/s) | Contention |
+| Test ID | CTX  | TEMP | Speedup | Efficiency | TTFT Delta (ms) | TP Delta (tok/s) | Contention |
 |---------|------|------|---------|------------|-------------|--------------|------------|
 | 100     | 512  | 0.6  | 1.977x  | 98.9%      | +6          | +0.72        | 0/5        |
 | 101     | 512  | 0.8  | 1.934x  | 96.7%      | -75         | -1.02        | 0/5        |
@@ -324,19 +324,19 @@ The efficiency gain stems from **amortization of fixed-cost operations** across 
 Concurrent_overhead = model_load_time + prompt_eval_sync + generation_coordination
 Fixed_cost = ~2.1 seconds (measured across all tests)
 
-Efficiency = (2 × generation_time) / (concurrent_wall_time)
-           = (2 × generation_time) / (generation_time + fixed_cost/parallelism)
+Efficiency = (2 x generation_time) / (concurrent_wall_time)
+           = (2 x generation_time) / (generation_time + fixed_cost/parallelism)
 
-As generation_time ↑ (due to larger context/output), efficiency → 100%
+As generation_time up (due to larger context/output), efficiency -> 100%
 ```
 
 **Empirical Validation:**
-- CTX=512: avg generation time = 48s → efficiency = (2×48)/(48+1.05) = 96%
-- CTX=2048: avg generation time = 87s → efficiency = (2×87)/(87+1.05) = 99%
+- CTX=512: avg generation time = 48s -> efficiency = (2x48)/(48+1.05) = 96%
+- CTX=2048: avg generation time = 87s -> efficiency = (2x87)/(87+1.05) = 99%
 
-The 2048-token context generates ~1.8× more tokens than 512 (longer, more detailed reports), **diluting the fixed 2.1s coordination overhead** from 2.2% to 0.6% of total runtime.
+The 2048-token context generates ~1.8x more tokens than 512 (longer, more detailed reports), **diluting the fixed 2.1s coordination overhead** from 2.2% to 0.6% of total runtime.
 
-**Critical Insight:** For concurrent agents, **prefer larger contexts**—not just for quality, but for parallel efficiency. The sweet spot is the maximum context that fits in VRAM without triggering fragmentation (2048 tokens for 2 agents on RTX 4080).
+**Critical Insight:** For concurrent agents, **prefer larger contexts**--not just for quality, but for parallel efficiency. The sweet spot is the maximum context that fits in VRAM without triggering fragmentation (2048 tokens for 2 agents on RTX 4080).
 
 #### 3.3.2 The Temperature-Throughput Coupling
 
@@ -350,7 +350,7 @@ Test 105's anomalous 96.0% efficiency with -11.57 tok/s throughput reveals a **h
 **Sampling Variance Amplification:**
 At TEMP=1.0, top-k sampling introduces **non-deterministic generation lengths**:
 - Run 1: 2,204 tokens generated
-- Run 2: 1,987 tokens generated  
+- Run 2: 1,987 tokens generated
 - Run 3: 2,456 tokens generated
 - **Variance: 469 tokens (21% CV)**
 
@@ -365,7 +365,7 @@ This creates a **synchronization bottleneck**:
 - Idle time: 3s
 - Efficiency: 98.9%
 
-**Design Implication:** For homogeneous multi-agent systems, **use TEMP≤0.8** to minimize generation length variance. If higher temperatures are required, implement **early stopping** or **dynamic load balancing** to utilize idle GPU cycles.
+**Design Implication:** For homogeneous multi-agent systems, **use TEMP<=0.8** to minimize generation length variance. If higher temperatures are required, implement **early stopping** or **dynamic load balancing** to utilize idle GPU cycles.
 
 #### 3.3.3 The GPU=60 VRAM Ceiling (Revisited)
 
@@ -374,16 +374,16 @@ Phase 2 deliberately omitted GPU=60 configurations for CTX=2048 after Phase 1 re
 ```
 GPU=60, CTX=2048 VRAM per agent:
 = 3.2 GB (base) + 0.436 GB (KV cache) = 3.636 GB
-× 2 agents = 7.272 GB
+x 2 agents = 7.272 GB
 
 12 GB - 7.272 GB = 4.728 GB headroom
 OS overhead: ~2 GB
 Activation buffers: ~1.5 GB per agent = 3 GB
 
-Total demand: 10.272 GB → 1.728 GB deficit
+Total demand: 10.272 GB -> 1.728 GB deficit
 ```
 
-The deficit would trigger host-device swapping, degrading efficiency to ~75% based on Test 2's pattern (GPU=60, CTX=1024 saw 73% efficiency). This validates the decision to focus Phase 2 on GPU=80—the minimum viable allocation for 2048-token contexts.
+The deficit would trigger host-device swapping, degrading efficiency to ~75% based on Test 2's pattern (GPU=60, CTX=1024 saw 73% efficiency). This validates the decision to focus Phase 2 on GPU=80--the minimum viable allocation for 2048-token contexts.
 
 #### 3.3.4 Test 108: The Production Optimum
 
@@ -392,7 +392,7 @@ Test 108's 99.25% efficiency represents the **empirical maximum** for 2-agent co
 **Configuration:**
 - GPU: 80 layers (full offload, 0% waste)
 - CTX: 2048 tokens (maximum without fragmentation)
-- TEMP: 1.0 (best efficiency despite variance penalty—suggests other factors dominate)
+- TEMP: 1.0 (best efficiency despite variance penalty--suggests other factors dominate)
 
 **Performance Breakdown:**
 - Speedup: 1.985x (0.75% below theoretical 2.0x)
@@ -402,13 +402,13 @@ Test 108's 99.25% efficiency represents the **empirical maximum** for 2-agent co
 
 **Where did the 1.5s go?**
 1. Asyncio task spawn: ~200ms
-2. Ollama HTTP round-trip (2× requests): ~400ms  
+2. Ollama HTTP round-trip (2x requests): ~400ms
 3. Resource coordinator semaphore: ~100ms
 4. Python GIL contention: ~300ms
 5. CUDA context switching: ~500ms
 **Total: 1.5s**
 
-This overhead is **irreducible** with current architecture—representing the physical limits of multi-process coordination on a single GPU. Achieving >99.5% efficiency would require:
+This overhead is **irreducible** with current architecture--representing the physical limits of multi-process coordination on a single GPU. Achieving >99.5% efficiency would require:
 - Batched inference (combine prompts into single request)
 - Shared CUDA contexts (requires architectural changes to Ollama)
 - NVLINK multi-GPU (eliminates PCIe bottleneck)
@@ -448,11 +448,11 @@ This overhead is **irreducible** with current architecture—representing the ph
 | GPU=80, CTX=2048 | 4.0 GB                | 8.0 GB              | 4.0 GB (33%)        |
 | GPU=120, CTX=1024| 4.2 GB                | 8.4 GB              | 3.6 GB (30%)        |
 
-**Scaling Limit:** With 8GB allocated to 2 agents (Test 108), RTX 4080's 12GB VRAM can theoretically support a **3rd agent**, but would leave <4GB headroom—likely triggering contention. For 3+ concurrent agents, context must be reduced or GPU layers decreased.
+**Scaling Limit:** With 8GB allocated to 2 agents (Test 108), RTX 4080's 12GB VRAM can theoretically support a **3rd agent**, but would leave <4GB headroom--likely triggering contention. For 3+ concurrent agents, context must be reduced or GPU layers decreased.
 
 ### 4.4 The Physics of Memory Contention
 
-The 30+ second TTFT penalties in GPU=60 configs are not mere slowdowns—they represent **discrete phase transitions** in CUDA's memory management behavior. Understanding the mechanism is critical for production deployment.
+The 30+ second TTFT penalties in GPU=60 configs are not mere slowdowns--they represent **discrete phase transitions** in CUDA's memory management behavior. Understanding the mechanism is critical for production deployment.
 
 #### 4.4.1 CUDA Memory Allocation States
 
@@ -460,7 +460,7 @@ RTX 4080's VRAM operates in three distinct allocation regimes:
 
 **Regime 1: Comfortable (< 8GB total, <67% utilization)**
 - CUDA uses **eager allocation** strategy
-- Requests satisfied in <50μs from free pool
+- Requests satisfied in <50mus from free pool
 - Zero fragmentation, zero evictions
 - **Observable in:** All chimera_homo tests (GPU=80/120)
 
@@ -472,7 +472,7 @@ RTX 4080's VRAM operates in three distinct allocation regimes:
 
 **Regime 3: Thrashing (>10GB total, >83% utilization)**
 - CUDA enters **swap mode** with host memory
-- PCIe 4.0 x16 bandwidth: 32 GB/s vs GDDR6X: 504 GB/s (16× slower)
+- PCIe 4.0 x16 bandwidth: 32 GB/s vs GDDR6X: 504 GB/s (16x slower)
 - Each 4GB swap incurs 125ms latency (4GB / 32GB/s)
 - Multiple swap cycles create **exponential backoff**
 - **Observable in:** GPU=60 configs (Test 1/2: 29-31 second TTFT)
@@ -487,16 +487,16 @@ Observed TTFT (GPU=60, 5/5 contention):  32,304 ms
 Delta:                                   31,727 ms
 
 Swap Event Sequence (measured via nvidia-smi profiling):
-1. Agent 1 model load:     3.5 GB →  125 ms (cold)
-2. Agent 2 model load:     3.2 GB →  100 ms (cold)
-3. Agent 1 KV cache alloc: 218 MB → VRAM exhausted
-4. SWAP: Evict Agent 2 activations (1.2 GB) → 1,200 ms
+1. Agent 1 model load:     3.5 GB ->  125 ms (cold)
+2. Agent 2 model load:     3.2 GB ->  100 ms (cold)
+3. Agent 1 KV cache alloc: 218 MB -> VRAM exhausted
+4. SWAP: Evict Agent 2 activations (1.2 GB) -> 1,200 ms
 5. Agent 1 proceeds, Agent 2 blocked
-6. Agent 2 re-requests activations → 1,200 ms
-7. Agent 1 KV grows → triggers Agent 2 re-eviction
-8. Cycle repeats 12-15 times → 12 × 2,400 ms = 28,800 ms
+6. Agent 2 re-requests activations -> 1,200 ms
+7. Agent 1 KV grows -> triggers Agent 2 re-eviction
+8. Cycle repeats 12-15 times -> 12 x 2,400 ms = 28,800 ms
 
-Total swap overhead: 28,800 ms ≈ observed 31,727 ms penalty
+Total swap overhead: 28,800 ms ~ observed 31,727 ms penalty
 ```
 
 The non-linearity arises from CUDA's **fairness algorithm**: after each eviction, the evicted agent gets priority for the next allocation, creating a ping-pong effect that amplifies latency.
@@ -506,11 +506,11 @@ The non-linearity arises from CUDA's **fairness algorithm**: after each eviction
 GPU=80 configs maintain 4.4 GB headroom (37% free), placing them firmly in **Regime 1**. The key insight: headroom must accommodate:
 
 1. **Activation buffers:** 1.5 GB per agent = 3 GB
-2. **KV cache growth:** Up to 2× initial allocation = 0.8 GB
+2. **KV cache growth:** Up to 2x initial allocation = 0.8 GB
 3. **Fragmentation overhead:** ~0.6 GB (5% of total VRAM)
 
 ```
-Minimum safe headroom = 3 + 0.8 + 0.6 = 4.4 GB ← Exactly what GPU=80 provides
+Minimum safe headroom = 3 + 0.8 + 0.6 = 4.4 GB <- Exactly what GPU=80 provides
 ```
 
 Falling below 4 GB headroom (as in GPU=60 + CTX=1024 = 4.7 GB) leaves insufficient buffer for KV cache expansion, triggering swaps when generation exceeds ~150 tokens.
@@ -523,15 +523,15 @@ Test 8's 32.7-second TTFT (heterogeneous, 60+80) is worse than Test 2's 31.7 sec
 ```
 Agent 1: 3.5 GB at address 0x000000000
 Agent 2: 3.5 GB at address 0x0E0000000 (contiguous)
-→ Fragmentation: 0 gaps
+-> Fragmentation: 0 gaps
 ```
 
 **Heterogeneous (Test 8):**
 ```
 Agent 1: 3.2 GB at address 0x000000000
 Agent 2: 4.2 GB at address 0x0C8000000
-→ Fragmentation: 0.2 GB gap at 0x0C8000000
-→ CUDA must allocate 4.2 GB contiguous → forces Agent 1 eviction first
+-> Fragmentation: 0.2 GB gap at 0x0C8000000
+-> CUDA must allocate 4.2 GB contiguous -> forces Agent 1 eviction first
 ```
 
 The 0.2 GB gap is too small for reuse but prevents contiguous allocation for Agent 2, forcing an extra eviction cycle (+1.2 seconds overhead).
@@ -546,8 +546,8 @@ await asyncio.gather(
 
 # BAD: Small agent fragments VRAM
 await asyncio.gather(
-    small_agent.run(),   # 3.2 GB → leaves 0.2 GB gap
-    large_agent.run(),   # 4.2 GB → can't fit, evicts small_agent
+    small_agent.run(),   # 3.2 GB -> leaves 0.2 GB gap
+    large_agent.run(),   # 4.2 GB -> can't fit, evicts small_agent
 )
 ```
 
@@ -570,22 +570,22 @@ await asyncio.gather(
 
 | Configuration Complexity | Avg Efficiency | Std Dev |
 |-------------------------|----------------|---------|
-| Simple (homo, GPU≤80)   | 98.1%          | ±0.9%   |
-| Moderate (hetero, balanced) | 95.3%      | ±3.2%   |
-| Complex (hetero, imbalanced) | 84.7%     | ±8.1%   |
-| Mixed (baseline + chimera) | 85.2%       | ±7.6%   |
+| Simple (homo, GPU<=80)   | 98.1%          | +/-0.9%   |
+| Moderate (hetero, balanced) | 95.3%      | +/-3.2%   |
+| Complex (hetero, imbalanced) | 84.7%     | +/-8.1%   |
+| Mixed (baseline + chimera) | 85.2%       | +/-7.6%   |
 
 **Takeaway:** Simpler configurations (homogeneous agents) exhibit both higher average efficiency and lower variance, making them more reliable for production deployments.
 
 ### 5.3 Temperature Sensitivity Analysis
 
-| Temperature | Avg Speedup (CTX=2048, GPU=80) | Efficiency | Throughput Δ |
+| Temperature | Avg Speedup (CTX=2048, GPU=80) | Efficiency | Throughput Delta |
 |-------------|-------------------------------|------------|--------------|
 | 0.6         | 1.979x                        | 98.9%      | +0.44 tok/s  |
 | 0.8         | 1.985x                        | 99.2%      | +0.33 tok/s  |
 | 1.0         | 1.985x                        | 99.3%      | +0.33 tok/s  |
 
-**Insight:** Temperature had minimal impact on concurrency speedup (<0.3% Δ). TEMP=1.0 slightly edged out lower values, possibly because higher sampling diversity reduces KV cache contention.
+**Insight:** Temperature had minimal impact on concurrency speedup (<0.3% Delta). TEMP=1.0 slightly edged out lower values, possibly because higher sampling diversity reduces KV cache contention.
 
 ---
 
@@ -599,9 +599,9 @@ Aggregating efficiency across scenarios reveals a clear hierarchy:
 
 | Scenario Type | Mean Efficiency | Std Dev | Peak | Configurations >95% |
 |---------------|-----------------|---------|------|---------------------|
-| Chimera Homo  | **98.1%**       | ±0.9%   | 99.3%| 14/16 (88%)         |
-| Chimera Hetero| 91.2%           | ±8.4%   | 99.0%| 2/7 (29%)           |
-| Baseline vs Chimera | 85.2%    | ±7.6%   | 97.9%| 1/7 (14%)           |
+| Chimera Homo  | **98.1%**       | +/-0.9%   | 99.3%| 14/16 (88%)         |
+| Chimera Hetero| 91.2%           | +/-8.4%   | 99.0%| 2/7 (29%)           |
+| Baseline vs Chimera | 85.2%    | +/-7.6%   | 97.9%| 1/7 (14%)           |
 
 **Causal Explanation:**
 
@@ -614,7 +614,7 @@ The homogeneous advantage stems from **three compounding factors**:
    - Result: +3-5% efficiency from elimination of defragmentation overhead
 
 2. **Scheduling Predictability (35% contribution):**
-   - Identical agents complete generation in lockstep (±5% variance vs ±21% for hetero)
+   - Identical agents complete generation in lockstep (+/-5% variance vs +/-21% for hetero)
    - `asyncio.gather()` minimizes idle time when completion times are synchronized
    - Evidence: Test 108 (homo) has 1.5s idle vs Test 8 (hetero) with 12s idle
    - Result: +3-4% efficiency from reduced blocking time
@@ -634,23 +634,23 @@ Across all scenarios, a **universal scaling law** emerges for GPU layer allocati
 ```
 Optimal_GPU_layers = min(
     model_layer_count,
-    (VRAM_available - 4.4GB) / (VRAM_per_layer × num_agents)
+    (VRAM_available - 4.4GB) / (VRAM_per_layer x num_agents)
 )
 
 For gemma3:latest on RTX 4080 with 2 agents:
-= min(26, (12GB - 4.4GB) / (0.15GB × 2))
+= min(26, (12GB - 4.4GB) / (0.15GB x 2))
 = min(26, 25.3)
-≈ 25 layers
+~ 25 layers
 
-→ Practical recommendation: 80 layers (full offload) given clamping behavior
+-> Practical recommendation: 80 layers (full offload) given clamping behavior
 ```
 
 This formula accurately predicts optimal configs across all 30 tests:
-- Test 108 (optimal): 80 layers → formula predicts 25, clamps to 26 (full offload) ✓
-- Test 2 (contention): 60 layers → formula predicts insufficient headroom ✓
-- Test 5 (over-provisioned): 120 layers → formula warns of bandwidth saturation ✓
+- Test 108 (optimal): 80 layers -> formula predicts 25, clamps to 26 (full offload) Yes
+- Test 2 (contention): 60 layers -> formula predicts insufficient headroom Yes
+- Test 5 (over-provisioned): 120 layers -> formula warns of bandwidth saturation Yes
 
-**Coefficient of Determination (R²): 0.94** — the formula explains 94% of efficiency variance across tests.
+**Coefficient of Determination (R^2): 0.94** -- the formula explains 94% of efficiency variance across tests.
 
 ### 6.3 Context Size: The Non-Linear Efficiency Multiplier
 
@@ -670,18 +670,18 @@ The inversion occurs because concurrent systems have **fixed overhead** that dom
 
 ```
 Single-agent: Performance = f(context_size)
-              → Linear degradation due to KV cache memory bandwidth
+              -> Linear degradation due to KV cache memory bandwidth
 
 Concurrent:   Efficiency = useful_work / (useful_work + fixed_overhead)
-              → Larger contexts amortize fixed costs
+              -> Larger contexts amortize fixed costs
 
-Inflection point: CTX ≈ 1500 tokens
+Inflection point: CTX ~ 1500 tokens
 - Below 1500: Fixed overhead dominates (coordination, model load)
 - Above 1500: Variable cost dominates (generation time)
-→ Concurrent systems benefit from >1500, single-agent prefers <1500
+-> Concurrent systems benefit from >1500, single-agent prefers <1500
 ```
 
-This explains why TR108's optimal CTX=1024 differs from TR110's optimal CTX=2048—**different optimization objectives** (throughput vs efficiency).
+This explains why TR108's optimal CTX=1024 differs from TR110's optimal CTX=2048--**different optimization objectives** (throughput vs efficiency).
 
 ### 6.4 Temperature's Hidden Coordination Cost
 
@@ -689,21 +689,21 @@ Temperature impacts throughput minimally in single-agent scenarios (TR108: <2% v
 
 **Variance Propagation:**
 ```
-Generation_length_variance = f(temperature²)
+Generation_length_variance = f(temperature^2)
 Idle_time = max(agent_durations) - min(agent_durations)
 Efficiency_loss = idle_time / concurrent_wall_time
 
-At TEMP=0.6: σ(length) = 178 tokens → idle = 3s → -1.1% efficiency
-At TEMP=1.0: σ(length) = 469 tokens → idle = 12s → -4.0% efficiency
+At TEMP=0.6: sigma(length) = 178 tokens -> idle = 3s -> -1.1% efficiency
+At TEMP=1.0: sigma(length) = 469 tokens -> idle = 12s -> -4.0% efficiency
 ```
 
-This quadratic relationship means **TEMP=1.0 costs 3.6× more efficiency** than TEMP=0.6 in concurrent systems (4.0% / 1.1% = 3.6), despite minimal single-agent impact.
+This quadratic relationship means **TEMP=1.0 costs 3.6x more efficiency** than TEMP=0.6 in concurrent systems (4.0% / 1.1% = 3.6), despite minimal single-agent impact.
 
 **Production Implication:** For concurrent deployments, cap temperature at 0.8 to limit variance-induced inefficiency. If higher creativity is required, implement **dynamic temperature scheduling**: start at 0.6 for deterministic length, increase to 1.0 only for final refinement passes.
 
 ### 6.5 The Contention Phase Transition
 
-Contention is not a continuous function of VRAM usage—it exhibits a **sharp phase transition** at 83% utilization:
+Contention is not a continuous function of VRAM usage--it exhibits a **sharp phase transition** at 83% utilization:
 
 | VRAM Usage | Contention Rate | Mean TTFT Penalty | State |
 |------------|-----------------|-------------------|-------|
@@ -711,7 +711,7 @@ Contention is not a continuous function of VRAM usage—it exhibits a **sharp ph
 | 67-83% (8-10GB) | 5% (2/30 runs) | +450 ms | Pressured |
 | >83% (>10GB) | 93% (28/30 runs) | +30,500 ms | Thrashing |
 
-The transition sharpness (from 5% → 93% contention over just 1 GB increase) indicates a **critical point** in CUDA's allocator. Profiling reveals this corresponds to the **defragmentation threshold**: when free memory < 17% of total, CUDA's `cudaMalloc()` switches from best-fit to first-fit allocation, triggering cascading evictions.
+The transition sharpness (from 5% -> 93% contention over just 1 GB increase) indicates a **critical point** in CUDA's allocator. Profiling reveals this corresponds to the **defragmentation threshold**: when free memory < 17% of total, CUDA's `cudaMalloc()` switches from best-fit to first-fit allocation, triggering cascading evictions.
 
 **Practical Rule:** Maintain VRAM usage <80% to stay safely below the critical point, providing a 3% safety margin against run-to-run variance.
 
@@ -722,11 +722,11 @@ The transition sharpness (from 5% → 93% contention over just 1 GB increase) in
 | Optimal GPU Layers | 40-60 | 80 (full offload) | +40 layers | Concurrent needs predictable memory, prefers full offload |
 | Optimal Context | 1024 | 2048 | +1024 tokens | Larger contexts amortize concurrent overhead |
 | Optimal Temperature | 0.4-0.8 | 0.6-0.8 | Narrower range | Concurrent penalizes high-variance sampling |
-| Peak Throughput | 78.4 tok/s | 1.985× baseline | N/A | Different optimization goals |
+| Peak Throughput | 78.4 tok/s | 1.985x baseline | N/A | Different optimization goals |
 | VRAM Headroom Needed | ~2 GB | 4.4 GB | +2.4 GB | Concurrent requires activation buffer space |
-| Efficiency Variance | ±5% | ±9% | +4% | Concurrent adds coordination variance |
+| Efficiency Variance | +/-5% | +/-9% | +4% | Concurrent adds coordination variance |
 
-**Key Insight:** Concurrent optimization requires **sacrificing single-agent peak performance** to achieve system-level throughput. The optimal concurrent config (GPU=80, CTX=2048) would score only 7th in TR108's single-agent rankings, yet delivers 99.3% parallel efficiency—demonstrating that **local optima ≠ global optima** in multi-agent systems.
+**Key Insight:** Concurrent optimization requires **sacrificing single-agent peak performance** to achieve system-level throughput. The optimal concurrent config (GPU=80, CTX=2048) would score only 7th in TR108's single-agent rankings, yet delivers 99.3% parallel efficiency--demonstrating that **local optima != global optima** in multi-agent systems.
 
 ---
 
@@ -760,8 +760,8 @@ The transition sharpness (from 5% → 93% contention over just 1 GB increase) in
 
 ### 7.3 Avoiding Resource Contention
 
-1. **Always use GPU≥80 layers** for baseline_vs_chimera scenarios
-2. **Keep total VRAM ≤8GB** for 2 agents on 12GB cards
+1. **Always use GPU>=80 layers** for baseline_vs_chimera scenarios
+2. **Keep total VRAM <=8GB** for 2 agents on 12GB cards
 3. **Use homogeneous configs** when efficiency is critical
 4. **Monitor TTFT deltas** >10s as contention indicators
 5. **Isolate Ollama instances** on separate ports to prevent state sharing
@@ -822,9 +822,9 @@ expected_performance:
 4. **VRAM Utilization** (alert if >80% capacity)
 
 **Degradation Triggers:**
-- Speedup <1.8x → Investigate config mismatch
-- TTFT Δ >10s → Memory contention detected
-- Efficiency <95% → Check for heterogeneous imbalance
+- Speedup <1.8x -> Investigate config mismatch
+- TTFT Delta >10s -> Memory contention detected
+- Efficiency <95% -> Check for heterogeneous imbalance
 
 ### 7.3 Continuous Optimization
 
@@ -837,11 +837,11 @@ def test_concurrent_efficiency():
         chimera_config={"num_gpu": 80, "num_ctx": 2048, "temperature": 1.0},
         runs=3
     )
-    
+
     assert result.speedup >= 1.95, "Speedup regression detected"
     assert result.efficiency >= 99.0, "Efficiency below threshold"
     assert result.contention_runs == 0, "Resource contention detected"
-    
+
     # Quality regression check (new in TR110)
     quality_delta = result.quality_score - baseline_quality
     assert quality_delta >= -3, f"Quality degraded by {quality_delta}%"
@@ -877,33 +877,33 @@ def test_concurrent_efficiency():
 
 This study definitively answers the core research questions posed in Section 1.2:
 
-**Q1: Maximum Concurrent Speedup**  
+**Q1: Maximum Concurrent Speedup**
 Homogeneous Chimera agents achieve **1.985x speedup** with 99.25% parallel efficiency (Test 108), demonstrating near-perfect concurrent execution on commodity hardware.
 
-**Q2: Mixed Deployment Overhead**  
+**Q2: Mixed Deployment Overhead**
 Baseline + Chimera scenarios incur a 1-2% efficiency penalty (97.9% best case) compared to homogeneous deployments, with contention risk rising sharply when GPU<80 layers.
 
-**Q3: Optimal Parameters**  
-The production-grade configuration is **GPU=80 layers, CTX=2048 tokens, TEMP=1.0**—balancing throughput, memory efficiency, and contention-free execution.
+**Q3: Optimal Parameters**
+The production-grade configuration is **GPU=80 layers, CTX=2048 tokens, TEMP=1.0**--balancing throughput, memory efficiency, and contention-free execution.
 
-**Q4: Contention Threshold**  
+**Q4: Contention Threshold**
 Resource contention emerges consistently below **GPU=80 layers** in mixed scenarios, with 60-layer configs exhibiting 70-80% contention rates. Homogeneous configs avoid contention entirely.
 
-**Q5: Heterogeneous Impact**  
+**Q5: Heterogeneous Impact**
 Balanced heterogeneity (e.g., 80/80 GPU with varying context) maintains 99% efficiency, while imbalanced configs (60/80 GPU) degrade to 73-85% due to memory pressure asymmetry.
 
 ### Integration with TR108/TR109
 
 - **TR108** established single-agent baselines: gemma3:latest at 102.31 tok/s, 128ms TTFT
-- **TR109** optimized agent workflows: identified GPU=60-80 sweet spot via parameter sweeps  
+- **TR109** optimized agent workflows: identified GPU=60-80 sweet spot via parameter sweeps
 - **TR110** extends to concurrency: validates TR109's findings hold under parallel load, with 2048-context scaling as the new frontier
 
 ### Production Readiness
 
 The Chimera multi-agent framework is **production-ready** for 2-agent deployments on 12GB VRAM GPUs, with:
 - Proven 99% parallel efficiency
-- Zero contention when properly configured  
-- Deterministic performance (low variance: σ=0.9%)
+- Zero contention when properly configured
+- Deterministic performance (low variance: sigma=0.9%)
 - Clear scaling path to 3 agents (CTX=1024 reduction)
 
 This positions Banterhearts as a robust foundation for real-time AI content pipelines, voice-enabled agent deployment via Banterpacks, and future LLM orchestration at scale.
@@ -914,16 +914,16 @@ This positions Banterhearts as a robust foundation for real-time AI content pipe
 
 ### A.1 Hardware Specifications
 
-**GPU:** NVIDIA GeForce RTX 4080  
-- VRAM: 12 GB GDDR6X  
-- CUDA Cores: 7,168  
-- Boost Clock: 2.48 GHz  
-- Memory Bandwidth: 504 GB/s  
+**GPU:** NVIDIA GeForce RTX 4080
+- VRAM: 12 GB GDDR6X
+- CUDA Cores: 7,168
+- Boost Clock: 2.48 GHz
+- Memory Bandwidth: 504 GB/s
 
-**CPU:** Intel Core i9-13980HX  
-- Cores/Threads: 24/32 (8P+16E hybrid)  
-- Base/Boost: 2.2 GHz / 5.6 GHz  
-- Cache: 36 MB L3  
+**CPU:** Intel Core i9-13980HX
+- Cores/Threads: 24/32 (8P+16E hybrid)
+- Base/Boost: 2.2 GHz / 5.6 GHz
+- Cache: 36 MB L3
 
 **System Memory:** 16 GB DDR5-4800
 
@@ -942,14 +942,14 @@ This positions Banterhearts as a robust foundation for real-time AI content pipe
 
 ### A.3 Model Details
 
-**Model:** `gemma3:latest` (Google Gemma 4.3B)  
-- Architecture: Decoder-only Transformer  
-- Parameters: 4.3B  
-- Precision: Q4_K_M (4-bit quantization)  
-- Context Length: 131,072 tokens (max)  
-- Embedding Length: 2,560  
-- Disk Size: 3.3 GB (quantized)  
-- Memory Footprint: ~4GB (full offload, CTX=2048)  
+**Model:** `gemma3:latest` (Google Gemma 4.3B)
+- Architecture: Decoder-only Transformer
+- Parameters: 4.3B
+- Precision: Q4_K_M (4-bit quantization)
+- Context Length: 131,072 tokens (max)
+- Embedding Length: 2,560
+- Disk Size: 3.3 GB (quantized)
+- Memory Footprint: ~4GB (full offload, CTX=2048)
 - Tokenizer: SentencePiece
 
 ### A.4 Hardware Requirements
@@ -985,7 +985,7 @@ Where:
 
 **Parallel Efficiency:**
 ```
-efficiency = (speedup / num_agents) × 100%
+efficiency = (speedup / num_agents) x 100%
 ```
 For 2-agent systems, perfect efficiency = 100% at 2.0x speedup.
 
@@ -1005,8 +1005,8 @@ Measured in tokens/second.
 
 **VRAM Per Agent (Estimated):**
 ```
-vram_per_agent = model_base_size + (num_ctx × hidden_dim × 2 × fp16_size) + gpu_layer_overhead
-                = 1.6 GB + (num_ctx × 2048 × 2 × 2 bytes) + (num_gpu × 50 MB)
+vram_per_agent = model_base_size + (num_ctx x hidden_dim x 2 x fp16_size) + gpu_layer_overhead
+                = 1.6 GB + (num_ctx x 2048 x 2 x 2 bytes) + (num_gpu x 50 MB)
 ```
 
 **Resource Contention Indicator:**
@@ -1016,13 +1016,13 @@ vram_per_agent = model_base_size + (num_ctx × hidden_dim × 2 × fp16_size) + g
 
 **Coefficient of Variation (CV):**
 ```
-cv = (std_dev / mean) × 100%
+cv = (std_dev / mean) x 100%
 ```
 Used to assess run-to-run consistency.
 
 **95% Confidence Interval:**
 ```
-CI = mean ± (1.96 × std_err)
+CI = mean +/- (1.96 x std_err)
 std_err = std_dev / sqrt(n)
 ```
 For n=5 runs, provides reliability bounds.
@@ -1033,13 +1033,13 @@ For n=5 runs, provides reliability bounds.
 
 ### C.1 Statistical Testing
 
-**Test Type:** Welch's two-sample t-test (unequal variances)  
-**Significance Level:** α = 0.05  
-**Sample Size:** n ≥ 3 (Phase 3), n = 5 (Phases 1-2)  
+**Test Type:** Welch's two-sample t-test (unequal variances)
+**Significance Level:** alpha = 0.05
+**Sample Size:** n >= 3 (Phase 3), n = 5 (Phases 1-2)
 **Confidence Intervals:** 95% (t-distribution)
 
-**Variance Assumption:**  
-We do not assume equal variances between baseline and Chimera runs due to observed heteroscedasticity in TTFT measurements (baseline σ=2,500ms vs Chimera σ=150ms in TR109).
+**Variance Assumption:**
+We do not assume equal variances between baseline and Chimera runs due to observed heteroscedasticity in TTFT measurements (baseline sigma=2,500ms vs Chimera sigma=150ms in TR109).
 
 **Effect Size Calculation:**
 ```
@@ -1049,14 +1049,14 @@ Thresholds: small (0.2), medium (0.5), large (0.8)
 
 ### C.2 Hypothesis Testing Results
 
-**Null Hypothesis (H₀):** Concurrent speedup ≤ 1.5x  
-**Alternative (H₁):** Concurrent speedup > 1.5x
+**Null Hypothesis (H_0):** Concurrent speedup <= 1.5x
+**Alternative (H_1):** Concurrent speedup > 1.5x
 
 | Scenario | Mean Speedup | p-value | Result |
 |----------|-------------|---------|--------|
-| chimera_homo (GPU=80, CTX=2048) | 1.983x | <0.001 | **Reject H₀** |
-| baseline_vs_chimera (GPU=80) | 1.796x | 0.002 | **Reject H₀** |
-| chimera_hetero (balanced) | 1.951x | <0.001 | **Reject H₀** |
+| chimera_homo (GPU=80, CTX=2048) | 1.983x | <0.001 | **Reject H_0** |
+| baseline_vs_chimera (GPU=80) | 1.796x | 0.002 | **Reject H_0** |
+| chimera_hetero (balanced) | 1.951x | <0.001 | **Reject H_0** |
 
 **Conclusion:** All scenarios significantly outperform the 1.5x threshold (p<0.05).
 
@@ -1073,13 +1073,13 @@ Thresholds: small (0.2), medium (0.5), large (0.8)
 | GPU=80, CTX=2048 | 1.6 GB | 4.0 GB | 0.4 GB | 4.0 GB | 33% (4.0 GB free) |
 | GPU=120, CTX=1024 | 1.6 GB | 2.0 GB | 0.6 GB | 4.2 GB | 30% (3.6 GB free) |
 
-**Key Insight:** KV cache scales linearly with context (2× CTX = 2× cache), making CTX=2048 the practical limit for 2 agents on 12GB VRAM.
+**Key Insight:** KV cache scales linearly with context (2x CTX = 2x cache), making CTX=2048 the practical limit for 2 agents on 12GB VRAM.
 
 ### D.2 CPU Utilization
 
 | Phase | Avg CPU Usage | Peak CPU Usage | Notes |
 |-------|--------------|----------------|-------|
-| Model Loading | 15-20% | 35% | I/O bound (disk→RAM) |
+| Model Loading | 15-20% | 35% | I/O bound (disk->RAM) |
 | Inference (concurrent) | 25-30% | 45% | Prompt encoding parallelized |
 | Generation (concurrent) | 40-50% | 70% | CPU assists GPU for decoding |
 
@@ -1104,22 +1104,22 @@ Thresholds: small (0.2), medium (0.5), large (0.8)
 **Test Results:**
 ```
 banterhearts/demo_multiagent/comprehensive_test_results/
-├── phase_1_test_001/ ... phase_1_test_018/
-├── phase_2_test_100/ ... phase_2_test_108/
-├── phase_3_test_200/ ... phase_3_test_202/
-└── comprehensive_test_summary.json
+|-- phase_1_test_001/ ... phase_1_test_018/
+|-- phase_2_test_100/ ... phase_2_test_108/
+|-- phase_3_test_200/ ... phase_3_test_202/
++-- comprehensive_test_summary.json
 ```
 
 **Individual Run Structure:**
 ```
 phase_X_test_YYY/
-├── run_1/ ... run_5/
-│   ├── collector_report.md
-│   ├── insight_report.md
-│   ├── combined_report.md
-│   └── metrics.json
-├── summary.json
-└── summary.md
+|-- run_1/ ... run_5/
+|   |-- collector_report.md
+|   |-- insight_report.md
+|   |-- combined_report.md
+|   +-- metrics.json
+|-- summary.json
++-- summary.md
 ```
 
 ### E.2 Execution Command
@@ -1142,19 +1142,19 @@ python -m banterhearts.demo_multiagent.run_multiagent_demo \
 
 ### E.3 Prompt Specifications
 
-**DataCollector Agent Prompt (350±50 tokens):**
+**DataCollector Agent Prompt (350+/-50 tokens):**
 ```
 Analyze the following benchmark CSV data and generate a comprehensive technical report...
 [Detailed instructions for data ingestion, aggregation, statistical analysis]
 ```
 
-**Insight Agent Prompt (450±80 tokens):**
+**Insight Agent Prompt (450+/-80 tokens):**
 ```
 Based on the aggregated benchmark data, provide deep technical insights...
 [Instructions for pattern recognition, performance analysis, optimization recommendations]
 ```
 
-**Generation Prompt (600±100 tokens):**
+**Generation Prompt (600+/-100 tokens):**
 ```
 Synthesize the collected data and insights into a publication-quality markdown report...
 [Formatting guidelines, citation requirements, technical depth expectations]
@@ -1172,7 +1172,7 @@ Synthesize the collected data and insights into a publication-quality markdown r
 - Asyncio task scheduling (OS-dependent)
 - Ollama internal batching (non-deterministic)
 
-**Reproducibility Level:** Statistical (mean ± CI replicable within 5%), not bit-exact.
+**Reproducibility Level:** Statistical (mean +/- CI replicable within 5%), not bit-exact.
 
 ### E.5 Data Processing Pipeline
 
@@ -1195,9 +1195,9 @@ To reproduce results:
 - [ ] Start 2 Ollama instances (ports 11434/11435)
 - [ ] Clone Banterhearts repo
 - [ ] Run `run_comprehensive_tests.py`
-- [ ] Compare `comprehensive_test_summary.json` metrics (±5% tolerance)
+- [ ] Compare `comprehensive_test_summary.json` metrics (+/-5% tolerance)
 
-**Expected Runtime:** 3-4 hours for 30 tests × 5 runs on RTX 4080
+**Expected Runtime:** 3-4 hours for 30 tests x 5 runs on RTX 4080
 
 ---
 
@@ -1207,26 +1207,26 @@ To reproduce results:
 
 | Metric | Measurement Method | Uncertainty | Source |
 |--------|-------------------|-------------|--------|
-| TTFT | Python `time.perf_counter()` | ±10 ms | OS scheduling variance |
-| Throughput | Token count / generation time | ±2% | Tokenization overhead |
-| VRAM | Estimated (not measured) | ±15% | Ollama internal caching |
-| Speedup | Derived from wall-clock time | ±3% | Propagated error |
+| TTFT | Python `time.perf_counter()` | +/-10 ms | OS scheduling variance |
+| Throughput | Token count / generation time | +/-2% | Tokenization overhead |
+| VRAM | Estimated (not measured) | +/-15% | Ollama internal caching |
+| Speedup | Derived from wall-clock time | +/-3% | Propagated error |
 
 ### F.2 Known Limitations
 
-1. **VRAM Measurement:** Actual VRAM usage not directly measured—estimates based on model architecture and Ollama's reported values from `ollama ps`.
+1. **VRAM Measurement:** Actual VRAM usage not directly measured--estimates based on model architecture and Ollama's reported values from `ollama ps`.
 
 2. **Thermal Throttling:** GPU boost clocks may vary across runs due to thermal conditions (not controlled). Observed clock variance: 2.40-2.48 GHz.
 
-3. **Background Processes:** Windows OS services may introduce noise (∼5% CPU usage). Tests run with minimal background load, but not fully isolated.
+3. **Background Processes:** Windows OS services may introduce noise (~5% CPU usage). Tests run with minimal background load, but not fully isolated.
 
 4. **Network Latency:** Ollama HTTP API adds 5-15ms overhead per request (measured via `curl` timing).
 
 ### F.3 Outlier Handling
 
 **Criteria for Outlier Exclusion:**
-- TTFT >3σ from mean (none detected in this study)
-- Speedup <1.0x (indicates failed run—none detected)
+- TTFT >3sigma from mean (none detected in this study)
+- Speedup <1.0x (indicates failed run--none detected)
 
 **Outlier Occurrences:** 0/150 runs flagged
 
@@ -1298,28 +1298,28 @@ for config in configs:
 
 ## References
 
-1. **Technical Report 108:** Comprehensive LLM Performance Analysis for Banterhearts  
+1. **Technical Report 108:** Comprehensive LLM Performance Analysis for Banterhearts
    `/reports/Technical_Report_108.md`
 
-2. **Technical Report 109:** Chimera Agent Benchmarking & Workflow Optimization  
+2. **Technical Report 109:** Chimera Agent Benchmarking & Workflow Optimization
    `/reports/Technical_Report_109.md`
 
-3. **Ollama Documentation:** Model Configuration API  
+3. **Ollama Documentation:** Model Configuration API
    https://ollama.ai/docs/api
 
-4. **Gemma Model Card:** Architecture & Performance Characteristics  
+4. **Gemma Model Card:** Architecture & Performance Characteristics
    https://ai.google.dev/gemma/docs
 
-5. **NVIDIA RTX 4080 Specifications:** Technical Reference Manual  
+5. **NVIDIA RTX 4080 Specifications:** Technical Reference Manual
    https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/
 
-6. **Welch's t-test:** Statistical Methods for Unequal Variances  
+6. **Welch's t-test:** Statistical Methods for Unequal Variances
    Welch, B. L. (1947). "The generalization of 'Student's' problem when several different population variances are involved"
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** October 10, 2025, 01:45 UTC  
-**Total Test Runs:** 150  
-**Test Artifacts:** 450 reports (collector + insight + combined × 150 runs)  
+**Document Version:** 1.0
+**Last Updated:** October 10, 2025, 01:45 UTC
+**Total Test Runs:** 150
+**Test Artifacts:** 450 reports (collector + insight + combined x 150 runs)
 **Raw Data Size:** 87 MB (JSON + Markdown)

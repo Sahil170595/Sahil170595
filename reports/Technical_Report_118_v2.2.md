@@ -2,14 +2,14 @@
 
 ## ONNX Runtime + TensorRT Performance Across 1,210x Parameter Scaling
 
-**Project:** Banterhearts LLM Performance Research
-**Date:** 2025-12-20
-**Author:** Research Team
-**Report Type:** Corrected Multi-Scale ONNX/TensorRT Analysis
-**Test Duration:** 720 total benchmark runs (360 prefill + 360 generate)
-**Related Work:** [TR118](Technical_Report_118.md) (Pipeline Validation), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis)
+**Project:** Banterhearts LLM Performance Research  
+**Date:** 2025-12-20  
+**Author:** Research Team  
+**Report Type:** Corrected Multi-Scale ONNX/TensorRT Analysis  
+**Test Duration:** 720 total benchmark runs (360 prefill + 360 generate)  
+**Related Work:** [TR118](Technical_Report_118.md) (Pipeline Validation), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis)  
 
-**v2.2 Corrections from v2.1:**
+**v2.2 Corrections from v2.1:**  
 
 - Verified run counts and degradation rates from JSONL data (200/720 degraded, 27.8%)
 - Re-fit crossover power-law with 9 data points (5M, 25M, 50M, 75M, 100M, 45M validation)
@@ -613,7 +613,7 @@ All TensorRT generate runs are degraded across both models.
 **Large Scale (> 7B params):**
 
 - **Runtime:** TensorRT INT8 or FP8
-- **Hardware:** NVIDIA A100/H100
+- **Hardware:** NVIDIA A100/H_100
 - **Serving:** TensorRT-LLM with Multi-GPU (Tensor Parallelism)
 
 ---
@@ -678,7 +678,7 @@ Key limitations and threats to validity:
 **For Large-Scale Deployment (> 1B params):**
 
 - **Use TensorRT INT8** (3-5x speedup expected, pending validation)
-- **Target hardware:** NVIDIA A100/H100
+- **Target hardware:** NVIDIA A100/H_100
 - **Serving framework:** TensorRT-LLM with Tensor Parallelism
 - **Example use case:** GPT-3, LLaMA, Mistral serving
 
@@ -699,7 +699,7 @@ Focus on the crossover region with tighter spacing:
 
 **TR120.B: KV-Cached Decode Study**
 
-TR120’s primary track is the compile-paradox investigation; KV-cached decode is tracked as TR120.B.
+TR120's primary track is the compile-paradox investigation; KV-cached decode is tracked as TR120.B.
 
 - Re-benchmark generate with `use_cache=True` and TRT-LLM
 - Build TRT engines with profiles that cover decode shapes
@@ -961,35 +961,35 @@ python run_tr118v2.py --device cuda --label reproduction
 
 **Tiny-GPT2 (0.103M params) - Prefill:**
 
-1. **ONNX Runtime CPU:** 87,996 tok/s | **+2094% vs PyTorch** | **WINNER** 
+1. **ONNX Runtime CPU:** 87,996 tok/s | **+2094% vs PyTorch** | **WINNER**
 2. **TensorRT FP32:** 5,620 tok/s | +40% vs PyTorch | -
 3. **TensorRT INT8:** 5,424 tok/s | +35% vs PyTorch | -
 4. **TensorRT FP16:** 4,831 tok/s | +20% vs PyTorch | -
 5. **ONNX Runtime GPU:** 4,527 tok/s | +13% vs PyTorch | -
-6. **PyTorch GPU-compile:** 4,011 tok/s | Baseline 
+6. **PyTorch GPU-compile:** 4,011 tok/s | Baseline
 
 **GPT-2 (124.4M params) - Prefill:**
 
-1. **TensorRT INT8:** 6,284 tok/s | **+196% vs PyTorch** | **WINNER** 
+1. **TensorRT INT8:** 6,284 tok/s | **+196% vs PyTorch** | **WINNER**
 2. **TensorRT FP32:** 4,711 tok/s | +122% vs PyTorch | -
 3. **ONNX Runtime GPU:** 3,927 tok/s | +85% vs PyTorch | -
 4. **TensorRT FP16:** 3,851 tok/s | +82% vs PyTorch | -
-5. **PyTorch GPU-compile:** 2,121 tok/s | Baseline 
+5. **PyTorch GPU-compile:** 2,121 tok/s | Baseline
 6. **ONNX Runtime CPU:** 1,434 tok/s | **-32% vs PyTorch** |  LOSES
 
 ### 12.2 Generate Phase Rankings
 
 **Tiny-GPT2 (0.103M params) - Generate:**
 
-1. **ONNX Runtime CPU:** 2,970 tok/s | **+1132% vs PyTorch** | **WINNER** 
+1. **ONNX Runtime CPU:** 2,970 tok/s | **+1132% vs PyTorch** | **WINNER**
 2. **ONNX Runtime GPU:** 468 tok/s | +94% vs PyTorch | -
-3. **PyTorch GPU-compile:** 241 tok/s | Baseline 
+3. **PyTorch GPU-compile:** 241 tok/s | Baseline
 4. **TensorRT FP32/FP16/INT8:** All degraded (profile mismatch)
 
 **GPT-2 (124.4M params) - Generate:**
 
-1. **ONNX Runtime GPU:** 438 tok/s | **+179% vs PyTorch** | **WINNER** 
-2. **PyTorch GPU-compile:** 157 tok/s | Baseline 
+1. **ONNX Runtime GPU:** 438 tok/s | **+179% vs PyTorch** | **WINNER**
+2. **PyTorch GPU-compile:** 157 tok/s | Baseline
 3. **ONNX Runtime CPU:** 77 tok/s | **-51% vs PyTorch** |  LOSES
 4. **TensorRT FP32/FP16/INT8:** All degraded (profile mismatch)
 

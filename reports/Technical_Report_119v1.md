@@ -6,7 +6,7 @@
 **Author:** Research Team  
 **Report Type:** Definitive cost/energy analysis (artifact-backed, manually authored)  
 **Test Duration:** ~3 minutes wall-clock benchmark runtime (350 benchmark runs; 0 degraded)  
-**Related Work:** [TR117](Technical_Report_117.md) (latency/throughput baseline), [TR118_v2.2](Technical_Report_118_v2.2.md) (measurement rigor + pipeline validation), [TR115_v2](Technical_Report_115_v2.md) (definitive "production-grade" reporting standard)
+**Related Work:** [TR117](Technical_Report_117.md) (latency/throughput baseline), [TR118_v2.2](Technical_Report_118_v2.2.md) (measurement rigor + pipeline validation), [TR115_v2](Technical_Report_115_v2.md) (definitive "production-grade" reporting standard)  
 
 ---
 
@@ -31,12 +31,12 @@ Energy/carbon accuracy note (reviewer-proof):
 
 If your deployment includes meaningful generation (which most LLM serving does), the dominant outcome is stable:
 
-- **Default recommendation:** `onnxruntime-gpu`  
+- **Default recommendation:** `onnxruntime-gpu`
   It is **best overall** for **uncached generate** and **best overall** for **single-prompt prefill** on this hardware, which makes it best for request-level cost.
 
 However, the *nuance* matters for publish-grade quality:
 
-- **Prefill-only, batch-heavy workloads can flip the winner.**  
+- **Prefill-only, batch-heavy workloads can flip the winner.**
   In **prefill batch scenarios**, `transformers-gpu` is cheaper than `onnxruntime-gpu` in this benchmark matrix. If your workload is dominated by batched prompt processing (e.g., embeddings-like, reranking-like, prefill-heavy tasks with minimal generation), you should not blindly adopt the "overall mean across scenarios" winner.
 
 ### Key findings (numbers are mean across scenarios unless noted)
@@ -125,7 +125,7 @@ This report is **publish-ready** for a frontier research bar:
 
 ### 1.1 What TR119 adds beyond TR117
 
-TR117 answers: "Which backend is fastest?"  
+TR117 answers: "Which backend is fastest?"
 TR119 answers: "Which backend is cheapest and most energy efficient for a given workload?"
 
 Speed alone is not a decision; cost is.
@@ -529,7 +529,7 @@ Interpretation:
 
 ### 5.2 Scenario winners (where the nuance lives)
 
-If you can only deploy one backend, you need the overall mean.  
+If you can only deploy one backend, you need the overall mean.
 If you can deploy intelligently, you need the scenario-level winners.
 
 **Generate (uncached):** `onnxruntime-gpu` is best in every scenario.

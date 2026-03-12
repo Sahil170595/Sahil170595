@@ -6,8 +6,8 @@
 **Test Duration:** 8+ hours (135 benchmark runs across 27 configurations)  
 **Framework:** Demo_rust_multiagent (Rust async/tokio + Dual Ollama)  
 **Total Configurations:** 27 (7 baseline-vs-chimera, 7 chimera-hetero, 13 chimera-homo)  
-**Total Runs:** 135 (27 configs × 5 runs each)  
-**Related Work:** [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111_v2](Technical_Report_111_v2.md) (Rust Single-Agent), [TR112_v2](Technical_Report_112_v2.md) (Rust vs Python Comparison), [TR115](Technical_Report_115.md) (Rust Runtime Optimization)
+**Total Runs:** 135 (27 configs x 5 runs each)  
+**Related Work:** [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111_v2](Technical_Report_111_v2.md) (Rust Single-Agent), [TR112_v2](Technical_Report_112_v2.md) (Rust vs Python Comparison), [TR115](Technical_Report_115.md) (Rust Runtime Optimization)  
 
 ---
 
@@ -15,7 +15,7 @@
 
 This technical report presents the definitive analysis of Rust multi-agent concurrent execution with full architectural parity to Python (TR110). Through 135 comprehensive benchmark runs across 27 configurations using dual Ollama instances, we establish the true performance characteristics of Rust async multi-agent workflows and quantify the **multi-agent coordination overhead** that transforms Rust's 15% single-agent advantage into a 3-4% multi-agent gap against Python.
 
-**Critical Context:**  
+**Critical Context:**
 This v2 report supersedes the previous TR113/TR114 analyses by:
 1. **Correcting single-agent baselines:** Rust is **15.2% faster** than Python at single-agent tasks (TR111_v2/TR112_v2), not slower
 2. **Dual Ollama architecture:** Eliminates server-level serialization bottlenecks (TR113 identified this issue)
@@ -27,7 +27,7 @@ This v2 report supersedes the previous TR113/TR114 analyses by:
 **Multi-Agent Performance:**
 - **Peak Single Run:** 99.992% (test004/test006: baseline-vs-chimera gpu80_ctx1024_temp0.8)
 - **Best Config Average:** 99.396% (test011: chimera-hetero gpu120/140_ctx512/1024)
-- **Overall Average:** 98.281% across all 135 runs (27 configs × 5 runs)
+- **Overall Average:** 98.281% across all 135 runs (27 configs x 5 runs)
 - **Python Comparison (TR110):** Python achieves 99.25% peak config average (homogeneous Chimera)
 - **Gap Analysis:** Rust config average +0.15pp ahead of Python (99.396% vs 99.25%)
 
@@ -82,7 +82,7 @@ This v2 report supersedes the previous TR113/TR114 analyses by:
 
 5. **TR114_v2 (November 15, 2025 - This Report):** Reanalysis of multi-agent performance with corrected baselines reveals **Rust's Multi-Agent Excellence**: Despite expectations, Rust's 15% single-agent throughput advantage translates to **superior multi-agent coordination** (98.281% mean vs Python's 95.8%).
 
-**Critical Question:**  
+**Critical Question:**
 How does Rust, which dominates single-agent performance by 15%, maintain and even extend this advantage in multi-agent scenarios? Does coordination overhead differ between Rust's Tokio and Python's asyncio?
 
 ### 1.2 Research Questions
@@ -98,7 +98,7 @@ This study addresses:
 ### 1.3 Scope & Significance
 
 **This Report's Scope:**
-- **Data:** 135 Rust multi-agent runs (27 configs × 5 runs)
+- **Data:** 135 Rust multi-agent runs (27 configs x 5 runs)
 - **Comparison:** TR110 Python data (150 runs, 30 configs)
 - **Analysis:** Statistical validation, root cause analysis, business impact
 - **Recommendations:** Production-grade deployment strategies
@@ -144,14 +144,14 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 
 | Aspect | Python (TR110) | Rust (TR114_v2) | Parity |
 |--------|---------------|-----------------|--------|
-| **Ollama Instances** | 2 servers (11434, 11435) | 2 servers (11434, 11435) | ✅ |
-| **Agent Isolation** | Dedicated servers per agent | Dedicated servers per agent | ✅ |
-| **VRAM Allocation** | Simultaneous independent | Simultaneous independent | ✅ |
-| **Model Loading** | Parallel (both agents start together) | Parallel (both agents start together) | ✅ |
-| **HTTP Client** | httpx (Python async) | reqwest (Rust async) | ✅ |
-| **Async Runtime** | asyncio (single-threaded event loop) | Tokio (multi-threaded work-stealing) | ✅ |
-| **Concurrency Model** | `asyncio.gather()` | `tokio::join!()` | ✅ |
-| **Execution Protocol** | Process isolation, forced unloads | Natural cache eviction | ⚠️ Minor difference |
+| **Ollama Instances** | 2 servers (11434, 11435) | 2 servers (11434, 11435) | PASS |
+| **Agent Isolation** | Dedicated servers per agent | Dedicated servers per agent | PASS |
+| **VRAM Allocation** | Simultaneous independent | Simultaneous independent | PASS |
+| **Model Loading** | Parallel (both agents start together) | Parallel (both agents start together) | PASS |
+| **HTTP Client** | httpx (Python async) | reqwest (Rust async) | PASS |
+| **Async Runtime** | asyncio (single-threaded event loop) | Tokio (multi-threaded work-stealing) | PASS |
+| **Concurrency Model** | `asyncio.gather()` | `tokio::join!()` | PASS |
+| **Execution Protocol** | Process isolation, forced unloads | Natural cache eviction | WARNING Minor difference |
 
 **Key Difference:**
 - Python uses forced Ollama model unloads between configs (strict isolation)
@@ -166,7 +166,7 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 - Agent A: Baseline (Ollama defaults, no overrides)
 - Agent B: Chimera-optimized config
 - Goal: Quantify mixed deployment overhead
-- Configs: 3 GPU layers (60/80/120) × 2 contexts (512/1024) × temp 0.8 + 1 validation config
+- Configs: 3 GPU layers (60/80/120) x 2 contexts (512/1024) x temp 0.8 + 1 validation config
 
 **Scenario 2: Chimera Hetero (7 configs)**
 - Agent A: Chimera config A
@@ -179,13 +179,13 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 - Goal: Measure peak concurrent efficiency
 - Configs: Full parameter sweep (GPU: 60/80/120, CTX: 512/1024/2048, TEMP: 0.6/0.8/1.0)
 
-**Total: 27 configs × 5 runs = 135 benchmarks**
+**Total: 27 configs x 5 runs = 135 benchmarks**
 
 ### 2.4 Metrics Collection
 
 **Per-Run Metrics:**
 - `concurrency_speedup`: sequential_estimated_time / concurrent_wall_time
-- `efficiency_percent`: (speedup / 2) × 100%
+- `efficiency_percent`: (speedup / 2) x 100%
 - `throughput_delta`: collector_throughput - insight_throughput (tok/s)
 - `ttft_delta_ms`: collector_ttft - insight_ttft (milliseconds)
 - `resource_contention_detected`: Boolean flag for TTFT anomalies (>3s increase)
@@ -198,7 +198,7 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 
 **Statistical Validation:**
 - Standard deviation calculated for efficiency and speedup
-- Coefficient of Variation (CV) = stddev / mean × 100%
+- Coefficient of Variation (CV) = stddev / mean x 100%
 - Outlier detection via resource contention flags
 
 ---
@@ -256,7 +256,7 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 | test008 | 60/80 | 1024/2048 | 1.9744x | 98.72% | 99.86% | 0/5 |
 | test009 | 80/100 | 512/1024 | 1.9784x | 98.92% | 99.63% | 0/5 |
 | test010 | 80/100 | 1024/2048 | 1.9785x | 98.93% | 99.73% | 0/5 |
-| test011 | 120/140 | 512/1024 | 1.9879x | **99.396%** ✅ | **99.57%** | 0/5 |
+| test011 | 120/140 | 512/1024 | 1.9879x | **99.396%** PASS | **99.57%** | 0/5 |
 | test012 | 120/140 | 1024/2048 | 1.9744x | 98.72% | 99.38% | 0/5 |
 | test201 (validation) | 80/80 | 512/1024 | 1.9793x | 98.96% | 99.90% | 0/5 |
 
@@ -388,7 +388,7 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 | Config Type | Mean StdDev | Mean CV (%) | Interpretation |
 |-------------|-------------|-------------|----------------|
 | Baseline vs Chimera | 3.8pp | 3.9% | Moderate variance |
-| Chimera Hetero | 2.1pp | 2.1% | Low variance ✅ |
+| Chimera Hetero | 2.1pp | 2.1% | Low variance PASS |
 | Chimera Homo (sampled) | 6.2pp | 6.3% | Higher variance (temp sensitivity) |
 
 **Finding:** Heterogeneous configs show **best run-to-run consistency** (2.1% CV), suggesting asymmetric allocation stabilizes Tokio scheduler.
@@ -406,7 +406,7 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 | **Contention Rate** | ~10-15% | 0.74% | -10-14pp | **Rust** |
 | **Median Efficiency** | ~96.5% | 98.6% | +2.1pp | Rust |
 
-**Critical Observation:**  
+**Critical Observation:**
 Rust multi-agent performance **statistically matches or exceeds** Python across most metrics. However, this conclusion **ignores single-agent baselines**:
 - Rust single-agent: 114.54 tok/s (TR111_v2)
 - Python single-agent: 99.34 tok/s (TR109)
@@ -500,11 +500,11 @@ async fn run_multi_agent() -> Result<(AgentResult, AgentResult)> {
 **Analysis:**
 - Rust per-agent throughput: **40-44 tok/s** (avg ~42 tok/s)
 - Python per-agent throughput: **40-45 tok/s** (avg ~42 tok/s)
-- **Gap to single-agent baseline:** 
-  - Rust: 114.54 tok/s → 42 tok/s = **-63% degradation**
-  - Python: 99.34 tok/s → 42 tok/s = **-58% degradation**
+- **Gap to single-agent baseline:**
+  - Rust: 114.54 tok/s -> 42 tok/s = **-63% degradation**
+  - Python: 99.34 tok/s -> 42 tok/s = **-58% degradation**
 
-**Critical Insight:**  
+**Critical Insight:**
 Both languages experience **massive degradation** in multi-agent scenarios (-58% to -63%), but Rust loses its 15% single-agent advantage. The degradation is **not** due to multi-agent coordination overhead alone, but rather:
 1. **Different workload characteristics:** Multi-agent tasks may involve more I/O waits
 2. **Model loading overhead:** Each agent loads model separately
@@ -569,7 +569,7 @@ let response = client.post(url).json(&data).send().await?;
 - Python: Direct I/O on event loop thread (minimal overhead)
 - Rust: Background task spawn + synchronization (overhead)
 
-**Quantified Impact:** TR115 found reqwest adds ~50-100ms latency vs direct TCP. Over 2 LLM calls per agent × 2 agents = **400ms total overhead** possible.
+**Quantified Impact:** TR115 found reqwest adds ~50-100ms latency vs direct TCP. Over 2 LLM calls per agent x 2 agents = **400ms total overhead** possible.
 
 **Evidence 3: Python GIL Release Advantage**
 
@@ -599,7 +599,7 @@ TR115 tested 5 Rust async runtimes:
 
 | Source | Estimated Overhead | Basis |
 |--------|-------------------|-------|
-| **Work-stealing migrations** | 50-100ms | Thread switch cost × migration frequency |
+| **Work-stealing migrations** | 50-100ms | Thread switch cost x migration frequency |
 | **HTTP client spawning** | 100-200ms | Reqwest background task overhead (TR115) |
 | **Task coordination** | 20-50ms | Tokio scheduler overhead |
 | **Memory synchronization** | 10-30ms | Arc/Mutex overhead for shared state |
@@ -610,14 +610,14 @@ TR115 tested 5 Rust async runtimes:
 - Overhead: ~0.18-0.38 seconds
 - **Overhead percentage:** 0.3-0.6% of wall time
 
-**Coordination Efficiency:**  
+**Coordination Efficiency:**
 The measured coordination overhead (0.3-0.6% of wall time) is **minimal**, allowing Rust to maintain its performance advantages:
 
 1. **Dual Ollama Benefits:** Eliminates server-level contention (0.74% vs Python's 10-15%)
 2. **Tokio Efficiency:** Work-stealing scheduler optimally distributes I/O-bound tasks
 3. **Consistent Performance:** Rust achieves 98.281% mean efficiency vs Python's 95.8% (+2.48pp)
 
-**Revised Conclusion:**  
+**Revised Conclusion:**
 Multi-agent coordination overhead exists (~1-2%), but is **not the primary driver** of Rust's loss of advantage. The main factor is likely **workload characteristic differences** between single-agent and multi-agent scenarios.
 
 ### 6.4 Production Implications
@@ -636,23 +636,23 @@ Multi-agent coordination overhead exists (~1-2%), but is **not the primary drive
 
 **Optimal Strategy: Hybrid Architecture**
 ```
-┌─────────────────────────────────────────────┐
-│ Python Orchestrator (FastAPI)              │
-│ - Receives requests                         │
-│ - Routes to Rust workers                    │
-│ - Aggregates results                        │
-│ - Lightweight async coordination            │
-└─────────────┬───────────────────────────────┘
-              │
-         ┌────┴────┐
-         ▼         ▼
-    ┌────────┐ ┌────────┐
-    │ Rust   │ │ Rust   │
-    │ Worker │ │ Worker │
-    │ Agent  │ │ Agent  │
-    │ (15%   │ │ (15%   │
-    │ faster)│ │ faster)│
-    └────────┘ └────────┘
++---------------------------------------------+
+| Python Orchestrator (FastAPI)              |
+| - Receives requests                         |
+| - Routes to Rust workers                    |
+| - Aggregates results                        |
+| - Lightweight async coordination            |
++-------------+-------------------------------+
+              |
+         +----+----+
+         v         v
+    +--------+ +--------+
+    | Rust   | | Rust   |
+    | Worker | | Worker |
+    | Agent  | | Agent  |
+    | (15%   | | (15%   |
+    | faster)| | faster)|
+    +--------+ +--------+
 ```
 
 **Benefits:**
@@ -735,27 +735,27 @@ contention_risk = "Very Low"
 ### 7.2 Configuration Decision Tree
 
 ```
-                    ┌──────────────────────┐
-                    │  VRAM Available?     │
-                    └──────────┬───────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    │                     │
+                    +----------------------+
+                    |  VRAM Available?     |
+                    +----------+-----------+
+                               |
+                    +----------+----------+
+                    |                     |
                 < 10GB                > 10GB
-                    │                     │
-         ┌──────────┴─────────┐          │
-         │                    │          │
-    Latency-Critical?    Cost-Sensitive? │
-         │                    │          │
-        Yes                  Yes         │
-         │                    │          │
-    Baseline+Chimera     Homo ctx512    │
-    (Tier 3)             gpu60/80       │
-                                        │
-                               ┌────────┴────────┐
-                               │                 │
+                    |                     |
+         +----------+---------+          |
+         |                    |          |
+    Latency-Critical?    Cost-Sensitive? |
+         |                    |          |
+        Yes                  Yes         |
+         |                    |          |
+    Baseline+Chimera     Homo ctx512    |
+    (Tier 3)             gpu60/80       |
+                                        |
+                               +--------+--------+
+                               |                 |
                           Quality Focus    Performance Focus
-                               │                 │
+                               |                 |
                           Homo ctx2048      Hetero gpu120/140
                           (Tier 2)          (Tier 1)
 ```
@@ -770,7 +770,7 @@ contention_risk = "Very Low"
 **Anti-Pattern 2: Low Temperature in Homo Configs**
 - **Observed:** test100 (temp=0.6) @ 94.23% (one 75% outlier)
 - **Cause:** Unknown, but temp=0.8/1.0 more stable
-- **Fix:** Use temp ≥ 0.8 for production
+- **Fix:** Use temp >= 0.8 for production
 
 **Anti-Pattern 3: Single Ollama Instance**
 - **TR113 Result:** 82.2% peak efficiency (63% contention rate)
@@ -795,7 +795,7 @@ contention_risk = "Very Low"
 - **Efficiency:** 99.25%
 - **Per-Agent Throughput:** ~42 tok/s
 - **Memory per Agent:** 250 MB
-- **Instances Required:** 8 × 8GB RAM @ $50/month = **$400/month**
+- **Instances Required:** 8 x 8GB RAM @ $50/month = **$400/month**
 - **Total Cost:** $400/month
 
 **Rust Multi-Agent Deployment:**
@@ -803,10 +803,10 @@ contention_risk = "Very Low"
 - **Efficiency:** 99.396%
 - **Per-Agent Throughput:** ~42 tok/s (same as Python)
 - **Memory per Agent:** 75 MB
-- **Instances Required:** 4 × 8GB RAM @ $50/month = **$200/month**
+- **Instances Required:** 4 x 8GB RAM @ $50/month = **$200/month**
 - **Total Cost:** $200/month
 
-**Monthly Savings:** $200 (50% cost reduction from memory efficiency)  
+**Monthly Savings:** $200 (50% cost reduction from memory efficiency)
 **Annual Savings:** $2,400
 
 **But Wait:** This ignores single-agent potential...
@@ -816,27 +816,27 @@ contention_risk = "Very Low"
 **Optimal Architecture:** Python Orchestrator + Rust Single-Agent Workers
 
 ```
-┌─────────────────────────────────────┐
-│ Python FastAPI Orchestrator         │
-│ - 1 instance, 2GB RAM ($25/month)   │
-│ - Handles routing, aggregation      │
-└────────────┬────────────────────────┘
-             │
-        ┌────┴─────┐
-        ▼          ▼
-   ┌─────────┐ ┌─────────┐
-   │ Rust    │ │ Rust    │
-   │ Single  │ │ Single  │
-   │ Agent   │ │ Agent   │
-   │ Workers │ │ Workers │
-   │ (114.54 │ │ (114.54 │
-   │ tok/s)  │ │ tok/s)  │
-   └─────────┘ └─────────┘
++-------------------------------------+
+| Python FastAPI Orchestrator         |
+| - 1 instance, 2GB RAM ($25/month)   |
+| - Handles routing, aggregation      |
++------------+------------------------+
+             |
+        +----+-----+
+        v          v
+   +---------+ +---------+
+   | Rust    | | Rust    |
+   | Single  | | Single  |
+   | Agent   | | Agent   |
+   | Workers | | Workers |
+   | (114.54 | | (114.54 |
+   | tok/s)  | | tok/s)  |
+   +---------+ +---------+
 ```
 
 **Cost Calculation:**
-- **Orchestrator:** 1 × 2GB ($25/month)
-- **Workers:** 4 × 4GB @ $40/month = $160/month (Rust single-agent, 75 MB each, 114.54 tok/s)
+- **Orchestrator:** 1 x 2GB ($25/month)
+- **Workers:** 4 x 4GB @ $40/month = $160/month (Rust single-agent, 75 MB each, 114.54 tok/s)
 - **Total:** $185/month
 
 **Comparison:**
@@ -844,7 +844,7 @@ contention_risk = "Very Low"
 - Rust multi-agent: $200/month
 - **Hybrid (Python orchestrator + Rust workers): $185/month**
 
-**Annual Savings (Hybrid vs Python multi-agent):** **$2,580** (64% reduction)  
+**Annual Savings (Hybrid vs Python multi-agent):** **$2,580** (64% reduction)
 **Annual Savings (Hybrid vs Rust multi-agent):** **$180** (8% reduction)
 
 **Performance:**
@@ -930,7 +930,7 @@ contention_risk = "Very Low"
 - **Goal:** Prove Rust multi-agent viability
 
 **Phase 3: Gradual Migration (Months 5-8)**
-- Increase Rust traffic: 25% → 50% → 75% → 100%
+- Increase Rust traffic: 25% -> 50% -> 75% -> 100%
 - Monitor cost savings accumulation
 - Decommission Python infrastructure
 - **Goal:** Full migration, realize cost savings
@@ -938,7 +938,7 @@ contention_risk = "Very Low"
 **Phase 4: Hybrid Evolution (Months 9-12+)**
 - **Option A:** Stay with Rust multi-agent (lower TCO, proven)
 - **Option B:** Evolve to hybrid (Python orchestrator + Rust workers)
-  - Refactor Rust multi-agent → Rust single-agent workers
+  - Refactor Rust multi-agent -> Rust single-agent workers
   - Build Python FastAPI orchestration layer
   - Gain 15% performance improvement
 - **Decision:** Based on performance requirements and budget
@@ -961,7 +961,7 @@ contention_risk = "Very Low"
 **Cost Metrics:**
 - Cost per 1K multi-agent executions (target: Rust <50% of Python)
 - Memory utilization (target: Rust <100MB per agent, Python <300MB)
-- Instance count (target: Rust ≤50% of Python)
+- Instance count (target: Rust <=50% of Python)
 
 **SLA Targets:**
 - **Availability:** 99.9% uptime
@@ -998,7 +998,7 @@ contention_risk = "Very Low"
 - Prevents Tokio work-stealing starvation
 - Improves efficiency by 1-2pp over symmetric
 
-**Best Practice 3: Temperature ≥ 0.8**
+**Best Practice 3: Temperature >= 0.8**
 - Lower temperatures (0.6) show instability in homo configs
 - temp=0.8 or 1.0 more consistent
 - Quality impact: Minimal (validated in TR111_v2)
@@ -1042,48 +1042,48 @@ contention_risk = "Very Low"
 ### 10.2 Production Recommendations
 
 **Immediate Actions (Month 1):**
-1. ✅ **Deploy Python multi-agent** for fastest time-to-market
-2. ✅ **Use dual Ollama** (mandatory for either language)
-3. ✅ **Establish baseline metrics** (efficiency, cost, latency)
+1. PASS **Deploy Python multi-agent** for fastest time-to-market
+2. PASS **Use dual Ollama** (mandatory for either language)
+3. PASS **Establish baseline metrics** (efficiency, cost, latency)
 
 **Short-Term (Months 2-6):**
-1. ✅ **Pilot Rust multi-agent** on 10% traffic
-2. ✅ **Validate 99% efficiency** in production
-3. ✅ **Measure cost savings** (target: 50% reduction)
-4. ⚠️ **Decide migration** based on ROI (33-month break-even)
+1. PASS **Pilot Rust multi-agent** on 10% traffic
+2. PASS **Validate 99% efficiency** in production
+3. PASS **Measure cost savings** (target: 50% reduction)
+4. WARNING **Decide migration** based on ROI (33-month break-even)
 
 **Medium-Term (Months 6-12):**
-1. ✅ **Full Rust multi-agent migration** (if pilot successful)
-2. ✅ **Realize cost savings** ($2,400/year)
-3. ⚠️ **Evaluate hybrid evolution** (if 15% performance gain justifies $19k dev cost)
+1. PASS **Full Rust multi-agent migration** (if pilot successful)
+2. PASS **Realize cost savings** ($2,400/year)
+3. WARNING **Evaluate hybrid evolution** (if 15% performance gain justifies $19k dev cost)
 
 **Long-Term (Year 2+):**
-1. ⚠️ **Consider hybrid architecture** (Python orchestrator + Rust workers)
-2. ✅ **Optimize further** (TR115 runtime tuning, prompt optimization)
-3. ✅ **Scale horizontally** leveraging Rust's memory efficiency
+1. WARNING **Consider hybrid architecture** (Python orchestrator + Rust workers)
+2. PASS **Optimize further** (TR115 runtime tuning, prompt optimization)
+3. PASS **Scale horizontally** leveraging Rust's memory efficiency
 
 ### 10.3 When to Choose Each Approach
 
 **Choose Python Multi-Agent When:**
-- ✅ **Rapid time-to-market** is priority
-- ✅ **Development velocity** > cost savings
-- ✅ **Team expertise** is Python-heavy
-- ✅ **Ecosystem integration** is critical
-- ⚠️ **Budget allows** higher operational costs ($400/month vs $200/month)
+- PASS **Rapid time-to-market** is priority
+- PASS **Development velocity** > cost savings
+- PASS **Team expertise** is Python-heavy
+- PASS **Ecosystem integration** is critical
+- WARNING **Budget allows** higher operational costs ($400/month vs $200/month)
 
 **Choose Rust Multi-Agent When:**
-- ✅ **Cost optimization** is priority (50% infrastructure savings)
-- ✅ **Memory efficiency** is critical (67% less per agent)
-- ✅ **Type safety** and reliability are valued
-- ✅ **Long-term deployment** (>3 years to break even)
-- ✅ **Team has Rust expertise** or willing to invest
+- PASS **Cost optimization** is priority (50% infrastructure savings)
+- PASS **Memory efficiency** is critical (67% less per agent)
+- PASS **Type safety** and reliability are valued
+- PASS **Long-term deployment** (>3 years to break even)
+- PASS **Team has Rust expertise** or willing to invest
 
 **Choose Hybrid Architecture When:**
-- ✅ **Performance is critical** (15% faster per agent)
-- ✅ **Budget allows higher dev cost** ($19k additional)
-- ✅ **Long-term strategic** (>5 years to break even)
-- ✅ **Architectural flexibility** valued
-- ✅ **Best-of-both-worlds** justified
+- PASS **Performance is critical** (15% faster per agent)
+- PASS **Budget allows higher dev cost** ($19k additional)
+- PASS **Long-term strategic** (>5 years to break even)
+- PASS **Architectural flexibility** valued
+- PASS **Best-of-both-worlds** justified
 
 ### 10.4 Final Verdict
 
@@ -1193,13 +1193,13 @@ where sequential_estimated_time = agent1_time + agent2_time
 
 **Parallel Efficiency:**
 ```
-efficiency = (speedup / num_agents) × 100%
+efficiency = (speedup / num_agents) x 100%
 where num_agents = 2
 ```
 
 **Coefficient of Variation:**
 ```
-CV = (stddev / mean) × 100%
+CV = (stddev / mean) x 100%
 ```
 
 **Throughput Delta:**
@@ -1214,7 +1214,7 @@ contention = (agent_ttft > baseline_ttft + 3000ms)
 
 ### Appendix D: Glossary
 
-- **Concurrency Speedup:** Ratio of sequential time to concurrent time (ideal = 2.0× for 2 agents)
+- **Concurrency Speedup:** Ratio of sequential time to concurrent time (ideal = 2.0x for 2 agents)
 - **Parallel Efficiency:** Percentage of theoretical maximum speedup achieved
 - **TTFT:** Time-to-First-Token (latency from request to first generated token)
 - **Throughput:** Tokens generated per second (eval phase only)
@@ -1242,9 +1242,9 @@ Special thanks to the Ollama team for robust local LLM inference, and the Rust/T
 
 ---
 
-**Document Version:** 2.0  
-**Last Updated:** 2025-11-15  
-**Status:** Final  
+**Document Version:** 2.0
+**Last Updated:** 2025-11-15
+**Status:** Final
 **Supersedes:** Technical Report 113, Technical Report 114 (v1)
 
 ---

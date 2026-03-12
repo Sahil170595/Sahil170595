@@ -2,12 +2,12 @@
 
 ## A dissertation-style synthesis of single-agent optimization, cross-language migration, multi-agent coordination, runtime analysis, and cross-model validation
 
-Project: Banterhearts LLM Performance Research
-Date: 2025-12-28
-Author: Research Team
-Report Type: Conclusive synthesis across TR108-TR116 (artifact-backed)
-Scope: TR108, TR109, TR110, TR111_v2, TR112_v2, TR113, TR114_v2, TR115_v2, TR116
-Primary Sources:
+Project: Banterhearts LLM Performance Research  
+Date: 2025-12-28  
+Author: Research Team  
+Report Type: Conclusive synthesis across TR108-TR116 (artifact-backed)  
+Scope: TR108, TR109, TR110, TR111_v2, TR112_v2, TR113, TR114_v2, TR115_v2, TR116  
+Primary Sources:  
 - PublishReady/reports/Technical_Report_108.md
 - PublishReady/reports/Technical_Report_109.md
 - PublishReady/reports/Technical_Report_110.md
@@ -1742,7 +1742,7 @@ The following investigations address specific gaps identified in this synthesis:
 
 2. **Linux validation.** All measurements are Windows-only. A controlled replication on Linux (Ubuntu 22.04 or later) with identical hardware would establish whether the Rust-vs-Python efficiency rankings and the dual Ollama advantage transfer across operating systems. This is particularly important because production deployments overwhelmingly target Linux.
 
-3. **Server GPU validation.** The RTX 4080 Laptop GPU has different memory bandwidth, thermal envelope, and clock behavior compared to datacenter GPUs (A100, H100, L40S). A replication study on server-class hardware would determine whether the architectural conclusions (dual Ollama, Rust advantage) hold at higher VRAM and bandwidth tiers.
+3. **Server GPU validation.** The RTX 4080 Laptop GPU has different memory bandwidth, thermal envelope, and clock behavior compared to datacenter GPUs (A100, H_100, L40S). A replication study on server-class hardware would determine whether the architectural conclusions (dual Ollama, Rust advantage) hold at higher VRAM and bandwidth tiers.
 
 4. **Quality-adjusted throughput.** The program measures tokens per second but not quality per token. A combined metric that weights throughput by output quality (measured via task completion rate, factual accuracy, or human evaluation) would provide a more complete basis for model routing and configuration decisions. This directly connects to TR124's quality baseline work.
 
@@ -2729,8 +2729,8 @@ Date:             YYYY-MM-DD
 Decision:         [One-sentence summary]
 Context:          [Business context and constraints]
 Options Evaluated:
-  1. [Option A] — [Pros] / [Cons]
-  2. [Option B] — [Pros] / [Cons]
+  1. [Option A] -- [Pros] / [Cons]
+  2. [Option B] -- [Pros] / [Cons]
 Decision:         [Selected option]
 Evidence:         [TR numbers and key metrics]
 Risk:             [Primary risk and mitigation]

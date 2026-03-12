@@ -5,10 +5,10 @@
 **Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), 13th Gen Intel i9  
 **Test Duration:** Multi-day comprehensive parameter sweep  
 **Total Configurations Tested:** 19 (1 baseline + 18 parameter variations)  
-**Total Benchmark Runs:** 57 (3 runs × 19 configurations)  
+**Total Benchmark Runs:** 57 (3 runs x 19 configurations)  
 **Model:** gemma3:latest  
 **Language:** Rust 1.90.0 (x86_64-pc-windows-msvc)  
-**Related Work:** [Technical Report 109](Technical_Report_109.md), [Technical Report 110](Technical_Report_110.md), [Technical Report 115](Technical_Report_115.md)
+**Related Work:** [Technical Report 109](Technical_Report_109.md), [Technical Report 110](Technical_Report_110.md), [Technical Report 115](Technical_Report_115.md)  
 
 ---
 
@@ -16,7 +16,7 @@
 
 This technical report presents the first comprehensive performance analysis of Rust-based multi-step LLM agent workflows with full parity to Python agent implementations (TR109). Following the upgrade from micro-benchmark to production-grade workflow implementation (documented in TR115), this study evaluates 19 distinct configurations across multiple parameter dimensions to identify optimal settings for Rust agent performance.
 
-**Critical Context:**  
+**Critical Context:**
 Previous TR111 (now superseded) analyzed a simplified Rust implementation that performed only single LLM calls without file I/O or multi-step workflows. This v2 report analyzes the upgraded Rust agent that matches Python's full workflow: file system scanning, data ingestion, multi-stage LLM analysis (analysis + report generation), and comprehensive metric tracking.
 
 ### Key Findings
@@ -72,20 +72,20 @@ The Rust agent implementation achieves performance parity with Python while demo
 
 ### 1.1 Project Context & Evolution
 
-**Historical Context:**  
+**Historical Context:**
 The original TR111 analyzed a simplified Rust agent performing single LLM inference calls. This approach created an unfair comparison with Python agents (TR109), which performed complete multi-step workflows including:
 - File system scanning and ingestion
 - Data parsing (CSV, JSON, Markdown)
-- Multi-stage LLM calls (analysis → report generation)
+- Multi-stage LLM calls (analysis -> report generation)
 - Comprehensive metric collection
 
-**Critical Upgrade (TR115):**  
+**Critical Upgrade (TR115):**
 The Rust agent was completely refactored to achieve functional parity with Python agents:
 
 ```rust
 // Before (TR111 v1): Single LLM call micro-benchmark
 async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<AgentExecution> {
-    let call = call_ollama_streaming(client, &config.base_url, &config.model, 
+    let call = call_ollama_streaming(client, &config.base_url, &config.model,
                                       "Simple prompt", &config.options).await?;
     // ... return results
 }
@@ -93,23 +93,23 @@ async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<Age
 // After (TR111 v2): Full workflow matching Python
 async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<AgentExecution> {
     let repo_root = repository_root();
-    
+
     // Phase 1: File system scanning + ingestion
     let ingest_start = Instant::now();
     let benchmark_data = ingest_benchmarks(&repo_root).await?;
     let ingest_duration = ingest_start.elapsed().as_secs_f64();
-    
+
     // Phase 2: Multi-stage LLM workflow
     let data_summary = create_data_summary(&benchmark_data);
-    
+
     // LLM Call 1: Analysis
     let analysis_prompt = build_analysis_prompt(&data_summary);
     let analysis_call = call_ollama_streaming(/*...*/).await?;
-    
+
     // LLM Call 2: Report Generation
     let report_prompt = build_report_prompt(&analysis)?;
     let report_call = call_ollama_streaming(/*...*/).await?;
-    
+
     // Phase 3: Comprehensive metrics
     let workflow = WorkflowBreakdown {
         ingest_seconds, analysis_seconds, report_seconds, total_seconds
@@ -186,12 +186,12 @@ The Rust agent performs the following workflow (matching Python TR109):
 ```rust
 pub async fn ingest_benchmarks(root: &Path) -> Result<BenchmarkDataset> {
     let mut dataset = BenchmarkDataset::default();
-    
+
     // Scan file system
     for entry in WalkDir::new(root).follow_links(false) {
         let entry = entry?;
         let path = entry.path();
-        
+
         // Parse by file type
         match path.extension().and_then(|s| s.to_str()) {
             Some("csv") => dataset.csv_files.push(parse_csv(path).await?),
@@ -200,7 +200,7 @@ pub async fn ingest_benchmarks(root: &Path) -> Result<BenchmarkDataset> {
             _ => {}
         }
     }
-    
+
     Ok(dataset)
 }
 ```
@@ -245,7 +245,7 @@ pub struct LlmCallRecord {
 
 **Data Collection:**
 - **Per-Run Metrics:** TTFT, throughput, load duration, eval duration, prompt eval duration, total duration, tokens generated
-- **Aggregate Metrics:** Mean ± StdDev for throughput and TTFT across 3 runs
+- **Aggregate Metrics:** Mean +/- StdDev for throughput and TTFT across 3 runs
 - **Workflow Metrics:** Ingest time, analysis time, report time (when available in detailed logs)
 - **Full Artifacts:** Complete prompts, responses, and metadata stored in JSON
 
@@ -266,11 +266,11 @@ let duration = overall_start.elapsed().as_secs_f64();
 **Metrics Calculated:**
 - **Throughput:** tokens_generated / eval_duration_seconds
 - **TTFT:** Time from request start to first token (includes model load + prompt eval + first token)
-- **Coefficient of Variation:** (stddev / mean) × 100%
+- **Coefficient of Variation:** (stddev / mean) x 100%
 
 **Statistical Validation:**
 - **Runs per Config:** 3 (limited by cost/time)
-- **Confidence:** Mean ± StdDev reported
+- **Confidence:** Mean +/- StdDev reported
 - **CV Target:** <5% for production-grade measurements (partially achieved for throughput)
 
 ---
@@ -301,7 +301,7 @@ let duration = overall_start.elapsed().as_secs_f64();
 | `gpu120_ctx1024_temp0p6` | 120 | 1024 | 0.6 | 3 | High resource, large context |
 | `gpu120_ctx1024_temp0p8` | 120 | 1024 | 0.8 | 3 | High resource, large context, creative |
 
-**Total Runs:** 19 configs × 3 runs = 57 executions
+**Total Runs:** 19 configs x 3 runs = 57 executions
 
 ### 3.2 Configuration Rationale
 
@@ -394,7 +394,7 @@ let duration = overall_start.elapsed().as_secs_f64();
 - No outliers (all configs within 1 StdDev)
 - GPU layers, context size, and temperature have minimal impact on throughput
 
-**Statistical Conclusion:**  
+**Statistical Conclusion:**
 Throughput is **hardware-dominated** and configuration-**insensitive** for this workload. The RTX 4080's inference performance remains consistent regardless of parameter selection within tested ranges.
 
 ### 5.2 TTFT Distribution
@@ -406,18 +406,19 @@ Throughput is **hardware-dominated** and configuration-**insensitive** for this 
 - **Range:** 750.61 ms (603.53 - 1354.14)
 - **CV:** 14.8% (high variance)
 
-**Baseline Anomaly:**  
+**Baseline Anomaly:**
 The `baseline_default` configuration shows exceptionally low TTFT (603.53 ms) with low variance (10.1% CV), while all optimized configurations cluster around 1250-1350ms with high variance (130-138% CV). This suggests:
 1. Ollama default settings minimize model load/initialization overhead
 2. Custom configurations introduce additional latency (possibly extra parameter validation or memory allocation)
 3. High TTFT CV driven by first-run cold start effects
 
-**Statistical Conclusion:**  
+**Statistical Conclusion:**
 TTFT is **configuration-sensitive** and **run-order dependent**. The 130%+ CV indicates first-run cold start dominates TTFT measurements. Multi-run averaging is essential for reliable TTFT characterization.
 
 ### 5.3 Configuration Sensitivity Matrix
 
 **Throughput Sensitivity:**
+
 | Parameter | Impact | Magnitude |
 |-----------|--------|-----------|
 | GPU Layers | Minimal | 0.3% max delta |
@@ -425,6 +426,7 @@ TTFT is **configuration-sensitive** and **run-order dependent**. The 130%+ CV in
 | Temperature | Minimal | 0.4% max delta |
 
 **TTFT Sensitivity:**
+
 | Parameter | Impact | Magnitude |
 |-----------|--------|-----------|
 | GPU Layers | Moderate | ~50ms range (non-baseline) |
@@ -432,7 +434,7 @@ TTFT is **configuration-sensitive** and **run-order dependent**. The 130%+ CV in
 | Temperature | Low | ~20ms range (non-baseline) |
 | Configuration Type | **High** | ~700ms (baseline vs. custom) |
 
-**Key Insight:**  
+**Key Insight:**
 Within custom configurations, parameter selection has minimal impact on both throughput and TTFT. The largest impact comes from using **Ollama defaults vs. any custom configuration**.
 
 ---
@@ -455,7 +457,7 @@ Within custom configurations, parameter selection has minimal impact on both thr
 
 **Delta:** 20.36 ms (1.6% variation) - **Minimal impact**
 
-**Conclusion:**  
+**Conclusion:**
 GPU layer allocation has **negligible impact** on performance within the 60-120 range for this model/hardware combination. This contradicts TR108 findings for single inference (999 layers optimal) but aligns with TR109 agent workflow findings (60-80 layers optimal). The difference suggests agent workflows benefit from lower GPU layer allocations, possibly due to:
 - Reduced memory pressure for multi-stage operations
 - Better CPU-GPU balance for file I/O phases
@@ -477,7 +479,7 @@ GPU layer allocation has **negligible impact** on performance within the 60-120 
 
 **Delta:** 11.98 ms (0.9% variation) - **Not significant**
 
-**Conclusion:**  
+**Conclusion:**
 Context size has **no measurable impact** on throughput or TTFT within tested ranges. This suggests:
 - The agent's prompts fit comfortably within all context sizes
 - Ollama's prompt handling is context-size agnostic for these workloads
@@ -497,24 +499,24 @@ Context size has **no measurable impact** on throughput or TTFT within tested ra
 
 **Delta:** 2.85 ms (0.2% variation) - **Not significant**
 
-**Conclusion:**  
+**Conclusion:**
 Temperature has **no impact on performance metrics**, as expected (temperature affects sampling strategy, not inference speed). However, temperature is expected to impact output quality (tested in Section 7).
 
 ### 6.4 Interaction Effects
 
-**GPU × Context Interaction:**
+**GPU x Context Interaction:**
 No significant interaction detected. All GPU/context combinations perform within 1% of mean.
 
-**GPU × Temperature Interaction:**
+**GPU x Temperature Interaction:**
 No significant interaction detected.
 
-**Context × Temperature Interaction:**
+**Context x Temperature Interaction:**
 No significant interaction detected.
 
-**Three-Way Interaction (GPU × Context × Temperature):**
+**Three-Way Interaction (GPU x Context x Temperature):**
 No significant interaction detected.
 
-**Statistical Conclusion:**  
+**Statistical Conclusion:**
 Parameters operate **independently** with no meaningful interaction effects on performance metrics. This simplifies optimization: any combination of tested parameters yields equivalent performance.
 
 ---
@@ -540,7 +542,7 @@ Manual inspection of generated reports from representative configurations:
 
 **Baseline Default Output:**
 ```markdown
-# Technical Report 108: Gemma3 Benchmark Analysis – October - November 2025
+# Technical Report 108: Gemma3 Benchmark Analysis -- October - November 2025
 
 **1. Executive Summary**
 This report details the analysis of a dataset of 101 benchmark files...
@@ -550,10 +552,10 @@ This report details the analysis of a dataset of 101 benchmark files...
 ```
 
 **Quality Score: 9/10**
-- ✅ Excellent structure (proper markdown, clear sections)
-- ✅ Accurate analysis (correctly identifies gemma3 focus)
-- ✅ Complete coverage (all requested sections)
-- ⚠️ Slightly verbose (could be more concise)
+- PASS Excellent structure (proper markdown, clear sections)
+- PASS Accurate analysis (correctly identifies gemma3 focus)
+- PASS Complete coverage (all requested sections)
+- WARNING Slightly verbose (could be more concise)
 
 **GPU60 CTX256 TEMP0.6 Output:**
 ```markdown
@@ -570,10 +572,10 @@ This report analyzes a dataset of 101 files...
 ```
 
 **Quality Score: 8/10**
-- ✅ Good structure (clear hierarchy)
-- ✅ Relevant analysis (identifies key patterns)
-- ✅ Appropriate length
-- ⚠️ Less technical depth than baseline
+- PASS Good structure (clear hierarchy)
+- PASS Relevant analysis (identifies key patterns)
+- PASS Appropriate length
+- WARNING Less technical depth than baseline
 
 **GPU120 CTX1024 TEMP0.6 Output:**
 ```markdown
@@ -591,10 +593,10 @@ This report analyzes a substantial collection (101 files) of benchmark data...
 ```
 
 **Quality Score: 9/10**
-- ✅ Excellent structure with tables
-- ✅ Data-driven analysis (includes metrics)
-- ✅ Professional formatting
-- ✅ Comprehensive coverage
+- PASS Excellent structure with tables
+- PASS Data-driven analysis (includes metrics)
+- PASS Professional formatting
+- PASS Comprehensive coverage
 
 ### 7.3 Quality vs Configuration Analysis
 
@@ -622,7 +624,7 @@ No observable impact on output quality across 60/80/120 GPU layer configurations
 3. Context size and GPU layers have **no impact on quality** within tested ranges
 4. **Quality-performance trade-off is minimal** - optimization can focus on performance metrics
 
-**Production Recommendation:**  
+**Production Recommendation:**
 `gpu60_ctx256_temp0p6` provides optimal balance: lowest resource usage, consistent quality, competitive performance.
 
 ---
@@ -637,11 +639,11 @@ class BaselineAgent(BaseAgent):
     async def run_analysis(self) -> Dict:
         # Phase 1: Data ingestion
         benchmark_data = await self.ingest_benchmarks()
-        
+
         # Phase 2: Multi-stage LLM
         analysis = await self.analyze_data(benchmark_data)
         report = await self.generate_report(analysis)
-        
+
         # Phase 3: Metrics
         return self.get_metrics()
 ```
@@ -651,29 +653,30 @@ class BaselineAgent(BaseAgent):
 async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<AgentExecution> {
     // Phase 1: Data ingestion
     let benchmark_data = ingest_benchmarks(&repo_root).await?;
-    
+
     // Phase 2: Multi-stage LLM
     let analysis_call = call_ollama_streaming(/* analysis prompt */).await?;
     let report_call = call_ollama_streaming(/* report prompt */).await?;
-    
+
     // Phase 3: Metrics
     Ok(AgentExecution { /* comprehensive metrics */ })
 }
 ```
 
 **Parity Checklist:**
-- ✅ File system scanning
-- ✅ CSV/JSON/Markdown parsing
-- ✅ Multi-stage LLM calls (analysis + report)
-- ✅ Comprehensive metric tracking
-- ✅ Full prompt/response logging
-- ✅ Statistical aggregation (3 runs)
+- PASS File system scanning
+- PASS CSV/JSON/Markdown parsing
+- PASS Multi-stage LLM calls (analysis + report)
+- PASS Comprehensive metric tracking
+- PASS Full prompt/response logging
+- PASS Statistical aggregation (3 runs)
 
 **Conclusion:** **Full workflow parity achieved.**
 
 ### 8.2 Performance Comparison
 
 **Throughput Comparison:**
+
 | Implementation | Baseline Throughput | Best Optimized | Improvement |
 |----------------|---------------------|----------------|-------------|
 | **Python (TR109)** | ~110-115 tok/s | ~115-118 tok/s | +2-5% |
@@ -685,6 +688,7 @@ async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<Age
 - **Inference-bound workload:** LLM inference dominates, language overhead minimal
 
 **TTFT Comparison:**
+
 | Implementation | Baseline TTFT | TTFT Range | CV |
 |----------------|---------------|------------|-----|
 | **Python (TR109)** | ~500-800 ms | 500-5000 ms | 15-180% |
@@ -705,12 +709,12 @@ async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<Age
 **Startup Time:**
 - **Python:** ~1-2 seconds (import dependencies, initialize httpx)
 - **Rust:** ~0.1-0.3 seconds (single binary execution)
-- **Advantage:** Rust is **5-10× faster startup**
+- **Advantage:** Rust is **5-10x faster startup**
 
 **Binary Size:**
 - **Python:** ~100+ MB (venv with dependencies)
 - **Rust:** ~15-20 MB (optimized release binary)
-- **Advantage:** Rust is **5× smaller deployment**
+- **Advantage:** Rust is **5x smaller deployment**
 
 ### 8.4 Production Readiness Comparison
 
@@ -724,7 +728,7 @@ async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<Age
 | **Type Safety** | Runtime errors possible | Compile-time guarantees | **Rust** |
 | **Error Handling** | Exceptions (can be missed) | Result types (enforced) | **Rust** |
 
-**Overall Assessment:**  
+**Overall Assessment:**
 Rust provides significant **operational advantages** (deployment, resource usage) with **equivalent performance** for LLM inference workloads. Python retains edge in **development velocity**.
 
 ### 8.5 Cost Analysis (Inference at Scale)
@@ -732,13 +736,13 @@ Rust provides significant **operational advantages** (deployment, resource usage
 **Scenario:** 1M agent executions per month
 
 **Python Deployment:**
-- Infrastructure: 4 × 8GB RAM instances (~$200/month)
-- Startup overhead: ~1.5 seconds × 1M = 416 hours wasted
+- Infrastructure: 4 x 8GB RAM instances (~$200/month)
+- Startup overhead: ~1.5 seconds x 1M = 416 hours wasted
 - Memory overhead: 250 MB per agent
 
 **Rust Deployment:**
-- Infrastructure: 2 × 4GB RAM instances (~$80/month)
-- Startup overhead: ~0.2 seconds × 1M = 56 hours
+- Infrastructure: 2 x 4GB RAM instances (~$80/month)
+- Startup overhead: ~0.2 seconds x 1M = 56 hours
 - Memory overhead: 75 MB per agent
 
 **Monthly Savings:** ~$120 + reduced latency
@@ -846,7 +850,7 @@ cargo run --release -- compare baseline_default optimized
 - Track TTFT p50, p95, p99
 - Monitor throughput trends
 - Quality spot-checks (sample outputs)
-- Cost tracking (inference time × rate)
+- Cost tracking (inference time x rate)
 
 ### 9.3 Advanced Optimization Techniques
 
@@ -892,7 +896,7 @@ fn get_cached_prompt(key: &str) -> &'static str {
 // Process tokens as they arrive (future enhancement)
 async fn stream_process(client: &ClientType) -> Result<()> {
     let mut stream = client.post(url).send().await?.bytes_stream();
-    
+
     while let Some(chunk) = stream.next().await {
         let chunk = chunk?;
         // Process chunk immediately
@@ -905,27 +909,27 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 ### 9.4 Configuration Selection Decision Tree
 
 ```
-                   ┌─────────────────────┐
-                   │   VRAM Available?   │
-                   └──────────┬──────────┘
-                              │
-                   ┌──────────┴──────────┐
-                   │                     │
+                   +---------------------+
+                   |   VRAM Available?   |
+                   +----------+----------+
+                              |
+                   +----------+----------+
+                   |                     |
               < 6GB VRAM              > 6GB VRAM
-                   │                     │
-         ┌─────────┴─────────┐         │
-         │                   │         │
-    Latency Critical?   Batch Only?    │
-         │                   │         │
-        Yes                 Yes        │
-         │                   │         │
-    GPU60 + CTX256      GPU60 + CTX512 │
-    TEMP0.6 (Tier 1)    TEMP0.6        │
-                                       │
-                              ┌────────┴────────┐
-                              │                 │
+                   |                     |
+         +---------+---------+         |
+         |                   |         |
+    Latency Critical?   Batch Only?    |
+         |                   |         |
+        Yes                 Yes        |
+         |                   |         |
+    GPU60 + CTX256      GPU60 + CTX512 |
+    TEMP0.6 (Tier 1)    TEMP0.6        |
+                                       |
+                              +--------+--------+
+                              |                 |
                          Balanced        Maximum Throughput
-                              │                 │
+                              |                 |
                          GPU80 + CTX512    GPU120 + CTX1024
                          TEMP0.6 (Tier 2)  TEMP0.6 (Tier 3)
 ```
@@ -937,6 +941,7 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 ### 10.1 Cost-Benefit Analysis
 
 **Development Costs:**
+
 | Item | Python | Rust | Delta |
 |------|--------|------|-------|
 | Initial Development | $10k (2 weeks) | $15k (3 weeks) | +$5k |
@@ -944,6 +949,7 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 | **Total Development** | **$15k** | **$20k** | **+$5k** |
 
 **Operational Savings (Annual):**
+
 | Item | Python | Rust | Savings |
 |------|--------|------|---------|
 | Infrastructure (1M req/mo) | $2,400 | $960 | **$1,440** |
@@ -964,15 +970,16 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 ### 10.2 Performance Impact on User Experience
 
 **Latency Improvements:**
+
 | Metric | Before (Python) | After (Rust) | Impact |
 |--------|----------------|-------------|--------|
-| Cold Start | 1.5s | 0.2s | **-87%** → instant response feel |
-| Memory per Agent | 250 MB | 75 MB | **3× density** → more concurrent users |
-| TTFT (warm) | 600-800ms | 600ms | Comparable → no user impact |
+| Cold Start | 1.5s | 0.2s | **-87%** -> instant response feel |
+| Memory per Agent | 250 MB | 75 MB | **3x density** -> more concurrent users |
+| TTFT (warm) | 600-800ms | 600ms | Comparable -> no user impact |
 
 **User Experience Translation:**
 - **Page Load:** 1.3s faster (cold start)
-- **Concurrent Users:** 3× capacity increase (memory efficiency)
+- **Concurrent Users:** 3x capacity increase (memory efficiency)
 - **Response Quality:** Equivalent (validated in Section 7)
 
 **Business Metrics Impact:**
@@ -988,7 +995,7 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 - **Success Criteria:** No regression in quality, TTFT p95 < 2s, error rate < 0.1%
 
 **Phase 2: Progressive Rollout (Weeks 3-6)**
-- Increase to 25% → 50% → 75% → 100%
+- Increase to 25% -> 50% -> 75% -> 100%
 - Continue monitoring with automated alerts
 - **Rollback Triggers:** Quality degradation, TTFT p95 > 3s, error rate > 0.5%
 
@@ -1006,22 +1013,22 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 ### 10.4 Strategic Recommendations
 
 **Short-Term (0-6 months):**
-1. ✅ **Deploy Rust agent to production** (low-risk, high-value)
-2. ✅ **Use `gpu60_ctx256_temp0.6`** for cost-optimal deployment
-3. ⚠️ **Implement TTFT monitoring** (cold start mitigation)
-4. 📊 **Establish quality baselines** (automated sampling)
+1. PASS **Deploy Rust agent to production** (low-risk, high-value)
+2. PASS **Use `gpu60_ctx256_temp0.6`** for cost-optimal deployment
+3. WARNING **Implement TTFT monitoring** (cold start mitigation)
+4. chart **Establish quality baselines** (automated sampling)
 
 **Medium-Term (6-12 months):**
-1. 🔄 **Optimize cold start** (model pre-warming, caching)
-2. 🚀 **Scale horizontally** (leverage reduced resource footprint)
-3. 📈 **Cost optimization** (right-size infrastructure based on metrics)
-4. 🧪 **A/B test advanced configs** (streaming, prompt caching)
+1. repeat **Optimize cold start** (model pre-warming, caching)
+2. launch **Scale horizontally** (leverage reduced resource footprint)
+3. trend **Cost optimization** (right-size infrastructure based on metrics)
+4. lab **A/B test advanced configs** (streaming, prompt caching)
 
 **Long-Term (12+ months):**
-1. 🌐 **Multi-region deployment** (leverage binary portability)
-2. 🤖 **Expand agent capabilities** (multi-agent orchestration, TR115 findings)
-3. 💰 **Cost reduction at scale** (realize 21% TCO savings)
-4. 📚 **Internal best practices** (Rust agent development framework)
+1. globe **Multi-region deployment** (leverage binary portability)
+2. bot **Expand agent capabilities** (multi-agent orchestration, TR115 findings)
+3. money **Cost reduction at scale** (realize 21% TCO savings)
+4. books **Internal best practices** (Rust agent development framework)
 
 ### 10.5 ROI Summary
 
@@ -1033,7 +1040,7 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 **6-Month Value:**
 - Cumulative savings: **~$720**
 - Operational efficiency: **~40% reduction in deployment incidents**
-- Capacity headroom: **3× more concurrent users on same hardware**
+- Capacity headroom: **3x more concurrent users on same hardware**
 
 **Annual Value:**
 - Total cost savings: **$3,040**
@@ -1051,20 +1058,20 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 
 ### 11.1 Research Questions Answered
 
-**Q1: Does the Rust agent match Python's workflow complexity and performance?**  
-✅ **Yes.** Full workflow parity achieved with equivalent throughput (114.54 vs 110-115 tok/s) and comparable latency characteristics.
+**Q1: Does the Rust agent match Python's workflow complexity and performance?**
+PASS **Yes.** Full workflow parity achieved with equivalent throughput (114.54 vs 110-115 tok/s) and comparable latency characteristics.
 
-**Q2: What are optimal Ollama configurations for Rust agent workflows?**  
-✅ **Answered.** `gpu60_ctx256_temp0.6` provides best resource/performance balance. Configuration selection guidelines provided (Section 9.1).
+**Q2: What are optimal Ollama configurations for Rust agent workflows?**
+PASS **Answered.** `gpu60_ctx256_temp0.6` provides best resource/performance balance. Configuration selection guidelines provided (Section 9.1).
 
-**Q3: How do throughput, latency, and consistency vary across configurations?**  
-✅ **Characterized.** Throughput highly consistent (CV < 3%), TTFT highly variable (CV 10-138%), configuration parameters have minimal performance impact.
+**Q3: How do throughput, latency, and consistency vary across configurations?**
+PASS **Characterized.** Throughput highly consistent (CV < 3%), TTFT highly variable (CV 10-138%), configuration parameters have minimal performance impact.
 
-**Q4: Do optimization strategies preserve output quality?**  
-✅ **Validated.** All configurations produce acceptable quality; temp=0.6 recommended for consistency.
+**Q4: Do optimization strategies preserve output quality?**
+PASS **Validated.** All configurations produce acceptable quality; temp=0.6 recommended for consistency.
 
-**Q5: What statistical confidence is achievable with 3-run sampling?**  
-✅ **Assessed.** Throughput: High confidence (CV < 3%). TTFT: Low confidence (CV > 100%) due to cold start effects. Recommend 3+ runs minimum.
+**Q5: What statistical confidence is achievable with 3-run sampling?**
+PASS **Assessed.** Throughput: High confidence (CV < 3%). TTFT: Low confidence (CV > 100%) due to cold start effects. Recommend 3+ runs minimum.
 
 ### 11.2 Key Findings Summary
 
@@ -1072,11 +1079,11 @@ async fn stream_process(client: &ClientType) -> Result<()> {
 1. Rust agent achieves **114.54 tok/s baseline** (matches Python)
 2. Optimization headroom **minimal** (~1% throughput improvement possible)
 3. Configuration parameters have **negligible impact** on performance within tested ranges
-4. **TTFT is primary optimization target** (150× more variation than throughput)
+4. **TTFT is primary optimization target** (150x more variation than throughput)
 
 **Operational:**
 1. Rust uses **~60% less memory** than Python (75 MB vs 250 MB)
-2. Rust has **5-10× faster startup** (0.2s vs 1.5s)
+2. Rust has **5-10x faster startup** (0.2s vs 1.5s)
 3. **Single binary deployment** vs. Python dependency management
 4. **21% lower TCO** over 5 years ($37.8k vs $48k)
 
@@ -1106,7 +1113,7 @@ temperature = 0.6
 
 **Deployment Strategy:**
 1. Start with canary (5% traffic, 2 weeks)
-2. Progressive rollout (25% → 50% → 75% → 100%, 4 weeks)
+2. Progressive rollout (25% -> 50% -> 75% -> 100%, 4 weeks)
 3. Monitor TTFT p95, throughput, error rates, quality samples
 4. Full migration within 8 weeks
 
@@ -1125,8 +1132,8 @@ temperature = 0.6
 - **Total: $3,040/year savings**
 
 **User Experience:**
-- Cold start: **-87% latency** (1.5s → 0.2s)
-- Concurrent capacity: **+200%** (3× density)
+- Cold start: **-87% latency** (1.5s -> 0.2s)
+- Concurrent capacity: **+200%** (3x density)
 - Response quality: **Maintained**
 
 **ROI:**
@@ -1160,9 +1167,9 @@ temperature = 0.6
 **Full Metrics Table (All 19 Configurations):**
 
 See Section 4.1 for comprehensive results table with:
-- Average throughput (tok/s) ± StdDev
+- Average throughput (tok/s) +/- StdDev
 - Coefficient of Variation (CV%)
-- Average TTFT (ms) ± StdDev
+- Average TTFT (ms) +/- StdDev
 - Total tokens generated
 
 ### Appendix B: Workflow Implementation Details
@@ -1171,11 +1178,11 @@ See Section 4.1 for comprehensive results table with:
 ```rust
 pub async fn ingest_benchmarks(root: &Path) -> Result<BenchmarkDataset> {
     let mut dataset = BenchmarkDataset::default();
-    
+
     for entry in WalkDir::new(root).follow_links(false) {
         let entry = entry?;
         let path = entry.path();
-        
+
         if path.is_file() {
             match path.extension().and_then(|s| s.to_str()) {
                 Some("csv") => {
@@ -1193,7 +1200,7 @@ pub async fn ingest_benchmarks(root: &Path) -> Result<BenchmarkDataset> {
             }
         }
     }
-    
+
     Ok(dataset)
 }
 ```
@@ -1246,17 +1253,17 @@ pub struct AggregateMetrics {
 
 **Mean:**
 ```
-μ = (Σ xi) / n
+mu = (Sigma xi) / n
 ```
 
 **Standard Deviation:**
 ```
-σ = √[(Σ(xi - μ)²) / (n - 1)]
+sigma = sqrt[(Sigma(xi - mu)^2) / (n - 1)]
 ```
 
 **Coefficient of Variation:**
 ```
-CV = (σ / μ) × 100%
+CV = (sigma / mu) x 100%
 ```
 
 **Throughput:**
@@ -1272,16 +1279,18 @@ TTFT = load_duration + prompt_eval_duration + time_to_first_token
 ### Appendix D: Comparison with Technical Report 109
 
 **Methodology Comparison:**
+
 | Aspect | TR109 (Python) | TR111 v2 (Rust) | Match |
 |--------|---------------|-----------------|-------|
-| Workflow | Multi-step (ingest → analyze → report) | Multi-step (ingest → analyze → report) | ✅ |
-| LLM Calls | 2+ per execution | 2 per execution | ✅ |
-| File I/O | CSV, JSON, Markdown parsing | CSV, JSON, Markdown parsing | ✅ |
-| Metrics | Throughput, TTFT, durations | Throughput, TTFT, durations | ✅ |
-| Statistical | 3 runs per config | 3 runs per config | ✅ |
-| Reporting | Mean ± StdDev, CV% | Mean ± StdDev, CV% | ✅ |
+| Workflow | Multi-step (ingest -> analyze -> report) | Multi-step (ingest -> analyze -> report) | PASS |
+| LLM Calls | 2+ per execution | 2 per execution | PASS |
+| File I/O | CSV, JSON, Markdown parsing | CSV, JSON, Markdown parsing | PASS |
+| Metrics | Throughput, TTFT, durations | Throughput, TTFT, durations | PASS |
+| Statistical | 3 runs per config | 3 runs per config | PASS |
+| Reporting | Mean +/- StdDev, CV% | Mean +/- StdDev, CV% | PASS |
 
 **Performance Comparison:**
+
 | Metric | TR109 (Python) | TR111 v2 (Rust) | Delta |
 |--------|---------------|-----------------|-------|
 | Baseline Throughput | 110-115 tok/s | 114.54 tok/s | ~0% |
@@ -1289,20 +1298,20 @@ TTFT = load_duration + prompt_eval_duration + time_to_first_token
 | Baseline TTFT | 500-800 ms | 603.53 ms | ~0% |
 | TTFT CV | 15-180% | 10-138% | Rust better |
 | Memory Usage | 200-300 MB | 50-100 MB | Rust 60% less |
-| Startup Time | 1-2 seconds | 0.1-0.3 seconds | Rust 5-10× faster |
+| Startup Time | 1-2 seconds | 0.1-0.3 seconds | Rust 5-10x faster |
 
 ### Appendix E: Raw Data Availability
 
 All raw data, metrics JSON files, and generated reports available at:
 ```
 Demo_rust_agent/runs/tr109_rust_full/
-├── baseline_default/
-│   ├── data/metrics.json (comprehensive metrics)
-│   └── reports/ (5 generated reports)
-├── gpu60_ctx256_temp0p6/
-│   ├── data/metrics.json
-│   └── reports/
-├── ... (17 more configurations)
+|-- baseline_default/
+|   |-- data/metrics.json (comprehensive metrics)
+|   +-- reports/ (5 generated reports)
+|-- gpu60_ctx256_temp0p6/
+|   |-- data/metrics.json
+|   +-- reports/
+|-- ... (17 more configurations)
 ```
 
 **Data Structure:**
@@ -1315,7 +1324,7 @@ Demo_rust_agent/runs/tr109_rust_full/
 
 - **TTFT:** Time-to-First-Token (latency from request to first generated token)
 - **Throughput:** Tokens generated per second (eval phase only)
-- **CV:** Coefficient of Variation (stddev/mean × 100%)
+- **CV:** Coefficient of Variation (stddev/mean x 100%)
 - **GPU Layers:** Number of model layers offloaded to GPU (num_gpu parameter)
 - **Context Size:** Maximum token context window (num_ctx parameter)
 - **Temperature:** Sampling randomness (0=deterministic, 1=creative)
@@ -1339,9 +1348,9 @@ Special thanks to the Ollama team for providing a robust local LLM inference ser
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2025-11-14  
-**Status:** Final  
+**Document Version:** 1.0
+**Last Updated:** 2025-11-14
+**Status:** Final
 **Supersedes:** Technical Report 111 (v1, micro-benchmark)
 
 ---
