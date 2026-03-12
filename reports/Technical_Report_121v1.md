@@ -1,13 +1,16 @@
 # Technical Report 121 v1: Scaling Laws, Regimes, and Capacity Planning
 ## How latency, throughput, and cold-start risk change from ~0.1M to ~20.9B parameters
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2025-12-24  
-**Author:** Research Team  
-**Report Type:** Scaling-law analysis + mechanistic regime analysis + capacity/cost implications (artifact-backed)  
-**Primary Artifacts (v1):** `scripts/tr121/results/20251224_002149/`  
-**Supporting Artifacts:** Decode sweep `scripts/tr121/results/tr121_decode_sweep/20251224_002955/`; Gemma3 family check `scripts/tr121/results/20251224_002857/`; boundary-shift runs `scripts/tr121/results/20251224_002740/` (batch=8) and `scripts/tr121/results/20251224_004400/` (gen_tokens=512)  
-**Related Work:** [TR117](Technical_Report_117.md), [TR118_v2.2](Technical_Report_118_v2.2.md), [TR119v1](Technical_Report_119v1.md), [TR120](Technical_Report_120.md), [TR122](../../scripts/tr122/README.md)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 121 v1 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2025-12-24 |
+| **Author** | Research Team |
+| **Report Type** | Scaling-law analysis + mechanistic regime analysis + capacity/cost implications (artifact-backed) |
+| **Primary Artifacts (v1)** | `scripts/tr121/results/20251224_002149/` |
+| **Supporting Artifacts** | Decode sweep `scripts/tr121/results/tr121_decode_sweep/20251224_002955/`; Gemma3 family check `scripts/tr121/results/20251224_002857/`; boundary-shift runs `scripts/tr121/results/20251224_002740/` (batch=8) and `scripts/tr121/results/20251224_004400/` (gen_tokens=512) |
+| **Related Work** | [TR117](Technical_Report_117.md), [TR118_v2.2](Technical_Report_118_v2.2.md), [TR119v1](Technical_Report_119v1.md), [TR120](Technical_Report_120.md), [TR122](../../scripts/tr122/README.md) |
 
 ---
 

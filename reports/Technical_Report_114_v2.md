@@ -1,13 +1,16 @@
 # Technical Report 114 v2: Rust Concurrent Multi-Agent Performance with Dual Ollama Architecture
 ## Comprehensive Cross-Language Analysis and Production Validation
 
-**Author:** Research Team  
-**Date:** 2025-11-15  
-**Test Duration:** 8+ hours (135 benchmark runs across 27 configurations)  
-**Framework:** Demo_rust_multiagent (Rust async/tokio + Dual Ollama)  
-**Total Configurations:** 27 (7 baseline-vs-chimera, 7 chimera-hetero, 13 chimera-homo)  
-**Total Runs:** 135 (27 configs x 5 runs each)  
-**Related Work:** [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111_v2](Technical_Report_111_v2.md) (Rust Single-Agent), [TR112_v2](Technical_Report_112_v2.md) (Rust vs Python Comparison), [TR115](Technical_Report_115.md) (Rust Runtime Optimization)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 114 v2 |
+| **Author** | Research Team |
+| **Date** | 2025-11-15 |
+| **Test Duration** | 8+ hours (135 benchmark runs across 27 configurations) |
+| **Framework** | Demo_rust_multiagent (Rust async/tokio + Dual Ollama) |
+| **Total Configurations** | 27 (7 baseline-vs-chimera, 7 chimera-hetero, 13 chimera-homo) |
+| **Total Runs** | 135 (27 configs x 5 runs each) |
+| **Related Work** | [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111_v2](Technical_Report_111_v2.md) (Rust Single-Agent), [TR112_v2](Technical_Report_112_v2.md) (Rust vs Python Comparison), [TR115](Technical_Report_115.md) (Rust Runtime Optimization) |
 
 ---
 
@@ -1259,4 +1262,3 @@ Special thanks to the Ollama team for robust local LLM inference, and the Rust/T
 ---
 
 *For questions or clarifications, refer to the complete dataset in `Demo_rust_multiagent/runs/tr110_rust_full/` or contact the research team.*
-

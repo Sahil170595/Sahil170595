@@ -1,15 +1,18 @@
 # Technical Report 132: Serving-Stack GPU Kernel Profiling
 ## In-Container Nsight Systems Analysis of vLLM and TGI Under Multi-Agent Load
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-27  
-**Author:** Research Team  
-**Report Type:** Hardware-level kernel profiling (5-phase, 2 backends, 25 profiled runs, in-container CUPTI)  
-**Test Duration:** ~48 minutes  
-**Status:** Complete -- continuous batching confirmed as bandwidth amortization mechanism via kernel-level evidence  
-**Run ID:** `20260227_123652`  
-**Related Work:** [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR130](Technical_Report_130.md) (Serving Stack Benchmarking), [TR131](Technical_Report_131.md) (GPU Kernel Profiling -- Ollama/PyTorch)  
-**Depends On:** TR131 (Ollama cross-reference data), TR130 (backend Docker infrastructure), TR129 (degradation baselines)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 132 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-27 |
+| **Author** | Research Team |
+| **Report Type** | Hardware-level kernel profiling (5-phase, 2 backends, 25 profiled runs, in-container CUPTI) |
+| **Test Duration** | ~48 minutes |
+| **Status** | Complete -- continuous batching confirmed as bandwidth amortization mechanism via kernel-level evidence |
+| **Run ID** | `20260227_123652` |
+| **Related Work** | [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR130](Technical_Report_130.md) (Serving Stack Benchmarking), [TR131](Technical_Report_131.md) (GPU Kernel Profiling -- Ollama/PyTorch) |
+| **Depends On** | TR131 (Ollama cross-reference data), TR130 (backend Docker infrastructure), TR129 (degradation baselines) |
 
 ---
 

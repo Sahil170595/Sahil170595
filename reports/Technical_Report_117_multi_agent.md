@@ -1,14 +1,16 @@
 # Technical Report 117 (Multi-Agent Track): Root Cause Analysis of Multi-Agent Efficiency Anomalies
 ## Decoding the Python Ceiling, Qwen Mystery, and Ranking Flip
 
-**Project:** Chimeraforge LLM Performance Research  
-**Date:** November 27, 2025  
-**Author:** Research Team  
-**Report Type:** Definitive Root Cause Analysis  
-**Test Duration:** 8+ hours (Invasive instrumentation across 3 research phases)  
-**Related Work:** [TR116](Technical_Report_116.md) (Cross-Model Benchmarks), [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent)  
-
-**Canonical note:** In this repo, `Technical_Report_117.md` is used for the inference-track TR117 report; this report is the multi-agent TR117 root-cause audit.  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 117 (Multi-Agent Track) |
+| **Project** | Chimeraforge LLM Performance Research |
+| **Date** | November 27, 2025 |
+| **Author** | Research Team |
+| **Report Type** | Definitive Root Cause Analysis |
+| **Test Duration** | 8+ hours (Invasive instrumentation across 3 research phases) |
+| **Related Work** | [TR116](Technical_Report_116.md) (Cross-Model Benchmarks), [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent) |
+| **Canonical Note** | In this repo, `Technical_Report_117.md` is used for the inference-track TR117 report; this report is the multi-agent TR117 root-cause audit. |
 
 ---
 

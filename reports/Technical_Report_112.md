@@ -1,11 +1,14 @@
 # Technical Report 112: Rust vs Python Agent Comparison
 ## Cross-Language Performance Analysis for Production LLM Deployments
 
-**Date:** November 10, 2025  
-**Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), Intel i9-13980HX  
-**Model:** gemma3:latest (4.3B parameters, Q4_K_M quantization)  
-**Configurations Tested:** 18 matching configs per language (36 total)  
-**Related Work:** [TR109](Technical_Report_109.md) (Python), [TR111](Technical_Report_111.md) (Rust)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 112 |
+| **Date** | November 10, 2025 |
+| **Test Environment** | NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), Intel i9-13980HX |
+| **Model** | gemma3:latest (4.3B parameters, Q4_K_M quantization) |
+| **Configurations Tested** | 18 matching configs per language (36 total) |
+| **Related Work** | [TR109](Technical_Report_109.md) (Python), [TR111](Technical_Report_111.md) (Rust) |
 
 ---
 
@@ -598,6 +601,3 @@ The 2.7x TTFT difference between languages warrants investigation:
 
 **Authors:** Banterhearts Development Team
 **Contact:** Technical Reports 109, 111, 112
-
-
-

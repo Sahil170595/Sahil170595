@@ -1,15 +1,18 @@
 # Technical Report 137: The Safety Tax of Inference Optimization
 ## Unified synthesis of quantization, concurrency, and backend effects on LLM safety alignment
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-03-08 (synthesis of TR134: Mar 5-6, TR135: Mar 7, TR136: Mar 8)  
-**Author:** Research Team  
-**Report Type:** Meta-analysis / synthesis (3 source experiments, 18 analysis passes, 74,254 total samples)  
-**Compute Time:** <5 seconds (pure meta-analysis on pre-computed results)  
-**Status:** Complete -- all 3 source experiments delivered, full synthesis run  
-**Run ID:** `20260308_180727`  
-**Related Work:** [TR134](Technical_Report_134.md) (Alignment Under Quantization), [TR135](Technical_Report_135.md) (Concurrency x Safety), [TR136](Technical_Report_136.md) (Cross-Backend Safety)  
-**Depends On:** TR134 (quantization safety data), TR135 (concurrency safety data), TR136 (backend safety data)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 137 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-03-08 (synthesis of TR134: Mar 5-6, TR135: Mar 7, TR136: Mar 8) |
+| **Author** | Research Team |
+| **Report Type** | Meta-analysis / synthesis (3 source experiments, 18 analysis passes, 74,254 total samples) |
+| **Compute Time** | <5 seconds (pure meta-analysis on pre-computed results) |
+| **Status** | Complete -- all 3 source experiments delivered, full synthesis run |
+| **Run ID** | `20260308_180727` |
+| **Related Work** | [TR134](Technical_Report_134.md) (Alignment Under Quantization), [TR135](Technical_Report_135.md) (Concurrency x Safety), [TR136](Technical_Report_136.md) (Cross-Backend Safety) |
+| **Depends On** | TR134 (quantization safety data), TR135 (concurrency safety data), TR136 (backend safety data) |
 
 ---
 

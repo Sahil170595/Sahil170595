@@ -1,6 +1,15 @@
 # Conclusive Report 117-122: Extended Appendices
 ## Supplemental material extracted from the main conclusive report
 
+| Field | Value |
+|-------|-------|
+| **Report Type** | Extended appendices |
+| **Scope** | 117-122 |
+| **Status** | Supplemental |
+| **Main Report** | [Technical_Report_Conclusive_117-122.md](Technical_Report_Conclusive_117-122.md) |
+
+---
+
 This file mirrors the extended appendices for convenience. The main conclusive report is the canonical
 deep-dive document; the content here is supplemental and should be treated as supporting material.
 

@@ -1,14 +1,18 @@
 # Technical Report 114
 ## Rust Concurrent Multi-Agent Performance with Dual Ollama Architecture
-### Validating True Concurrency and Cross-Language Analysis
 
-**Author:** Sahil (solo developer)  
-**Date:** November 13, 2025  
-**Test Duration:** 6 hours 15 minutes (150 benchmark runs)  
-**Framework:** Demo_rust_multiagent (Rust async/tokio + Dual Ollama)  
-**Related:** [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111](Technical_Report_111.md) (Rust Single-Agent), [TR112](Technical_Report_112.md) (Rust vs Python Single-Agent), [TR113](Technical_Report_113.md) (Rust Multi-Agent Single Ollama)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 114 |
+| **Author** | Sahil (solo developer) |
+| **Date** | November 13, 2025 |
+| **Test Duration** | 6 hours 15 minutes (150 benchmark runs) |
+| **Framework** | Demo_rust_multiagent (Rust async/tokio + Dual Ollama) |
+| **Related Work** | [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111](Technical_Report_111.md) (Rust Single-Agent), [TR112](Technical_Report_112.md) (Rust vs Python Single-Agent), [TR113](Technical_Report_113.md) (Rust Multi-Agent Single Ollama) |
 
 ---
+
+### Validating True Concurrency and Cross-Language Analysis
 
 ## Executive Summary
 
@@ -803,4 +807,3 @@ No Existing Python infrastructure makes Rust adoption costly
 **Benchmark Data:** `Demo_rust_multiagent/Demo_rust_multiagent_results_tr110_dual/`
 **Analysis Scripts:** `analyze_tr114_results.py`
 **Framework:** Demo_rust_multiagent v1.0 (Rust + Tokio + Dual Ollama)
-

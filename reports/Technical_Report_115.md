@@ -1,9 +1,12 @@
 # Technical Report 115: Rust Async Runtime Optimization Analysis
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** November 14, 2025  
-**Author:** Research Team  
-**Report Type:** Comprehensive Runtime Performance Analysis  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 115 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | November 14, 2025 |
+| **Author** | Research Team |
+| **Report Type** | Comprehensive Runtime Performance Analysis |
 
 ---
 
@@ -749,4 +752,3 @@ where
 **End of Report TR115**
 
 *For questions or collaboration inquiries, contact the Banterhearts research team.*
-

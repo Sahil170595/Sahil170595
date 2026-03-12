@@ -1,12 +1,15 @@
 # Technical Report 112 v2: Rust vs Python Agent Performance Comparison
 ## Cross-Language Comprehensive Analysis for Production LLM Deployments
 
-**Date:** 2025-11-14  
-**Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), Intel i9-13980HX  
-**Model:** gemma3:latest (4.3B parameters, Q4_K_M quantization)  
-**Total Configurations:** 37 (19 Rust + 18 Python)  
-**Total Benchmark Runs:** 111 (57 Rust + 54 Python)  
-**Related Work:** [TR109](Technical_Report_109.md) (Python), [TR111_v2](Technical_Report_111_v2.md) (Rust)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 112 v2 |
+| **Date** | 2025-11-14 |
+| **Test Environment** | NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), Intel i9-13980HX |
+| **Model** | gemma3:latest (4.3B parameters, Q4_K_M quantization) |
+| **Total Configurations** | 37 (19 Rust + 18 Python) |
+| **Total Benchmark Runs** | 111 (57 Rust + 54 Python) |
+| **Related Work** | [TR109](Technical_Report_109.md) (Python), [TR111_v2](Technical_Report_111_v2.md) (Rust) |
 
 ---
 
@@ -1447,4 +1450,3 @@ Special thanks to the Ollama team for robust local LLM inference, and the Rust c
 ---
 
 *For questions or clarifications, refer to TR109 (Python data) and TR111_v2 (Rust data) for complete datasets and methodology details.*
-

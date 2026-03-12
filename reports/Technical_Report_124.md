@@ -1,15 +1,18 @@
 # Technical Report 124: Quality & Accuracy Baseline
 ## Backend equivalence, quantization impact, and sampling variance across 5 models
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-20 (Phase 1: Feb 18, Phase 2: Feb 20, Phase 3: Feb 20)  
-**Author:** Research Team  
-**Report Type:** Quality evaluation baseline (metric-backed, 3-phase)  
-**Test Duration:** ~40 min (Phase 1) + ~8 min (Phase 2) + ~35 min (Phase 3)  
-**Status:** Complete -- All 3 phases delivered  
-**Run IDs:** Phase 1: `20260218_173307`, Phase 2: `20260220_121821`, Phase 3: `20260220_122926`  
-**Related Work:** [TR123](Technical_Report_123.md) (KV-Cache Production Economics), [TR117](Technical_Report_117.md) (Accuracy Metrics)  
-**Depends On:** TR123 (cost data for Pareto analysis), TR117 (ROUGE/BERTScore/SemScore implementations)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 124 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-20 (Phase 1: Feb 18, Phase 2: Feb 20, Phase 3: Feb 20) |
+| **Author** | Research Team |
+| **Report Type** | Quality evaluation baseline (metric-backed, 3-phase) |
+| **Test Duration** | ~40 min (Phase 1) + ~8 min (Phase 2) + ~35 min (Phase 3) |
+| **Status** | Complete -- All 3 phases delivered |
+| **Run IDs** | Phase 1: `20260218_173307`, Phase 2: `20260220_121821`, Phase 3: `20260220_122926` |
+| **Related Work** | [TR123](Technical_Report_123.md) (KV-Cache Production Economics), [TR117](Technical_Report_117.md) (Accuracy Metrics) |
+| **Depends On** | TR123 (cost data for Pareto analysis), TR117 (ROUGE/BERTScore/SemScore implementations) |
 
 ---
 

@@ -1,15 +1,18 @@
 # Technical Report 123: KV-Cache Production Economics
 ## Phase-split $/token with cached decode across MHA and GQA architectures
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-17  
-**Author:** Research Team  
-**Report Type:** Frontier cost/energy deep dive (phase-split)  
-**Test Duration:** ~1.5 hours (benchmark) + ~10 min (Docker compile runs)  
-**Status:** Frontier Report (artifact-backed)  
-**Run ID:** `20260216_181539`  
-**Related Work:** [TR119](Technical_Report_119.md), [TR121](Technical_Report_121.md)  
-**Depends On:** TR119 (uncached baseline), TR121 (scaling methodology)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 123 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-17 |
+| **Author** | Research Team |
+| **Report Type** | Frontier cost/energy deep dive (phase-split) |
+| **Test Duration** | ~1.5 hours (benchmark) + ~10 min (Docker compile runs) |
+| **Status** | Frontier Report (artifact-backed) |
+| **Run ID** | `20260216_181539` |
+| **Related Work** | [TR119](Technical_Report_119.md), [TR121](Technical_Report_121.md) |
+| **Depends On** | TR119 (uncached baseline), TR121 (scaling methodology) |
 
 ---
 

@@ -1,11 +1,14 @@
 # Technical Report 111: Rust Agent Performance Analysis
 ## Chimera Optimization for Rust-Based LLM Agents
 
-**Date:** November 10, 2025  
-**Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), Intel i9-13980HX  
-**Model:** gemma3:latest (4.3B parameters, Q4_K_M quantization)  
-**Configurations Tested:** 18 parameter combinations  
-**Related Work:** [TR108](Technical_Report_108.md), [TR109](Technical_Report_109.md), [TR110](Technical_Report_110.md)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 111 |
+| **Date** | November 10, 2025 |
+| **Test Environment** | NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), Intel i9-13980HX |
+| **Model** | gemma3:latest (4.3B parameters, Q4_K_M quantization) |
+| **Configurations Tested** | 18 parameter combinations |
+| **Related Work** | [TR108](Technical_Report_108.md), [TR109](Technical_Report_109.md), [TR110](Technical_Report_110.md) |
 
 ---
 
@@ -444,6 +447,3 @@ cargo build --release
 ---
 
 **Next:** [Technical Report 112: Rust vs Python Agent Comparison](Technical_Report_112.md)
-
-
-

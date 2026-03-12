@@ -1,14 +1,16 @@
 # Technical Report 122: The Physics of Inference
-
 ## Establishing the Fundamental Constraints of LLM Execution on Consumer Hardware
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2025-12-25  
-**Author:** Research Team  
-**Report Type:** Artifact-backed foundational characterization study  
-**Infrastructure Version:** V2.0 (strict scheduling, read_ok validation, composite idle detection)  
-**Primary Data Sources:** `PublishReady/data/tr122_v2/` (run: 20251225_190610)  
-**Related Work:** [TR117](Technical_Report_117.md) (backend benchmarking), [TR120](Technical_Report_120.md) (root-cause analysis), [TR121v1](Technical_Report_121v1.md) (scaling laws)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 122 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2025-12-25 |
+| **Author** | Research Team |
+| **Report Type** | Artifact-backed foundational characterization study |
+| **Infrastructure Version** | V2.0 (strict scheduling, read_ok validation, composite idle detection) |
+| **Primary Data Sources** | `PublishReady/data/tr122_v2/` (run: 20251225_190610) |
+| **Related Work** | [TR117](Technical_Report_117.md) (backend benchmarking), [TR120](Technical_Report_120.md) (root-cause analysis), [TR121v1](Technical_Report_121v1.md) (scaling laws) |
 
 ---
 

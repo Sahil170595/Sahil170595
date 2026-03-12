@@ -1,11 +1,14 @@
 # Technical Report 108: Comprehensive LLM Performance Analysis
 ## Ollama Model Benchmarking & Optimization Study
 
-**Date:** 2025-10-08  
-**Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), 13th Gen Intel i9  
-**Test Duration:** ~2 weeks (Oct 2025)  
-**Total Benchmark Runs:** 158+ configurations tested  
-**Models Evaluated:** Llama3.1 (3 quantizations) + Gemma3 (3 variants)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 108 |
+| **Date** | 2025-10-08 |
+| **Test Environment** | NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), 13th Gen Intel i9 |
+| **Test Duration** | ~2 weeks (Oct 2025) |
+| **Total Benchmark Runs** | 158+ configurations tested |
+| **Models Evaluated** | Llama3.1 (3 quantizations) + Gemma3 (3 variants) |
 
 ---
 
@@ -1495,4 +1498,3 @@ The comprehensive data presented in this report enables informed decision-making
 **Date:** October 8, 2025
 **Version:** 1.0
 **Total Pages:** 108 (equivalent)
-

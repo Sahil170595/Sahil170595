@@ -1,15 +1,18 @@
 # Technical Report 125: Quantization Decision Matrix
 ## Production-grade quant level selection across 5 models (1.2B-8B) with real benchmark validation
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-22 (Phase 1: Feb 21, Phase 2: Feb 22)  
-**Author:** Research Team  
-**Report Type:** Quantization impact analysis (metric-backed, 2-phase)  
-**Test Duration:** ~20 min (Phase 1) + ~10 hrs (Phase 2)  
-**Status:** Complete -- Both phases delivered  
-**Run IDs:** Phase 1: `20260220_203010`, Phase 2: `20260221_120035`  
-**Related Work:** [TR124](Technical_Report_124.md) (Quality & Accuracy Baseline), [TR123](Technical_Report_123.md) (KV-Cache Production Economics)  
-**Depends On:** TR124 (FP16 baselines, metric framework), TR123 (cost data)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 125 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-22 (Phase 1: Feb 21, Phase 2: Feb 22) |
+| **Author** | Research Team |
+| **Report Type** | Quantization impact analysis (metric-backed, 2-phase) |
+| **Test Duration** | ~20 min (Phase 1) + ~10 hrs (Phase 2) |
+| **Status** | Complete -- Both phases delivered |
+| **Run IDs** | Phase 1: `20260220_203010`, Phase 2: `20260221_120035` |
+| **Related Work** | [TR124](Technical_Report_124.md) (Quality & Accuracy Baseline), [TR123](Technical_Report_123.md) (KV-Cache Production Economics) |
+| **Depends On** | TR124 (FP16 baselines, metric framework), TR123 (cost data) |
 
 ---
 

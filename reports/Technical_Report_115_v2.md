@@ -1,12 +1,15 @@
 # Technical Report 115 v2: Rust Async Runtime Performance Deep Dive
 ## Comprehensive Multi-Runtime Analysis for Multi-Agent LLM Workloads
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2025-11-15  
-**Author:** Research Team  
-**Report Type:** Definitive Runtime Performance Analysis  
-**Test Duration:** 12+ hours (150 comprehensive benchmark runs)  
-**Related Work:** [TR110](Technical_Report_110.md) (Python Multi-Agent Baseline), [TR111_v2](Technical_Report_111_v2.md) (Rust Single-Agent), [TR112_v2](Technical_Report_112_v2.md) (Rust vs Python Comparison), [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent Analysis)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 115 v2 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2025-11-15 |
+| **Author** | Research Team |
+| **Report Type** | Definitive Runtime Performance Analysis |
+| **Test Duration** | 12+ hours (150 comprehensive benchmark runs) |
+| **Related Work** | [TR110](Technical_Report_110.md) (Python Multi-Agent Baseline), [TR111_v2](Technical_Report_111_v2.md) (Rust Single-Agent), [TR112_v2](Technical_Report_112_v2.md) (Rust vs Python Comparison), [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent Analysis) |
 
 ---
 
@@ -1166,4 +1169,3 @@ Special thanks to the Tokio team for the work-stealing scheduler, Ollama team fo
 ---
 
 *For questions or clarifications, refer to the complete dataset in `TR115_runtime_optimization/results_v2/` or contact the research team.*
-

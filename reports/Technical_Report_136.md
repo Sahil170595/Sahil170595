@@ -1,15 +1,18 @@
 # Technical Report 136: Cross-Backend Safety Consistency
 ## Does the serving backend change model safety behavior? A controlled comparison of Ollama, vLLM, and TGI across 3 models, 4 backend configurations, and 6 benchmarks
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-03-08  
-**Author:** Research Team  
-**Report Type:** Safety alignment analysis (metric-backed, 3 models, 4 backends, 6 benchmarks)  
-**Test Duration:** ~2.4 hrs (eval) + ~0.6 hrs (LLM judge) + ~0.01 hrs (analysis)  
-**Status:** Complete  
-**Run ID:** `20260308_015147`  
-**Related Work:** [TR134](Technical_Report_134.md) (Quantization x Safety), [TR135](Technical_Report_135.md) (Concurrency x Safety), TR137 (Safety Tax Synthesis, forthcoming)  
-**Depends On:** TR134 (safety classifiers, jailbreak tasks, BBQ benchmark, LLM judge module), TR135 (concurrency baselines, Ollama Q4_K_M reference)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 136 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-03-08 |
+| **Author** | Research Team |
+| **Report Type** | Safety alignment analysis (metric-backed, 3 models, 4 backends, 6 benchmarks) |
+| **Test Duration** | ~2.4 hrs (eval) + ~0.6 hrs (LLM judge) + ~0.01 hrs (analysis) |
+| **Status** | Complete |
+| **Run ID** | `20260308_015147` |
+| **Related Work** | [TR134](Technical_Report_134.md) (Quantization x Safety), [TR135](Technical_Report_135.md) (Concurrency x Safety), TR137 (Safety Tax Synthesis, forthcoming) |
+| **Depends On** | TR134 (safety classifiers, jailbreak tasks, BBQ benchmark, LLM judge module), TR135 (concurrency baselines, Ollama Q4_K_M reference) |
 
 ---
 

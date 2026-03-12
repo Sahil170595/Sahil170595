@@ -1,14 +1,17 @@
 # Technical Report 111 v2: Rust Agent Workflow Performance Analysis
 ## Comprehensive Parameter Optimization and Python Performance Parity Validation
 
-**Date:** 2025-11-14  
-**Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), 13th Gen Intel i9  
-**Test Duration:** Multi-day comprehensive parameter sweep  
-**Total Configurations Tested:** 19 (1 baseline + 18 parameter variations)  
-**Total Benchmark Runs:** 57 (3 runs x 19 configurations)  
-**Model:** gemma3:latest  
-**Language:** Rust 1.90.0 (x86_64-pc-windows-msvc)  
-**Related Work:** [Technical Report 109](Technical_Report_109.md), [Technical Report 110](Technical_Report_110.md), [Technical Report 115](Technical_Report_115.md)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 111 v2 |
+| **Date** | 2025-11-14 |
+| **Test Environment** | NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), 13th Gen Intel i9 |
+| **Test Duration** | Multi-day comprehensive parameter sweep |
+| **Total Configurations Tested** | 19 (1 baseline + 18 parameter variations) |
+| **Total Benchmark Runs** | 57 (3 runs x 19 configurations) |
+| **Model** | gemma3:latest |
+| **Language** | Rust 1.90.0 (x86_64-pc-windows-msvc) |
+| **Related Work** | [Technical Report 109](Technical_Report_109.md), [Technical Report 110](Technical_Report_110.md), [Technical Report 115](Technical_Report_115.md) |
 
 ---
 
@@ -1364,4 +1367,3 @@ Special thanks to the Ollama team for providing a robust local LLM inference ser
 ---
 
 *For questions or clarifications, refer to the complete dataset in `Demo_rust_agent/runs/tr109_rust_full/` or contact the research team.*
-

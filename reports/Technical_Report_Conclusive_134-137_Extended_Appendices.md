@@ -1,7 +1,12 @@
 # Conclusive Report 134-137: Extended Appendices
 ## Supplemental material for the safety-critical deployment synthesis
 
-This file expands selected appendices from the main conclusive report (TR134-TR137) into full operational depth. The main conclusive report covers 74,254 evaluated samples across four technical reports (TR134: 24,778 samples + 12,168 judged; TR135: 39,060 samples; TR136: 10,416 samples + 5,616 judged); the content here provides worked examples, step-by-step operational playbooks, extended literature context, detailed scoring walkthroughs, and case studies written for engineering teams who need to act on the findings without reading all four source technical reports. Each appendix is lettered to match the main report's scheme (F through AL), with numbered subsections adding detail beyond what the compact tables provide. For the canonical analysis, claim status table, and full appendix set (Appendix A through Appendix AO), consult the main report.
+| Field | Value |
+|-------|-------|
+| **Report Type** | Extended appendices |
+| **Scope** | 134-137 |
+| **Status** | Supplemental |
+| **Main Report** | [Technical_Report_Conclusive_134-137.md](Technical_Report_Conclusive_134-137.md) |
 
 ---
 

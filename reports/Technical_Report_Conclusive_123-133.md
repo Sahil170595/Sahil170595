@@ -1,26 +1,17 @@
 # Conclusive Report 123-133: From Cost Models to Predictive Capacity Planning
 ## A dissertation-style synthesis of economics, quality, quantization, compilation, context scaling, production workloads, multi-agent scaling, serving stacks, GPU kernel physics, and predictive modeling
 
-Project: Banterhearts LLM Performance Research  
-Date: 2026-02-28  
-Author: Research Team  
-Report Type: Conclusive synthesis across TR123-TR133 (artifact-backed, 11 technical reports)  
-Scope: TR123, TR124, TR125, TR126, TR127, TR128, TR129, TR130, TR131, TR132, TR133  
-Hardware Baseline: NVIDIA RTX 4080 Laptop GPU (12 GB VRAM, AD104, 7,424 CUDA cores, 175W TDP)  
-Measurement Corpus: ~70,000+ measurements across 11 technical reports  
-Primary Sources:  
-- PublishReady/reports/Technical_Report_123.md (KV-Cache Production Economics)
-- PublishReady/reports/Technical_Report_124.md (Quality & Accuracy Baseline)
-- PublishReady/reports/Technical_Report_125.md (Quantization Decision Matrix)
-- PublishReady/reports/Technical_Report_126.md (Docker/Linux + Triton Validation)
-- PublishReady/reports/Technical_Report_127.md (Long-Context Performance Characterization)
-- PublishReady/reports/Technical_Report_128.md (Production Workload Characterization)
-- PublishReady/reports/Technical_Report_129.md (N-Agent Scaling Laws)
-- PublishReady/reports/Technical_Report_130.md (Serving Stack Benchmarking)
-- PublishReady/reports/Technical_Report_131.md (GPU Kernel Profiling -- Root-Cause Analysis)
-- PublishReady/reports/Technical_Report_132.md (In-Container GPU Kernel Profiling -- Serving Stack Mechanism)
-- PublishReady/reports/Technical_Report_133.md (Predictive Capacity Planner)
-Predecessor Synthesis: PublishReady/reports/Technical_Report_Conclusive_117-122.md (Phase 1)  
+| Field | Value |
+|-------|-------|
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-28 |
+| **Author** | Research Team |
+| **Report Type** | Conclusive synthesis across TR123-TR133 (artifact-backed, 11 technical reports) |
+| **Scope** | TR123, TR124, TR125, TR126, TR127, TR128, TR129, TR130, TR131, TR132, TR133 |
+| **Hardware Baseline** | NVIDIA RTX 4080 Laptop GPU (12 GB VRAM, AD104, 7,424 CUDA cores, 175W TDP) |
+| **Measurement Corpus** | ~70,000+ measurements across 11 technical reports |
+| **Primary Sources** | PublishReady/reports/Technical_Report_123.md (KV-Cache Production Economics)<br>PublishReady/reports/Technical_Report_124.md (Quality & Accuracy Baseline)<br>PublishReady/reports/Technical_Report_125.md (Quantization Decision Matrix)<br>PublishReady/reports/Technical_Report_126.md (Docker/Linux + Triton Validation)<br>PublishReady/reports/Technical_Report_127.md (Long-Context Performance Characterization)<br>PublishReady/reports/Technical_Report_128.md (Production Workload Characterization)<br>PublishReady/reports/Technical_Report_129.md (N-Agent Scaling Laws)<br>PublishReady/reports/Technical_Report_130.md (Serving Stack Benchmarking)<br>PublishReady/reports/Technical_Report_131.md (GPU Kernel Profiling -- Root-Cause Analysis)<br>PublishReady/reports/Technical_Report_132.md (In-Container GPU Kernel Profiling -- Serving Stack Mechanism)<br>PublishReady/reports/Technical_Report_133.md (Predictive Capacity Planner) |
+| **Predecessor Synthesis** | PublishReady/reports/Technical_Report_Conclusive_117-122.md (Phase 1) |
 
 ---
 

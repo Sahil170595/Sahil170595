@@ -1,15 +1,18 @@
 # Technical Report 135: Safety Under Multi-Agent Concurrency
 ## Does running N concurrent agents on a shared inference backend degrade model safety?
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-03-07  
-**Author:** Research Team  
-**Report Type:** Safety alignment analysis (metric-backed, 3 models, 4 concurrency levels, 6 benchmarks)  
-**Test Duration:** ~8 hrs (eval) + ~2.3 hrs (LLM judge)  
-**Status:** Complete  
-**Run ID:** `20260307_162151`  
-**Related Work:** [TR134](Technical_Report_134.md) (Quantization x Safety), TR136 (Backend x Safety, forthcoming), TR137 (Safety Tax Synthesis, forthcoming)  
-**Depends On:** TR134 (safety classifiers, jailbreak tasks, BBQ benchmark, LLM judge module), TR125 (quantization baselines, Q4_K_M reference)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 135 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-03-07 |
+| **Author** | Research Team |
+| **Report Type** | Safety alignment analysis (metric-backed, 3 models, 4 concurrency levels, 6 benchmarks) |
+| **Test Duration** | ~8 hrs (eval) + ~2.3 hrs (LLM judge) |
+| **Status** | Complete |
+| **Run ID** | `20260307_162151` |
+| **Related Work** | [TR134](Technical_Report_134.md) (Quantization x Safety), TR136 (Backend x Safety, forthcoming), TR137 (Safety Tax Synthesis, forthcoming) |
+| **Depends On** | TR134 (safety classifiers, jailbreak tasks, BBQ benchmark, LLM judge module), TR125 (quantization baselines, Q4_K_M reference) |
 
 ---
 

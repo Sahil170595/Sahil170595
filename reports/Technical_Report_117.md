@@ -1,9 +1,12 @@
 # Technical Report 117: Cross-Backend Inference Benchmark
 
-**Version:** 1.1 (Revised)  
-**Date:** 2025-12-08  
-**Author:** Banterhearts Team  
-**Status:** Complete (Data-Consistent Revision)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 117 |
+| **Version** | 1.1 (Revised) |
+| **Date** | 2025-12-08 |
+| **Author** | Banterhearts Team |
+| **Status** | Complete (Data-Consistent Revision) |
 
 ---
 

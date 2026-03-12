@@ -1,12 +1,15 @@
 # Technical Report 116: Cross-Model Benchmarks & Runtime Architecture Analysis
 ## Qwen 2.5 vs Gemma 3 vs Llama 3.1 8B: Comprehensive Multi-Agent Performance Study
 
-**Project:** Chimeraforge LLM Performance Research  
-**Date:** 2025-11-26  
-**Author:** Research Team  
-**Report Type:** Definitive Cross-Model & Cross-Runtime Analysis  
-**Test Duration:** 12+ hours (60 multi-agent runs across 6 model-runtime combinations)  
-**Related Work:** [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Rust Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 116 |
+| **Project** | Chimeraforge LLM Performance Research |
+| **Date** | 2025-11-26 |
+| **Author** | Research Team |
+| **Report Type** | Definitive Cross-Model & Cross-Runtime Analysis |
+| **Test Duration** | 12+ hours (60 multi-agent runs across 6 model-runtime combinations) |
+| **Related Work** | [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Rust Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent) |
 
 ---
 
@@ -1115,5 +1118,3 @@ Runtimes Compared: 2
 - Min: 69.56% | Max: 91.68%
 - Range: 22.13pp
 - CV: 10.69%
-
-

@@ -1,15 +1,18 @@
 # Technical Report 130: Serving Stack Benchmarking
 ## Ollama vs vLLM vs TGI -- Multi-agent throughput scaling comparison
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-26  
-**Author:** Research Team  
-**Report Type:** Cross-backend serving stack benchmarking (4-phase, 3 backends, 4797 measurements)  
-**Test Duration:** ~3 hours  
-**Status:** Complete --- All 4 phases delivered  
-**Run ID:** `20260226_125833`  
-**Related Work:** [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR128](Technical_Report_128.md) (Production Workload Characterization)  
-**Depends On:** TR129 (Ollama serial fraction cross-validation)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 130 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-26 |
+| **Author** | Research Team |
+| **Report Type** | Cross-backend serving stack benchmarking (4-phase, 3 backends, 4797 measurements) |
+| **Test Duration** | ~3 hours |
+| **Status** | Complete --- All 4 phases delivered |
+| **Run ID** | `20260226_125833` |
+| **Related Work** | [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR128](Technical_Report_128.md) (Production Workload Characterization) |
+| **Depends On** | TR129 (Ollama serial fraction cross-validation) |
 
 ---
 

@@ -1,12 +1,15 @@
 # TR134-TR137 Decision Whitepaper
 ## Executive guidance for safety-critical LLM deployment
 
-Project: Banterhearts LLM Performance Research  
-Date: 2026-03-08  
-Version: 1.0  
-Audience: Decision makers, product leaders, ML ops leaders  
-Scope: TR134 (Alignment Under Quantization), TR135 (Concurrency x Safety), TR136 (Cross-Backend Safety), TR137 (Safety Tax Synthesis)  
-Primary source: `PublishReady/reports/Technical_Report_Conclusive_134-137.md`  
+| Field | Value |
+|-------|-------|
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-03-08 |
+| **Version** | 1.0 |
+| **Report Type** | Decision whitepaper |
+| **Audience** | Decision makers, product leaders, ML ops leaders |
+| **Scope** | TR134 (Alignment Under Quantization), TR135 (Concurrency x Safety), TR136 (Cross-Backend Safety), TR137 (Safety Tax Synthesis) |
+| **Primary Source** | `PublishReady/reports/Technical_Report_Conclusive_134-137.md` |
 
 ---
 

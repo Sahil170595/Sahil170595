@@ -1,7 +1,12 @@
 # Conclusive Report 123-133: Extended Appendices
 ## Supplemental material extracted from the main conclusive report
 
-This file mirrors and expands the extended appendices from the main conclusive report (TR123-TR133) for convenience. The main conclusive report is the canonical deep-dive document; the content here is supplemental and should be treated as supporting material. Each appendix is numbered to match the main report's appendix scheme. Where the main report provides a compact table or summary, this document provides the expanded narrative, worked examples, and operational depth.
+| Field | Value |
+|-------|-------|
+| **Report Type** | Extended appendices |
+| **Scope** | 123-133 |
+| **Status** | Supplemental |
+| **Main Report** | [Technical_Report_Conclusive_123-133.md](Technical_Report_Conclusive_123-133.md) |
 
 ---
 

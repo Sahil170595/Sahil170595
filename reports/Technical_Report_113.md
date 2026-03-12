@@ -1,14 +1,18 @@
 # Technical Report 113
 ## Rust Concurrent Multi-Agent Performance Analysis
-### Cross-Language Comparison and Production Deployment Evaluation
 
-**Author:** Sahil (solo developer)  
-**Date:** November 12, 2025  
-**Test Duration:** 45 minutes (19 benchmark configurations)  
-**Framework:** Demo_rust_multiagent (Rust async/tokio implementation)  
-**Related:** [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111](Technical_Report_111.md) (Rust Single-Agent), [TR112](Technical_Report_112.md) (Rust vs Python Single-Agent)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 113 |
+| **Author** | Sahil (solo developer) |
+| **Date** | November 12, 2025 |
+| **Test Duration** | 45 minutes (19 benchmark configurations) |
+| **Framework** | Demo_rust_multiagent (Rust async/tokio implementation) |
+| **Related Work** | [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111](Technical_Report_111.md) (Rust Single-Agent), [TR112](Technical_Report_112.md) (Rust vs Python Single-Agent) |
 
 ---
+
+### Cross-Language Comparison and Production Deployment Evaluation
 
 ## Executive Summary
 
@@ -608,4 +612,3 @@ For pure LLM inference throughput: **Python remains superior**.
 **Benchmark Data:** `Demo_rust_multiagent/Demo_rust_multiagent_results/`
 **Analysis Scripts:** `scripts/rust_multiagent_sweep_summary.py`
 **Framework:** Demo_rust_multiagent v1.0 (Rust + Tokio)
-

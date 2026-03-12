@@ -1,15 +1,18 @@
 # Technical Report 131: GPU Kernel Profiling
 ## Root-Cause Analysis of Multi-Agent Throughput Degradation via NVIDIA Nsight Systems
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-26  
-**Author:** Research Team  
-**Report Type:** Hardware-level root-cause analysis (6-phase, 2 backends, 26 profiled runs)  
-**Test Duration:** ~71 minutes  
-**Status:** Complete -- GPU memory physics identified as primary degradation mechanism  
-**Run ID:** `20260226_174224`  
-**Related Work:** [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR130](Technical_Report_130.md) (Serving Stack Benchmarking)  
-**Depends On:** TR129 (degradation measurement), TR130 (serving stack comparison)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 131 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-26 |
+| **Author** | Research Team |
+| **Report Type** | Hardware-level root-cause analysis (6-phase, 2 backends, 26 profiled runs) |
+| **Test Duration** | ~71 minutes |
+| **Status** | Complete -- GPU memory physics identified as primary degradation mechanism |
+| **Run ID** | `20260226_174224` |
+| **Related Work** | [TR129](Technical_Report_129.md) (N-Agent Scaling Laws), [TR130](Technical_Report_130.md) (Serving Stack Benchmarking) |
+| **Depends On** | TR129 (degradation measurement), TR130 (serving stack comparison) |
 
 ---
 

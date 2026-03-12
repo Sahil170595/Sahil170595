@@ -1,10 +1,14 @@
 # Technical Report 118: ONNX Runtime + TensorRT Deep Dive
 
+| Field | Value |
+|-------|-------|
+| **TR Number** | 118 |
+| **Version** | 1.0 |
+| **Date** | 2025-12-18 |
+| **Status** | Draft (auto-generated from artifacts) |
+| **Git SHA** | `4f09b5c5381989515a29b321bcb24d1804e370e2` |
 
-**Version:** 1.0
-**Date:** 2025-12-18
-**Status:** Draft (auto-generated from artifacts)
-**Git SHA:** `4f09b5c5381989515a29b321bcb24d1804e370e2`
+---
 
 ## Abstract
 

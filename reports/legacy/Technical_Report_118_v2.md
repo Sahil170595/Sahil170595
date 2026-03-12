@@ -1,39 +1,42 @@
 # Technical Report 118v2: Model Scale Comparative Analysis
+## REPORT STATUS: INVALID - CONTAINS FABRICATED DATA 
 
-## ⚠️ REPORT STATUS: INVALID - CONTAINS FABRICATED DATA ⚠️
+| Field | Value |
+|-------|-------|
+| **TR Number** | 118v2 |
+| **Known Critical Issues** | |
 
-**This report version contains critical methodological errors and fabricated data tables.**  
+---
+
+**This report version contains critical methodological errors and fabricated data tables.** 
 **See [Technical_Report_118_v2.1.md](Technical_Report_118_v2.1.md) for the corrected analysis.**
 
-**Known Critical Issues:**
 1. **Fabricated GPT-2 generate tables** - Shows latency data for TRT backends that were 100% degraded (never ran successfully)
 2. **Run-count math inconsistent** - States "360 runs" but actually 720 runs (360 prefill + 360 generate)
 3. **Undefined measurement formulas** - Latency and throughput calculations not explicitly defined
 4. **Mixed scoping in Executive Summary** - Combines scenario-specific numbers with overall means without labels
-5. **Architecture inconsistency** - Tiny-gpt2 parameter count doesn't match stated architecture (131,072 wpe ≠ 102,714 total)
+5. **Architecture inconsistency** - Tiny-gpt2 parameter count doesn't match stated architecture (131,072 wpe != 102,714 total)
 6. **Incorrect delta calculations** - ONNX CPU delta stated as -52% but data shows -30%
-7. **Cost reduction conflicts** - Multiple conflicting numbers (1.7× vs 3.83×) without proper scoping
+7. **Cost reduction conflicts** - Multiple conflicting numbers (1.7x vs 3.83x) without proper scoping
 8. **Unsubstantiated TRT timeout explanation** - "Divergent sampling" claim not verified empirically in report
 
 **This document is preserved for forensic purposes only. All findings superseded by v2.1.**
 
----
-
 # Technical Report 118v2: Model Scale Comparative Analysis (INVALID)
 ## ONNX Runtime + TensorRT Performance Across 1,210x Parameter Scaling
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2025-12-13  
-**Author:** Research Team  
-**Report Type:** Definitive Multi-Scale ONNX/TensorRT Performance Analysis (INVALID - See v2.1)  
-**Test Duration:** 678 seconds (360 comprehensive benchmark runs across 2 models)  
+**Project:** Banterhearts LLM Performance Research 
+**Date:** 2025-12-13 
+**Author:** Research Team 
+**Report Type:** Definitive Multi-Scale ONNX/TensorRT Performance Analysis (INVALID - See v2.1) 
+**Test Duration:** 678 seconds (360 comprehensive benchmark runs across 2 models) 
 **Related Work:** [TR118](Technical_Report_118.md) (Single-Model Deep Dive), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis)
 
 ---
 
 ## Executive Summary
 
-This technical report presents the definitive comparative analysis of ONNX Runtime and TensorRT performance scaling across a **1,210x parameter increase** (0.103M → 124.4M parameters). Through 360 comprehensive benchmark runs across 6 backends × 6 scenarios × 2 models × 5 repetitions, we establish how specialized inference runtimes scale from toy models to production-grade transformers, providing frontier-grade insights for deployment decisions.
+This technical report presents the definitive comparative analysis of ONNX Runtime and TensorRT performance scaling across a **1,210x parameter increase** (0.103M -> 124.4M parameters). Through 360 comprehensive benchmark runs across 6 backends x 6 scenarios x 2 models x 5 repetitions, we establish how specialized inference runtimes scale from toy models to production-grade transformers, providing frontier-grade insights for deployment decisions.
 
 **Critical Context:**
 
@@ -41,10 +44,10 @@ This comparative study addresses a fundamental question in LLM deployment: **"Ho
 
 ### Key Findings
 
-**Scaling Efficiency Rankings (Prefill → Generate → Perplexity Preservation):**
+**Scaling Efficiency Rankings (Prefill -> Generate -> Perplexity Preservation):**
 
 **Tiny Model (0.103M params) - Prefill Phase:**
-1. **ONNX Runtime CPU:** 146K tok/s | 0.52ms latency | **97× faster than PyTorch** ⚡ **TINY SPECIALIST**
+1. **ONNX Runtime CPU:** 146K tok/s | 0.52ms latency | **97x faster than PyTorch** ⚡ **TINY SPECIALIST**
 2. **TensorRT FP32:** 7.0K tok/s | 10.9ms latency | 15.9% faster than PyTorch ✅ **BALANCED**
 3. **TensorRT INT8:** 7.0K tok/s | 11.0ms latency | 15.6% faster than PyTorch 
 4. **ONNX Runtime GPU:** 6.7K tok/s | 11.4ms latency | 11.2% faster than PyTorch
@@ -60,9 +63,9 @@ This comparative study addresses a fundamental question in LLM deployment: **"Ho
 
 **Critical Discoveries:**
 
-1. **Crossover phenomenon:** ONNX CPU dominates tiny models (97× faster) but **collapses** at scale (-52% slower for 124M params)
+1. **Crossover phenomenon:** ONNX CPU dominates tiny models (97x faster) but **collapses** at scale (-52% slower for 124M params)
 2. **TensorRT scales perfectly:** Consistent 60-76% speedup across both models, proving architecture-agnostic optimization
-3. **ONNX GPU awakens at scale:** 11% faster → 73% faster (7× improvement in advantage) as parameters increase 1,210×
+3. **ONNX GPU awakens at scale:** 11% faster -> 73% faster (7x improvement in advantage) as parameters increase 1,210x
 4. **Perplexity preservation:** All backends maintain < 0.02% delta at scale (gpt2: 58.34 baseline, max delta 58.36)
 5. **Zero-degradation validation:** 360/360 runs successful across both models (100% reliability)
 
@@ -74,18 +77,18 @@ This comparative study addresses a fundamental question in LLM deployment: **"Ho
 ### Business Impact
 
 **Strategic Insights:**
-- **Tiny Model Deployment (< 1M params):** ONNX CPU provides 97× speedup (146K tok/s) - ideal for edge/embedded
+- **Tiny Model Deployment (< 1M params):** ONNX CPU provides 97x speedup (146K tok/s) - ideal for edge/embedded
 - **Production Deployment (> 100M params):** TensorRT FP16 provides 60% speedup with **zero accuracy loss** (δ = 0.021%)
-- **Cost Efficiency:** 1.7× throughput improvement → 41% cost reduction per token at scale
+- **Cost Efficiency:** 1.7x throughput improvement -> 41% cost reduction per token at scale
 - **Build Overhead:** 97s one-time TRT FP16 build amortized over millions of inferences
 
 **Risk Assessment:**
-- **ONNX CPU dangerous at scale:** 52% slower than PyTorch for 124M params (inverts from 97× faster)
+- **ONNX CPU dangerous at scale:** 52% slower than PyTorch for 124M params (inverts from 97x faster)
 - **TensorRT INT8 minimal gains:** Only 76% vs FP16's 60% (not worth calibration complexity)
-- **Architecture independence:** Same TRT optimization profiles work for 0.1M → 124M params (robust)
+- **Architecture independence:** Same TRT optimization profiles work for 0.1M -> 124M params (robust)
 
 **Key Decision:**
-After 360 benchmarks across 1,210× parameter scaling, the definitive answer is: **TensorRT FP16 scales perfectly from toy models to production transformers** (59-76% faster, < 0.022% perplexity delta, 100% reliability). Deploy **ONNX CPU** for tiny models (< 1M params, 97× speedup), **TensorRT FP16** for everything else.
+After 360 benchmarks across 1,210x parameter scaling, the definitive answer is: **TensorRT FP16 scales perfectly from toy models to production transformers** (59-76% faster, < 0.022% perplexity delta, 100% reliability). Deploy **ONNX CPU** for tiny models (< 1M params, 97x speedup), **TensorRT FP16** for everything else.
 
 ---
 
@@ -114,33 +117,33 @@ After 360 benchmarks across 1,210× parameter scaling, the definitive answer is:
 The deployment of transformer models in production requires understanding not just **which backend is fastest**, but **how that ranking changes with model scale**. A backend that excels on a 0.1M parameter toy model may collapse under a 124M parameter production model—or vice versa.
 
 **Key Research Questions:**
-1. How do specialized inference runtimes (ONNX, TensorRT) scale compared to PyTorch across 1,210× parameter increase?
+1. How do specialized inference runtimes (ONNX, TensorRT) scale compared to PyTorch across 1,210x parameter increase?
 2. Where is the "crossover point" where CPU optimizations become GPU-bound bottlenecks?
 3. Do accuracy-preserving guarantees hold across model scales (perplexity delta stability)?
 4. What is the optimal backend selection strategy as a function of model size?
 
 ### 1.2 Model Selection Rationale
 
-We selected two models that bracket the "toy → production" spectrum:
+We selected two models that bracket the "toy -> production" spectrum:
 
 - **`sshleifer/tiny-gpt2`:** 102,714 parameters (0.103M)
-  - Purpose: Minimal transformer for testing export/build pipelines
-  - Architecture: 2 layers, 128 hidden, 2 attention heads, 256 vocabulary (tied embeddings)
-  - ONNX size: 0.86 MB
-  - Expected perplexity: ~50,000 (random/untrained baseline)
+ - Purpose: Minimal transformer for testing export/build pipelines
+ - Architecture: 2 layers, 128 hidden, 2 attention heads, 256 vocabulary (tied embeddings)
+ - ONNX size: 0.86 MB
+ - Expected perplexity: ~50,000 (random/untrained baseline)
 
 - **`gpt2`:** 124,439,808 parameters (124.4M)
-  - Purpose: Production-grade pretrained transformer (OpenAI GPT-2 smallest variant)
-  - Architecture: 12 layers, 768 hidden, 12 attention heads, 50257 vocabulary
-  - ONNX size: 622.4 MB (719× larger)
-  - Expected perplexity: ~58 on WikiText-2 (trained distribution)
+ - Purpose: Production-grade pretrained transformer (OpenAI GPT-2 smallest variant)
+ - Architecture: 12 layers, 768 hidden, 12 attention heads, 50257 vocabulary
+ - ONNX size: 622.4 MB (719x larger)
+ - Expected perplexity: ~58 on WikiText-2 (trained distribution)
 
-**Parameter Ratio:** 124.4M ÷ 0.103M = **1,210× scaling**
+**Parameter Ratio:** 124.4M ÷ 0.103M = **1,210x scaling**
 
 ### 1.3 Evolution from TR118
 
 TR118 provided a deep single-model analysis of `sshleifer/tiny-gpt2`, establishing:
-- ONNX CPU as the surprise winner (97× faster than PyTorch)
+- ONNX CPU as the surprise winner (97x faster than PyTorch)
 - TensorRT FP16 as production-ready (57.7% faster, zero accuracy loss)
 - INT8 quantization as underwhelming (7.3% speedup, not significant)
 
@@ -148,7 +151,7 @@ TR118 provided a deep single-model analysis of `sshleifer/tiny-gpt2`, establishi
 1. Adding the `gpt2` (124M) model to establish scaling laws
 2. Isolating per-model artifacts (no overwrites, full reproducibility)
 3. Comparing scaling efficiency across 6 backends
-4. Establishing crossover thresholds for CPU → GPU optimization transitions
+4. Establishing crossover thresholds for CPU -> GPU optimization transitions
 
 ### 1.4 Experimental Philosophy
 
@@ -198,7 +201,7 @@ We evaluate 6 **workload scenarios** designed to stress different inference patt
 | `batch_medium` | 4 | 64 | 256 | Batch document processing |
 
 **Total Benchmark Matrix:**
-- 6 backends × 6 scenarios × 2 models × 5 repetitions = **360 runs**
+- 6 backends x 6 scenarios x 2 models x 5 repetitions = **360 runs**
 - 180 prefill measurements + 180 generate measurements = **360 latency distributions**
 
 ### 2.3 Backend Configurations
@@ -238,19 +241,19 @@ We evaluate 6 **workload scenarios** designed to stress different inference patt
 - **Prefill:** Time to process full input sequence (prompt encoding)
 - **Generate:** Time per token generation (autoregressive decode)
 - **TTFT (Time To First Token):** Prefill overhead before first output token
-- **Throughput:** Tokens processed per second (accounting for batch × sequence)
+- **Throughput:** Tokens processed per second (accounting for batch x sequence)
 
 **Statistical Aggregation:**
-- 5 repetitions per scenario → mean, median, std, min, max, 95% CI
-- Degradation tracking: Any run with latency > 2× median flagged
+- 5 repetitions per scenario -> mean, median, std, min, max, 95% CI
+- Degradation tracking: Any run with latency > 2x median flagged
 - Warmup excluded: First 3 runs discarded, next 5 measured
 
 **Perplexity Validation:**
 - Dataset: WikiText-2 test split (1,000 samples, 72,531 tokens)
 - Formula: `exp(NLL_sum / token_count)` where NLL = cross-entropy on shifted logits
 - Threshold: Backend passes if `|perplexity_backend - perplexity_baseline| / perplexity_baseline < threshold`
-  - FP32/FP16: 0.1% (0.001)
-  - INT8: 2% (0.02)
+ - FP32/FP16: 0.1% (0.001)
+ - INT8: 2% (0.02)
 
 ### 2.5 Artifact Management
 
@@ -273,27 +276,27 @@ We evaluate 6 **workload scenarios** designed to stress different inference patt
 **Architecture:**
 ```
 GPT2Model(
-  (wte): Embedding(256, 128)        # 32,768 params
-  (wpe): Embedding(1024, 128)       # 131,072 params (positional)
-  (h): ModuleList(
-    (0-1): 2 × GPT2Block(            # 2 layers
-      (attn): GPT2Attention(
-        (c_attn): Linear(128, 384)   # 128×3 heads, 49,152 params
-        (c_proj): Linear(128, 128)   # 16,384 params
-      )
-      (mlp): GPT2MLP(
-        (c_fc): Linear(128, 512)     # 65,536 params
-        (c_proj): Linear(512, 128)   # 65,536 params
-      )
-    )
+ (wte): Embedding(256, 128)    # 32,768 params
+ (wpe): Embedding(1024, 128)    # 131,072 params (positional)
+ (h): ModuleList(
+  (0-1): 2 x GPT2Block(      # 2 layers
+   (attn): GPT2Attention(
+    (c_attn): Linear(128, 384)  # 128x3 heads, 49,152 params
+    (c_proj): Linear(128, 128)  # 16,384 params
+   )
+   (mlp): GPT2MLP(
+    (c_fc): Linear(128, 512)   # 65,536 params
+    (c_proj): Linear(512, 128)  # 65,536 params
+   )
   )
-  (ln_f): LayerNorm(128)             # 256 params
+ )
+ (ln_f): LayerNorm(128)       # 256 params
 )
 ```
 
 **Key Counts:**
 - **Total Parameters:** 102,714 (0.103M)
-- **Tied Embeddings:** `wte` tied to output → 50% param sharing
+- **Tied Embeddings:** `wte` tied to output -> 50% param sharing
 - **ONNX Export:** 0.86 MB (906,907 bytes), 15 initializers, 203,190 elements
 - **TensorRT FP32:** 5.25 MB, 163 layers, 5 profiles
 - **TensorRT FP16:** 2.17 MB, 33 layers, 1 profile (reused from smoke test)
@@ -310,27 +313,27 @@ GPT2Model(
 **Architecture:**
 ```
 GPT2Model(
-  (wte): Embedding(50257, 768)      # 38,597,376 params
-  (wpe): Embedding(1024, 768)       # 786,432 params (positional)
-  (h): ModuleList(
-    (0-11): 12 × GPT2Block(          # 12 layers
-      (attn): GPT2Attention(
-        (c_attn): Linear(768, 2304)  # 768×3 heads, 1,769,472 params
-        (c_proj): Linear(768, 768)   # 589,824 params
-      )
-      (mlp): GPT2MLP(
-        (c_fc): Linear(768, 3072)    # 2,359,296 params
-        (c_proj): Linear(3072, 768)  # 2,359,296 params
-      )
-    )
+ (wte): Embedding(50257, 768)   # 38,597,376 params
+ (wpe): Embedding(1024, 768)    # 786,432 params (positional)
+ (h): ModuleList(
+  (0-11): 12 x GPT2Block(     # 12 layers
+   (attn): GPT2Attention(
+    (c_attn): Linear(768, 2304) # 768x3 heads, 1,769,472 params
+    (c_proj): Linear(768, 768)  # 589,824 params
+   )
+   (mlp): GPT2MLP(
+    (c_fc): Linear(768, 3072)  # 2,359,296 params
+    (c_proj): Linear(3072, 768) # 2,359,296 params
+   )
   )
-  (ln_f): LayerNorm(768)             # 1,536 params
+ )
+ (ln_f): LayerNorm(768)       # 1,536 params
 )
 ```
 
 **Key Counts:**
 - **Total Parameters:** 124,439,808 (124.4M)
-- **Tied Embeddings:** `wte` tied to output → 31% of total params
+- **Tied Embeddings:** `wte` tied to output -> 31% of total params
 - **ONNX Export:** 622.4 MB (652,601,275 bytes), 149 initializers, 163,037,184 elements
 - **TensorRT FP32:** 778.4 MB, 901 layers, 5 profiles
 - **TensorRT FP16:** 941.8 MB, 792 layers, 5 profiles (rebuilt with full profiles)
@@ -346,23 +349,23 @@ GPT2Model(
 
 | Metric | Tiny-GPT2 | GPT-2 | Scaling Factor |
 |--------|-----------|-------|----------------|
-| **Parameters** | 102,714 (0.103M) | 124,439,808 (124.4M) | **1,210×** |
-| **Layers** | 2 | 12 | 6× |
-| **Hidden Size** | 128 | 768 | 6× |
-| **Attention Heads** | 2 | 12 | 6× |
-| **Vocabulary** | 256 | 50,257 | 196× |
-| **ONNX Size** | 0.86 MB | 622.4 MB | 719× |
-| **TRT FP32 Size** | 5.25 MB | 778.4 MB | 148× |
-| **TRT FP16 Size** | 2.17 MB | 941.8 MB | 434× |
-| **TRT INT8 Size** | 3.62 MB | 779.9 MB | 215× |
-| **TRT FP32 Build** | 15.0s | 57.2s | 3.8× |
+| **Parameters** | 102,714 (0.103M) | 124,439,808 (124.4M) | **1,210x** |
+| **Layers** | 2 | 12 | 6x |
+| **Hidden Size** | 128 | 768 | 6x |
+| **Attention Heads** | 2 | 12 | 6x |
+| **Vocabulary** | 256 | 50,257 | 196x |
+| **ONNX Size** | 0.86 MB | 622.4 MB | 719x |
+| **TRT FP32 Size** | 5.25 MB | 778.4 MB | 148x |
+| **TRT FP16 Size** | 2.17 MB | 941.8 MB | 434x |
+| **TRT INT8 Size** | 3.62 MB | 779.9 MB | 215x |
+| **TRT FP32 Build** | 15.0s | 57.2s | 3.8x |
 | **TRT FP16 Build** | Reused | 96.9s | — |
-| **TRT INT8 Build** | 30.8s | 83.4s | 2.7× |
+| **TRT INT8 Build** | 30.8s | 83.4s | 2.7x |
 
 **Key Observations:**
-- **ONNX scales linearly:** 719× size for 1,210× params (superlinear due to vocab explosion)
+- **ONNX scales linearly:** 719x size for 1,210x params (superlinear due to vocab explosion)
 - **TRT FP16 paradox:** Larger than FP32 (942 MB vs 778 MB) due to more optimization profiles + mixed precision buffers
-- **Build time sublinear:** Only 3.8× longer for 1,210× more params (TRT parallelizes graph optimization)
+- **Build time sublinear:** Only 3.8x longer for 1,210x more params (TRT parallelizes graph optimization)
 
 ---
 
@@ -392,9 +395,9 @@ GPT2Model(
 | **transformers-gpu-compile** | 6,022 | 5,050 | 4,252 | 3,426 | 3,045 | 2,268 | **4,011** 🏆 |
 
 **Key Insights:**
-- **ONNX CPU dominates:** 146K tok/s (batch_medium) vs 6K for PyTorch = **24.3× faster**
+- **ONNX CPU dominates:** 146K tok/s (batch_medium) vs 6K for PyTorch = **24.3x faster**
 - **TRT batch scenarios degraded:** FP16 engine from smoke test had only 1 profile (single-batch), failed on batch=4
-- **CPU-GPU inversion:** ONNX CPU (88K tok/s overall) >> ONNX GPU (4.5K tok/s) - CPU wins by 19.4×
+- **CPU-GPU inversion:** ONNX CPU (88K tok/s overall) >> ONNX GPU (4.5K tok/s) - CPU wins by 19.4x
 
 ### 4.2 GPT-2 (124.4M params) - Prefill Performance
 
@@ -421,10 +424,10 @@ GPT2Model(
 | **onnxruntime-cpu** | 2,378 | 2,074 | 1,675 | 1,323 | 735 | 888 | **1,512** ❌ |
 
 **Key Insights:**
-- **TensorRT FP16 dominates:** 12,268 tok/s (single_medium) = **10× faster than PyTorch**
-- **ONNX CPU collapses:** 1,512 tok/s overall vs 2,162 for PyTorch = **30% slower** (flipped from 19× faster!)
+- **TensorRT FP16 dominates:** 12,268 tok/s (single_medium) = **10x faster than PyTorch**
+- **ONNX CPU collapses:** 1,512 tok/s overall vs 2,162 for PyTorch = **30% slower** (flipped from 19x faster!)
 - **TensorRT INT8 equals FP32:** 6,609 vs 6,559 tok/s (0.8% difference, not significant)
-- **ONNX GPU awakens:** 5,158 tok/s overall = 2.4× faster than PyTorch (vs 1.1× for tiny model)
+- **ONNX GPU awakens:** 5,158 tok/s overall = 2.4x faster than PyTorch (vs 1.1x for tiny model)
 
 ### 4.3 Tiny-GPT2 (0.103M params) - Generate Performance
 
@@ -449,8 +452,8 @@ GPT2Model(
 
 **Key Insights:**
 - **All TRT backends 100% degraded:** Generate phase hit timeout (180s) for all scenarios
-- **ONNX CPU 12× faster:** 2,970 tok/s vs 241 for PyTorch in generation
-- **ONNX GPU struggles:** Only 468 tok/s (1.9× faster than PyTorch, but 6.3× slower than ONNX CPU)
+- **ONNX CPU 12x faster:** 2,970 tok/s vs 241 for PyTorch in generation
+- **ONNX GPU struggles:** Only 468 tok/s (1.9x faster than PyTorch, but 6.3x slower than ONNX CPU)
 
 ### 4.4 GPT-2 (124.4M params) - Generate Performance
 
@@ -477,8 +480,8 @@ GPT2Model(
 | **transformers-gpu-compile** | 234.6 | 247.4 | 69.0 | 70.4 | 168.2 | 71.2 | **143** 🏆 |
 
 **Key Insights:**
-- **TensorRT FP16 wins decisively:** 8,271 tok/s overall = **58× faster than PyTorch** (143 tok/s)
-- **ONNX CPU catastrophic at scale:** 77 tok/s = **46% slower than PyTorch** (was 12× faster for tiny model!)
+- **TensorRT FP16 wins decisively:** 8,271 tok/s overall = **58x faster than PyTorch** (143 tok/s)
+- **ONNX CPU catastrophic at scale:** 77 tok/s = **46% slower than PyTorch** (was 12x faster for tiny model!)
 - **TensorRT INT8 vs FP32 parity:** 6,609 vs 6,559 tok/s (0.8% difference, not worth calibration)
 
 ---
@@ -491,13 +494,13 @@ GPT2Model(
 
 | Model | Params | Prefill Throughput | Speedup vs PyTorch | Generate Throughput | Speedup vs PyTorch |
 |-------|--------|-------------------|-------------------|---------------------|-------------------|
-| **tiny-gpt2** | 0.103M | 88,000 tok/s | **21.9×** ⚡ | 2,970 tok/s | **12.3×** ⚡ |
-| **gpt2** | 124.4M | 1,512 tok/s | **0.70×** ❌ | 77 tok/s | **0.54×** ❌ |
-| **Scaling Factor** | 1,210× | **÷58** 📉 | **÷31** | **÷39** 📉 | **÷23** |
+| **tiny-gpt2** | 0.103M | 88,000 tok/s | **21.9x** ⚡ | 2,970 tok/s | **12.3x** ⚡ |
+| **gpt2** | 124.4M | 1,512 tok/s | **0.70x** ❌ | 77 tok/s | **0.54x** ❌ |
+| **Scaling Factor** | 1,210x | **÷58** 📉 | **÷31** | **÷39** 📉 | **÷23** |
 
 **Critical Observations:**
-- **Prefill crossover:** ONNX CPU goes from 21.9× faster → 0.70× slower (31× degradation in advantage)
-- **Generate crossover:** ONNX CPU goes from 12.3× faster → 0.54× slower (23× degradation)
+- **Prefill crossover:** ONNX CPU goes from 21.9x faster -> 0.70x slower (31x degradation in advantage)
+- **Generate crossover:** ONNX CPU goes from 12.3x faster -> 0.54x slower (23x degradation)
 - **Inflection point estimate:** Crossover likely occurs around **1M-10M parameters** (between 0.103M and 124.4M)
 
 **Root Cause Analysis:**
@@ -513,7 +516,7 @@ GPT2Model(
 |-------|--------|-----------------|------------------|------------------|-----------|
 | **tiny-gpt2** | 0.103M | **57.7%** faster | Degraded | N/A (untrained) | Reused |
 | **gpt2** | 124.4M | **59.5%** faster | **5,782%** faster | **+0.021%** | 96.9s |
-| **Scaling Stability** | 1,210× | **Constant** ✅ | **Scales** ✅ | **< 0.022%** ✅ | **Linear** |
+| **Scaling Stability** | 1,210x | **Constant** ✅ | **Scales** ✅ | **< 0.022%** ✅ | **Linear** |
 
 **Why TensorRT Scales Perfectly:**
 1. **Graph-level optimization:** TRT analyzes entire computation graph, not per-layer - scales to deeper networks
@@ -527,14 +530,14 @@ GPT2Model(
 
 | Model | Params | Prefill Speedup | Generate Speedup | vs ONNX CPU Prefill | vs ONNX CPU Generate |
 |-------|--------|-----------------|------------------|---------------------|---------------------|
-| **tiny-gpt2** | 0.103M | **+12.9%** | **+1.9×** | **÷19.4** ❌ | **÷6.3** ❌ |
-| **gpt2** | 124.4M | **+138.5%** ⚡ | **+5.8×** | **×3.4** ✅ | **×5.8** ✅ |
-| **Scaling Factor** | 1,210× | **+10.7×** | **+3.1×** | **Flips** | **Flips** |
+| **tiny-gpt2** | 0.103M | **+12.9%** | **+1.9x** | **÷19.4** ❌ | **÷6.3** ❌ |
+| **gpt2** | 124.4M | **+138.5%** ⚡ | **+5.8x** | **x3.4** ✅ | **x5.8** ✅ |
+| **Scaling Factor** | 1,210x | **+10.7x** | **+3.1x** | **Flips** | **Flips** |
 
 **Critical Observations:**
-- **GPU advantage emerges:** At 0.1M params, ONNX CPU is 19× faster than ONNX GPU. At 124M params, ONNX GPU is 3.4× faster than ONNX CPU (65× swing!)
-- **Generate scales better:** GPU speedup improves 3.1× (1.9× → 5.8×) as model grows
-- **Prefill awakens dramatically:** 13% faster → 139% faster (10.7× improvement in speedup)
+- **GPU advantage emerges:** At 0.1M params, ONNX CPU is 19x faster than ONNX GPU. At 124M params, ONNX GPU is 3.4x faster than ONNX CPU (65x swing!)
+- **Generate scales better:** GPU speedup improves 3.1x (1.9x -> 5.8x) as model grows
+- **Prefill awakens dramatically:** 13% faster -> 139% faster (10.7x improvement in speedup)
 
 **Root Cause:**
 - **GPU memory hierarchy wins at scale:** 12 GB VRAM with 768 GB/s bandwidth dominates DDR5 (76.8 GB/s) once model exceeds CPU cache
@@ -549,7 +552,7 @@ GPT2Model(
 | **Prefill Speedup vs FP16** | N/A (FP16 degraded) | -20.2% (slower) | +50-100% faster | ❌ **Slower** |
 | **Generate Speedup vs FP16** | N/A (both degraded) | -20.1% (slower) | +50-100% faster | ❌ **Slower** |
 | **Perplexity Delta** | -2.4e-08 | +3.05e-05 | < 2% | ✅ **Pass** |
-| **Build Time Overhead** | +104% vs FP16 | -14% vs FP16 | +50% (calibration) | ⚠️ **Variable** |
+| **Build Time Overhead** | +104% vs FP16 | -14% vs FP16 | +50% (calibration) | **Variable** |
 | **Engine Size** | +67% vs FP16 | -17% vs FP16 | -50% (INT8 < FP16) | ❌ **Larger** |
 
 **Critical Revelation:**
@@ -581,7 +584,7 @@ GPT2Model(
 
 **Key Insights:**
 - **Perfect numerical precision:** All working backends match PyTorch to 8 decimal places (δ < 3e-08)
-- **Untrained model perplexity = 50,285:** Close to expected uniform distribution (50,257 vocab → ~50,000 perplexity)
+- **Untrained model perplexity = 50,285:** Close to expected uniform distribution (50,257 vocab -> ~50,000 perplexity)
 - **TRT FP16 failed:** Reused smoke-test engine with 1 profile couldn't handle batch=4, seq=128 for perplexity validation
 - **INT8 zero degradation:** Perplexity delta -2.38e-08 (identical to FP32 within float precision)
 
@@ -611,16 +614,16 @@ GPT2Model(
 
 | Backend | Tiny-GPT2 MAE | GPT-2 MAE | Scaling |
 |---------|---------------|-----------|---------|
-| **onnxruntime-cpu** | 6.70e-09 | 4.12e-05 | **6,150×** ↑ |
-| **onnxruntime-gpu** | 0.0 | 2.03e-02 | **∞** (0 → 0.02) |
-| **tensorrt-fp32** | 6.38e-09 | 6.08e-03 | **952,000×** ↑ |
+| **onnxruntime-cpu** | 6.70e-09 | 4.12e-05 | **6,150x** ↑ |
+| **onnxruntime-gpu** | 0.0 | 2.03e-02 | **∞** (0 -> 0.02) |
+| **tensorrt-fp32** | 6.38e-09 | 6.08e-03 | **952,000x** ↑ |
 | **tensorrt-fp16** | ERROR | 1.68e-02 | N/A |
-| **tensorrt-int8** | 5.18e-10 | 8.24e-03 | **15,900,000×** ↑ |
+| **tensorrt-int8** | 5.18e-10 | 8.24e-03 | **15,900,000x** ↑ |
 
 **Critical Observations:**
-- **Numerical divergence at scale:** MAE increases 6 orders of magnitude (1e-09 → 1e-02) as model grows 1,210×
+- **Numerical divergence at scale:** MAE increases 6 orders of magnitude (1e-09 -> 1e-02) as model grows 1,210x
 - **ONNX GPU perfect precision for tiny:** 0.0 MAE (bit-exact) vs 0.02 for large model (FP16 accumulation errors)
-- **TRT INT8 explosion:** 5e-10 → 8e-03 (16M× increase) but perplexity delta still < 0.003%
+- **TRT INT8 explosion:** 5e-10 -> 8e-03 (16Mx increase) but perplexity delta still < 0.003%
 - **Why perplexity stays stable:** Softmax normalizes logits - absolute MAE doesn't matter, only relative ranking (which is preserved)
 
 ---
@@ -630,7 +633,7 @@ GPT2Model(
 ### 7.1 Prefill Phase Rankings
 
 **Tiny-GPT2 (0.103M params) - Prefill Latency:**
-1. **ONNX Runtime CPU:** 0.31ms | **97.0× faster** | **WINNER** ⚡
+1. **ONNX Runtime CPU:** 0.31ms | **97.0x faster** | **WINNER** ⚡
 2. **TensorRT FP16:** 3.30ms (degraded) | 55.6% faster | — 
 3. **TensorRT FP32:** 5.07ms | 31.7% faster | —
 4. **TensorRT INT8:** 5.23ms | 29.5% faster | —
@@ -718,14 +721,14 @@ GPT2Model(
 | **gpt2** | 124.4M | 1,512 tok/s | 2,162 tok/s | **-30%** ❌ |
 
 **Crossover Math:**
-- At 0.103M params: ONNX CPU is **21.9× faster**
-- At 124.4M params: ONNX CPU is **0.70× slower**
-- **Total swing:** 31× degradation in advantage
+- At 0.103M params: ONNX CPU is **21.9x faster**
+- At 124.4M params: ONNX CPU is **0.70x slower**
+- **Total swing:** 31x degradation in advantage
 
 **Estimated Crossover Point:**
-Assuming exponential decay: `log(1.0) = log(21.9) - k × log(124.4 / 0.103)`
+Assuming exponential decay: `log(1.0) = log(21.9) - k x log(124.4 / 0.103)`
 
-Solving: `k ≈ 0.44` → Crossover at `0.103M × (21.9)^(1/0.44) ≈ **1.2M parameters**`
+Solving: `k ≈ 0.44` -> Crossover at `0.103M x (21.9)^(1/0.44) ≈ **1.2M parameters**`
 
 **Validation:**
 - Models around 1-2M params (e.g., `distilgpt2`, `gpt-neo-125M`) would likely show ONNX CPU ≈ PyTorch GPU
@@ -738,19 +741,19 @@ Solving: `k ≈ 0.44` → Crossover at `0.103M × (21.9)^(1/0.44) ≈ **1.2M par
 
 | Component | Tiny-GPT2 (0.86 MB) | GPT-2 (622 MB) | Impact |
 |-----------|---------------------|----------------|--------|
-| **L1 Cache** | Fits (32 KB × 24 cores = 768 KB) | Misses | Minimal |
-| **L2 Cache** | Fits (2 MB × 24 cores = 48 MB) | Misses | **Critical** |
-| **L3 Cache** | Fits (30 MB shared) | Misses (20× larger) | **Fatal** |
+| **L1 Cache** | Fits (32 KB x 24 cores = 768 KB) | Misses | Minimal |
+| **L2 Cache** | Fits (2 MB x 24 cores = 48 MB) | Misses | **Critical** |
+| **L3 Cache** | Fits (30 MB shared) | Misses (20x larger) | **Fatal** |
 | **DDR5 RAM** | Never accessed (cached) | 76.8 GB/s bandwidth | **Bottleneck** |
 
 **CPU SIMD Saturation:**
-- **AVX-512:** 16× FP32 ops per cycle (512 bits ÷ 32 bits)
-- **Tiny model (128-dim hidden):** 8× FP32 vectors → 50% utilization
-- **Large model (768-dim hidden):** 48× FP32 vectors → only 33% fit in AVX registers
-- **Matrix multiply bandwidth wall:** 768×768 matmul requires 4.5 MB of data movement per layer (× 12 layers = 54 MB) > L3 cache
+- **AVX-512:** 16x FP32 ops per cycle (512 bits ÷ 32 bits)
+- **Tiny model (128-dim hidden):** 8x FP32 vectors -> 50% utilization
+- **Large model (768-dim hidden):** 48x FP32 vectors -> only 33% fit in AVX registers
+- **Matrix multiply bandwidth wall:** 768x768 matmul requires 4.5 MB of data movement per layer (x 12 layers = 54 MB) > L3 cache
 
 **Why PyTorch GPU Doesn't Collapse:**
-- **VRAM:** 12 GB with 768 GB/s bandwidth (10× faster than DDR5)
+- **VRAM:** 12 GB with 768 GB/s bandwidth (10x faster than DDR5)
 - **Parallel execution:** 9,728 CUDA cores can load/compute simultaneously
 - **Tensor cores:** 40 TFLOPS FP32 tensor throughput (vs 1.3 TFLOPS AVX-512)
 
@@ -760,12 +763,12 @@ Solving: `k ≈ 0.44` → Crossover at `0.103M × (21.9)^(1/0.44) ≈ **1.2M par
 
 ```
 IF model_params < 1M THEN
-    USE ONNX Runtime CPU (20-100× faster, no GPU required)
+  USE ONNX Runtime CPU (20-100x faster, no GPU required)
 ELSE IF model_params < 100M THEN
-    USE TensorRT FP16 (50-100% faster than PyTorch)
+  USE TensorRT FP16 (50-100% faster than PyTorch)
 ELSE IF model_params > 100M THEN
-    USE TensorRT FP16 (60-80% faster, proven at 124M)
-    AVOID ONNX CPU (30-50% slower at scale)
+  USE TensorRT FP16 (60-80% faster, proven at 124M)
+  AVOID ONNX CPU (30-50% slower at scale)
 END IF
 ```
 
@@ -783,9 +786,9 @@ END IF
 | **Generate Speedup** | Degraded | 74.5% faster | **Scales** ✅ |
 | **Perplexity Delta** | ERROR | +0.021% | **Negligible** ✅ |
 | **Build Time** | Reused (< 1s) | 96.9s | **Scales linearly** ✅ |
-| **Engine Size** | 2.17 MB | 941.8 MB | **434× (expected)** ✅ |
+| **Engine Size** | 2.17 MB | 941.8 MB | **434x (expected)** ✅ |
 
-**Key Insight:** TensorRT speedup **improves** from 56% → 75% as model scales 1,210× (13% better performance at larger scale!)
+**Key Insight:** TensorRT speedup **improves** from 56% -> 75% as model scales 1,210x (13% better performance at larger scale!)
 
 ### 9.2 Architecture-Agnostic Optimization
 
@@ -801,11 +804,11 @@ END IF
 - GPT-2: 901 layers (FP32), 792 layers (FP16), 1025 layers (INT8)
 
 **Layer count scaling:**
-- FP32: 901 ÷ 163 = 5.5× (matches 12 layers ÷ 2 layers = 6×)
-- FP16: 792 ÷ 33 = 24× (more fusion at scale)
-- INT8: 1025 ÷ 186 = 5.5× (similar to FP32)
+- FP32: 901 ÷ 163 = 5.5x (matches 12 layers ÷ 2 layers = 6x)
+- FP16: 792 ÷ 33 = 24x (more fusion at scale)
+- INT8: 1025 ÷ 186 = 5.5x (similar to FP32)
 
-**Interpretation:** TensorRT fuses more aggressively for larger models in FP16 mode (24× fewer layer nodes), explaining why FP16 speedup improves from 56% → 75%.
+**Interpretation:** TensorRT fuses more aggressively for larger models in FP16 mode (24x fewer layer nodes), explaining why FP16 speedup improves from 56% -> 75%.
 
 ### 9.3 Kernel Fusion Examples
 
@@ -815,11 +818,11 @@ END IF
 - Each LayerNorm separate
 
 **GPT-2 (792 FP16 layers):**
-- Fused Multi-Head Attention (12 heads → 1 kernel)
-- Fused FFN + GELU + residual (4 ops → 1 kernel)
-- Fused LayerNorm + projection (2 ops → 1 kernel)
+- Fused Multi-Head Attention (12 heads -> 1 kernel)
+- Fused FFN + GELU + residual (4 ops -> 1 kernel)
+- Fused LayerNorm + projection (2 ops -> 1 kernel)
 
-**Result:** 24× more aggressive fusion → 34% better speedup (75% vs 56%)
+**Result:** 24x more aggressive fusion -> 34% better speedup (75% vs 56%)
 
 ### 9.4 Why INT8 Doesn't Scale
 
@@ -833,7 +836,7 @@ END IF
 **Root Cause:**
 1. **Memory-bound, not compute-bound:** GPT-2 inference limited by 768 GB/s VRAM bandwidth, not 165 TFLOPS INT8 compute
 2. **INT8 tensor core underutilization:** RTX 4080 has 512 INT8 tensor cores but only uses ~30% for 124M param model
-3. **Quantization overhead:** Dequant (INT8 → FP16) + quant (FP16 → INT8) at layer boundaries adds latency
+3. **Quantization overhead:** Dequant (INT8 -> FP16) + quant (FP16 -> INT8) at layer boundaries adds latency
 
 **Recommendation:** INT8 only beneficial for models > 7B params where compute becomes bottleneck (A100/H100 at scale).
 
@@ -843,11 +846,11 @@ END IF
 
 ### 10.1 Decision Matrix
 
-**Model Size → Backend Selection:**
+**Model Size -> Backend Selection:**
 
 | Model Params | Prefill Backend | Generate Backend | Rationale |
 |-------------|-----------------|------------------|-----------|
-| **< 500K** | ONNX CPU | ONNX CPU | 20-100× faster, no GPU required, fits in L3 cache |
+| **< 500K** | ONNX CPU | ONNX CPU | 20-100x faster, no GPU required, fits in L3 cache |
 | **500K - 1M** | ONNX CPU | TRT FP16 | Hybrid: fast prefill on CPU, optimized generation on GPU |
 | **1M - 10M** | TRT FP16 | TRT FP16 | Crossover point - GPU uniformly faster |
 | **10M - 1B** | TRT FP16 | TRT FP16 | Proven at 124M, scales linearly |
@@ -860,9 +863,9 @@ END IF
 
 | Metric | Value | Impact |
 |--------|-------|--------|
-| **Throughput Gain** | 8,271 vs 2,162 tok/s (3.8×) | 73% cost reduction per token |
+| **Throughput Gain** | 8,271 vs 2,162 tok/s (3.8x) | 73% cost reduction per token |
 | **Build Time** | 96.9s one-time | Amortized over 10M+ tokens |
-| **Engine Size** | 942 MB | 12 GB VRAM → 13× headroom |
+| **Engine Size** | 942 MB | 12 GB VRAM -> 13x headroom |
 | **Accuracy Delta** | +0.021% perplexity | Negligible (< 0.5% gate) |
 | **Reliability** | 180/180 runs (100%) | Production-ready |
 
@@ -870,7 +873,7 @@ END IF
 
 | Metric | Value | Impact |
 |--------|-------|--------|
-| **Throughput Gain** | 88,000 vs 4,011 tok/s (21.9×) | 95% cost reduction per token |
+| **Throughput Gain** | 88,000 vs 4,011 tok/s (21.9x) | 95% cost reduction per token |
 | **GPU Required** | No | Deploy on edge devices, $0 GPU cost |
 | **Latency** | 0.31ms prefill | Sub-millisecond response |
 | **Accuracy Delta** | -2.71e-08 | Bit-exact |
@@ -887,7 +890,7 @@ END IF
 6. ✅ **Build Reproducibility:** SHA256 hashes match across builds
 
 **Monitoring in Production:**
-- **Latency P50/P95/P99:** Alert if P95 > 2× median
+- **Latency P50/P95/P99:** Alert if P95 > 2x median
 - **Degradation Rate:** Alert if > 5% of requests timeout
 - **GPU Utilization:** Target 70-90% (avoid thermal throttling)
 - **Perplexity Drift:** Monthly validation on held-out WikiText-2
@@ -898,8 +901,8 @@ END IF
 
 1. **Prototype (0.1M params):** ONNX CPU, single A100 core, 88K tok/s
 2. **MVP (1-10M params):** TRT FP16, single RTX 4080, 8-15K tok/s
-3. **Production (100M params):** TRT FP16, 4× A100 (40 GB), 30K tok/s
-4. **Scale (1-7B params):** TRT FP16, 8× A100 with tensor parallelism, 50K tok/s
+3. **Production (100M params):** TRT FP16, 4x A100 (40 GB), 30K tok/s
+4. **Scale (1-7B params):** TRT FP16, 8x A100 with tensor parallelism, 50K tok/s
 5. **Hyperscale (> 7B params):** TRT INT8, H100 cluster with pipeline parallelism, 100K+ tok/s
 
 ---
@@ -935,7 +938,7 @@ END IF
 | **TRT FP32** | 4.38ms | 3.95ms | 4.82ms | ±0.43ms | ✅ **Very Stable** |
 | **TRT INT8** | 4.30ms | 3.96ms | 4.64ms | ±0.34ms | ✅ **Very Stable** |
 | **ORT GPU** | 8.07ms | 7.03ms | 9.10ms | ±1.04ms | ✅ **Stable** |
-| **ORT CPU** | 17.88ms | 15.35ms | 20.41ms | ±2.53ms | ⚠️ **Variable** |
+| **ORT CPU** | 17.88ms | 15.35ms | 20.41ms | ±2.53ms | **Variable** |
 | **PyTorch** | 15.95ms | 14.17ms | 17.73ms | ±1.78ms | ✅ **Stable** |
 
 **Key Observations:**
@@ -951,14 +954,14 @@ END IF
 |---------|------------------|---------------|---------|-------------------|
 | **onnxruntime-cpu** | 180/180 (100%) | 180/180 (100%) | **360/360** | **0** ✅ |
 | **onnxruntime-gpu** | 180/180 (100%) | 180/180 (100%) | **360/360** | **0** ✅ |
-| **tensorrt-fp32** | 90/180 (50%) | 180/180 (100%) | **270/360** | **90** ⚠️ |
-| **tensorrt-fp16** | 90/180 (50%) | 180/180 (100%) | **270/360** | **90** ⚠️ |
-| **tensorrt-int8** | 90/180 (50%) | 180/180 (100%) | **270/360** | **90** ⚠️ |
+| **tensorrt-fp32** | 90/180 (50%) | 180/180 (100%) | **270/360** | **90** |
+| **tensorrt-fp16** | 90/180 (50%) | 180/180 (100%) | **270/360** | **90** |
+| **tensorrt-int8** | 90/180 (50%) | 180/180 (100%) | **270/360** | **90** |
 | **transformers-gpu-compile** | 180/180 (100%) | 180/180 (100%) | **360/360** | **0** ✅ |
 
 **Root Cause of TRT Degradation:**
 - **Generate phase timeout:** All 90 tiny-GPT2 generate runs hit 180s timeout for TensorRT
-- **Why:** Untrained model → divergent sampling → infinite loop in generation (not a TensorRT bug)
+- **Why:** Untrained model -> divergent sampling -> infinite loop in generation (not a TensorRT bug)
 - **Evidence:** Prefill succeeds 100% for all TensorRT variants
 
 **Corrected Reliability:**
@@ -973,24 +976,24 @@ END IF
 ### 12.1 Key Findings Summary
 
 1. **The Crossover Phenomenon:**
-   - ONNX Runtime CPU dominates tiny models (< 1M params): **21.9× faster** than PyTorch GPU
-   - But collapses at scale (124M params): **30% slower** than PyTorch GPU
-   - **Inflection point:** ~1-2M parameters (L3 cache exhaustion threshold)
+  - ONNX Runtime CPU dominates tiny models (< 1M params): **21.9x faster** than PyTorch GPU
+  - But collapses at scale (124M params): **30% slower** than PyTorch GPU
+  - **Inflection point:** ~1-2M parameters (L3 cache exhaustion threshold)
 
 2. **TensorRT Perfect Scaling:**
-   - **Consistent 60-75% speedup** across 1,210× parameter increase
-   - FP16 speedup **improves** from 56% → 75% at scale (better kernel fusion)
-   - **100% reliability** for trained models (360/360 runs successful)
+  - **Consistent 60-75% speedup** across 1,210x parameter increase
+  - FP16 speedup **improves** from 56% -> 75% at scale (better kernel fusion)
+  - **100% reliability** for trained models (360/360 runs successful)
 
 3. **INT8 Quantization Reality:**
-   - **No speedup for 124M params:** 6,609 vs 8,271 tok/s (20% **slower** than FP16)
-   - **Perplexity preserved:** +0.003% delta (well under 2% threshold)
-   - **Recommendation:** Skip INT8 for models < 1B params on RTX 40-series
+  - **No speedup for 124M params:** 6,609 vs 8,271 tok/s (20% **slower** than FP16)
+  - **Perplexity preserved:** +0.003% delta (well under 2% threshold)
+  - **Recommendation:** Skip INT8 for models < 1B params on RTX 40-series
 
 4. **Perplexity Validation:**
-   - **All backends pass accuracy gates:** Max delta 0.021% (FP16), 0.003% (INT8)
-   - **Numerical precision:** Float-level MAE < 0.02 across all variants
-   - **Production-ready:** Zero accuracy loss for specialized runtimes
+  - **All backends pass accuracy gates:** Max delta 0.021% (FP16), 0.003% (INT8)
+  - **Numerical precision:** Float-level MAE < 0.02 across all variants
+  - **Production-ready:** Zero accuracy loss for specialized runtimes
 
 ### 12.2 Production Deployment Recommendations
 
@@ -998,7 +1001,7 @@ END IF
 
 | Use Case | Model Size | Backend | Expected Speedup | Deployment Complexity |
 |----------|------------|---------|------------------|----------------------|
-| **Edge Devices** | < 1M params | ONNX CPU | **20-100×** | ⭐ Simple (no GPU) |
+| **Edge Devices** | < 1M params | ONNX CPU | **20-100x** | ⭐ Simple (no GPU) |
 | **Mobile/Embedded** | 1-10M params | TRT FP16 mobile | **50-80%** | ⭐⭐ Moderate (Jetson) |
 | **Cloud API** | 100M - 1B params | TRT FP16 | **60-75%** | ⭐⭐⭐ Complex (A100) |
 | **Hyperscale** | > 7B params | TRT INT8 | **50-100%** | ⭐⭐⭐⭐ Expert (H100 cluster) |
@@ -1006,14 +1009,14 @@ END IF
 **Avoid These Configurations:**
 - ❌ **ONNX CPU for models > 2M params** (30-50% slower than PyTorch)
 - ❌ **TensorRT INT8 for models < 1B params** (20% slower than FP16, wasted calibration)
-- ❌ **ONNX GPU for tiny models** (19× slower than ONNX CPU)
+- ❌ **ONNX GPU for tiny models** (19x slower than ONNX CPU)
 
 ### 12.3 Future Work
 
 **Immediate Next Steps:**
 1. **TR119:** Multi-GPU scaling (DP/TP/PP) for 1B-7B param models
 2. **TR120:** vLLM + PagedAttention integration for long-context (> 2K tokens)
-3. **TR121:** Speculative decoding with draft models (tiny-GPT2 → GPT-2)
+3. **TR121:** Speculative decoding with draft models (tiny-GPT2 -> GPT-2)
 
 **Research Questions:**
 - **Where is the INT8 inflection point?** Test 1B, 3B, 7B params to find compute-bound threshold
@@ -1076,7 +1079,7 @@ python scripts/tr118/analyze_results.py --run-dir scripts/tr118/results/tr118v2/
 **Memory:**
 - **Capacity:** 16 GB
 - **Type:** DDR5-4800
-- **Channels:** Dual-channel (2 × 8 GB)
+- **Channels:** Dual-channel (2 x 8 GB)
 - **Bandwidth:** 76.8 GB/s (theoretical)
 
 ### Appendix B: Software Versions
@@ -1091,7 +1094,7 @@ python scripts/tr118/analyze_results.py --run-dir scripts/tr118/results/tr118v2/
 **Inference Runtimes:**
 - **ONNX:** 1.19.0
 - **ONNX Runtime:** 1.23.2
-  - Providers: TensorRT (10.12.0.36), CUDA (12.8), CPU
+ - Providers: TensorRT (10.12.0.36), CUDA (12.8), CPU
 - **TensorRT:** 10.12.0.36 (GA release)
 
 **Supporting Libraries:**
@@ -1115,8 +1118,8 @@ python scripts/tr118/analyze_results.py --run-dir scripts/tr118/results/tr118v2/
 | `batch_medium` | 4 | 64 | 256 | 3 | 5 | 180s |
 
 **Total Measurements Per Model:**
-- 6 scenarios × 5 runs × 6 backends = **180 prefill measurements**
-- 6 scenarios × 5 runs × 6 backends = **180 generate measurements**
+- 6 scenarios x 5 runs x 6 backends = **180 prefill measurements**
+- 6 scenarios x 5 runs x 6 backends = **180 generate measurements**
 - **Total:** 360 measurements per model, 720 across both models
 
 ### Appendix D: TensorRT Build Configuration
@@ -1124,36 +1127,36 @@ python scripts/tr118/analyze_results.py --run-dir scripts/tr118/results/tr118v2/
 **Builder Settings:**
 ```python
 builder_config = {
-    "workspace_gb": 6,
-    "builder_optimization_level": 3,  # Max optimization
-    "max_num_tactics": -1,  # No limit on tactic search
-    "tiling_optimization_level": "NONE",  # Let TRT decide
-    "profiling_verbosity": "DETAILED",
+  "workspace_gb": 6,
+  "builder_optimization_level": 3, # Max optimization
+  "max_num_tactics": -1, # No limit on tactic search
+  "tiling_optimization_level": "NONE", # Let TRT decide
+  "profiling_verbosity": "DETAILED",
 }
 ```
 
 **Dynamic Shape Profiles:**
 ```python
 profiles = [
-    {"batch": [1, 1, 1], "seq": [8, 16, 32]},    # Profile 0: single micro/short
-    {"batch": [1, 1, 1], "seq": [32, 48, 64]},   # Profile 1: single medium
-    {"batch": [1, 1, 1], "seq": [64, 96, 128]},  # Profile 2: single long
-    {"batch": [4, 4, 4], "seq": [8, 20, 32]},    # Profile 3: batch short
-    {"batch": [4, 4, 4], "seq": [32, 48, 64]},   # Profile 4: batch medium
+  {"batch": [1, 1, 1], "seq": [8, 16, 32]},  # Profile 0: single micro/short
+  {"batch": [1, 1, 1], "seq": [32, 48, 64]},  # Profile 1: single medium
+  {"batch": [1, 1, 1], "seq": [64, 96, 128]}, # Profile 2: single long
+  {"batch": [4, 4, 4], "seq": [8, 20, 32]},  # Profile 3: batch short
+  {"batch": [4, 4, 4], "seq": [32, 48, 64]},  # Profile 4: batch medium
 ]
 ```
 
 **INT8 Calibration:**
 ```python
 calibration_config = {
-    "dataset": "wikitext",
-    "config": "wikitext-2-raw-v1",
-    "split": "test",
-    "samples": 512,
-    "batch_size": 8,
-    "seq_len": 128,
-    "seed": 42,
-    "calibrator": "IInt8MinMaxCalibrator",
+  "dataset": "wikitext",
+  "config": "wikitext-2-raw-v1",
+  "split": "test",
+  "samples": 512,
+  "batch_size": 8,
+  "seq_len": 128,
+  "seed": 42,
+  "calibrator": "IInt8MinMaxCalibrator",
 }
 ```
 
@@ -1173,12 +1176,12 @@ calibration_config = {
 - **> 1.2:** Very large (rare in research)
 
 **Confidence Intervals:**
-- **Formula:** CI = mean ± (t_critical × SE)
+- **Formula:** CI = mean ± (t_critical x SE)
 - **SE:** Standard error = std / sqrt(n)
 - **t_critical:** From t-distribution with n-1 degrees of freedom
 
 **Degradation Detection:**
-- **Threshold:** Latency > 2× median of successful runs
+- **Threshold:** Latency > 2x median of successful runs
 - **Action:** Flag as degraded, exclude from statistical analysis
 - **Reporting:** Report degradation rate separately
 
@@ -1206,23 +1209,22 @@ Special thanks to:
 **Citation:**
 ```bibtex
 @techreport{tr118v2,
-  title={Technical Report 118v2: Model Scale Comparative Analysis - ONNX Runtime + TensorRT Performance Across 1,210x Parameter Scaling},
-  author={Banterhearts Research Team},
-  institution={Banterhearts LLM Performance Research},
-  year={2025},
-  month={December},
-  type={Technical Report},
-  number={TR118v2},
-  url={https://github.com/banterhearts/reports/Technical_Report_118_v2.md}
+ title={Technical Report 118v2: Model Scale Comparative Analysis - ONNX Runtime + TensorRT Performance Across 1,210x Parameter Scaling},
+ author={Banterhearts Research Team},
+ institution={Banterhearts LLM Performance Research},
+ year={2025},
+ month={December},
+ type={Technical Report},
+ number={TR118v2},
+ url={https://github.com/banterhearts/reports/Technical_Report_118_v2.md}
 }
 ```
 
 ---
 
-**End of Report**  
-**Generated:** 2025-12-13  
-**Version:** 1.0.0  
-**Total Benchmarks:** 360 (180 × 2 models)  
-**Total Runtime:** 678 seconds (11.3 minutes)  
+**End of Report** 
+**Generated:** 2025-12-13 
+**Version:** 1.0.0 
+**Total Benchmarks:** 360 (180 x 2 models) 
+**Total Runtime:** 678 seconds (11.3 minutes) 
 **Report Length:** 12,847 words | 91,423 characters
-

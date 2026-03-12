@@ -1,12 +1,15 @@
 # TR108-TR116 Decision Whitepaper
 ## Executive guidance for language, architecture, runtime, and model selection
 
-Project: Banterhearts LLM Performance Research  
-Date: 2025-12-28  
-Version: 1.0  
-Audience: Decision makers, engineering leads, ops leaders  
-Scope: TR108, TR109, TR110, TR111_v2, TR112_v2, TR113, TR114_v2, TR115_v2, TR116  
-Primary source: `PublishReady/reports/` (individual TR reports)  
+| Field | Value |
+|-------|-------|
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2025-12-28 |
+| **Version** | 1.0 |
+| **Report Type** | Decision whitepaper |
+| **Audience** | Decision makers, engineering leads, ops leaders |
+| **Scope** | TR108, TR109, TR110, TR111_v2, TR112_v2, TR113, TR114_v2, TR115_v2, TR116 |
+| **Primary Source** | `PublishReady/reports/` (individual TR reports) |
 
 ---
 

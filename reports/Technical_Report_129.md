@@ -1,15 +1,18 @@
 # Technical Report 129: N-Agent Scaling Laws
 ## Closed-Loop Multi-Agent Throughput Scaling on Consumer GPU with Ollama
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-25  
-**Author:** Research Team  
-**Report Type:** N-agent scaling characterization (4-phase, 5,310 measurements)  
-**Test Duration:** ~90 minutes  
-**Status:** Complete --- All 4 phases delivered  
-**Run ID:** `20260225_213619`  
-**Related Work:** [TR114v2](Technical_Report_114.md) (2-Agent Efficiency), [TR128](Technical_Report_128.md) (Production Workload Characterization)  
-**Depends On:** TR128 (baseline throughput cross-validation)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 129 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-25 |
+| **Author** | Research Team |
+| **Report Type** | N-agent scaling characterization (4-phase, 5,310 measurements) |
+| **Test Duration** | ~90 minutes |
+| **Status** | Complete --- All 4 phases delivered |
+| **Run ID** | `20260225_213619` |
+| **Related Work** | [TR114v2](Technical_Report_114.md) (2-Agent Efficiency), [TR128](Technical_Report_128.md) (Production Workload Characterization) |
+| **Depends On** | TR128 (baseline throughput cross-validation) |
 
 ---
 

@@ -1,21 +1,16 @@
 # Technical Report 118v2.2: Model Scale Comparative Analysis
-
 ## ONNX Runtime + TensorRT Performance Across 1,210x Parameter Scaling
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2025-12-20  
-**Author:** Research Team  
-**Report Type:** Corrected Multi-Scale ONNX/TensorRT Analysis  
-**Test Duration:** 720 total benchmark runs (360 prefill + 360 generate)  
-**Related Work:** [TR118](Technical_Report_118.md) (Pipeline Validation), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis)  
-
-**v2.2 Corrections from v2.1:**  
-
-- Verified run counts and degradation rates from JSONL data (200/720 degraded, 27.8%)
-- Re-fit crossover power-law with 9 data points (5M, 25M, 50M, 75M, 100M, 45M validation)
-- Corrected tiny-gpt2 specs (vocab size 50,257; n_embd=2; perplexity interpretation)
-- Classified TensorRT failures as hard profile mismatches (no timeouts observed)
-- Fixed amortization math and token break-even calculation
+| Field | Value |
+|-------|-------|
+| **TR Number** | 118v2.2 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2025-12-20 |
+| **Author** | Research Team |
+| **Report Type** | Corrected Multi-Scale ONNX/TensorRT Analysis |
+| **Test Duration** | 720 total benchmark runs (360 prefill + 360 generate) |
+| **Related Work** | [TR118](Technical_Report_118.md) (Pipeline Validation), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis) |
+| **v2.2 Corrections from v2.1** | Verified run counts and degradation rates from JSONL data (200/720 degraded, 27.8%)<br>Re-fit crossover power-law with 9 data points (5M, 25M, 50M, 75M, 100M, 45M validation)<br>Corrected tiny-gpt2 specs (vocab size 50,257; n_embd=2; perplexity interpretation)<br>Classified TensorRT failures as hard profile mismatches (no timeouts observed)<br>Fixed amortization math and token break-even calculation |
 
 ---
 
@@ -1323,4 +1318,3 @@ python scripts/tr118/run_tr118v2.py \
 The 45M validation run confirms ONNX CPU remains faster than PyTorch
 in the predicted transition region. The 45M point shows a 1.42x ONNX advantage,
 consistent with the updated crossover band between 50M and 75M.
-

@@ -1,12 +1,15 @@
 # Technical Report 109: Agent Workflow Performance Analysis
 ## Chimera Optimization for Multi-Step LLM Agent Tasks
 
-**Date:** 2025-10-09  
-**Test Environment:** NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), 13th Gen Intel i9  
-**Test Duration:** 1 day (Oct 9, 2025)  
-**Total Benchmark Runs:** 20+ configurations tested across 3 experimental phases  
-**Models Evaluated:** Gemma3:latest, Llama3.1:8b-instruct-q4_0  
-**Related Work:** [Technical Report 108](Technical_Report_108.md)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 109 |
+| **Date** | 2025-10-09 |
+| **Test Environment** | NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), 13th Gen Intel i9 |
+| **Test Duration** | 1 day (Oct 9, 2025) |
+| **Total Benchmark Runs** | 20+ configurations tested across 3 experimental phases |
+| **Models Evaluated** | Gemma3:latest, Llama3.1:8b-instruct-q4_0 |
+| **Related Work** | [Technical Report 108](Technical_Report_108.md) |
 
 ---
 

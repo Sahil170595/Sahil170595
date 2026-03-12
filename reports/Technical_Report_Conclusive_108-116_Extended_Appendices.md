@@ -1,7 +1,12 @@
 # Conclusive Report 108-116: Extended Appendices
 ## Supplemental material extracted from the main conclusive report
 
-This file mirrors the extended appendices for convenience. The main conclusive report is the canonical deep-dive document; the content here is supplemental and should be treated as supporting material.
+| Field | Value |
+|-------|-------|
+| **Report Type** | Extended appendices |
+| **Scope** | 108-116 |
+| **Status** | Supplemental |
+| **Main Report** | [Technical_Report_Conclusive_108-116.md](Technical_Report_Conclusive_108-116.md) |
 
 ---
 

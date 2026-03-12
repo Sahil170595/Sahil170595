@@ -1,15 +1,18 @@
 # Technical Report 134: Alignment Robustness Under Quantization
 ## Multi-family safety evaluation across 4 models (1.2B-7.6B) with jailbreak amplification and per-category bias analysis
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-03-06 (Phase 1: Mar 4, Phase 2: Mar 4, Phase 3: Mar 5-6)  
-**Author:** Research Team  
-**Report Type:** Safety alignment analysis (metric-backed, 3-phase, 4 model families, 6 benchmarks)  
-**Test Duration:** Phase 1: ~30 min, Phase 2: ~2 hrs, Phase 3: ~10 hrs (eval + judge)  
-**Status:** Complete -- all 3 phases delivered  
-**Run IDs:** Phase 1: `20260304_quick`, Phase 2: `20260304_full`, Phase 3: `20260305_144827`  
-**Related Work:** [TR124](Technical_Report_124.md) (Quality & Accuracy Baseline), [TR125](Technical_Report_125.md) (Quantization Decision Matrix), [TR133](Technical_Report_133.md) (Predictive Capacity Planner)  
-**Depends On:** TR125 (quantization quality data, quant level definitions, capability baselines), TR124 (FP16 baselines, metric framework)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 134 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-03-06 (Phase 1: Mar 4, Phase 2: Mar 4, Phase 3: Mar 5-6) |
+| **Author** | Research Team |
+| **Report Type** | Safety alignment analysis (metric-backed, 3-phase, 4 model families, 6 benchmarks) |
+| **Test Duration** | Phase 1: ~30 min, Phase 2: ~2 hrs, Phase 3: ~10 hrs (eval + judge) |
+| **Status** | Complete -- all 3 phases delivered |
+| **Run IDs** | Phase 1: `20260304_quick`, Phase 2: `20260304_full`, Phase 3: `20260305_144827` |
+| **Related Work** | [TR124](Technical_Report_124.md) (Quality & Accuracy Baseline), [TR125](Technical_Report_125.md) (Quantization Decision Matrix), [TR133](Technical_Report_133.md) (Predictive Capacity Planner) |
+| **Depends On** | TR125 (quantization quality data, quant level definitions, capability baselines), TR124 (FP16 baselines, metric framework) |
 
 ---
 

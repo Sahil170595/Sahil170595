@@ -1,12 +1,15 @@
 # TR117-TR122 Decision Whitepaper (Revised Draft v1.1)
 ## Executive guidance for deployment leaders
 
-Project: Banterhearts LLM Performance Research  
-Date: 2025-12-26  
-Version: 1.1 (editorial tightening)  
-Audience: Decision makers, product leaders, ops leaders  
-Scope: TR117, TR118_v2.2, TR119v1, TR120, TR121v1, TR122  
-Primary source: `PublishReady/reports/Technical_Report_Conclusive_117-122.md`  
+| Field | Value |
+|-------|-------|
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2025-12-26 |
+| **Version** | 1.1 (editorial tightening) |
+| **Report Type** | Decision whitepaper |
+| **Audience** | Decision makers, product leaders, ops leaders |
+| **Scope** | TR117, TR118_v2.2, TR119v1, TR120, TR121v1, TR122 |
+| **Primary Source** | `PublishReady/reports/Technical_Report_Conclusive_117-122.md` |
 
 ---
 

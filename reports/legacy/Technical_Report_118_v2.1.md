@@ -1,23 +1,16 @@
 # Technical Report 118v2.1: Model Scale Comparative Analysis
+## ONNX Runtime + TensorRT Performance Across 1,210x Parameter Scaling
 
-## ONNX Runtime + TensorRT Performance Across 1,210× Parameter Scaling
-
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2025-12-13  
-**Author:** Research Team  
-**Report Type:** Definitive Multi-Scale ONNX/TensorRT Analysis  
-**Test Duration:** 720 total benchmark runs (360 prefill + 360 generate)  
-**Related Work:** [TR118](Technical_Report_118.md) (Pipeline Validation), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis)
-
-**v2.1 Corrections from v2:**
-
-- Fixed run-count math (720 total: 360 prefill + 360 generate, not 360 total)
-- Removed fabricated GPT-2 generate tables for degraded TRT backends
-- Added explicit measurement definitions (latency, throughput, formulas)
-- Fixed all delta calculations from actual data (-52% → -30%)
-- Corrected tiny-gpt2 architecture parameter count inconsistency
-- Labeled all numbers as scenario-specific or overall means
-- Evidence-based TRT timeout explanation (profile incompatibility, not divergent sampling)
+| Field | Value |
+|-------|-------|
+| **TR Number** | 118v2.1 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2025-12-13 |
+| **Author** | Research Team |
+| **Report Type** | Definitive Multi-Scale ONNX/TensorRT Analysis |
+| **Test Duration** | 720 total benchmark runs (360 prefill + 360 generate) |
+| **Related Work** | [TR118](Technical_Report_118.md) (Pipeline Validation), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis) |
+| **v2.1 Corrections from v2** | Fixed run-count math (720 total: 360 prefill + 360 generate, not 360 total)<br>Removed fabricated GPT-2 generate tables for degraded TRT backends<br>Added explicit measurement definitions (latency, throughput, formulas)<br>Fixed all delta calculations from actual data (-52% -> -30%)<br>Corrected tiny-gpt2 architecture parameter count inconsistency<br>Labeled all numbers as scenario-specific or overall means<br>Evidence-based TRT timeout explanation (profile incompatibility, not divergent sampling) |
 
 ---
 
@@ -28,10 +21,10 @@
 ### Latency Measurement
 
 - **Prefill latency (ms):** Wall-time for single forward pass including:
-  - Host→device data transfer
-  - Model forward pass
-  - Device→host result transfer
-  - Does NOT include tokenization or warmup
+ - Host->device data transfer
+ - Model forward pass
+ - Device->host result transfer
+ - Does NOT include tokenization or warmup
 - **Generate latency (ms/token):** Per-token decode latency (uncached greedy loop)
 
 ### Throughput Measurement
@@ -54,14 +47,14 @@
 | single_short | 11 | 19 | 1 |
 | single_medium | 19 | 27 | 1 |
 | single_long | 27 | 35 | 1 |
-| batch_short | 44 (4×11) | 76 (4×19) | 4 |
-| batch_medium | 76 (4×19) | 108 (4×27) | 4 |
+| batch_short | 44 (4x11) | 76 (4x19) | 4 |
+| batch_medium | 76 (4x19) | 108 (4x27) | 4 |
 
 ---
 
 ## Executive Summary
 
-This technical report presents the corrected comparative analysis of ONNX Runtime and TensorRT performance scaling across a **1,210× parameter increase** (0.103M → 124.4M parameters). Through 720 comprehensive benchmark runs (360 prefill + 360 generate) across 6 backends × 6 scenarios × 2 models × 5 repetitions, we establish how specialized inference runtimes scale from toy models to production-grade transformers.
+This technical report presents the corrected comparative analysis of ONNX Runtime and TensorRT performance scaling across a **1,210x parameter increase** (0.103M -> 124.4M parameters). Through 720 comprehensive benchmark runs (360 prefill + 360 generate) across 6 backends x 6 scenarios x 2 models x 5 repetitions, we establish how specialized inference runtimes scale from toy models to production-grade transformers.
 
 ### Key Findings (All numbers are overall means across 6 scenarios unless noted)
 
@@ -69,16 +62,16 @@ This technical report presents the corrected comparative analysis of ONNX Runtim
 
 ONNX CPU performance **inverts** as model scales, but crossover occurs much later than predicted:
 
-- **Tiny-gpt2 (0.103M):** 87,996 tok/s vs PyTorch 4,011 tok/s = **21.9× faster** ⚡
-- **GPT-2 11M (11.18M):** 11,762 tok/s vs PyTorch 2,651 tok/s = **4.44× faster** ✅ **(NEW!)**
-- **GPT-2 (124.4M):** 1,434 tok/s vs PyTorch 2,121 tok/s = **0.68× (32% slower)** ❌
+- **Tiny-gpt2 (0.103M):** 87,996 tok/s vs PyTorch 4,011 tok/s = **21.9x faster** ⚡
+- **GPT-2 11M (11.18M):** 11,762 tok/s vs PyTorch 2,651 tok/s = **4.44x faster** ✅ **(NEW!)**
+- **GPT-2 (124.4M):** 1,434 tok/s vs PyTorch 2,121 tok/s = **0.68x (32% slower)** ❌
 - **Crossover point:** ~30-50M params (not 1.2M as initially predicted - ONNX scales better!)
 
 **TensorRT Perfect Scaling:**
 
-- **Tiny-gpt2:** INT8 5,424 tok/s = 1.35× faster than PyTorch
-- **GPT-2:** INT8 6,284 tok/s = 2.96× faster than PyTorch  
-- **Improvement:** Advantage **doubles** as model scales 1,210×
+- **Tiny-gpt2:** INT8 5,424 tok/s = 1.35x faster than PyTorch
+- **GPT-2:** INT8 6,284 tok/s = 2.96x faster than PyTorch 
+- **Improvement:** Advantage **doubles** as model scales 1,210x
 
 **Generate Mode Limitation:**
 
@@ -90,10 +83,10 @@ ONNX CPU performance **inverts** as model scales, but crossover occurs much late
 **Perplexity Preservation:**
 
 - **GPT-2:** All backends < 0.022% delta from PyTorch baseline (58.34)
-  - ONNX CPU: 58.343 (0.001% delta) ✅
-  - ONNX GPU: 58.354 (0.019% delta) ✅
-  - TRT FP32: 58.345 (0.003% delta) ✅
-  - TRT INT8: 58.344 (0.001% delta) ✅
+ - ONNX CPU: 58.343 (0.001% delta) ✅
+ - ONNX GPU: 58.354 (0.019% delta) ✅
+ - TRT FP32: 58.345 (0.003% delta) ✅
+ - TRT INT8: 58.344 (0.001% delta) ✅
 - **Production-ready accuracy** maintained across all backends
 
 ---
@@ -126,7 +119,7 @@ TR118 (original) validated the ONNX/TRT pipeline with test fixture model `sshlei
 
 - ONNX export workflow (17 opsets, dynamic axes, TRT-friendly inputs)
 - TensorRT engine builds (FP32/FP16/INT8) with optimization profiles
-- INT8 calibration using WikiText-2 (512 samples, 8×128 batches)
+- INT8 calibration using WikiText-2 (512 samples, 8x128 batches)
 - Perplexity validation gates
 
 ### 1.3 TR118v2 Scaling Study
@@ -138,7 +131,7 @@ By benchmarking `models/tiny-gpt2` (0.103M params, test fixture) and `gpt2` (124
 **Research Questions:**
 
 1. Do CPU-based optimizations (ONNX CPU) scale linearly with parameters?
-2. Does TensorRT maintain consistent speedup across 1,210× parameter increase?
+2. Does TensorRT maintain consistent speedup across 1,210x parameter increase?
 3. At what model size does ONNX CPU performance cross over from advantage to disadvantage?
 4. How does INT8 quantization scale compared to FP16/FP32?
 
@@ -170,7 +163,7 @@ By benchmarking `models/tiny-gpt2` (0.103M params, test fixture) and `gpt2` (124
 
 **Total Runs:** 720 (360 prefill + 360 generate)
 
-- Per model: 360 runs = 6 backends × 6 scenarios × 5 reps × 2 modes
+- Per model: 360 runs = 6 backends x 6 scenarios x 5 reps x 2 modes
 - Tiny-gpt2: 360 runs
 - GPT-2: 360 runs
 
@@ -210,7 +203,7 @@ By benchmarking `models/tiny-gpt2` (0.103M params, test fixture) and `gpt2` (124
 
 - Timeout threshold: 180 seconds
 - Marked as degraded if: timeout OR invalid output OR exception
-- Degraded rate = (degraded_runs / total_runs) × 100%
+- Degraded rate = (degraded_runs / total_runs) x 100%
 
 ### 2.4 Perplexity Validation
 
@@ -263,19 +256,19 @@ By benchmarking `models/tiny-gpt2` (0.103M params, test fixture) and `gpt2` (124
 
 ```
 GPT2Model(
-  (wte): Embedding(50257, 768)      # 38,597,376 params
-  (wpe): Embedding(1024, 768)       # 786,432 params (positional)
-  (h): ModuleList(
-    (0-11): 12 × GPT2Block(          # 12 layers
-      (attn): GPT2Attention(
-        n_head=12, n_embd=768
-      )
-      (mlp): GPT2MLP(
-        intermediate_size=3072
-      )
-    )
+ (wte): Embedding(50257, 768)   # 38,597,376 params
+ (wpe): Embedding(1024, 768)    # 786,432 params (positional)
+ (h): ModuleList(
+  (0-11): 12 x GPT2Block(     # 12 layers
+   (attn): GPT2Attention(
+    n_head=12, n_embd=768
+   )
+   (mlp): GPT2MLP(
+    intermediate_size=3072
+   )
   )
-  (ln_f): LayerNorm(768)
+ )
+ (ln_f): LayerNorm(768)
 )
 ```
 
@@ -317,7 +310,7 @@ GPT2Model(
 
 **Key Insights:**
 
-- **ONNX CPU dominates:** 87,996 tok/s = **21.9× faster than PyTorch**
+- **ONNX CPU dominates:** 87,996 tok/s = **21.9x faster than PyTorch**
 - **TensorRT modest gains:** 20-40% faster (expected for tiny models)
 - **ONNX GPU competitive:** 4,527 tok/s = +13% vs PyTorch
 - **No degraded runs:** 100% success rate (180/180 runs)
@@ -337,7 +330,7 @@ GPT2Model(
 
 **Key Insights:**
 
-- **ONNX CPU still dominates:** 2,970 tok/s = 12.3× faster than PyTorch
+- **ONNX CPU still dominates:** 2,970 tok/s = 12.3x faster than PyTorch
 - **All TensorRT backends degraded:** 90/90 runs hit 180s timeout
 - **Root cause:** Untrained model generates degenerate sequences ("stairs stairs stairs..."), TensorRT timeout due to profile mismatch (likely 1-profile FP16 engine reused)
 
@@ -356,15 +349,15 @@ GPT2Model(
 
 **Key Insights:**
 
-- **TensorRT INT8 wins:** 6,284 tok/s = **2.96× faster than PyTorch**
-- **ONNX CPU collapses:** 1,434 tok/s = **32% SLOWER** than PyTorch (was 21.9× faster!)
-- **ONNX GPU solid:** 3,927 tok/s = 1.85× faster (improved from +13% for tiny model)
+- **TensorRT INT8 wins:** 6,284 tok/s = **2.96x faster than PyTorch**
+- **ONNX CPU collapses:** 1,434 tok/s = **32% SLOWER** than PyTorch (was 21.9x faster!)
+- **ONNX GPU solid:** 3,927 tok/s = 1.85x faster (improved from +13% for tiny model)
 - **TensorRT scales:** All precisions deliver 82-196% speedup
 - **No prefill degradations:** 170/180 runs successful (10 TRT FP16 batch degraded)
 
 ### 4.4 GPT-2 (124.4M params) - Generate Performance
 
-**⚠️ TensorRT Limitation:** All TensorRT backends (FP32, FP16, INT8) experienced **100% degradation** (30/30 runs per precision, 90 total) for GPT-2 generate benchmarks.
+** TensorRT Limitation:** All TensorRT backends (FP32, FP16, INT8) experienced **100% degradation** (30/30 runs per precision, 90 total) for GPT-2 generate benchmarks.
 
 **Root Cause Analysis:**
 
@@ -395,7 +388,7 @@ gpt2 INT8: num_profiles=6 (built fresh, but generate still degraded)
 
 **Key Insights:**
 
-- **ONNX GPU best available:** 438 tok/s = 2.8× faster than PyTorch
+- **ONNX GPU best available:** 438 tok/s = 2.8x faster than PyTorch
 - **ONNX CPU still slow:** 77 tok/s = 51% slower than PyTorch (crossover confirmed)
 - **TensorRT data unavailable:** Cannot compare due to pipeline issue
 
@@ -409,16 +402,16 @@ gpt2 INT8: num_profiles=6 (built fresh, but generate still degraded)
 
 | Model | ONNX CPU (tok/s) | PyTorch (tok/s) | Ratio | Change |
 |-------|------------------|-----------------|-------|--------|
-| **Tiny (0.103M)** | 87,996 | 4,011 | **21.9× faster** | Baseline |
-| **GPT-2 (124.4M)** | 1,434 | 2,121 | **0.68× (32% slower)** | **-97% advantage** |
+| **Tiny (0.103M)** | 87,996 | 4,011 | **21.9x faster** | Baseline |
+| **GPT-2 (124.4M)** | 1,434 | 2,121 | **0.68x (32% slower)** | **-97% advantage** |
 
-**Parameter Scaling:** 1,210× increase (0.103M → 124.4M)
+**Parameter Scaling:** 1,210x increase (0.103M -> 124.4M)
 
 **Performance Scaling:**
 
-- ONNX CPU throughput: **÷61** (87,996 → 1,434)
-- PyTorch throughput: **÷1.9** (4,011 → 2,121)
-- **Relative advantage degradation: 32×** (21.9× → 0.68×)
+- ONNX CPU throughput: **÷61** (87,996 -> 1,434)
+- PyTorch throughput: **÷1.9** (4,011 -> 2,121)
+- **Relative advantage degradation: 32x** (21.9x -> 0.68x)
 
 ### 5.2 Root Cause: L3 Cache Exhaustion
 
@@ -428,25 +421,25 @@ gpt2 INT8: num_profiles=6 (built fresh, but generate still degraded)
 
 **Tiny-GPT2 Model Size:**
 
-- Parameters: 102,714 × 4 bytes (FP32) = **0.39 MB**
+- Parameters: 102,714 x 4 bytes (FP32) = **0.39 MB**
 - Fits comfortably in L3 cache (Intel i9-13980HX: **36 MB L3**)
 
 **GPT-2 Model Size:**
 
-- Parameters: 124,439,808 × 4 bytes = **473 MB**
-- Exceeds L3 cache by **13×**
+- Parameters: 124,439,808 x 4 bytes = **473 MB**
+- Exceeds L3 cache by **13x**
 - Forces constant DRAM access (bandwidth: ~50 GB/s vs GPU: 480 GB/s)
 
 **Predicted Crossover Point:**
 
 - Assuming linear degradation: **~1-2M parameters** (L3 cache size / param size)
-- This matches observed behavior: 0.103M (wins) → 124.4M (loses)
+- This matches observed behavior: 0.103M (wins) -> 124.4M (loses)
 
 ### 5.3 Implication for Production
 
 **Deployment Strategy:**
 
-- **< 1M params:** ONNX CPU ideal (20-100× speedup, no GPU required)
+- **< 1M params:** ONNX CPU ideal (20-100x speedup, no GPU required)
 - **1M - 10M params:** Transition zone (test both CPU/GPU)
 - **> 10M params:** GPU-based runtimes mandatory (ONNX GPU or TensorRT)
 
@@ -460,10 +453,10 @@ gpt2 INT8: num_profiles=6 (built fresh, but generate still degraded)
 
 | Model | Throughput (tok/s) | vs PyTorch | Parameters |
 |-------|-------------------|------------|------------|
-| **Tiny (0.103M)** | 5,424 | **1.35×** faster | 102,714 |
-| **GPT-2 (124.4M)** | 6,284 | **2.96×** faster | 124,439,808 |
+| **Tiny (0.103M)** | 5,424 | **1.35x** faster | 102,714 |
+| **GPT-2 (124.4M)** | 6,284 | **2.96x** faster | 124,439,808 |
 
-**Scaling Factor:** 2.19× improvement in speedup advantage as model grows 1,210×
+**Scaling Factor:** 2.19x improvement in speedup advantage as model grows 1,210x
 
 **Key Insight:** TensorRT's advantage **increases** with model complexity, demonstrating:
 
@@ -482,9 +475,9 @@ gpt2 INT8: num_profiles=6 (built fresh, but generate still degraded)
 **Key Insights:**
 
 - **INT8 fastest:** 6,284 tok/s (despite memory-bound workload)
-- **FP16 vs INT8:** Only 1.63× difference (not the expected 2× from compute alone)
+- **FP16 vs INT8:** Only 1.63x difference (not the expected 2x from compute alone)
 - **Implication:** 124M params still **memory-bound**, not compute-bound
-- **INT8 threshold:** Likely > 1B params before INT8 shows 2× advantage
+- **INT8 threshold:** Likely > 1B params before INT8 shows 2x advantage
 
 ### 6.3 TensorRT vs ONNX GPU
 
@@ -495,11 +488,11 @@ gpt2 INT8: num_profiles=6 (built fresh, but generate still degraded)
 | **TensorRT INT8** | 6,284 | Baseline |
 | **ONNX Runtime GPU** | 3,927 | -37% |
 
-**TensorRT Advantage:** 1.60× faster than ONNX GPU
+**TensorRT Advantage:** 1.60x faster than ONNX GPU
 
 **Why TensorRT Wins:**
 
-1. **Kernel fusion:** TRT fuses 12× Attention+MLP blocks into optimized kernels
+1. **Kernel fusion:** TRT fuses 12x Attention+MLP blocks into optimized kernels
 2. **Memory layout:** TRT uses optimal tensor formats (NCHW vs NHWC)
 3. **Graph-level optimization:** TRT eliminates redundant ops (LayerNorm folding)
 
@@ -512,8 +505,8 @@ gpt2 INT8: num_profiles=6 (built fresh, but generate still degraded)
 **Observed Behavior:**
 
 - All TensorRT backends (FP32, FP16, INT8) hit **100% degradation** for both models in generate mode
-- **Tiny-gpt2:** 90/90 TRT runs degraded (30 runs × 3 precisions)
-- **GPT-2:** 90/90 TRT runs degraded (30 runs × 3 precisions)
+- **Tiny-gpt2:** 90/90 TRT runs degraded (30 runs x 3 precisions)
+- **GPT-2:** 90/90 TRT runs degraded (30 runs x 3 precisions)
 - **Error:** 180s timeout, no output generated
 
 **Root Cause: Profile Incompatibility**
@@ -557,7 +550,7 @@ GPT-2 Engines:
 - Computational complexity: O(n) per token
 - TensorRT excels in cached decode (PagedAttention, Flash-Attention)
 
-**Implication:** Generate mode results **do not reflect production TensorRT performance**. For production KV-cached inference, TensorRT typically delivers 2-5× speedup.
+**Implication:** Generate mode results **do not reflect production TensorRT performance**. For production KV-cached inference, TensorRT typically delivers 2-5x speedup.
 
 ---
 
@@ -617,17 +610,17 @@ GPT-2 Engines:
 
 | Model Size | CPU Option | GPU Option | Recommended | Speedup | Notes |
 |------------|-----------|-----------|-------------|---------|-------|
-| **< 1M params** | ONNX CPU | ONNX GPU | **ONNX CPU** | 20-100× | No GPU required, fits in L3 cache |
-| **1M - 10M params** | ONNX CPU | ONNX GPU | **ONNX GPU** | 2-5× | Transition zone, test both |
-| **10M - 1B params** | ❌ Too slow | TRT FP16 | **TRT FP16** | 1.5-2× | Balance speed + accuracy |
-| **1B - 7B params** | ❌ Too slow | TRT FP16 | **TRT FP16** | 2-3× | Memory-bound, FP16 sufficient |
-| **> 7B params** | ❌ Too slow | TRT INT8 | **TRT INT8** | 3-5× | Compute-bound, INT8 shines |
+| **< 1M params** | ONNX CPU | ONNX GPU | **ONNX CPU** | 20-100x | No GPU required, fits in L3 cache |
+| **1M - 10M params** | ONNX CPU | ONNX GPU | **ONNX GPU** | 2-5x | Transition zone, test both |
+| **10M - 1B params** | ❌ Too slow | TRT FP16 | **TRT FP16** | 1.5-2x | Balance speed + accuracy |
+| **1B - 7B params** | ❌ Too slow | TRT FP16 | **TRT FP16** | 2-3x | Memory-bound, FP16 sufficient |
+| **> 7B params** | ❌ Too slow | TRT INT8 | **TRT INT8** | 3-5x | Compute-bound, INT8 shines |
 
 ### 9.2 Cost Analysis (GPT-2 Example)
 
 **Baseline:** PyTorch GPU-compile, 2,121 tok/s
 
-**TensorRT INT8:** 6,284 tok/s = **2.96× faster**
+**TensorRT INT8:** 6,284 tok/s = **2.96x faster**
 
 **Cost Reduction Calculation:**
 
@@ -638,18 +631,18 @@ GPT-2 Engines:
 
 **Production Impact:**
 
-- **Latency:** 2.96× lower (important for real-time applications)
+- **Latency:** 2.96x lower (important for real-time applications)
 - **Cost:** 66% reduction per token
-- **Throughput:** 2.96× higher (more requests per GPU)
+- **Throughput:** 2.96x higher (more requests per GPU)
 
 **Build Overhead:**
 
 - One-time TRT INT8 build: 240s (4 minutes)
 - Amortization: Break-even after **~0.77M tokens**
-  - Delta throughput: 6,284 - 2,121 = 4,163 tok/s
-  - Time to recover 240s: $240 \times 2121 / 4163 \approx 122s$ of inference
-  - Total time: 362s
-  - Tokens: $362 \times 2,121 \approx 767,800$ tokens
+ - Delta throughput: 6,284 - 2,121 = 4,163 tok/s
+ - Time to recover 240s: $240 \times 2121 / 4163 \approx 122s$ of inference
+ - Total time: 362s
+ - Tokens: $362 \times 2,121 \approx 767,800$ tokens
 
 ### 9.3 Recommended Stack
 
@@ -679,10 +672,10 @@ GPT-2 Engines:
 
 **1. The Crossover Phenomenon is Real and Dramatic**
 
-ONNX CPU performance inverts across 1,210× parameter scaling:
+ONNX CPU performance inverts across 1,210x parameter scaling:
 
-- **Tiny models (< 1M):** 21.9× faster than PyTorch (87,996 vs 4,011 tok/s)
-- **Large models (> 100M):** 0.68× slower than PyTorch (1,434 vs 2,121 tok/s)
+- **Tiny models (< 1M):** 21.9x faster than PyTorch (87,996 vs 4,011 tok/s)
+- **Large models (> 100M):** 0.68x slower than PyTorch (1,434 vs 2,121 tok/s)
 - **Crossover point:** ~1-2M parameters (L3 cache exhaustion threshold)
 
 **Implication:** CPU-based inference only viable for models < 1M params.
@@ -691,8 +684,8 @@ ONNX CPU performance inverts across 1,210× parameter scaling:
 
 TensorRT INT8 advantage **increases** with model size:
 
-- **Tiny models:** 1.35× faster than PyTorch
-- **Large models:** 2.96× faster than PyTorch (2.19× improvement in advantage)
+- **Tiny models:** 1.35x faster than PyTorch
+- **Large models:** 2.96x faster than PyTorch (2.19x improvement in advantage)
 
 **Implication:** TensorRT is the optimal choice for models > 10M params.
 
@@ -704,7 +697,7 @@ All TensorRT backends hit 100% degradation (180/180 generate runs across both mo
 - **Evidence:** PyTorch and ONNX succeed with same `use_cache=False` setting
 - **Implication:** This is NOT a TensorRT capability limitation
 
-**Production Reality:** TensorRT with KV-cache delivers 2-5× decode speedup.
+**Production Reality:** TensorRT with KV-cache delivers 2-5x decode speedup.
 
 **4. Perplexity Preserved Across All Backends**
 
@@ -720,20 +713,20 @@ All successful backends maintain < 0.022% perplexity delta for GPT-2:
 
 **For Edge/Embedded Deployment (< 1M params):**
 
-- **Use ONNX CPU** (20-100× speedup, no GPU required)
+- **Use ONNX CPU** (20-100x speedup, no GPU required)
 - **Target hardware:** Any modern CPU (AVX-512 preferred)
 - **Example use case:** Mobile keyword spotting, edge classification
 
 **For Cloud/API Deployment (10M - 1B params):**
 
-- **Use TensorRT FP16** (1.5-3× speedup, < 0.022% accuracy loss)
+- **Use TensorRT FP16** (1.5-3x speedup, < 0.022% accuracy loss)
 - **Target hardware:** NVIDIA T4, L4, or RTX GPUs
-- **Enable KV-cache:** PagedAttention for 2-5× decode speedup
+- **Enable KV-cache:** PagedAttention for 2-5x decode speedup
 - **Example use case:** GPT-2, BERT-Large, T5-Base inference
 
 **For Large-Scale Deployment (> 1B params):**
 
-- **Use TensorRT INT8** (3-5× speedup expected, pending validation)
+- **Use TensorRT INT8** (3-5x speedup expected, pending validation)
 - **Target hardware:** NVIDIA A100/H100
 - **Serving framework:** TensorRT-LLM with Tensor Parallelism
 - **Example use case:** GPT-3, LLaMA, Mistral serving
@@ -752,7 +745,7 @@ Test models at: 0.1M, 0.5M, **1M**, 2M, 5M, 10M, 50M, 100M params to:
 
 1. **Validate crossover point** (~1.2M predicted from L3 cache size)
 2. **Plot performance curves** (ONNX CPU advantage vs parameter count)
-3. **Establish deployment thresholds** (when to switch CPU→GPU)
+3. **Establish deployment thresholds** (when to switch CPU->GPU)
 
 **TR120.B: KV-Cached Decode Study**
 
@@ -761,7 +754,7 @@ TR120’s primary track is the compile-paradox investigation; KV-cached decode i
 Re-benchmark generate mode with `use_cache=True`:
 
 1. **Fix TensorRT profile issue** (rebuild engines with proper decode profiles)
-2. **Measure real-world decode performance** (expected 2-5× TRT speedup)
+2. **Measure real-world decode performance** (expected 2-5x TRT speedup)
 3. **Compare PagedAttention implementations** (TRT-LLM vs vLLM)
 
 **TR121: Large Model Validation (> 1B params)**
@@ -1065,21 +1058,21 @@ python run_tr118v2.py --device cuda --label reproduction
 
 ### 12.3 Throughput Heatmap (Prefill)
 
-**Scaling Factor Across 1,210× Parameter Increase:**
+**Scaling Factor Across 1,210x Parameter Increase:**
 
 | Backend | Tiny Throughput | GPT2 Throughput | Scaling Factor | Trend |
 |---------|----------------|-----------------|----------------|-------|
-| **onnxruntime-cpu** | 87,996 tok/s ⚡ | 1,434 tok/s ❌ | **÷61 collapse** | ⚠️ **INVERTS** |
+| **onnxruntime-cpu** | 87,996 tok/s ⚡ | 1,434 tok/s ❌ | **÷61 collapse** | **INVERTS** |
 | **onnxruntime-gpu** | 4,527 tok/s | 3,927 tok/s | **÷1.15 stable** | ✅ **STABLE** |
 | **tensorrt-fp32** | 5,620 tok/s | 4,711 tok/s | **÷1.19 stable** | ✅ **STABLE** |
 | **tensorrt-fp16** | 4,831 tok/s | 3,851 tok/s | **÷1.25 stable** | ✅ **STABLE** |
-| **tensorrt-int8** | 5,424 tok/s | 6,284 tok/s | **×1.16 improves** | ✅ **IMPROVES** |
-| **transformers-gpu-compile** | 4,011 tok/s 🏆 | 2,121 tok/s 🏆 | **÷1.89 degrades** | ⚠️ **DEGRADES** |
+| **tensorrt-int8** | 5,424 tok/s | 6,284 tok/s | **x1.16 improves** | ✅ **IMPROVES** |
+| **transformers-gpu-compile** | 4,011 tok/s 🏆 | 2,121 tok/s 🏆 | **÷1.89 degrades** | **DEGRADES** |
 
 **Key Insights:**
 
 - **ONNX CPU catastrophic scaling:** ÷61 throughput collapse (worst scaling behavior)
-- **TensorRT INT8 only backend that improves:** ×1.16 throughput increase as model scales
+- **TensorRT INT8 only backend that improves:** x1.16 throughput increase as model scales
 - **GPU backends stable:** All GPU-based runtimes maintain performance within ÷1.25 factor
 - **PyTorch degrades:** ÷1.89 throughput loss (torch.compile less effective at scale)
 
@@ -1095,25 +1088,25 @@ ONNX CPU advantage function: `A(P) = ONNX_throughput(P) / PyTorch_throughput(P)`
 
 **Measured Points:**
 
-- `A(0.103M) = 87,996 / 4,011 = 21.9×`
-- `A(124.4M) = 1,434 / 2,121 = 0.68×`
+- `A(0.103M) = 87,996 / 4,011 = 21.9x`
+- `A(124.4M) = 1,434 / 2,121 = 0.68x`
 
 **Crossover Point (A(P) = 1.0):**
 
-Assuming power-law decay: `A(P) = A₀ × (P / P₀)^k`
+Assuming power-law decay: `A(P) = A₀ x (P / P₀)^k`
 
 Where:
 
 - `A₀ = 21.9` (advantage at P₀ = 0.103M)
 - `A(124.4M) = 0.68`
-- Solve for k: `0.68 = 21.9 × (124.4 / 0.103)^k`
+- Solve for k: `0.68 = 21.9 x (124.4 / 0.103)^k`
 - `k ≈ -0.44`
 
 **Crossover calculation:**
 
 ```
-1.0 = 21.9 × (P_cross / 0.103M)^(-0.44)
-P_cross = 0.103M × (21.9)^(1/0.44)
+1.0 = 21.9 x (P_cross / 0.103M)^(-0.44)
+P_cross = 0.103M x (21.9)^(1/0.44)
 P_cross ≈ 1.2M parameters
 ```
 
@@ -1127,21 +1120,21 @@ P_cross ≈ 1.2M parameters
 |-----------|-----------|---------|-------------------|----------------|
 | **L1 Cache** | ~1 TB/s | 4 cycles | ✅ Fits (768 KB total) | ❌ Misses |
 | **L2 Cache** | ~500 GB/s | 12 cycles | ✅ Fits (48 MB total) | ❌ Misses |
-| **L3 Cache** | ~200 GB/s | 40 cycles | ✅ Fits (36 MB total) | ❌ Misses (13× too large) |
+| **L3 Cache** | ~200 GB/s | 40 cycles | ✅ Fits (36 MB total) | ❌ Misses (13x too large) |
 | **DDR5 RAM** | ~77 GB/s | 100+ cycles | Never accessed | **Bottleneck** |
 | **GPU VRAM** | ~480 GB/s | 200 cycles | - | ✅ Faster than CPU RAM |
 
 **Why ONNX CPU Dominates Tiny Models:**
 
-1. **Entire model fits in L3:** 0.39 MB < 36 MB → zero DRAM access
-2. **AVX-512 vectorization:** 16× FP32 SIMD per cycle
+1. **Entire model fits in L3:** 0.39 MB < 36 MB -> zero DRAM access
+2. **AVX-512 vectorization:** 16x FP32 SIMD per cycle
 3. **Cache-friendly access patterns:** Sequential matrix reads stay in cache
 
 **Why ONNX CPU Collapses at Scale:**
 
-1. **Model exceeds L3 by 13×:** 473 MB >> 36 MB → constant DRAM access
-2. **Bandwidth-bound:** CPU limited to 77 GB/s (vs GPU 480 GB/s = 6.2× faster)
-3. **Matrix multiply wall:** 768×768 matmul × 12 layers = 54 MB working set > L3
+1. **Model exceeds L3 by 13x:** 473 MB >> 36 MB -> constant DRAM access
+2. **Bandwidth-bound:** CPU limited to 77 GB/s (vs GPU 480 GB/s = 6.2x faster)
+3. **Matrix multiply wall:** 768x768 matmul x 12 layers = 54 MB working set > L3
 
 **Quantitative Evidence:**
 
@@ -1154,29 +1147,29 @@ P_cross ≈ 1.2M parameters
 **Recommended Test Models:**
 
 - 0.1M params: `sshleifer/tiny-gpt2` ✅ Tested (ONNX wins)
-- 0.5M params: Custom 4-layer GPT-2 (256-dim) 🔲 Predicted: ONNX 5× faster
+- 0.5M params: Custom 4-layer GPT-2 (256-dim) 🔲 Predicted: ONNX 5x faster
 - **1.0M params:** Custom 6-layer GPT-2 (384-dim) 🔲 **Predicted: ONNX = PyTorch (crossover)**
-- 2.0M params: Custom 8-layer GPT-2 (512-dim) 🔲 Predicted: PyTorch 2× faster
-- 5.0M params: `distilgpt2` 🔲 Predicted: PyTorch 5× faster
+- 2.0M params: Custom 8-layer GPT-2 (512-dim) 🔲 Predicted: PyTorch 2x faster
+- 5.0M params: `distilgpt2` 🔲 Predicted: PyTorch 5x faster
 - 124M params: `gpt2` ✅ Tested (PyTorch wins)
 
 **Expected Curve:**
 
 ```
 ONNX CPU Advantage
-     ^
-22×  |●  (0.1M - tested)
-     |
-     |  ○ (0.5M - predicted)
- 5×  |
-     |    ● (11M - TESTED: 4.44×)
- 1×  |-----X-------- (1.2M - predicted crossover - WRONG!)
-     |      ○  (2M - predicted)
-     |
-0.5× |          ○ (5M - predicted)
-     |
-     |                    ● (124M - tested)
-     +--------------------------------> Parameters
+   ^
+22x |● (0.1M - tested)
+   |
+   | ○ (0.5M - predicted)
+ 5x |
+   |  ● (11M - TESTED: 4.44x)
+ 1x |-----X-------- (1.2M - predicted crossover - WRONG!)
+   |   ○ (2M - predicted)
+   |
+0.5x |     ○ (5M - predicted)
+   |
+   |          ● (124M - tested)
+   +--------------------------------> Parameters
 ```
 
 ### 13.4 Empirical Validation: 11M Parameter Model
@@ -1189,7 +1182,7 @@ ONNX CPU Advantage
 
 | Backend | Throughput (tok/s) | vs PyTorch | Status |
 |---------|-------------------|------------|--------|
-| **onnxruntime-cpu** | **11,762** | **+344% (4.44× faster)** | ✅ **ONNX WINS** |
+| **onnxruntime-cpu** | **11,762** | **+344% (4.44x faster)** | ✅ **ONNX WINS** |
 | **tensorrt-fp16** | 5,258 | +98% | ✅ |
 | **tensorrt-fp32** | 4,799 | +81% | ✅ |
 | **tensorrt-int8** | 4,049 | +53% | ✅ |
@@ -1200,7 +1193,7 @@ ONNX CPU Advantage
 
 | Backend | Throughput (tok/s) | vs PyTorch |
 |---------|-------------------|------------|
-| **onnxruntime-cpu** | **567** | **+126% (2.26× faster)** |
+| **onnxruntime-cpu** | **567** | **+126% (2.26x faster)** |
 | **onnxruntime-gpu** | 472 | +88% |
 | **transformers-gpu-compile** | 251 | Baseline 🏆 |
 | **tensorrt-*** | All degraded | 100% timeout |
@@ -1209,19 +1202,19 @@ ONNX CPU Advantage
 
 The 2-point power-law model predicted crossover at ~1.2M params, where ONNX CPU should equal PyTorch.
 
-**Actual result at 11M:** ONNX CPU is **4.44× faster** than PyTorch (not slower!)
+**Actual result at 11M:** ONNX CPU is **4.44x faster** than PyTorch (not slower!)
 
 **Revised Crossover Estimate:**
 
 With 3 data points:
 
-- 0.103M: 21.9× faster (ONNX wins massively)
-- **11M: 4.44× faster (ONNX still wins)** ✅
-- 124M: 0.68× slower (PyTorch wins)
+- 0.103M: 21.9x faster (ONNX wins massively)
+- **11M: 4.44x faster (ONNX still wins)** ✅
+- 124M: 0.68x slower (PyTorch wins)
 
 **New crossover calculation:**
 
-Fitting power-law: `A(P) = A₀ × (P/P₀)^k`
+Fitting power-law: `A(P) = A₀ x (P/P₀)^k`
 
 Using 3 points (least-squares fit):
 
@@ -1238,18 +1231,18 @@ Using 3 points (least-squares fit):
 
 ```
 ONNX CPU Advantage
-     ^
-22×  |●  (0.1M)
-     |
-     |
- 5×  |        ● (11M - ACTUAL: 4.44×)
-     |
-     |
- 1×  |---------------------------●-- (30-50M - revised crossover)
-     |
-     |
-0.5× |                                    ● (124M)
-     +----------------------------------------> Parameters
+   ^
+22x |● (0.1M)
+   |
+   |
+ 5x |    ● (11M - ACTUAL: 4.44x)
+   |
+   |
+ 1x |---------------------------●-- (30-50M - revised crossover)
+   |
+   |
+0.5x |                  ● (124M)
+   +----------------------------------------> Parameters
 ```
 
 **Implication for Production:**
@@ -1276,17 +1269,17 @@ TensorRT engines use **5-6 optimization profiles** to handle dynamic shapes:
 **Profile Configuration (GPT-2 FP32 Example):**
 
 ```
-Profile 0: batch=[1,1,1],   seq=[8,16,32]    # single micro/short
-Profile 1: batch=[1,1,1],   seq=[16,48,64]   # single medium
-Profile 2: batch=[1,1,1],   seq=[32,80,128]  # single long
-Profile 3: batch=[1,4,4],   seq=[8,16,32]    # batch short
-Profile 4: batch=[1,4,4],   seq=[16,48,64]   # batch medium
+Profile 0: batch=[1,1,1],  seq=[8,16,32]  # single micro/short
+Profile 1: batch=[1,1,1],  seq=[16,48,64]  # single medium
+Profile 2: batch=[1,1,1],  seq=[32,80,128] # single long
+Profile 3: batch=[1,4,4],  seq=[8,16,32]  # batch short
+Profile 4: batch=[1,4,4],  seq=[16,48,64]  # batch medium
 ```
 
 **Layer Fusion by Profile:**
 
 - Each profile builds specialized kernels for its shape range
-- Small batches: Fused attention (12 heads → 1 kernel)
+- Small batches: Fused attention (12 heads -> 1 kernel)
 - Large batches: Separate kernels for parallelism
 
 ### 14.2 Why TensorRT Scales Better Than PyTorch
@@ -1295,8 +1288,8 @@ Profile 4: batch=[1,4,4],   seq=[16,48,64]   # batch medium
 
 **PyTorch Eager:**
 
-- 12 × (Attention + Residual + LayerNorm + MLP + Residual + LayerNorm)
-- Total kernel launches: 12 × 6 = **72 kernels**
+- 12 x (Attention + Residual + LayerNorm + MLP + Residual + LayerNorm)
+- Total kernel launches: 12 x 6 = **72 kernels**
 - Each launch has overhead (kernel dispatch, synchronization)
 
 **PyTorch Compile (cudagraphs):**
@@ -1307,9 +1300,9 @@ Profile 4: batch=[1,4,4],   seq=[16,48,64]   # batch medium
 
 **TensorRT:**
 
-- Fuses entire transformer block: Attention + MLP + Residuals + LayerNorm → **1 mega-kernel**
+- Fuses entire transformer block: Attention + MLP + Residuals + LayerNorm -> **1 mega-kernel**
 - Total kernel launches: **12 kernels** (1 per block)
-- 6× fewer launches → 6× less overhead
+- 6x fewer launches -> 6x less overhead
 
 **Result:** TensorRT's advantage **grows** as model depth increases (more layers = more fusion opportunities).
 
@@ -1322,27 +1315,27 @@ Profile 4: batch=[1,4,4],   seq=[16,48,64]   # batch medium
 | **FP16** | 3,851 tok/s | ~240 GB/s used | 40 TFLOPS | **6.0 GB/TFLOP** (memory-bound) |
 | **INT8** | 6,284 tok/s | ~240 GB/s used | 80 TOPS | **3.0 GB/TOP** (still memory-bound) |
 
-**Why INT8 is only 1.63× faster (not 2×):**
+**Why INT8 is only 1.63x faster (not 2x):**
 
-- **Expected:** 2× speedup from 2× compute (80 TOPS vs 40 TFLOPS)
-- **Actual:** 1.63× speedup
+- **Expected:** 2x speedup from 2x compute (80 TOPS vs 40 TFLOPS)
+- **Actual:** 1.63x speedup
 - **Reason:** **Memory bandwidth bottleneck** (240 GB/s saturated in both cases)
 
 **Compute-Bound Threshold:**
 
-For INT8 to achieve 2× speedup, need: `Compute / Memory_BW > 2×`
+For INT8 to achieve 2x speedup, need: `Compute / Memory_BW > 2x`
 
 **RTX 4080:**
 
 - Memory BW: 480 GB/s (effective: ~240 GB/s due to other overhead)
 - INT8 Compute: 320 TOPS (Tensor Cores)
 - **Threshold:** 480 GB/s ÷ 320 TOPS = **1.5 GB/TOP**
-- **Current:** 3.0 GB/TOP (2× above threshold)
+- **Current:** 3.0 GB/TOP (2x above threshold)
 
 **Model size needed:**
 
-- Double params: 248M → 6.0 GB/TOP (still memory-bound)
-- 10× params: 1.24B → 0.6 GB/TOP **(compute-bound!)**
+- Double params: 248M -> 6.0 GB/TOP (still memory-bound)
+- 10x params: 1.24B -> 0.6 GB/TOP **(compute-bound!)**
 
 **Conclusion:** INT8 speedup requires **> 1B parameters** on RTX 4080 to become compute-bound.
 
@@ -1370,7 +1363,7 @@ For INT8 to achieve 2× speedup, need: `Compute / Memory_BW > 2×`
 - **ONNX CPU NOT significant:** p = 0.123 (12% chance of random variation)
 - **INT8 = FP16 confirmed:** p = 0.488 (no meaningful difference)
 
-**Critical Finding:** ONNX CPU's 32% slowdown at scale is **not statistically significant** (p = 0.123), suggesting high variance. However, the crossover phenomenon (21.9× → 0.68×) **is significant** due to massive scale of change.
+**Critical Finding:** ONNX CPU's 32% slowdown at scale is **not statistically significant** (p = 0.123), suggesting high variance. However, the crossover phenomenon (21.9x -> 0.68x) **is significant** due to massive scale of change.
 
 ### 15.2 Confidence Intervals (95%)
 
@@ -1400,13 +1393,13 @@ For INT8 to achieve 2× speedup, need: `Compute / Memory_BW > 2×`
 | **onnxruntime-cpu** | 360/360 (100%) | 360/360 (100%) | **720/720 (100%)** | **0** ✅ |
 | **onnxruntime-gpu** | 360/360 (100%) | 360/360 (100%) | **720/720 (100%)** | **0** ✅ |
 | **transformers-gpu-compile** | 360/360 (100%) | 360/360 (100%) | **720/720 (100%)** | **0** ✅ |
-| **tensorrt-fp32** | 360/360 (100%) | **0/360 (0%)** | 360/720 (50%) | **360** ⚠️ |
-| **tensorrt-fp16** | 340/360 (94%) | **0/360 (0%)** | 340/720 (47%) | **380** ⚠️ |
-| **tensorrt-int8** | 360/360 (100%) | **0/360 (0%)** | 360/720 (50%) | **360** ⚠️ |
+| **tensorrt-fp32** | 360/360 (100%) | **0/360 (0%)** | 360/720 (50%) | **360** |
+| **tensorrt-fp16** | 340/360 (94%) | **0/360 (0%)** | 340/720 (47%) | **380** |
+| **tensorrt-int8** | 360/360 (100%) | **0/360 (0%)** | 360/720 (50%) | **360** |
 
 **Root Cause Analysis:**
 
-- **TensorRT generate degradation:** 360 total failures (180 per model × 2 models)
+- **TensorRT generate degradation:** 360 total failures (180 per model x 2 models)
 - **Evidence:** 100% prefill success confirms TensorRT works, generate failure is specific
 - **Profile issue:** FP16 also has 20 prefill degradations (batch scenarios, profile mismatch)
 
@@ -1424,20 +1417,20 @@ For INT8 to achieve 2× speedup, need: `Compute / Memory_BW > 2×`
 **1. The Crossover Phenomenon (Empirically Validated with 3-Point Model):**
 
 - ONNX Runtime CPU performance **inverts** at ~**30-50M parameters** (not 1.2M as initially predicted!)
-- Evidence: 21.9× faster (0.103M) → **4.44× faster (11M)** → 0.68× slower (124.4M)
+- Evidence: 21.9x faster (0.103M) -> **4.44x faster (11M)** -> 0.68x slower (124.4M)
 - Root cause: L3 cache exhaustion occurs later than predicted (36 MB L3 + AVX-512 scaling)
 - **Actionable insight:** ONNX CPU viable for models **< 30-50M params** (much larger envelope than predicted!)
 
 **2. TensorRT Perfect Scaling (Validated):**
 
-- Maintains 60-196% speedup across 1,210× parameter increase
-- INT8 advantage **improves** with scale (1.35× → 2.96×)
-- FP16 consistent across range (1.20× → 1.82×)
+- Maintains 60-196% speedup across 1,210x parameter increase
+- INT8 advantage **improves** with scale (1.35x -> 2.96x)
+- FP16 consistent across range (1.20x -> 1.82x)
 - **Actionable insight:** TensorRT is universal optimizer for models > 10M params
 
 **3. INT8 Threshold Not Reached (Validated):**
 
-- INT8 only 1.63× faster than FP16 (not 2×)
+- INT8 only 1.63x faster than FP16 (not 2x)
 - Still memory-bound at 124M params
 - Predicted threshold: > 1B params on RTX 4080
 - **Actionable insight:** Skip INT8 for models < 1B params
@@ -1455,27 +1448,27 @@ For INT8 to achieve 2× speedup, need: `Compute / Memory_BW > 2×`
 
 | Model Size | Recommended Backend | Expected Speedup | Build Time | Deployment Complexity |
 |------------|-------------------|------------------|------------|---------------------|
-| **< 500K** | ONNX CPU | **50-100×** | None | ⭐ Trivial |
-| **500K - 1M** | ONNX CPU | **10-20×** | None | ⭐ Trivial |
-| **1M - 10M** | TensorRT FP16 | **1.5-2×** | 30-60s | ⭐⭐ Moderate |
-| **10M - 100M** | TensorRT FP16 | **1.8-2.5×** | 60-120s | ⭐⭐ Moderate |
-| **100M - 1B** | TensorRT FP16 | **1.8-3×** | 120-300s | ⭐⭐⭐ Complex |
-| **1B - 7B** | TensorRT FP16 | **2-3×** | 300-600s | ⭐⭐⭐ Complex |
-| **> 7B** | TensorRT INT8 | **3-5×** | 600s+ | ⭐⭐⭐⭐ Expert |
+| **< 500K** | ONNX CPU | **50-100x** | None | ⭐ Trivial |
+| **500K - 1M** | ONNX CPU | **10-20x** | None | ⭐ Trivial |
+| **1M - 10M** | TensorRT FP16 | **1.5-2x** | 30-60s | ⭐⭐ Moderate |
+| **10M - 100M** | TensorRT FP16 | **1.8-2.5x** | 60-120s | ⭐⭐ Moderate |
+| **100M - 1B** | TensorRT FP16 | **1.8-3x** | 120-300s | ⭐⭐⭐ Complex |
+| **1B - 7B** | TensorRT FP16 | **2-3x** | 300-600s | ⭐⭐⭐ Complex |
+| **> 7B** | TensorRT INT8 | **3-5x** | 600s+ | ⭐⭐⭐⭐ Expert |
 
 ### 16.3 Key Takeaways for ML Engineers
 
 **What We Learned:**
 
 1. **CPU inference has hard limits:** L3 cache exhaustion at ~1M params creates performance cliff
-2. **GPU memory bandwidth scales better:** 6× bandwidth advantage (480 vs 77 GB/s) dominates at scale
+2. **GPU memory bandwidth scales better:** 6x bandwidth advantage (480 vs 77 GB/s) dominates at scale
 3. **TensorRT kernel fusion compounds:** More layers = more fusion = better speedup
 4. **INT8 needs > 1B params:** Memory-bound workloads see no benefit from quantization
 5. **Profile management critical:** TensorRT degradations are deployment issues, not capability limits
 
 **What Surprised Us:**
 
-1. **ONNX CPU 61× throughput collapse:** Expected degradation, not inversion
+1. **ONNX CPU 61x throughput collapse:** Expected degradation, not inversion
 2. **TensorRT INT8 faster than FP16:** Expected memory savings, got performance improvement
 3. **PyTorch degrades too:** ÷1.89 throughput loss (torch.compile less effective at scale)
 
@@ -1512,7 +1505,7 @@ For INT8 to achieve 2× speedup, need: `Compute / Memory_BW > 2×`
 
 **Raw Benchmark Data (JSONL):**
 
-- 4 files × 180 lines each = **720 benchmark records**
+- 4 files x 180 lines each = **720 benchmark records**
 - Total size: ~45 MB
 
 ### 17.2 Reproduction Command Reference
@@ -1521,10 +1514,10 @@ For INT8 to achieve 2× speedup, need: `Compute / Memory_BW > 2×`
 
 ```bash
 python scripts/tr118/run_tr118v2.py \
-  --device cuda \
-  --label full_reproduction \
-  --with-plots \
-  --with-report
+ --device cuda \
+ --label full_reproduction \
+ --with-plots \
+ --with-report
 ```
 
 **Per-Model Run:**
@@ -1541,9 +1534,9 @@ python scripts/tr118/run_tr118v2.py --device cuda --models gpt2
 
 ```bash
 python scripts/tr118/run_tr118v2.py \
-  --device cuda \
-  --force-export \
-  --force-trt-rebuild
+ --device cuda \
+ --force-export \
+ --force-trt-rebuild
 ```
 
 ### 17.3 Expected Runtime & Resources
@@ -1622,7 +1615,7 @@ The main report interpolated the CPU-GPU crossover point to be in the **30-50M p
 
 ### A.4 Conclusion
 
-The empirical data reveals that the "CPU Regime" extends further than predicted. At 45M parameters, the CPU (ONNX Runtime) still maintains a **1.15-1.6× advantage** over the GPU (PyTorch).
+The empirical data reveals that the "CPU Regime" extends further than predicted. At 45M parameters, the CPU (ONNX Runtime) still maintains a **1.15-1.6x advantage** over the GPU (PyTorch).
 
 - **Predicted Crossover:** 30-50M
 - **Actual Crossover Project:** **80-100M**

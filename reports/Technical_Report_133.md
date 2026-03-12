@@ -1,15 +1,18 @@
 # Technical Report 133: Predictive Capacity Planner
 ## Operationalising 70,000+ Measurements Into a Decision Tool
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-28  
-**Author:** Research Team  
-**Report Type:** Software tool + model validation (6 predictive models, 19,676 training records, 3,939 validation records, 10 spot checks)  
-**Pipeline Duration:** <1 second (data ingest + model fitting + validation)  
-**Status:** Complete -- all 4 validation targets met, 10/10 spot checks pass, CLI shipped as ChimeraForge Phase 1  
-**Run ID:** `20260228_102432`  
-**Related Work:** [TR123](Technical_Report_123.md) (KV-cache economics), [TR124](Technical_Report_124.md) (quality baselines), [TR125](Technical_Report_125.md) (quantization matrix), [TR127](Technical_Report_127.md) (long-context), [TR128](Technical_Report_128.md) (production workloads), [TR129](Technical_Report_129.md) (N-agent scaling), [TR130](Technical_Report_130.md) (serving stacks)  
-**Depends On:** TR123--TR130 (all empirical data sources)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 133 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-28 |
+| **Author** | Research Team |
+| **Report Type** | Software tool + model validation (6 predictive models, 19,676 training records, 3,939 validation records, 10 spot checks) |
+| **Pipeline Duration** | <1 second (data ingest + model fitting + validation) |
+| **Status** | Complete -- all 4 validation targets met, 10/10 spot checks pass, CLI shipped as ChimeraForge Phase 1 |
+| **Run ID** | `20260228_102432` |
+| **Related Work** | [TR123](Technical_Report_123.md) (KV-cache economics), [TR124](Technical_Report_124.md) (quality baselines), [TR125](Technical_Report_125.md) (quantization matrix), [TR127](Technical_Report_127.md) (long-context), [TR128](Technical_Report_128.md) (production workloads), [TR129](Technical_Report_129.md) (N-agent scaling), [TR130](Technical_Report_130.md) (serving stacks) |
+| **Depends On** | TR123--TR130 (all empirical data sources) |
 
 ---
 

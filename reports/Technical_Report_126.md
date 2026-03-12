@@ -1,15 +1,18 @@
 # Technical Report 126: Linux/Triton Validation of the Compile Paradox
 ## Cross-platform A/B test confirming torch.compile benefits under real Inductor+Triton, with 3-backend matrix on consumer GPU
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-22  
-**Author:** Research Team  
-**Report Type:** Cross-platform performance validation (3-phase, Docker/Linux)  
-**Test Duration:** ~5 min (Phase 1) + ~90 min (Phase 2) + ~45 min (Phase 3)  
-**Status:** Complete -- All phases delivered  
-**Run IDs:** Phase 1: `20260222_195228`, `20260222_195522` | Phase 2: `20260222_195655` (baseline), `20260222_213342` (padded), `20260222_214114` (dynamic) | Phase 3: `20260222_231929` (reduce-overhead), `20260223_034940` (mode="default"), `20260223_210915` (PyTorch 2.10 rerun)  
-**Related Work:** [TR120](Technical_Report_120.md) (Compile Paradox Root-Cause Audit), [TR117](Technical_Report_117.md) (Baseline Benchmark), [TR123](Technical_Report_123.md) (KV-Cache Production Economics)  
-**Depends On:** TR120 (compile paradox discovery, Windows baseline data), TR117 (Tier-3 matrix design, prompt sets)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 126 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-22 |
+| **Author** | Research Team |
+| **Report Type** | Cross-platform performance validation (3-phase, Docker/Linux) |
+| **Test Duration** | ~5 min (Phase 1) + ~90 min (Phase 2) + ~45 min (Phase 3) |
+| **Status** | Complete -- All phases delivered |
+| **Run IDs** | Phase 1: `20260222_195228`, `20260222_195522` \| Phase 2: `20260222_195655` (baseline), `20260222_213342` (padded), `20260222_214114` (dynamic) \| Phase 3: `20260222_231929` (reduce-overhead), `20260223_034940` (mode="default"), `20260223_210915` (PyTorch 2.10 rerun) |
+| **Related Work** | [TR120](Technical_Report_120.md) (Compile Paradox Root-Cause Audit), [TR117](Technical_Report_117.md) (Baseline Benchmark), [TR123](Technical_Report_123.md) (KV-Cache Production Economics) |
+| **Depends On** | TR120 (compile paradox discovery, Windows baseline data), TR117 (Tier-3 matrix design, prompt sets) |
 
 ---
 

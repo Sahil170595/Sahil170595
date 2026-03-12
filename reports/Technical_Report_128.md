@@ -1,15 +1,18 @@
 # Technical Report 128: Production Workload Characterization
 ## Concurrency, saturation, streaming, and multi-turn performance of Ollama on consumer GPU
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2026-02-25  
-**Author:** Research Team  
-**Report Type:** Production workload characterization (5-phase, 3,172 measurements)  
-**Test Duration:** ~55 minutes  
-**Status:** Complete --- All 5 phases delivered  
-**Run ID:** `20260225_145254`  
-**Related Work:** [TR123](Technical_Report_123.md) (KV-Cache Economics), [TR125](Technical_Report_125.md) (Quantization Matrix), [TR126](Technical_Report_126.md) (Linux/Triton Validation), [TR127](Technical_Report_127.md) (Long-Context Scaling)  
-**Depends On:** TR127 (context scaling baseline, prefill cross-validation), TR126 (HF vs Ollama methodology)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 128 |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-25 |
+| **Author** | Research Team |
+| **Report Type** | Production workload characterization (5-phase, 3,172 measurements) |
+| **Test Duration** | ~55 minutes |
+| **Status** | Complete --- All 5 phases delivered |
+| **Run ID** | `20260225_145254` |
+| **Related Work** | [TR123](Technical_Report_123.md) (KV-Cache Economics), [TR125](Technical_Report_125.md) (Quantization Matrix), [TR126](Technical_Report_126.md) (Linux/Triton Validation), [TR127](Technical_Report_127.md) (Long-Context Scaling) |
+| **Depends On** | TR127 (context scaling baseline, prefill cross-validation), TR126 (HF vs Ollama methodology) |
 
 ---
 

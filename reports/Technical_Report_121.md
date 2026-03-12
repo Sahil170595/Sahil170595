@@ -1,11 +1,14 @@
 # Technical Report 121 (Superseded Draft): Model Scaling Study
 ## How inference behavior changes from ~5M to ~20B parameters (HF + Ollama)
 
-**Project:** Banterhearts LLM Performance Research  
-**Date:** 2025-12-23  
-**Author:** Research Team  
-**Report Type:** Scaling-law analysis + bottleneck characterization (artifact-backed)  
-**Related Work:** [TR117](Technical_Report_117.md) (backend matrix), [TR118_v2.2](Technical_Report_118_v2.2.md) (pipeline rigor), [TR120](Technical_Report_120.md) (compile paradox), [TR122](../../scripts/tr122/README.md) (planned resource profiling deep dive)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 121 (Superseded Draft) |
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2025-12-23 |
+| **Author** | Research Team |
+| **Report Type** | Scaling-law analysis + bottleneck characterization (artifact-backed) |
+| **Related Work** | [TR117](Technical_Report_117.md) (backend matrix), [TR118_v2.2](Technical_Report_118_v2.2.md) (pipeline rigor), [TR120](Technical_Report_120.md) (compile paradox), [TR122](../../scripts/tr122/README.md) (planned resource profiling deep dive) |
 
 ---
 

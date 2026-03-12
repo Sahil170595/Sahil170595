@@ -1,14 +1,18 @@
 # Technical Report 110
 ## Concurrent Multi-Agent Performance Analysis with Chimera Optimization
-### Systematic Evaluation of Parallel Agent Execution
 
-**Author:** Sahil (solo developer)  
-**Date:** October 10, 2025  
-**Test Duration:** 3 hours 15 minutes (150 benchmark runs)  
-**Framework:** Banterhearts Chimera Multi-Agent System  
-**Related:** [TR108](../../reports/Technical_Report_108.md), [TR109](../../reports/Technical_Report_109.md)  
+| Field | Value |
+|-------|-------|
+| **TR Number** | 110 |
+| **Author** | Sahil (solo developer) |
+| **Date** | October 10, 2025 |
+| **Test Duration** | 3 hours 15 minutes (150 benchmark runs) |
+| **Framework** | Banterhearts Chimera Multi-Agent System |
+| **Related Work** | [TR108](../../reports/Technical_Report_108.md), [TR109](../../reports/Technical_Report_109.md) |
 
 ---
+
+### Systematic Evaluation of Parallel Agent Execution
 
 ## Executive Summary
 

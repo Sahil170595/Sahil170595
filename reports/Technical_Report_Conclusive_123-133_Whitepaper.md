@@ -1,12 +1,15 @@
 # TR123-TR133 Decision Whitepaper
 ## Executive guidance for deployment leaders
 
-Project: Banterhearts LLM Performance Research  
-Date: 2026-02-28  
-Version: 1.0  
-Audience: Decision makers, product leaders, ops leaders  
-Scope: TR123, TR124, TR125, TR126, TR127, TR128, TR129, TR130, TR131, TR132, TR133  
-Primary source: `PublishReady/reports/Technical_Report_Conclusive_123-133.md`  
+| Field | Value |
+|-------|-------|
+| **Project** | Banterhearts LLM Performance Research |
+| **Date** | 2026-02-28 |
+| **Version** | 1.0 |
+| **Report Type** | Decision whitepaper |
+| **Audience** | Decision makers, product leaders, ops leaders |
+| **Scope** | TR123, TR124, TR125, TR126, TR127, TR128, TR129, TR130, TR131, TR132, TR133 |
+| **Primary Source** | `PublishReady/reports/Technical_Report_Conclusive_123-133.md` |
 
 ---
 
