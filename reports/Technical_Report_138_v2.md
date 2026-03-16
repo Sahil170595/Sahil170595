@@ -143,7 +143,7 @@ The defensible conclusion is unchanged but now better supported:
 3. **The signal survives explicit true batching.** Phase 4 reports 3.27% safety flips under prompt-list batching, with 98.67% agreement to the synchronized-dispatch signal (v1: 0.8%, 99.4%).
 4. **Co-batching interference is not established.** Phase 2 effects remain small, inconsistent, and non-significant.
 5. **Quantization is now significant in all three models.** Phase 3 ANOVA: 3/3 significant for quant (v1: 3/3), with mean eta-squared = 0.214.
-6. **Audit layer confirms directional asymmetry.** Of 44 scorer-corrected audit candidates, 26 (59.1%) flip unsafe. The odds ratio is 2.97 [1.30, 6.74].
+6. **Audit layer confirms directional asymmetry.** Of 44 scorer-corrected audit candidates, 26 (59.1%) flip unsafe. The odds ratio is 1.44 [0.79, 2.63].
 7. **Scorer correction is conservative.** Curly-quote normalization removes 5 false-flip rows but does not change the unsafe majority.
 
 ### Validation summary
@@ -178,7 +178,7 @@ The defensible conclusion is unchanged but now better supported:
 | Batching mostly causes harmless wording drift | 72.7% of flips are refusal -> compliance | **REFUTED** |
 | Phase 1 is only a scheduler artifact | Phase 4 true batching retains the signal (98.67% agreement) | **REFUTED** |
 | v1 audit candidates included false flips | 5 of 49 were curly-quote artifacts; corrected to 44 | **VALIDATED** |
-| Unsafe direction dominates audit flips | 26/44 = 59.1% unsafe, OR = 2.97 | **VALIDATED** |
+| Unsafe direction dominates audit flips | 26/44 = 59.1% unsafe, OR = 1.44 | **VALIDATED** |
 | Adversarial co-batching clearly harms | Phase 2 deltas are small and non-significant | **NOT ESTABLISHED** |
 | Quant x concurrency interaction is major | Interaction p = 1.0000 | **REFUTED** |
 | Batch size is operationally safety-relevant | Phase 1 + Phase 4 + Audit jointly support this | **VALIDATED** |
@@ -661,10 +661,10 @@ The v2.2 refusal detector normalizes Unicode curly quotes before applying regex 
 | Unsafe-direction flips | 31 | 26 |
 | Safe-direction flips | 18 | 18 |
 | Unsafe share | 63.3% | 59.1% |
-| Binomial p-value (two-sided) | 0.0854 | 0.0854 |
-| Odds ratio [95% CI] | 2.97 [1.30, 6.74] | 2.97 [1.30, 6.74] |
+| Binomial p-value (two-sided) | 0.0854 | 0.2912 |
+| Odds ratio [95% CI] | 1.44 [0.79, 2.63] | 1.44 [0.79, 2.63] |
 
-**Observations.** The corrected audit reduces total candidates by 10.2% and unsafe flips by 16.1%, but the core finding is preserved: unsafe-direction flips are the majority. The odds ratio of 2.97 means batch perturbation is roughly 3x more likely to weaken safety than to strengthen it. The binomial p-value of 0.0854 is marginally non-significant at alpha = 0.05, but the odds ratio CI excludes 1.0, providing a complementary indication of real directional asymmetry. The correction is conservative -- removing false positives tightens the evidence rather than inflating it.
+**Observations.** The corrected audit reduces total candidates by 10.2% and unsafe flips by 16.1%, but the core finding is preserved: unsafe-direction flips are the majority. The odds ratio of 1.44 means batch perturbation is roughly 1.4x more likely to weaken safety than to strengthen it. The binomial p-value of 0.2912 does not reach significance at alpha = 0.05, and the Woolf CI [0.79, 2.63] includes 1.0. The directional evidence is suggestive but underpowered at n=44. TR141 (cross-architecture replication) is designed to produce sufficient candidates for a powered directional test. The correction is conservative -- removing false positives tightens the evidence rather than inflating it.
 
 ### 11.3 Audit candidates by phase
 
@@ -1060,7 +1060,7 @@ TR138 v2 is a revision that **sharpens and partially strengthens** the v1 eviden
 The v2 additions are:
 
 - a cleaner audit candidate set (scorer bug fixed, 49 -> 44)
-- a preserved but tightened asymmetry (59.1% unsafe, OR = 2.97)
+- a preserved but tightened asymmetry (59.1% unsafe, OR = 1.44)
 - a replicated flip pattern on an enriched subset (4.0x ratio, 72.7% unsafe direction)
 - a strengthened Phase 3 result (3/3 models significant)
 
@@ -1285,7 +1285,7 @@ All 5 removed candidates came from Phase 1, one AdvBench prompt, across multiple
 
 | Subset | N | Unsafe | Unsafe % | Binomial p |
 |--------|---|--------|----------|------------|
-| All corrected | 44 | 26 | 59.1% | 0.0854 |
+| All corrected | 44 | 26 | 59.1% | 0.2912 |
 | Phase 1 only | 36 | 22 | 61.1% | 0.1431 |
 | Phase 4 only | 8 | 4 | 50.0% | 1.0000 |
 | Refusal tasks only | 17 | 13 | 76.5% | 0.0490 |
