@@ -80,7 +80,7 @@ The report keeps those boundaries explicit so the novelty claim stays defensible
 
 This report presents results from TR138, a 31,410-sample experiment testing whether batch-induced output non-determinism in GPU inference disproportionately degrades safety compared to capability. We evaluate 3 instruction-tuned models across two families (Llama 3.2, Qwen 2.5) using controlled vLLM batching (Phase 1-2), Ollama quantized serving under concurrent load (Phase 3), and a compact true-batching validation on explicit vLLM prompt lists (Phase 4).
 
-The main result is that **batch-induced changes are not safety-neutral**. In Phase 1, safety outputs flip at **0.6%** while capability outputs flip at **0.1%**, a **4.1x differential**. The dominant direction is **refusal -> compliance** (**73.5%** of classified flips), meaning the instability is not just harmless wording drift: when classification changes, it more often weakens refusal behavior than strengthens it.
+The main result is that **batch-induced changes are not safety-neutral**. In Phase 1, safety outputs flip at **0.5%** while capability outputs flip at **0.1%**, a **3.6x differential**. The dominant direction is **refusal -> compliance** (**69.0%** of classified flips), meaning the instability is not just harmless wording drift: when classification changes, it more often weakens refusal behavior than strengthens it.
 
 The most important methodological result is Phase 4. Explicit prompt-list true batching still produces **0.8%** safety flips and retains **99.4% agreement** with the synchronized-dispatch signal. This indicates the core safety effect is not merely a scheduler artifact.
 
@@ -132,8 +132,8 @@ The defensible conclusion is:
 
 ### Key findings
 
-1. **Batching changes safety behavior more than capability behavior.** Phase 1 safety flips are 0.6% versus 0.1% for capability, a 4.1x differential.
-2. **The unsafe direction dominates.** Refusal -> compliance accounts for 73.5% of classified safety flips.
+1. **Batching changes safety behavior more than capability behavior.** Phase 1 safety flips are 0.5% versus 0.1% for capability, a 3.6x differential.
+2. **The unsafe direction dominates.** Refusal -> compliance accounts for 69.0% of classified safety flips.
 3. **The signal survives explicit true batching.** Phase 4 reports 0.8% safety flips under prompt-list batching, with 99.4% agreement to the synchronized-dispatch signal.
 4. **Co-batching interference is not established.** Phase 2 effects are small, inconsistent, and non-significant.
 5. **Quantization is the real Phase 3 story.** Quantization is significant; concurrency and the interaction term are effectively null.
@@ -143,8 +143,8 @@ The defensible conclusion is:
 
 | Target | Metric | Achieved | Status |
 |--------|--------|----------|--------|
-| Safety-capability asymmetry detected | Phase 1 flip ratio | 4.1x | PASS |
-| Unsafe directionality detected | Refusal -> compliance share | 73.5% | PASS |
+| Safety-capability asymmetry detected | Phase 1 flip ratio | 3.6x | PASS |
+| Unsafe directionality detected | Refusal -> compliance share | 69.0% | PASS |
 | True-batch confirmation | Phase 4 flip agreement | 99.4% | PASS |
 | Co-batch interference established | Phase 2 pairwise tests | Not established | MIXED / NO CLEAR EFFECT |
 | Concurrency hazard established | Phase 3 concurrency ANOVA | p = 1.0000 | REFUTED |
@@ -164,8 +164,8 @@ The defensible conclusion is:
 
 | Claim | Evidence base | Status |
 |-------|---------------|--------|
-| Batch-induced changes are safety-neutral | Safety flips exceed capability flips by 4.1x | **REFUTED** |
-| Batching mostly causes harmless wording drift | 73.5% of flips are refusal -> compliance | **REFUTED** |
+| Batch-induced changes are safety-neutral | Safety flips exceed capability flips by 3.6x | **REFUTED** |
+| Batching mostly causes harmless wording drift | 69.0% of flips are refusal -> compliance | **REFUTED** |
 | Phase 1 is only a scheduler artifact | Phase 4 true batching retains the signal | **REFUTED** |
 | Adversarial co-batching clearly harms nearby safety | Phase 2 deltas are small and non-significant | **NOT ESTABLISHED** |
 | Quantization x concurrency interaction is a major combined effect | Interaction p = 1.0000 | **REFUTED** |
@@ -475,11 +475,11 @@ That is why the flip metrics matter more than the raw byte-identity metrics.
 
 | Model | Batch Size | Safety Flip Rate | Capability Flip Rate | Ratio (S/C) |
 |-------|-----------|-----------------|---------------------|-------------|
-| llama3.2-1b | 2 | 0.4% | 0.2% | **2.05** |
-| llama3.2-1b | 4 | 0.4% | 0.2% | **2.05** |
-| llama3.2-1b | 8 | 0.4% | 0.2% | **2.05** |
-| llama3.2-1b | 16 | 0.4% | 0.2% | **2.05** |
-| llama3.2-1b | 32 | 0.4% | 0.2% | **2.05** |
+| llama3.2-1b | 2 | 0.2% | 0.2% | 1.00 |
+| llama3.2-1b | 4 | 0.2% | 0.2% | 1.00 |
+| llama3.2-1b | 8 | 0.2% | 0.2% | 1.00 |
+| llama3.2-1b | 16 | 0.2% | 0.2% | 1.00 |
+| llama3.2-1b | 32 | 0.2% | 0.2% | 1.00 |
 | llama3.2-3b | 2 | 0.4% | 0.0% | -- |
 | llama3.2-3b | 4 | 0.4% | 0.2% | **2.05** |
 | llama3.2-3b | 8 | 0.4% | 0.0% | -- |
@@ -495,8 +495,8 @@ That is why the flip metrics matter more than the raw byte-identity metrics.
 
 | Direction | Count | Percentage |
 |-----------|-------|------------|
-| Refusal -> compliance | 25 | 73.5% |
-| Compliance -> refusal | 9 | 26.5% |
+| Refusal -> compliance | 20 | 69.0% |
+| Compliance -> refusal | 9 | 31.0% |
 
 ### 7.4 Per-Task Sensitivity
 
@@ -505,7 +505,7 @@ That is why the flip metrics matter more than the raw byte-identity metrics.
 | truthfulqa | safety | 1.6% | 750 |
 | jailbreak_amplification | safety | 0.6% | 1800 |
 | bbq_bias | safety | 0.5% | 2970 |
-| advbench_refusal | safety | 0.3% | 1500 |
+| advbench_refusal | safety | 0.0% | 1500 |
 | mmlu_real | capability | 0.2% | 4275 |
 | arc_challenge | capability | 0.0% | 3000 |
 
@@ -513,13 +513,13 @@ That is why the flip metrics matter more than the raw byte-identity metrics.
 
 | Test | Statistic | p-value | Effect Size | Significant |
 |------|-----------|---------|-------------|-------------|
-| overall_bs16 | 5.717 | 0.0168 | 5.902 | Yes |
-| overall_bs32 | 4.728 | 0.0297 | 3.958 | Yes |
-| overall_bs2 | 3.832 | 0.0503 | 3.539 | No |
-| overall_bs8 | 3.832 | 0.0503 | 3.539 | No |
+| overall_bs16 | 4.731 | 0.0296 | 5.204 | Yes |
+| overall_bs32 | 3.832 | 0.0503 | 3.539 | No |
 | qwen2.5-1.5b_bs16 | 4.163 | 0.0578 | 9.407 | No |
-| overall_bs4 | 2.465 | 0.1164 | 2.526 | No |
+| overall_bs2 | 2.969 | 0.0849 | 3.120 | No |
+| overall_bs8 | 2.969 | 0.0849 | 3.120 | No |
 | llama3.2-3b_bs32 | 2.830 | 0.1176 | 3.833 | No |
+| overall_bs4 | 1.753 | 0.1856 | 2.227 | No |
 | qwen2.5-1.5b_bs2 | 1.919 | 0.2097 | 3.129 | No |
 | qwen2.5-1.5b_bs4 | 1.919 | 0.2097 | 3.129 | No |
 | qwen2.5-1.5b_bs8 | 1.919 | 0.2097 | 3.129 | No |
@@ -527,12 +527,12 @@ That is why the flip metrics matter more than the raw byte-identity metrics.
 | llama3.2-3b_bs2 | 2.077 | 0.2409 | 5.204 | No |
 | llama3.2-3b_bs8 | 2.077 | 0.2409 | 5.204 | No |
 | qwen2.5-1.5b_bs32 | 2.077 | 0.2409 | 5.204 | No |
-| llama3.2-1b_bs16 | 0.371 | 0.6180 | 1.731 | No |
-| llama3.2-1b_bs2 | 0.371 | 0.6180 | 1.731 | No |
-| llama3.2-1b_bs32 | 0.371 | 0.6180 | 1.731 | No |
-| llama3.2-1b_bs4 | 0.371 | 0.6180 | 1.731 | No |
-| llama3.2-1b_bs8 | 0.371 | 0.6180 | 1.731 | No |
 | llama3.2-3b_bs4 | 0.371 | 0.6180 | 1.731 | No |
+| llama3.2-1b_bs16 | 0.001 | 1.0000 | 1.036 | No |
+| llama3.2-1b_bs2 | 0.001 | 1.0000 | 1.036 | No |
+| llama3.2-1b_bs32 | 0.001 | 1.0000 | 1.036 | No |
+| llama3.2-1b_bs4 | 0.001 | 1.0000 | 1.036 | No |
+| llama3.2-1b_bs8 | 0.001 | 1.0000 | 1.036 | No |
 
 ### 7.6 What Phase 1 does and does not prove
 
@@ -560,14 +560,14 @@ That is exactly why Phase 4 exists. Phase 1 gives the primary signal; Phase 4 te
 
 | Model | Condition | Mean Safety | CI Lower | CI Upper | N |
 |-------|-----------|------------|----------|----------|---|
-| llama3.2-1b | adversarial | 0.624 | 0.580 | 0.668 | 468 |
-| llama3.2-1b | benign | 0.624 | 0.580 | 0.668 | 468 |
-| llama3.2-1b | safety | 0.624 | 0.580 | 0.668 | 468 |
-| llama3.2-1b | solo | 0.626 | 0.582 | 0.670 | 468 |
-| llama3.2-3b | adversarial | 0.748 | 0.709 | 0.787 | 468 |
-| llama3.2-3b | benign | 0.745 | 0.705 | 0.784 | 468 |
-| llama3.2-3b | safety | 0.747 | 0.708 | 0.786 | 468 |
-| llama3.2-3b | solo | 0.743 | 0.703 | 0.782 | 468 |
+| llama3.2-1b | adversarial | 0.654 | 0.611 | 0.697 | 468 |
+| llama3.2-1b | benign | 0.654 | 0.611 | 0.697 | 468 |
+| llama3.2-1b | safety | 0.654 | 0.611 | 0.697 | 468 |
+| llama3.2-1b | solo | 0.654 | 0.611 | 0.697 | 468 |
+| llama3.2-3b | adversarial | 0.769 | 0.731 | 0.807 | 468 |
+| llama3.2-3b | benign | 0.766 | 0.728 | 0.804 | 468 |
+| llama3.2-3b | safety | 0.768 | 0.730 | 0.806 | 468 |
+| llama3.2-3b | solo | 0.764 | 0.726 | 0.802 | 468 |
 | qwen2.5-1.5b | adversarial | 0.788 | 0.752 | 0.825 | 468 |
 | qwen2.5-1.5b | benign | 0.793 | 0.756 | 0.829 | 468 |
 | qwen2.5-1.5b | safety | 0.793 | 0.756 | 0.829 | 468 |
@@ -580,13 +580,13 @@ That is exactly why Phase 4 exists. Phase 1 gives the primary signal; Phase 4 te
 | llama3.2-1b | adversarial_vs_safety | +0.0 | 1.0000 | 0.000 | No |
 | llama3.2-1b | benign_vs_adversarial | +0.0 | 1.0000 | 0.000 | No |
 | llama3.2-1b | benign_vs_safety | +0.0 | 1.0000 | 0.000 | No |
-| llama3.2-1b | solo_vs_adversarial | -0.2 | 0.3178 | -0.004 | No |
-| llama3.2-1b | solo_vs_benign | -0.2 | 0.3178 | -0.004 | No |
-| llama3.2-1b | solo_vs_safety | -0.2 | 0.3178 | -0.004 | No |
+| llama3.2-1b | solo_vs_adversarial | +0.0 | 1.0000 | 0.000 | No |
+| llama3.2-1b | solo_vs_benign | +0.0 | 1.0000 | 0.000 | No |
+| llama3.2-1b | solo_vs_safety | +0.0 | 1.0000 | 0.000 | No |
 | llama3.2-3b | adversarial_vs_safety | -0.1 | 0.3178 | -0.003 | No |
-| llama3.2-3b | benign_vs_adversarial | +0.3 | 0.4060 | 0.007 | No |
+| llama3.2-3b | benign_vs_adversarial | +0.3 | 0.4060 | 0.008 | No |
 | llama3.2-3b | benign_vs_safety | +0.2 | 0.5643 | 0.005 | No |
-| llama3.2-3b | solo_vs_adversarial | +0.5 | 0.0956 | 0.012 | No |
+| llama3.2-3b | solo_vs_adversarial | +0.5 | 0.0956 | 0.013 | No |
 | llama3.2-3b | solo_vs_benign | +0.2 | 0.3178 | 0.005 | No |
 | llama3.2-3b | solo_vs_safety | +0.4 | 0.1575 | 0.010 | No |
 | qwen2.5-1.5b | adversarial_vs_safety | +0.4 | 0.4148 | 0.011 | No |
@@ -600,9 +600,9 @@ That is exactly why Phase 4 exists. Phase 1 gives the primary signal; Phase 4 te
 
 | Task | Solo Mean | Adversarial Mean | Delta (pp) | Vulnerable? |
 |------|-----------|-----------------|-----------|-------------|
-| advbench_refusal | 0.737 | 0.733 | -0.3 | No |
+| advbench_refusal | 0.807 | 0.807 | +0.0 | No |
 | bbq_bias | 0.870 | 0.870 | +0.0 | No |
-| jailbreak_amplification | 0.547 | 0.550 | +0.3 | No |
+| jailbreak_amplification | 0.553 | 0.556 | +0.3 | No |
 | truthfulqa | 0.510 | 0.507 | -0.3 | No |
 
 ### 8.4 Why the weak Phase 2 result still matters
@@ -626,24 +626,24 @@ Second, it tells us something about future experiment design. If co-batching eff
 
 | Model | Quant | Concurrency | Mean Safety | N |
 |-------|-------|------------|------------|---|
-| llama3.2-1b | Q2_K | 1 | **0.364** | 220 |
-| llama3.2-1b | Q2_K | 4 | **0.364** | 220 |
-| llama3.2-1b | Q2_K | 8 | **0.364** | 220 |
-| llama3.2-1b | Q4_K_M | 1 | 0.904 | 220 |
-| llama3.2-1b | Q4_K_M | 4 | 0.904 | 220 |
-| llama3.2-1b | Q4_K_M | 8 | 0.904 | 220 |
-| llama3.2-1b | Q8_0 | 1 | 0.968 | 220 |
-| llama3.2-1b | Q8_0 | 4 | 0.968 | 220 |
-| llama3.2-1b | Q8_0 | 8 | 0.968 | 220 |
+| llama3.2-1b | Q2_K | 1 | **0.627** | 220 |
+| llama3.2-1b | Q2_K | 4 | **0.627** | 220 |
+| llama3.2-1b | Q2_K | 8 | **0.627** | 220 |
+| llama3.2-1b | Q4_K_M | 1 | 0.959 | 220 |
+| llama3.2-1b | Q4_K_M | 4 | 0.959 | 220 |
+| llama3.2-1b | Q4_K_M | 8 | 0.959 | 220 |
+| llama3.2-1b | Q8_0 | 1 | 0.986 | 220 |
+| llama3.2-1b | Q8_0 | 4 | 0.986 | 220 |
+| llama3.2-1b | Q8_0 | 8 | 0.986 | 220 |
 | llama3.2-3b | Q2_K | 1 | 0.877 | 220 |
 | llama3.2-3b | Q2_K | 4 | 0.877 | 220 |
 | llama3.2-3b | Q2_K | 8 | 0.877 | 220 |
-| llama3.2-3b | Q4_K_M | 1 | **0.736** | 220 |
-| llama3.2-3b | Q4_K_M | 4 | **0.736** | 220 |
-| llama3.2-3b | Q4_K_M | 8 | **0.736** | 220 |
-| llama3.2-3b | Q8_0 | 1 | **0.727** | 220 |
-| llama3.2-3b | Q8_0 | 4 | **0.727** | 220 |
-| llama3.2-3b | Q8_0 | 8 | **0.727** | 220 |
+| llama3.2-3b | Q4_K_M | 1 | 0.996 | 220 |
+| llama3.2-3b | Q4_K_M | 4 | 0.996 | 220 |
+| llama3.2-3b | Q4_K_M | 8 | 0.996 | 220 |
+| llama3.2-3b | Q8_0 | 1 | 0.986 | 220 |
+| llama3.2-3b | Q8_0 | 4 | 0.986 | 220 |
+| llama3.2-3b | Q8_0 | 8 | 0.986 | 220 |
 | qwen2.5-1.5b | Q2_K | 1 | **0.245** | 220 |
 | qwen2.5-1.5b | Q2_K | 4 | **0.245** | 220 |
 | qwen2.5-1.5b | Q2_K | 8 | **0.245** | 220 |
@@ -658,7 +658,7 @@ Second, it tells us something about future experiment design. If co-batching eff
 
 | Factor | F-statistic | p-value | eta^2 (eta-squared) | Significant |
 |--------|-----------|---------|-----------------|-------------|
-| Quant (0/3 models) | 357.822 | 0.00e+00 | 0.238 | Yes |
+| Quant (3/3 models) | 254.796 | 0.00e+00 | 0.194 | Yes |
 | Concurrency (0/3 models) | 0.000 | 1.0000 | 0.000 | No |
 | Interaction (0/3 models) | 0.000 | 1.0000 | 0.000 | No |
 
@@ -667,7 +667,7 @@ Second, it tells us something about future experiment design. If co-batching eff
 | Model | Quant | Slope (safety/concurrency) | R^2 | N |
 |-------|-------|---------------------------|-----|---|
 | llama3.2-1b | Q2_K | +0.0000 | 0.000 | 3 |
-| llama3.2-1b | Q4_K_M | -0.0000 | 0.000 | 3 |
+| llama3.2-1b | Q4_K_M | +0.0000 | 0.000 | 3 |
 | llama3.2-1b | Q8_0 | +0.0000 | 0.000 | 3 |
 | llama3.2-3b | Q2_K | +0.0000 | 0.000 | 3 |
 | llama3.2-3b | Q4_K_M | +0.0000 | 0.000 | 3 |
@@ -696,9 +696,9 @@ This distinction matters because overclaiming here would weaken the flagship res
 
 | Source | Approx pp | Risk | N |
 |--------|-----------|------|---|
-| batch_size | 3.790 | moderate | 2859 |
+| batch_size | 3.710 | moderate | 2859 |
 | true_batching | 5.180 | moderate | 900 |
-| quantization | 42.580 | high | 1980 |
+| quantization | 34.960 | high | 1980 |
 | concurrency | 0.000 | low | 1980 |
 
 ### 10.2 Phase 4 True-Batching Validation
@@ -719,7 +719,7 @@ Mean flip-agreement with Phase 1 synchronized dispatch is **99.4%**, which indic
 
 | Factor | Risk | Publish-ready rationale |
 |--------|------|-------------------------|
-| batch_size | moderate | About 3.8pp observed variance, safety-asymmetric, and directionally unsafe |
+| batch_size | moderate | About 3.7pp observed variance, safety-asymmetric, and directionally unsafe |
 | co_batching | low | Observed deltas stay within about 0.0-0.5pp and are not significant |
 | quant_x_concurrency | high as a quantization story, low as a concurrency story | Quantization dominates; concurrency contributes no detectable effect |
 | true_batching | moderate | About 5.2pp observed effect, and the signal survives the cleaner mechanism test |
@@ -730,11 +730,11 @@ TR138 is not novel because it shows that floating-point inference can vary. That
 
 | Novel datapoint | Why it matters |
 |-----------------|----------------|
-| Non-baseline Phase 1 outputs are only about `92%` byte-identical, but score-changing rows are much rarer (`0.58%` safety, `0.14%` capability aggregate) | Separates harmless wording churn from behaviorally meaningful flips |
-| Among classified safety flips, `73.5%` move from refusal to compliance | Shows the instability is directionally unsafe rather than symmetric noise |
-| Explicit true prompt-list batching reproduces the signal with `0.8%` safety flips and `99.44%` mean flip agreement to synchronized dispatch | Converts the main finding from "possible scheduler artifact" into a real batching result |
+| Non-baseline Phase 1 outputs are only about `92%` byte-identical, but score-changing rows are much rarer (`0.5%` safety, `0.1%` capability aggregate) | Separates harmless wording churn from behaviorally meaningful flips |
+| Among classified safety flips, `69.0%` move from refusal to compliance | Shows the instability is directionally unsafe rather than symmetric noise |
+| Explicit true prompt-list batching reproduces the signal with `0.8%` safety flips and `99.4%` mean flip agreement to synchronized dispatch | Converts the main finding from "possible scheduler artifact" into a real batching result |
 | Phase 2 finds no large adversarial-neighbor effect under this design | Narrows the likely mechanism away from a strong co-batch contagion story |
-| Phase 3 shows about `42.58pp` quantization variance versus `0pp` concurrency variance in this setup | Gives a quantitative prioritization of adjacent serving risks instead of lumping them together |
+| Phase 3 shows about `34.96pp` quantization variance versus `0pp` concurrency variance in this setup | Gives a quantitative prioritization of adjacent serving risks instead of lumping them together |
 | Safety prompts are consistently slower than capability prompts, and flipped rows are slower than stable rows | Provides a concrete mechanism clue: the fragile rows also appear to be the more compute-intensive rows |
 | No model shows a critical batch-size threshold by CI non-overlap | The hazard shape is diffuse rather than cliff-like, which changes how one should validate it |
 
@@ -799,9 +799,9 @@ Phase 1 is the cleanest example of why this report needs both significance and e
 
 The main Phase 1 result is:
 
-- overall safety flip rate: `0.58%`
-- overall capability flip rate: `0.14%`
-- safety-to-capability ratio: about `4.1x`
+- overall safety flip rate: `0.5%`
+- overall capability flip rate: `0.1%`
+- safety-to-capability ratio: about `3.6x`
 
 That ratio is meaningful, but the TOST results show that absolute movement is still small. Every Phase 1 batch-size comparison falls inside the `+/-3pp` equivalence band. So the correct reading is:
 
@@ -849,8 +849,8 @@ Power is a major interpretive constraint in TR138 because the main batch-related
 |------|----------------|---|-------------------------------|------|
 | Phase 1 | Safety flip rate (aggregate) | 8,424 safety rows | 1.9 | Adequate for modest aggregate shifts |
 | Phase 1 | Capability flip rate (aggregate) | 8,730 capability rows | 2.1 | Adequate for modest aggregate shifts |
-| Phase 2 | Safety score by condition | 5,616 rows | 2.4 | Good for moderate co-batch effects |
-| Phase 3 | Safety score grid | 5,940 rows | 2.3 | Good for large quant effects, weak for tiny concurrency effects |
+| Phase 2 | Safety score by condition | 5,616 rows | 2.3 | Good for moderate co-batch effects |
+| Phase 3 | Safety score grid | 5,940 rows | 2.0 | Good for large quant effects, weak for tiny concurrency effects |
 | Phase 4 | True-batch validation | 2,700 rows | 3.5 | Useful as a mechanism check, not a high-power effect-size study |
 
 ### 12.2 What is well powered
@@ -874,7 +874,7 @@ TR138 is not strongly powered for:
 - per-jailbreak slope interpretation
 - prompt-level correlation analysis
 
-This matters because several tempting claims sit exactly in these low-power zones. For example, the `4.1x` Phase 1 safety-to-capability ratio is directionally important, but the Wilson confidence intervals still overlap at each batch size. That is a classic rare-event setting: the pattern is real enough to motivate caution, but not strong enough to produce a clean threshold-level proof.
+This matters because several tempting claims sit exactly in these low-power zones. For example, the `3.6x` Phase 1 safety-to-capability ratio is directionally important, but the Wilson confidence intervals still overlap at each batch size. That is a classic rare-event setting: the pattern is real enough to motivate caution, but not strong enough to produce a clean threshold-level proof.
 
 ### 12.4 Practical reading rule
 
@@ -933,7 +933,7 @@ This is consistent with the Phase 2 main result. If adversarial neighbors were c
 
 | Model | Flipped mean (ms) | Stable mean (ms) | Difference (ms) | Cohen's d | Read |
 |------|-------------------|------------------|-----------------|-----------|------|
-| llama3.2-1b | 673.7 | 431.4 | 242.3 | 0.427 | Moderate slowdown among flipped rows |
+| llama3.2-1b | 916.2 | 431.1 | 485.1 | 0.856 | Large slowdown among flipped rows |
 | llama3.2-3b | 3579.6 | 2107.5 | 1472.2 | 0.842 | Large slowdown among flipped rows |
 | qwen2.5-1.5b | 1615.3 | 607.3 | 1008.0 | 1.455 | Very large slowdown among flipped rows |
 
@@ -981,10 +981,10 @@ The judge layer is one of the most important credibility constraints in TR138. I
 
 | Stratum family | Kappa range | Agreement range | Read |
 |---------------|-------------|-----------------|------|
-| Phase 1 batch sizes | 0.103 to 0.112 | 66.2% to 66.5% | Low agreement quality |
-| Phase 2 co-batch conditions | 0.102 to 0.114 | 66.4% to 66.8% | Low agreement quality |
-| Phase 3 quant levels | 0.078 to 0.110 | 53.4% to 85.2% | Highly unstable across quant levels |
-| Phase 4 true batching | 0.080 to 0.082 | 75.7% to 76.1% | Better raw agreement, still poor kappa |
+| Phase 1 batch sizes | 0.119 to 0.131 | 69.8% to 70.2% | Low agreement quality |
+| Phase 2 co-batch conditions | 0.118 to 0.132 | 69.8% to 70.5% | Low agreement quality |
+| Phase 3 quant levels | 0.110 to 0.251 | 62.2% to 94.4% | Highly unstable across quant levels |
+| Phase 4 true batching | 0.093 to 0.095 | 78.6% to 78.9% | Better raw agreement, still poor kappa |
 
 The central fact here is not the raw agreement percentage. It is the kappa.
 
@@ -994,9 +994,9 @@ Kappa remains poor across every family of conditions. Even where percent agreeme
 
 The Phase 3 rows show the problem clearly:
 
-- `Q8_0`: `85.2%` agreement, kappa `0.079`
-- `Q4_K_M`: `82.0%` agreement, kappa `0.110`
-- `Q2_K`: `53.4%` agreement, kappa `0.078`
+- `Q8_0`: `94.4%` agreement, kappa `0.202`
+- `Q4_K_M`: `92.4%` agreement, kappa `0.251`
+- `Q2_K`: `62.2%` agreement, kappa `0.110`
 
 If one only looked at agreement percentage, `Q8_0` would appear robust. Kappa says otherwise. The judge and heuristic scorer still disagree materially on the classification structure.
 
@@ -1032,8 +1032,8 @@ The jailbreak section is most useful when read as a vulnerability profile, not a
 
 | Model | Highest baseline compliance | Largest observed amplification | Slope pattern | Main read |
 |------|-----------------------------|--------------------------------|--------------|-----------|
-| llama3.2-1b | Prefix injection: `59.6%` | `1.72x` | All slopes small and positive | Mild batch sensitivity on top of a known weak jailbreak family |
-| llama3.2-3b | Roleplay: `34.2%` baseline, broader positive slopes | `1.48x` | All slopes small and positive | Slight broad-based worsening, but still modest in size |
+| llama3.2-1b | Prefix injection: `59.2%` | `2.19x` | All slopes small and positive | Mild batch sensitivity on top of a known weak jailbreak family |
+| llama3.2-3b | DAN-style: `33.3%` baseline, broader positive slopes | `1.54x` | All slopes small and positive | Slight broad-based worsening, but still modest in size |
 | qwen2.5-1.5b | Roleplay: `73.3%` baseline | `5.02x` | Mixed; vulnerability dominates slope | Baseline jailbreak weakness is the real story |
 
 ### 15.2 What the model-by-model patterns say
@@ -1106,8 +1106,8 @@ This analysis asks whether the prompts that start out safest are also the prompt
 
 | Model or phase | Pearson r | p-value | N | Read |
 |---------------|-----------|---------|---|------|
-| llama3.2-1b | 0.051 | 0.2711 | 468 | Null |
-| llama3.2-3b | -0.032 | 0.4967 | 468 | Null |
+| llama3.2-1b | 0.034 | 0.4643 | 468 | Null |
+| llama3.2-3b | -0.038 | 0.4143 | 468 | Null |
 | qwen2.5-1.5b | -0.037 | 0.4248 | 468 | Null |
 | llama3.2-1b_P3 | 0.000 | 1.0000 | 660 | Null |
 | llama3.2-3b_P3 | 0.000 | 1.0000 | 660 | Null |
@@ -1135,11 +1135,11 @@ This section tests the strongest version of the Phase 1 claim: do safety and cap
 
 | Batch size comparison | Safety rate | Safety CI | Capability rate | Capability CI | Overlap | Disproportionate |
 |----------------------|-------------|-----------|-----------------|---------------|---------|------------------|
-| P1_bs2 | 0.0057 | [0.0029, 0.0112] | 0.0014 | [0.0004, 0.0050] | Yes | No |
-| P1_bs4 | 0.0057 | [0.0029, 0.0112] | 0.0021 | [0.0007, 0.0060] | Yes | No |
-| P1_bs8 | 0.0057 | [0.0029, 0.0112] | 0.0014 | [0.0004, 0.0050] | Yes | No |
-| P1_bs16 | 0.0057 | [0.0029, 0.0112] | 0.0007 | [0.0001, 0.0039] | Yes | No |
-| P1_bs32 | 0.0064 | [0.0034, 0.0121] | 0.0014 | [0.0004, 0.0050] | Yes | No |
+| P1_bs2 | 0.005 | [0.0024, 0.0103] | 0.001 | [0.0004, 0.005] | Yes | No |
+| P1_bs4 | 0.005 | [0.0024, 0.0103] | 0.002 | [0.0007, 0.006] | Yes | No |
+| P1_bs8 | 0.005 | [0.0024, 0.0103] | 0.001 | [0.0004, 0.005] | Yes | No |
+| P1_bs16 | 0.005 | [0.0024, 0.0103] | 0.001 | [0.0001, 0.0039] | Yes | No |
+| P1_bs32 | 0.006 | [0.0029, 0.0112] | 0.001 | [0.0004, 0.005] | Yes | No |
 
 ### 18.2 What this means
 
@@ -1148,7 +1148,7 @@ This is one of the most important nuance sections in the report.
 The phase-level pattern points toward safety asymmetry:
 
 - safety flips are more frequent than capability flips
-- the aggregate safety-to-capability ratio is about `4.1x`
+- the aggregate safety-to-capability ratio is about `3.6x`
 - the dominant direction is refusal to compliance
 
 But the per-batch Wilson intervals still overlap. So the strongest formal version of the claim is not established at the individual batch-size level.
@@ -1274,20 +1274,20 @@ TR138 adds its own axes:
 
 | TR138 axis | Effect size (pp) |
 |-----------|------------------|
-| quantization | 42.58 |
+| quantization | 34.96 |
 | true batching | 5.18 |
-| batch size | 3.79 |
+| batch size | 3.71 |
 | concurrency | 0.00 |
 
 Merged into one ordering, the picture is:
 
 | Rank | Axis | Effect size (pp) |
 |------|------|------------------|
-| 1 | TR138 quantization | 42.58 |
+| 1 | TR138 quantization | 34.96 |
 | 2 | TR137 historical quantization | 20.62 |
 | 3 | TR137 historical backend | 14.79 |
 | 4 | TR138 true batching | 5.18 |
-| 5 | TR138 batch size | 3.79 |
+| 5 | TR138 batch size | 3.71 |
 | 6 | TR137 historical concurrency | 0.36 |
 | 7 | TR138 concurrency | 0.00 |
 
@@ -1397,7 +1397,7 @@ Yes. Output identity drops from perfect agreement at `batch=1` to roughly `92%` 
 
 **RQ2: Are those changes safety-neutral?**
 
-No. The aggregate safety flip rate is about `0.58%` versus `0.14%` for capability, with refusal-to-compliance as the dominant failure direction.
+No. The aggregate safety flip rate is about `0.5%` versus `0.1%` for capability, with refusal-to-compliance as the dominant failure direction.
 
 **RQ3: Is the main result just a request-scheduler artifact?**
 
@@ -1626,7 +1626,7 @@ After a rerun, the minimum sanity checks are:
 1. `samples.jsonl` reaches `31,410` rows for the full run, with phase totals `17,154 / 5,616 / 5,940 / 2,700`
 2. `tr138_analysis.json` exists before report generation
 3. `judge_labels.jsonl` reaches `21,480` rows for a full judge pass
-4. Phase 1 aggregate safety flip rate remains near the reported `0.58%`
+4. Phase 1 aggregate safety flip rate remains near the reported `0.5%`
 5. Phase 4 aggregate true-batch safety flip rate remains near the reported `0.8%`
 6. Phase 3 continues to show quantization significance with null concurrency and interaction terms
 
@@ -1708,11 +1708,11 @@ The judge does not replace the main analysis labels. That separation is a design
 
 | Batch size | Byte-identical (%) | Safety score changes | Capability score changes | Overall chi-squared p | Odds ratio |
 |-----------|--------------------|----------------------|--------------------------|-----------------------|------------|
-| 2 | 92.86 | 8 | 2 | 0.0503 | 3.5388 |
-| 4 | 92.55 | 8 | 3 | 0.1164 | 2.5260 |
-| 8 | 92.62 | 8 | 2 | 0.0503 | 3.5388 |
-| 16 | 92.03 | 8 | 1 | 0.0168 | 5.9020 |
-| 32 | 92.41 | 9 | 2 | 0.0297 | 3.9579 |
+| 2 | 92.86 | 7 | 2 | 0.0849 | 3.1200 |
+| 4 | 92.55 | 7 | 3 | 0.1856 | 2.2270 |
+| 8 | 92.62 | 7 | 2 | 0.0849 | 3.1200 |
+| 16 | 92.03 | 7 | 1 | 0.0296 | 5.2040 |
+| 32 | 92.41 | 8 | 2 | 0.0503 | 3.5390 |
 
 This table is useful because it combines the output-identity story and the safety-asymmetry story in one place. Byte-level instability is common relative to score changes; score changes are the rare but safety-relevant subset.
 
@@ -1744,16 +1744,16 @@ This appendix is not an exhaustive dump of every generated row. It records the t
 
 | Model | Mean delta | p-value | Cohen's d | Read |
 |------|------------|---------|-----------|------|
-| llama3.2-1b | -0.0021 | 0.3178 | -0.0044 | Null |
-| llama3.2-3b | +0.0053 | 0.0956 | +0.0124 | Weak directional pattern only |
-| qwen2.5-1.5b | -0.0043 | 0.3178 | -0.0106 | Null |
+| llama3.2-1b | +0.0000 | 1.0000 | +0.0000 | Null |
+| llama3.2-3b | +0.0053 | 0.0956 | +0.0130 | Weak directional pattern only |
+| qwen2.5-1.5b | -0.0043 | 0.3178 | -0.0110 | Null |
 
 ### C.2 Phase 3 per-model ANOVA summary
 
 | Model | Quant p | Quant eta^2 | Concurrency p | Concurrency eta^2 | Interaction p | Interaction eta^2 |
 |------|---------|-------------|---------------|-------------------|---------------|-------------------|
-| llama3.2-1b | 0.0000 | 0.3877 | 1.0000 | 0.0000 | 1.0000 | 0.0000 |
-| llama3.2-3b | 0.0000 | 0.0275 | 1.0000 | 0.0000 | 1.0000 | 0.0000 |
+| llama3.2-1b | 0.0000 | 0.2181 | 1.0000 | 0.0000 | 1.0000 | 0.0000 |
+| llama3.2-3b | 0.0000 | 0.0644 | 1.0000 | 0.0000 | 1.0000 | 0.0000 |
 | qwen2.5-1.5b | 0.0000 | 0.2996 | 1.0000 | 0.0000 | 1.0000 | 0.0000 |
 
 This is the cleanest short proof that Phase 3 is a quantization story rather than a concurrency story.
