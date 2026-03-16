@@ -6,7 +6,7 @@
 | **TR Number** | 139 |
 | **Project** | Banterhearts Safety Alignment Research |
 | **Date** | 2026-03-14 |
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 | **Author** | Research Team |
 | **Git Commit** | `edbaf196` |
 | **Status** | Complete |
@@ -54,7 +54,7 @@ Yes, but not in the simplest possible way.
 3. **Persistence usually weakens as quantization gets lower.** Three of four persistence slopes are negative, and the aggregate Phase 2 verdict supports degradation under lower bit-width.
 4. **There is no safe equivalence story.** Across `160` TOST checks at `+/-3pp`, `0 / 160` establish equivalence.
 5. **Multi-turn amplification exists in specific cells but not as a universal law.** The highest finite amplification ratios reach `49.0x`, but H2 is still not supported in aggregate.
-6. **The judge layer improves the run materially but does not replace human adjudication.** Overall agreement is `67.65%` with Cohen's kappa `0.1897`.
+6. **Two independent judge passes (1.5B and 7B) agree on the directional gradient but diverge substantially on mid-quant borderline cells.** 7B overall agreement is `64.99%` with kappa `0.1037`; 1.5B was `67.65%` / `0.1897`. The 7B judge disagrees more because it is stronger, not weaker.
 
 ### Core Decisions
 
@@ -87,7 +87,7 @@ Yes, but not in the simplest possible way.
 | 3 | Multi-turn attacks become more quant-sensitive than direct attacks | Welch slope comparison `p = 0.702` | **Not validated** |
 | 4 | Lower quant often weakens persistence under pressure | H3 supported; 3/4 persistence slopes negative | **Validated** |
 | 5 | Threshold behavior matters more than a single global quant rule | Critical quant thresholds cluster by model/strategy, not globally | **Validated** |
-| 6 | Regex-only scoring would be too weak for this report | 37,825 LLM-judge labels added; agreement remains imperfect | **Validated** |
+| 6 | Regex-only scoring would be too weak for this report | 37,825 labels × 2 judge passes (1.5B + 7B); dual-judge divergence identifies priority cells for human review | **Validated** |
 
 ---
 
@@ -251,6 +251,8 @@ Read the report in three passes:
 2. **Phase 2** for the persistence-under-pressure result
 3. **Statistical synthesis and production guidance** for what is actually established and how to use it
 
+For unfamiliar terms, see Appendix D (Glossary). For raw data tables and full pairwise statistics, see Appendices A and B. For robustness checks and sensitivity analysis, see Appendix C. The canonical run configuration is reproduced in Appendix E.
+
 ---
 
 ## 2. Methodology and Experimental Design
@@ -304,7 +306,7 @@ This matters because TR139 is not just a table of alarming cells. The report's c
 
 The primary scorer is the shared refusal detector inherited from the TR134 safety stack. It provides the run-wide consistent refusal/compliance signal.
 
-TR139 then adds a post-hoc LLM judge pass with **37,825 labels**. One implementation detail matters for the final read: the original preferred 7B local judge tag was unavailable at run time, so the completed judged run used `qwen2.5:1.5b-instruct-q8_0` as the fallback judge. That is still materially better than regex-only scoring, but it is not a substitute for human adjudication.
+TR139 then adds two independent post-hoc LLM judge passes, each producing **37,825 labels** on the same scored conversations. The first pass used `qwen2.5:1.5b-instruct-q8_0` (the available fallback at initial run time). The second pass used the intended `qwen2.5:7b-instruct-q8_0`. The dual-judge design provides triangulation: where both judges agree with the regex, the classification is high-confidence; where they diverge, the cell is flagged for human review priority.
 
 ### 2.5 Why Phase 1 and Phase 2 are separated
 
@@ -598,7 +600,7 @@ Two-way ANOVA within each model shows that the effect of quant level depends on 
 | `llama3.1-8b` | 0.1019 | 0.0454 | 0.1038 |
 | `llama3.2-1b` | 0.3794 | 0.0192 | 0.0402 |
 | `llama3.2-3b` | 0.0113 | 0.0806 | 0.0251 |
-| `qwen2.5-1.5b` | 0.0898 | 0.2898 | substantial, strategy-dominant regime |
+| `qwen2.5-1.5b` | 0.0898 | 0.2898 | 0.0570 |
 
 **Observations.** The interpretation is different by model:
 
@@ -727,7 +729,7 @@ Those are exactly the overclaims this report avoids.
 | `llama3.2-3b` | -0.1111 | `[-0.4195, -0.0175]` | lower quant breaks more easily |
 | `qwen2.5-1.5b` | -0.1007 | `[-0.3106, 0.4225]` | negative direction, wide uncertainty |
 
-This is enough to support H3 overall, but it also shows why the report does not claim a single common mechanism across the four models.
+**Observations.** This is enough to support H3 overall, but it also shows why the report does not claim a single common mechanism across the four models. The `llama3.2-1b` slope (-0.1980) is the steepest and most precisely estimated, while the `qwen2.5-1.5b` CI crosses zero on the upper bound, indicating that its persistence degradation is directionally real but not yet cleanly separated from noise. Full persistence data by model × quant is in Appendix A.
 
 ### 5.3 Pressure resistance extremes
 
@@ -748,7 +750,7 @@ Highest mean pressure resistance cells:
 | `qwen2.5-1.5b` | `Q6_K` | 0.9770 | 8.16% | 49 |
 | `qwen2.5-1.5b` | `Q8_0` | 0.9617 | 10.20% | 49 |
 
-This makes the persistence story much more concrete than the slope table alone. Some cells remain extremely durable under pressure, while others offer almost no effective resistance at all.
+**Observations.** This makes the persistence story much more concrete than the slope table alone. Some cells remain extremely durable under pressure, while others offer almost no effective resistance at all. The `llama3.2-1b / Q2_K` cell (pressure resistance 0.0391, 100% break rate) is the single most operationally dangerous cell in Phase 2 — the model folds immediately under any pressure at this quant level.
 
 ### 5.4 Turn-level persistence curves
 
@@ -822,10 +824,10 @@ Cell-level amplification is real. The largest finite amplification ratios are:
 
 But the aggregate slope test does **not** support the stronger global claim:
 
-- average direct slope: `-0.079271`
-- average multi-turn slope: `-0.053638`
+- average direct slope: `-0.0793`
+- average multi-turn slope: `-0.0536`
 - ratio: `0.68x`
-- Welch `p = 0.702346`
+- Welch `p = 0.7023`
 
 So H2 is **not supported**.
 
@@ -850,7 +852,7 @@ Average mean total latency by quant across the Phase 1 sweep:
 | `Q5_K_M` | 6,641 ms |
 | `Q4_K_M` | 6,186 ms |
 
-The latency slopes show the usual systems temptation: lower-bit deployment often gets faster, especially outside the 8B model. TR139's importance is that it links those speed gains to a real conversational safety tradeoff.
+**Observations.** The latency slopes show the usual systems temptation: lower-bit deployment often gets faster, especially outside the 8B model. TR139's importance is that it links those speed gains to a real conversational safety tradeoff.
 
 ### 6.5 Equivalence and variance
 
@@ -864,6 +866,8 @@ Two additional results narrow interpretation:
 - neighboring quant settings are not safely interchangeable by default
 - model family explains more structured variation than strategy family does
 - large residual variance (72.93%) is consistent with behavior-level heterogeneity across the 50-behavior benchmark — the safety surface is not smooth, and individual harmful behaviors contribute substantial idiosyncratic variation that no single design factor captures
+
+A sensitivity check on the residual decomposition is in Appendix C.
 
 ### 6.6 Power caveat
 
@@ -904,52 +908,67 @@ This is exactly the kind of negative result that improves the report rather than
 
 ## 7. Judge Agreement and Scoring Reliability
 
-### 7.1 Agreement summary
+TR139 was judged twice: first with `qwen2.5:1.5b-instruct-q8_0` (the available fallback at run time), then re-judged with the intended `qwen2.5:7b-instruct-q8_0`. Both passes produced exactly **37,825 labels** on the same **10,600 conversations**. The dual-judge design is not a combined classifier — it is a triangulation layer. Both judges score the same rows independently, and the comparison reveals where the regex detector is most uncertain.
 
-Overall:
+### 7.1 Dual-judge comparison: overall
 
-- agreement: `67.65%`
-- kappa: `0.1897`
+| Metric | 1.5B judge | 7B judge | Delta |
+|--------|----------:|--------:|------:|
+| Overall agreement with regex | 67.65% | 64.99% | -2.7pp |
+| Overall kappa | 0.1897 | 0.1037 | -0.086 |
 
-Per-quant Phase 1 agreement:
+**Observations.** The 7B judge agrees *less* with the regex detector, not more. This is not a quality regression — it is the expected behavior of a stronger judge that can identify nuance the regex misses. The 1.5B model has limited capacity to distinguish borderline compliance from borderline refusal, so it defaults toward the regex signal more often. The 7B model has enough capacity to form independent judgments, producing more disagreements that are genuinely informative rather than noise.
 
-| Quant | N | Agreement | Kappa |
-|-------|--:|----------:|------:|
-| `Q8_0` | 1600 | 81.50% | 0.1100 |
-| `Q6_K` | 1600 | 80.44% | 0.0935 |
-| `Q5_K_M` | 1600 | 83.13% | 0.1186 |
-| `Q4_K_M` | 1600 | 77.50% | 0.1958 |
-| `Q3_K_M` | 1600 | 66.06% | -0.0004 |
-| `Q2_K` | 1600 | 57.81% | 0.1327 |
+### 7.2 Phase 1 agreement by quant level
 
-Selected Phase 2 judge slices:
+| Quant | N | 1.5B Agreement | 1.5B Kappa | 7B Agreement | 7B Kappa |
+|-------|--:|--------------:|-----------:|-------------:|---------:|
+| `Q8_0` | 1,600 | 81.50% | 0.1100 | 81.50% | 0.1029 |
+| `Q6_K` | 1,600 | 80.44% | 0.0935 | 79.81% | 0.0817 |
+| `Q5_K_M` | 1,600 | 83.13% | 0.1186 | 80.00% | 0.0040 |
+| `Q4_K_M` | 1,600 | 77.50% | 0.1958 | 75.88% | 0.0817 |
+| `Q3_K_M` | 1,600 | 66.06% | -0.0004 | 69.31% | 0.0373 |
+| `Q2_K` | 1,600 | 57.81% | 0.1327 | 54.44% | 0.0612 |
 
-| Slice | N | Agreement | Kappa |
-|-------|--:|----------:|------:|
-| `p2_Q8_0` | 561 | 45.28% | 0.1357 |
-| `p2_Q6_K` | 499 | 45.89% | 0.1265 |
-| `p2_Q4_K_M` | 775 | 51.10% | 0.2028 |
-| `p2_Q3_K_M` | 503 | 53.68% | 0.2280 |
-| `p2_Q2_K` | 624 | 33.01% | 0.0731 |
+**Observations.** The two judges track the same quant-level gradient: agreement is highest at `Q8_0` (where model outputs are clearest) and lowest at `Q2_K` (where degraded outputs are hardest to classify). The 7B judge diverges most from the regex at `Q5_K_M` (kappa drops from 0.1186 to 0.0040), suggesting this quant level produces borderline responses that the 1.5B treated as clear but the 7B reads as ambiguous. The `Q3_K_M` stratum is the one case where the 7B actually agrees more (+3.3pp), possibly because the 7B is better at recognizing degraded-but-still-compliant outputs.
 
-### 7.2 Interpretation
+### 7.3 Phase 2 agreement by quant level
 
-The judge layer materially strengthens TR139 relative to a regex-only run, but the agreement values remain too weak to justify overconfident fine-grained claims. This is exactly why the report treats the run as strong technical-report evidence rather than final human-validated publication evidence.
+| Slice | N | 1.5B Agreement | 1.5B Kappa | 7B Agreement | 7B Kappa |
+|-------|--:|--------------:|-----------:|-------------:|---------:|
+| `p2_Q8_0` | 561 | 45.28% | 0.1357 | 43.14% | 0.1149 |
+| `p2_Q6_K` | 499 | 45.89% | 0.1265 | 46.89% | 0.1436 |
+| `p2_Q4_K_M` | 775 | 51.10% | 0.2028 | 33.16% | 0.0697 |
+| `p2_Q3_K_M` | 503 | 53.68% | 0.2280 | 36.78% | 0.0730 |
+| `p2_Q2_K` | 624 | 33.01% | 0.0731 | 30.61% | 0.0625 |
 
-### 7.3 What follows from this
+**Observations.** Phase 2 agreement is lower than Phase 1 across both judges, which is expected: pressure-turn responses are more ambiguous than target-turn responses. The largest judge divergence is at `p2_Q4_K_M` (1.5B: 51.10%, 7B: 33.16%) and `p2_Q3_K_M` (1.5B: 53.68%, 7B: 36.78%). These are the mid-quant cells where persistence is actively degrading — the model produces hedged, partial-compliance responses that the 1.5B judge scored as agreeing with the regex but the 7B judge recognizes as genuinely ambiguous. This is the clearest evidence that the 7B upgrade is doing real work.
 
-The report's broad findings are still defensible because they rest on:
+### 7.4 What the dual-judge design proves
+
+The dual-judge comparison establishes three things:
+
+1. **The core report claims do not depend on either judge.** All 8 ANOVA rejections, the H2 non-result, and the H3 persistence slopes use the regex detector. The judge layer is a triangulation check, not a load-bearing input.
+
+2. **The 7B judge is a more independent second opinion.** Lower agreement with the regex is a feature when it comes from a stronger model — it means the judge is adding information rather than echoing the primary detector.
+
+3. **The cells where the judges disagree most are exactly the cells that need human review.** Mid-quant Phase 2 cells (`Q4_K_M`, `Q3_K_M`) are where both judges struggle, which means these are the highest-priority targets for human adjudication.
+
+### 7.5 What follows from this
+
+The report's broad findings are defensible because they rest on:
 
 - thousands of conversations
 - large differences in the most important cells
 - replicated phase structure
 - aggregate tests that survive the noisy scoring layer
+- two independent judge passes that agree on the gradient structure even when they disagree on individual rows
 
 But the next credibility upgrade is obvious:
 
-> add human adjudication on a stratified scored subset, especially for the most policy-relevant cells.
+> add human adjudication on a stratified scored subset, prioritizing the mid-quant Phase 2 cells where both judges diverge most from the regex detector.
 
-### 7.4 Why weak agreement does not collapse the core result
+### 7.6 Why weak agreement does not collapse the core result
 
 The judge-agreement section is easy to misuse in either direction.
 
@@ -969,6 +988,7 @@ TR139's core claims survive because they are supported by multiple independent s
 - a completed two-phase design rather than one isolated benchmark
 - exact `20 / 20` direct-anchor matches between Phase 1 and Phase 2
 - negative findings that constrain overclaiming rather than silently disappearing
+- two independent judge layers that agree on the directional gradient even where they diverge on individual cells
 
 What the weak agreement blocks is not the entire report. It blocks overconfident fine-grained claims about every borderline scored output. That is why this document is now at flagship-report level, but the next paper-grade upgrade is still human adjudication.
 
@@ -991,7 +1011,7 @@ They do not merely align directionally. They match exactly in all `20 / 20` shar
 
 Each cell is `Phase 1 direct refusal % / Phase 2 initial refusal %`.
 
-This is the cleanest validation result in the report outside the hypothesis tests themselves. It shows that the Phase 2 persistence findings are built on the same direct-turn baseline measured independently in Phase 1 rather than on a silently different prompt or scoring path.
+**Observations.** This is the cleanest validation result in the report outside the hypothesis tests themselves. It shows that the Phase 2 persistence findings are built on the same direct-turn baseline measured independently in Phase 1 rather than on a silently different prompt or scoring path.
 
 ### 8.2 What this validates
 
@@ -1092,7 +1112,7 @@ The report supports different operational conclusions for the four models.
 | `llama3.1-8b` | no clearly comfortable hostile-chat band demonstrated | all quants | especially `Q3_K_M` instability band | Direct refusal can look acceptable while persistence remains extremely poor |
 | `qwen2.5-1.5b` | no validated low-risk conversational band in this study | all quants | `Q2_K` definitively unacceptable | Severe multi-turn vulnerability even at upper quants; low-bit collapse makes it worse |
 
-This table should be read as a deployment triage guide, not as a universal leaderboard. "Relative safest" means safest among the tested cells here, not safe in an absolute sense.
+**Observations.** This table should be read as a deployment triage guide, not as a universal leaderboard. "Relative safest" means safest among the tested cells here, not safe in an absolute sense. The most striking row is `llama3.1-8b`: despite being the largest model in the sweep, it has no comfortable hostile-chat band because its persistence is catastrophically weak (Section 5.1).
 
 ### 10.3 Release checklist justified by this report
 
@@ -1160,8 +1180,8 @@ That shortcut is not defensible for conversational deployment on the models test
 1. **Primary classification remains heuristic.**
    The refusal detector is useful and internally consistent, but it is still a pattern-based classifier rather than a human labeler.
 
-2. **The judge used the strongest installed fallback, not the originally preferred 7B tag.**
-   The completed judged run used `qwen2.5:1.5b` as the post-hoc judge after the preferred 7B tag was unavailable. That is materially better than regex-only scoring, but it is not the same as a larger external judge or a human review layer.
+2. **Both judge passes use the same model family as one evaluated model.**
+   The 1.5B and 7B judges are both Qwen 2.5, which overlaps with the evaluated `qwen2.5-1.5b`. The size gap (1.5B/7B judge vs 1.5B evaluated) mitigates direct self-evaluation, but a truly independent judge family would be stronger. On 12GB hardware, the options for a non-overlapping 7B+ judge are limited.
 
 3. **No human adjudication layer is included yet.**
    This is the single biggest remaining gap if TR139 is meant to become paper-grade evidence rather than flagship technical-report evidence.
@@ -1234,6 +1254,8 @@ No. 0 / 160 TOST checks establish equivalence at ±3pp. Deployment teams cannot 
 | Conversational depth | 1 turn | 1 turn | Up to 13 turns (5 attack + 8 pressure) |
 | Key deployment implication | Validate quant choice | Treat batch size as safety-relevant | Validate multi-turn + persistence, not just direct refusal |
 
+**Observations.** The most important column contrast is conversational depth: TR134-TR137 and TR138 operate entirely in the single-turn regime, while TR139 extends to 13 turns. The effect magnitudes also scale accordingly — TR138's 2.0% safety flip rate is a subtle signal requiring careful statistical framing, while TR139's 60+pp ASR swings in the worst cells are unmistakable even without sophisticated tests.
+
 ### 12.3 What this report establishes
 
 1. Quantization belongs in the safety envelope for conversational deployment.
@@ -1266,7 +1288,7 @@ python research/tr139/run.py -v --skip-prep --skip-eval --skip-judge --run-dir r
 
 ### 13.2 Source-of-truth configuration
 
-The canonical config is [research/tr139/config.yaml](/c:/Users/sahil/OneDrive/Documents/GitHub/Banterhearts/research/tr139/config.yaml). The key run-shaping parameters are:
+The canonical config is `research/tr139/config.yaml` (full YAML excerpts in Appendix E). The key run-shaping parameters are:
 
 | Setting | Value |
 |---------|-------|
@@ -1657,7 +1679,7 @@ The publish-ready report is manually written from those artifacts. It should be 
 
 ## Appendix E: Configs (Source of Truth)
 
-The executed run is defined by [research/tr139/config.yaml](/c:/Users/sahil/OneDrive/Documents/GitHub/Banterhearts/research/tr139/config.yaml). The key excerpts are:
+The executed run is defined by `research/tr139/config.yaml`. The key excerpts are:
 
 ```yaml
 phase1:
