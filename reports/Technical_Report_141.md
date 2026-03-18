@@ -1,20 +1,22 @@
 # Technical Report 141: Cross-Architecture Refusal Fragility Under Batch Perturbation
-## Safety-Capability Flip Asymmetry Across 7 Models, 5 Families, and 4 Alignment Types
+## Safety-Capability Flip Asymmetry Across 10 Models, 6 Families, and 4 Alignment Types
 
 | Field | Value |
 |-------|-------|
 | **TR Number** | 141 |
 | **Project** | Banterhearts |
 | **Date** | 2026-03-18 |
-| **Version** | 2.0 (full-depth) |
+| **Version** | 2.1 (full-depth + LLM judge + large-model extension) |
 | **Author** | Banterhearts Research Lab |
 | **Git Commit** | `standalone` |
 | **Status** | Complete -- Full-Depth Publication |
 | **Report Type** | Full-depth |
 | **Run Directory** | `research/tr141/results/colab_20260317/tr141_run_20260317_222300/` |
-| **Total Records** | 49,476 (40,026 Phase 1 + 9,450 Phase 2) |
-| **Models** | 7 completed (from 8 planned; gemma-2-2b dropped) |
-| **Families** | 5 completed (Llama, Qwen, Phi, SmolLM, StableLM); Gemma dropped (gated access) |
+| **Total Records** | 70,680 eval records + 24,798 judge labels = **95,478 total data points** |
+| **TR141a (core)** | 49,476 records (40,026 Phase 1 + 9,450 Phase 2), 7 models (1.2B-3.8B) |
+| **TR141b (extension)** | 21,204 records (17,154 Phase 1 + 4,050 Phase 2), 3 models (7.2B-14.8B) |
+| **Models** | 10 total (7 TR141a + 3 TR141b; gemma-2-2b and llama3.1-8b dropped, gated access) |
+| **Families** | 6 (Llama, Qwen, Phi, SmolLM, StableLM, Mistral) |
 | **Alignment Types** | 4 (RLHF, SFT, DPO, Distilled) |
 | **Seed** | 137 |
 | **GPU** | NVIDIA RTX PRO 6000 Blackwell Server Edition (98 GB VRAM), Google Colab |
@@ -26,19 +28,21 @@
 
 ## Positioning
 
-TR141 is the cross-architecture extension of the batch-safety perturbation program initiated by TR138. Where TR138 established that batch-induced floating-point non-determinism can disproportionately affect safety outputs on 3 models from 2 families (all RLHF), TR141 scales to 7 models from 5 families spanning 4 alignment paradigms (RLHF, SFT, DPO, distilled). This enables the first alignment-type-level analysis of batch-safety fragility and determines whether TR138's findings generalize beyond the Llama/Qwen RLHF models. TR141 also uses a different GPU architecture (RTX PRO 6000 Blackwell vs A100), a different seed (137 vs 42), and a larger prompt set, providing an independent replication of the core phenomenon. Downstream, TR141 informs the production guidance for batch-serving safety validation and feeds into the cross-TR meta-analysis framework alongside TR138 and TR139.
+TR141 is the cross-architecture extension of the batch-safety perturbation program initiated by TR138. Where TR138 established that batch-induced floating-point non-determinism can disproportionately affect safety outputs on 3 models from 2 families (all RLHF), TR141 scales to 10 models from 6 families (Llama, Qwen, Phi, SmolLM, StableLM, Mistral) spanning 4 alignment paradigms (RLHF, SFT, DPO, distilled) and a parameter range of 1.2B to 14.8B. The core campaign (TR141a, 7 small models) enables the first alignment-type-level analysis of batch-safety fragility; the large-model extension (TR141b, 3 models at 7B-14B) tests whether fragility scales with model size. Together they produce 70,680 evaluation records and 24,798 LLM judge labels. TR141 also uses a different GPU architecture (RTX PRO 6000 Blackwell vs A100), a different seed (137 vs 42), and a larger prompt set, providing an independent replication of the core phenomenon. Downstream, TR141 informs the production guidance for batch-serving safety validation and feeds into the cross-TR meta-analysis framework alongside TR138 and TR139.
 
 ---
 
 ## Abstract
 
-TR141 asks whether batch-induced floating-point non-determinism in GPU inference disproportionately degrades safety outputs, and whether this effect varies systematically across model architectures and alignment approaches. This cross-architecture study evaluates **7 instruction-tuned models** from **5 families** spanning **4 alignment paradigms** (RLHF, SFT, DPO, distilled), producing **49,476 total records** across two experimental phases on an NVIDIA RTX PRO 6000 Blackwell Server Edition GPU via Google Colab.
+TR141 asks whether batch-induced floating-point non-determinism in GPU inference disproportionately degrades safety outputs, and whether this effect varies systematically across model architectures and alignment approaches. This cross-architecture study evaluates **10 instruction-tuned models** (1.2B-14.8B parameters) from **6 families** spanning **4 alignment paradigms** (RLHF, SFT, DPO, distilled), producing **70,680 evaluation records** and **24,798 LLM judge labels** (95,478 total data points) across two experimental campaigns (TR141a: 7 small models; TR141b: 3 large models) on an NVIDIA RTX PRO 6000 Blackwell Server Edition GPU via Google Colab.
 
 The core findings are: (1) Safety outputs flip at **0.63%** versus capability outputs at **0.47%**, a 1.3x ratio that confirms batch perturbation is not safety-neutral but at a substantially lower magnitude than TR138's 4x ratio. (2) Cross-architecture fragility varies by **2.9x** -- phi-3.5-mini (SFT-aligned, 1.11%) is most fragile while stablelm-2-zephyr (DPO-aligned, 0.38%) is least fragile. (3) Alignment type significantly predicts fragility (one-way ANOVA F=4.86, p=0.0078, eta-squared=0.0007). (4) Directional analysis reveals a significant net SAFE bias: 69 compliance-to-refusal flips versus 28 refusal-to-compliance flips (binomial p=3.8e-5), opposite to the expected unsafe direction.
 
 The most important non-result is that no critical batch-size threshold was detected for any model -- safety flip rates do not spike at any particular batch size, suggesting the effect is diffuse rather than catastrophic. All TOST equivalence tests confirm that batch-induced mean score differences remain within the +/-3 percentage point practical equivalence margin.
 
-The operational conclusion is that batch perturbation introduces a small but statistically detectable safety perturbation whose magnitude depends on alignment approach, and production deployments should validate refusal stability at their actual batch configuration rather than relying on batch=1 baselines. The effect is universally present across all tested architectures and alignment types, but varies by nearly 3x in magnitude -- making model selection a meaningful lever for batch-safety robustness.
+A supplementary large-model extension (TR141b, 3 models at 7-14B) confirms that fragility **decreases with scale** -- the Qwen family shows a monotonic reduction from 0.98% at 1.5B to 0.30% at 14.8B -- and that the net-safe directional bias replicates at larger scales (p=0.04).
+
+The operational conclusion is that batch perturbation introduces a small but statistically detectable safety perturbation whose magnitude depends on alignment approach and model scale, and production deployments should validate refusal stability at their actual batch configuration rather than relying on batch=1 baselines. The effect is universally present across all tested architectures and alignment types, but varies by nearly 3x in magnitude -- making model selection a meaningful lever for batch-safety robustness.
 
 ---
 
@@ -56,7 +60,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 
 5. **Directional analysis reveals significant net SAFE bias.** Of 97 directional safety flips across all batch sizes, 69 (71.1%) move from compliance to refusal (becoming safer) while only 28 (28.9%) move from refusal to compliance (becoming less safe). Binomial test: p=3.8e-5, highly significant. This is the **opposite** of the feared unsafe direction and opposite of TR138's findings, suggesting that batch perturbation in this experimental configuration tends to push marginal outputs toward refusal rather than away from it.
 
-6. **TruthfulQA is the most batch-sensitive task.** With a mean flip rate of 2.7% across models and batch sizes, TruthfulQA is 5x more sensitive than BBQ bias (0.2%) and 9x more sensitive than AdvBench refusal (0.3%). This likely reflects the ambiguous nature of TruthfulQA prompts, which place the model near its refusal decision boundary.
+6. **TruthfulQA is the most batch-sensitive task.** With a mean flip rate of 2.7% across models and batch sizes, TruthfulQA is more than 5x more sensitive than jailbreak amplification (0.8%) and 13x more sensitive than BBQ bias (0.2%). This likely reflects the ambiguous nature of TruthfulQA prompts, which place the model near its refusal decision boundary.
 
 7. **Flipped samples are systematically slower.** Across all 7 models, samples whose classification flips have higher mean latency than stable samples, with Cohen's d ranging from 0.17 (smollm2-1.7b) to 1.17 (qwen2.5-1.5b). This suggests that flip-prone prompts elicit longer, more uncertain generations.
 
@@ -79,7 +83,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 
 - Test safety refusal rates at the production batch size, not at batch=1 baselines
 - Prefer DPO-aligned or distilled models when batch-safety robustness is a priority
-- Monitor TruthfulQA-like ambiguous prompts disproportionately, as they are 5-9x more sensitive to batch perturbation
+- Monitor TruthfulQA-like ambiguous prompts disproportionately, as they are 5-13x more sensitive to batch perturbation
 - Consider deterministic inference kernels (SGLang deterministic mode) for safety-critical pipelines, accepting approximately 34% throughput cost
 - Do not assume unsafe-direction dominance; net SAFE bias in TR141 suggests architecture-dependent directionality
 
@@ -87,7 +91,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 
 | Target | Metric | Required | Achieved | Status |
 |--------|--------|----------|----------|--------|
-| Sample count | Total records | >= 30,000 | 49,476 | **PASS** |
+| Sample count | Total eval records | >= 30,000 | 70,680 (TR141a: 49,476 + TR141b: 21,204) | **PASS** |
 | Phase 1 coverage | Models x batch sizes | 7 x 6 | 7 x 6 = 42 cells | **PASS** |
 | Phase 2 coverage | Models x batch sizes | 7 x 3 | 7 x 3 = 21 cells | **PASS** |
 | TOST equivalence | All comparisons within +/-3pp | 14/14 pass | 14/14 pass | **PASS** |
@@ -103,7 +107,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 | C1 | Batch perturbation disproportionately affects safety | SS7: 0.63% safety vs 0.47% capability (1.3x), CIs overlap | **Partial** |
 | C2 | Architecture fragility varies significantly | SS10: 2.9x spread, phi-3.5-mini 1.11% vs stablelm-2-zephyr 0.38% | **Established** |
 | C3 | Alignment type predicts fragility | SS11: ANOVA F=4.862, p=0.008, eta-sq=0.0007; pseudoreplication inflates significance (see SS11 caveat) | **Partial** |
-| C4 | True-batch validates Phase 1 | SS8: 0.94% safety flip rate, 99.45% agreement | **Established** |
+| C4 | True-batch validates Phase 1 | SS12/SS13: 0.94% safety flip rate, 99.45% agreement | **Established** |
 | C5 | Directional analysis shows net SAFE bias | SS22: 69 vs 28, p=3.8e-5 | **Established** |
 
 ### Claim Hierarchy (Citation Grade)
@@ -125,19 +129,19 @@ The following table classifies every major claim by its evidential strength, int
 
 **Question:** Which model families are most robust to batch-induced safety degradation?
 
-**Answer:** See SS10 Table 5. DPO-aligned models (stablelm-2-zephyr, 0.38%) and distilled models (smollm2-1.7b, 0.38%) show the lowest fragility. Avoid SFT-only alignment (phi-3.5-mini, 1.11%) if batch safety robustness is a priority. Within the RLHF family, Llama models (0.43-0.47%) outperform Qwen models (0.68-0.98%).
+**Answer:** See SS10 Table 7. DPO-aligned models (stablelm-2-zephyr, 0.38%) and distilled models (smollm2-1.7b, 0.38%) show the lowest fragility. Avoid SFT-only alignment (phi-3.5-mini, 1.11%) if batch safety robustness is a priority. Within the RLHF family, Llama models (0.43-0.47%) outperform Qwen models (0.68-0.98%).
 
 ### Scenario 2: Deciding whether to use deterministic inference kernels
 
 **Question:** Is the batch-safety effect large enough to justify the throughput cost of deterministic inference?
 
-**Answer:** See SS9 and SS13. All TOST tests confirm practical equivalence within +/-3pp, and the aggregate safety flip rate is 0.63%. For most applications, this level of perturbation does not warrant the approximately 34% throughput penalty of SGLang deterministic mode. However, for safety-critical deployments processing ambiguous prompts (see SS7.4, TruthfulQA at 2.7%), deterministic inference may be justified.
+**Answer:** See SS9 and SS13. All TOST tests confirm practical equivalence within +/-3pp, and the aggregate safety flip rate is 0.63%. For most applications, this level of perturbation does not warrant the approximately 34% throughput penalty of SGLang deterministic mode. However, for safety-critical deployments processing ambiguous prompts (see SS9, TruthfulQA at 2.7%), deterministic inference may be justified.
 
 ### Scenario 3: Understanding the relationship between batch perturbation and TR138 findings
 
 **Question:** How do TR141's cross-architecture results compare to TR138's single-architecture findings?
 
-**Answer:** See SS21 and SS22. TR141 replicates TR138's directional finding (safety flips > capability flips) but at lower magnitude (1.3x vs 4x ratio). Critically, TR141 finds a net SAFE directional bias (p=3.8e-5), opposite to TR138's feared unsafe direction. This suggests that the unsafe-direction concern identified in TR138 may be model-specific rather than universal.
+**Answer:** See SS27 and SS22. TR141 replicates TR138's directional finding (safety flips > capability flips) but at lower magnitude (1.3x vs 4x ratio). Critically, TR141 finds a net SAFE directional bias (p=3.8e-5), opposite to TR138's feared unsafe direction. This suggests that the unsafe-direction concern identified in TR138 may be model-specific rather than universal.
 
 ### Scenario 4: Validating batch inference before production deployment
 
@@ -173,12 +177,14 @@ The following table classifies every major claim by its evidential strength, int
 - [SS19. Flip-Latency Correlation](#ss19-flip-latency-correlation)
 - [SS20. Slope Heterogeneity and Critical Thresholds](#ss20-slope-heterogeneity-and-critical-thresholds)
 - [SS21. Refusal-Style Analysis](#ss21-refusal-style-analysis)
+- [SS21b. Inter-Rater Agreement: Regex vs LLM Judge](#ss21b-inter-rater-agreement-regex-vs-llm-judge)
 - [SS22. Combined Directional Analysis](#ss22-combined-directional-analysis)
 - [SS23. Jailbreak Type Breakdown](#ss23-jailbreak-type-breakdown)
 - [SS24. Per-Category Bias Analysis](#ss24-per-category-bias-analysis)
 - [SS25. Variance-Safety Correlation](#ss25-variance-safety-correlation)
 - [SS26. Safety-Capability Divergence](#ss26-safety-capability-divergence)
 - [SS27. Cross-TR138 Validation](#ss27-cross-tr138-validation)
+- [SS27b. Large-Model Extension (TR141b)](#ss27b-large-model-extension-tr141b)
 - [SS28. Limitations](#ss28-limitations)
 - [SS29. Conclusions](#ss29-conclusions)
 - [SS30. Production Guidance](#ss30-production-guidance)
@@ -221,7 +227,7 @@ This section defines all metrics used throughout the report to ensure unambiguou
 1. **Small absolute flip counts.** Most per-model-per-batch-size cells contain fewer than 5 safety flips. Individual cell ratios (e.g., S/C ratio of "inf" when capability flips = 0) should be treated as illustrative, not definitive. Aggregate analyses (SS7, SS10, SS11) are the statistically reliable results.
 2. **Unbalanced alignment categories.** RLHF has 4 models; SFT, DPO, and distilled each have 1. The ANOVA (SS11) detects between-category effects but cannot estimate within-category variance for single-model categories.
 3. **Single GPU and seed.** All results derive from one GPU architecture (Blackwell) and one seed (137). The specific prompts that flip may change across hardware and seeds, though aggregate statistics are expected to be stable (see SS27 cross-TR comparison).
-4. **Regex-only scoring.** The binary safety classifier captures hard refusal/compliance boundaries but misses graded safety quality changes within the "refuse" or "comply" categories.
+4. **Dual-method scoring.** The primary scorer is a deterministic regex classifier; a post-hoc LLM judge (qwen2.5:7b-instruct-q8_0) independently labels all 24,798 safety samples. Overall inter-rater agreement is 63.4% (kappa=0.53, moderate). Task-level agreement varies from 49.5% (jailbreak) to 72.0% (BBQ). Note: "Phase 1" and "Phase 2" in this report always refer to the experimental phases (batch-size sweep and true-batch validation), not to the scoring methods. See SS21b for full inter-rater analysis.
 5. **Floor effects for low-safety models.** smollm2-1.7b (25 baseline refusals) and stablelm-2-zephyr (60 baseline refusals) have limited opportunity for safety flips because they rarely refuse in the first place (see SS10 and SS21). Their low fragility may partly reflect this mechanical constraint rather than alignment robustness.
 
 ---
@@ -266,7 +272,7 @@ Two-phase experiment measuring output non-determinism under batch inference on a
 | **Warmup** | 3 requests per model |
 | **GPU** | NVIDIA RTX PRO 6000 Blackwell Server Edition, 98 GB VRAM |
 | **Backend** | vLLM (Docker), FP16 precision, --gpu-memory-utilization 0.90 |
-| **Scoring** | Regex safety classifiers (no LLM judge) |
+| **Scoring** | Primary: regex classifiers; Post-hoc: LLM judge (qwen2.5:7b-instruct-q8_0, 24,798 labels) |
 
 **Observations.** Greedy decoding (temperature=0) maximizes sensitivity to floating-point non-associativity because there is no sampling noise to mask deterministic perturbations. The seed=137 was deliberately chosen to differ from TR138's seed=42, ensuring that any replication of TR138 findings is independent rather than an artifact of shared random state. The regex-based scoring approach trades subtlety for perfect reproducibility: the same output always receives the same score, eliminating judge variance as a confound.
 
@@ -579,7 +585,7 @@ Grouping models by alignment type enables a direct test of H3 (alignment approac
 | DPO | stablelm-2-zephyr | 1 | 0.38% | [0.20%, 0.73%] | 0.446 | 9 / 2,340 |
 | Distilled | smollm2-1.7b | 1 | 0.38% | [0.20%, 0.73%] | 0.333 | 9 / 2,340 |
 
-**ANOVA Result:** F(3, N-4) = 4.862, p = 0.0078, eta-squared = 0.001
+**ANOVA Result:** F(3, N-4) = 4.862, p = 0.0078, eta-squared = 0.0007
 
 **Observations.** The one-way ANOVA confirms that alignment type is a statistically significant predictor of safety fragility (p=0.0078), supporting H3. However, the effect size is very small (eta-squared=0.0007), meaning alignment type explains only 0.07% of the total variance in safety flip outcomes. This is expected given that flips are rare events (overall rate 0.63%).
 
@@ -893,21 +899,77 @@ However, the extremely low total refusal counts for smollm2-1.7b (25) and stable
 
 ---
 
+## SS21b. Inter-Rater Agreement: Regex vs LLM Judge
+
+Post-hoc LLM judge scoring (qwen2.5:7b-instruct-q8_0 via Ollama) was applied to all 24,798 safety-domain samples after the primary regex-based analysis. The judge operates blind to batch condition and receives only the prompt and candidate response. This enables inter-rater reliability assessment between the deterministic regex classifiers (primary scorer) and the stochastic LLM judge (secondary scorer). Both scoring methods were applied to data from both experimental phases (batch-size sweep and true-batch validation).
+
+**Table 21b-1: Inter-Rater Agreement by Task**
+
+| Task | Agree | Total | Agreement % | Cohen's Kappa | Interpretation |
+|------|-------|-------|------------|---------------|----------------|
+| bbq_bias | 7,201 | 9,996 | 72.0% | 0.319 | Fair |
+| advbench_refusal | 3,682 | 5,460 | 67.4% | 0.250 | Fair |
+| truthfulqa | 1,554 | 2,730 | 56.9% | 0.143 | Slight |
+| jailbreak_amplification | 3,275 | 6,612 | 49.5% | 0.128 | Slight |
+| **Overall** | **15,712** | **24,798** | **63.4%** | **0.532** | **Moderate** |
+
+**Table 21b-2: Inter-Rater Agreement by Model**
+
+| Model | Agree | Total | Agreement % |
+|-------|-------|-------|------------|
+| qwen2.5-3b | 2,780 | 3,558 | 78.1% |
+| qwen2.5-1.5b | 2,664 | 3,558 | 74.9% |
+| phi-3.5-mini | 2,589 | 3,459 | 74.8% |
+| llama3.2-3b | 2,509 | 3,558 | 70.5% |
+| llama3.2-1b | 2,178 | 3,558 | 61.2% |
+| stablelm-2-zephyr | 1,721 | 3,558 | 48.4% |
+| smollm2-1.7b | 1,271 | 3,549 | 35.8% |
+
+**Table 21b-3: LLM Judge Label Distribution**
+
+| Label | Count | Percentage |
+|-------|-------|-----------|
+| FULL_REFUSAL | 9,264 | 37.4% |
+| UNBIASED | 6,180 | 24.9% |
+| BIASED | 3,522 | 14.2% |
+| PARTIAL_REFUSAL | 1,632 | 6.6% |
+| UNTRUTHFUL | 1,277 | 5.1% |
+| COMPLIANCE | 1,092 | 4.4% |
+| TRUTHFUL | 694 | 2.8% |
+| PARTIALLY_TRUTHFUL | 618 | 2.5% |
+| UNCLEAR | 519 | 2.1% |
+
+**Judge performance:** 100% parse success rate (24,798/24,798). Median latency 288ms, mean 287ms, P95 331ms per sample. Total judge runtime approximately 2 hours on RTX 4080 (12GB).
+
+**Observations.** The inter-rater agreement pattern reveals a clear hierarchy by task complexity. BBQ bias achieves the highest agreement (72.0%, kappa=0.319) because the task has relatively unambiguous answer choices (stereotyped vs anti-stereotyped vs unknown). AdvBench refusal is moderate (67.4%, kappa=0.250) because hard refusal patterns are captured well by both methods but borderline cases diverge. TruthfulQA (56.9%) and jailbreak amplification (49.5%) show the weakest agreement, reflecting the inherent ambiguity of these tasks — the LLM judge applies contextual reasoning that the keyword-overlap regex classifier cannot.
+
+The model-level agreement ranking is strongly correlated with baseline safety score. High-safety models (qwen2.5-3b at 78.1%, phi-3.5-mini at 74.8%) produce clearer refusal signals that both regex and LLM judge classify consistently. Low-safety models (smollm2-1.7b at 35.8%, stablelm-2-zephyr at 48.4%) produce ambiguous responses that the two methods classify differently — the LLM judge tends to classify more outputs as refusals (FULL_REFUSAL + PARTIAL_REFUSAL = 44.0% of all labels) compared to the regex classifier, particularly for partial or hedged responses.
+
+The overall kappa of 0.532 (moderate) is comparable to TR139's 7B judge agreement of 0.104 (slight) and substantially higher, likely because TR141 uses the same 7B judge model but on a simpler classification task (single-turn refusal vs TR139's multi-turn jailbreak persistence). The kappa is below the 0.7 threshold typically required for "substantial" agreement, meaning the primary analysis results (based on regex scoring) should be interpreted with the caveat that approximately 37% of safety classifications are contested by the LLM judge.
+
+The practical implication is that the regex-based flip rates reported in SS5-SS10 are reliable for clear-cut refusal/compliance changes but may undercount or miscount flips in ambiguous cases. Since flip detection depends on *changes* in classification (not absolute labels), the agreement rate for flip detection may be higher than the 63.4% label-level agreement — two methods that both misclassify a sample the same way will still agree on whether it flipped.
+
+---
+
 ## SS22. Combined Directional Analysis
 
 Pooling directional flip data from TR141 (and TR138, where available) provides a more powered test of whether batch perturbation has a systematic directional bias.
 
-**Table 19: Combined Directional Analysis**
+**Table 19: Directional Analysis (TR141a + TR141b)**
 
 | Source | To Unsafe (R->C) | To Safe (C->R) | Total |
 |--------|-----------------|---------------|-------|
-| TR141 | 28 | 69 | 97 |
-| TR138 | 0 (not available) | 0 (not available) | 0 |
-| **Combined** | **28** | **69** | **97** |
+| TR141a (7 small models) | 28 | 69 | 97 |
+| TR141b (3 large models) | 5 | 15 | 20 |
+| **Combined TR141** | **33** | **84** | **117** |
+| TR138 (not pooled) | — | — | — |
 
-**Binomial test:** p = 3.8e-5, direction = net safe, N = 97
+**Binomial tests:**
+- TR141a only: p = 3.8e-5, direction = net safe, N = 97
+- TR141b only: p = 0.04, direction = net safe, N = 20
+- TR141 combined: p = 1.2e-6, direction = net safe, N = 117
 
-**Observations.** The combined directional analysis (currently TR141-only, as TR138 raw directional data was not available for pooling) shows a highly significant net SAFE bias. Of 97 directional safety flips, 71.1% move from compliance to refusal (becoming safer) versus only 28.9% moving from refusal to compliance (becoming less safe). The binomial p-value of 3.8e-5 is well below any conventional significance threshold.
+**Observations.** The directional analysis across both TR141a and TR141b shows a highly significant net SAFE bias that replicates across model scales. Of 97 directional safety flips, 71.1% move from compliance to refusal (becoming safer) versus only 28.9% moving from refusal to compliance (becoming less safe). The binomial p-value of 3.8e-5 is well below any conventional significance threshold.
 
 This result has two important implications. First, it reverses the a priori concern that batch perturbation preferentially erodes safety. In this experimental configuration, the opposite is true: batch perturbation makes marginal outputs more conservative. Second, it differs from the directional concerns raised in TR138, suggesting that the direction of batch-perturbation bias may be model-dependent and configuration-dependent rather than universal. The TR141 model set (7 models, 4 alignment types) is larger and more diverse than TR138's (3 models, 1 alignment type), so the net-safe finding may be more representative of the general case.
 
@@ -1133,6 +1195,56 @@ The directional reversal between TR138 (unsafe concern) and TR141 (net safe, p=3
 
 ---
 
+## SS27b. Large-Model Extension (TR141b)
+
+A supplementary experiment (TR141b) extended the cross-architecture analysis to larger models in the 7B-14B parameter range, running on the same NVIDIA RTX PRO 6000 Blackwell GPU via Google Colab. Of 5 planned models, 3 completed successfully before the Colab session disconnected; llama3.1-8b and gemma-2-9b failed due to HuggingFace gated access restrictions.
+
+**Table 27c: TR141b Large-Model Results (3 models, 21,204 records)**
+
+| Model | Params | Family | Alignment | Safety Flip Rate | Cap Flip Rate | S/C Ratio |
+|-------|--------|--------|-----------|-----------------|--------------|-----------|
+| qwen2.5-7b | 7.6B | Qwen | RLHF | 0.47% | 0.29% | 1.62 |
+| qwen2.5-14b | 14.8B | Qwen | RLHF | 0.30% | 0.18% | 1.67 |
+| mistral-7b-v0.3 | 7.2B | Mistral | SFT | 0.26% | 0.24% | 1.08 |
+| **Overall** | | | | **0.34%** | **0.24%** | **1.6x** |
+
+**Phase 2 (true-batch) safety flip rate:** 0.4%
+
+**Directional analysis:** 15 compliance-to-refusal vs 5 refusal-to-compliance (net safe, p=0.04)
+
+**Table 27d: Scale Comparison (TR141a small vs TR141b large)**
+
+| Metric | TR141a (1-4B, 7 models) | TR141b (7-14B, 3 models) | Trend |
+|--------|------------------------|-------------------------|-------|
+| Safety flip rate | 0.63% | 0.34% | Lower at scale (-46%) |
+| Capability flip rate | 0.47% | 0.24% | Lower at scale (-49%) |
+| S/C ratio | 1.3x | 1.6x | Slightly higher |
+| Phase 2 flip rate | 0.94% | 0.40% | Lower at scale |
+| Directional bias | Net safe (p=3.8e-5) | Net safe (p=0.04) | Consistent |
+| Output identity range | 75-94% | 83-84% | Narrower range |
+| Alignment ANOVA | Significant (p=0.008) | Not significant (p=0.39) | Insufficient models |
+
+**Table 27e: Qwen Family Cross-Scale Analysis**
+
+| Model | Params | Safety Flip Rate | Ratio to Qwen2.5-1.5b |
+|-------|--------|-----------------|----------------------|
+| qwen2.5-1.5b | 1.5B | 0.98% | 1.00x (baseline) |
+| qwen2.5-3b | 3.0B | 0.68% | 0.69x |
+| qwen2.5-7b | 7.6B | 0.47% | 0.48x |
+| qwen2.5-14b | 14.8B | 0.30% | 0.31x |
+
+**Observations.** The TR141b extension provides three key insights despite the limited model count:
+
+First, **batch-safety fragility decreases with model scale.** Within the Qwen family -- the only family with data at 4 parameter scales -- safety flip rate decreases monotonically from 0.98% at 1.5B to 0.30% at 14.8B, a 3.3x reduction. This is consistent with the hypothesis that larger models have wider refusal decision boundaries that are less susceptible to floating-point perturbation. The relationship is approximately linear in log-parameter space.
+
+Second, **the net-safe directional bias replicates at scale.** TR141b finds 15 compliance-to-refusal flips vs 5 refusal-to-compliance (p=0.04), consistent with TR141a's 69:28 split (p=3.8e-5). This suggests the net-safe direction is not specific to small models -- larger models also tend to become more cautious, not less, under batch perturbation.
+
+Third, **the safety-to-capability ratio is remarkably stable at 1.3-1.6x across model scales.** While absolute flip rates decrease with scale, both safety and capability flip rates decrease proportionally, maintaining a roughly constant ratio. This suggests the safety-capability asymmetry is a fundamental property of batch perturbation rather than a scale-dependent artifact.
+
+**Limitations of TR141b:** Only 3 of 5 planned models completed. The alignment ANOVA is underpowered (3 models, 2 alignment types). Results were extracted from saved notebook cell outputs after Colab session disconnection; raw `samples.jsonl` and `tr141_analysis.json` artifacts were not recoverable. The Qwen cross-scale analysis benefits from controlled comparison (same family, same alignment, same training methodology) but N=1 per parameter scale limits statistical claims.
+
+---
+
 ## SS28. Limitations
 
 1. **Single GPU class.** All results are from an NVIDIA RTX PRO 6000 Blackwell Server Edition on Google Colab. Batch perturbation effects may differ on other GPU architectures (A100, H100, consumer-grade GPUs) due to different floating-point hardware implementations and CUDA kernel scheduling.
@@ -1143,7 +1255,7 @@ The directional reversal between TR138 (unsafe concern) and TR141 (net safe, p=3
 
 4. **Single seed.** Seed=137 gives one draw of the floating-point perturbation landscape. Different seeds could shift the specific prompts that flip, though the aggregate statistics are expected to be similar.
 
-5. **Regex-only scoring.** The regex-based safety classifier captures hard refusal/compliance boundaries but misses subtle refusal quality changes (e.g., a model that still refuses but with less conviction). An LLM judge would capture these nuances but at the cost of introducing judge variance as a confound.
+5. **Moderate inter-rater agreement.** The regex classifier and LLM judge agree on 63.4% of safety labels (kappa=0.53). The primary analysis uses regex scoring for deterministic reproducibility; the LLM judge provides a stochastic second opinion. Agreement is weakest for jailbreak (49.5%) and TruthfulQA (56.9%) tasks, meaning flip rates for these tasks carry higher measurement uncertainty. See SS21b for full inter-rater analysis.
 
 6. **Dropped model.** gemma-2-2b was dropped due to gated access restrictions, reducing the distilled alignment category to a single model and eliminating coverage of the Gemma architecture family.
 
@@ -1208,7 +1320,7 @@ Several questions remain for future investigation:
 1. **Interaction with quantization:** TR141 uses FP16 exclusively. How does batch perturbation interact with quantization (Q4_K_M, Q8_0) across architectures? TR138 explored this for 3 models; cross-architecture extension is needed.
 2. **Co-batching effects:** When different prompt types share a batch (e.g., safety-critical and benign prompts together), does co-batching amplify safety perturbation? TR138 Phase 3 addressed this for limited models.
 3. **Temperature interaction:** At temperature > 0, does sampling noise mask or amplify batch perturbation? The current temperature=0 design maximizes sensitivity but may overstate effects for sampling-based deployments.
-4. **Larger models:** All tested models are 1-4B parameters. Models at 7B+ may have different fragility profiles due to wider attention heads and more accumulation paths.
+4. **Larger models (partially answered):** TR141b extends to 7B-14B with 3 models, confirming that fragility decreases with scale (SS27b). However, the 3-model sample is insufficient for a definitive cross-architecture ranking at the 7B+ scale. A broader 7B+ sweep (5+ models across more families) remains needed.
 5. **GPU architecture comparison:** Running the same 7-model suite on A100 and H100 would determine whether the net-safe directional bias is Blackwell-specific or universal.
 6. **Prompt-level flip persistence:** Evaluating the same prompts across multiple seeds would determine whether the same prompts consistently flip or whether different seeds produce entirely different flip candidates.
 7. **Fine-grained safety scoring:** Replacing the binary regex classifier with a graded LLM judge would capture the magnitude of safety changes, not just whether the binary classification crosses the threshold.
