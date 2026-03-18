@@ -1,5 +1,5 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Safety Alignment — 420,000+ Data Points, 36 Technical Reports
+## LLM Inference Research & Safety Alignment — 480,000+ Data Points, 36 Technical Reports
 
 This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, and safety alignment under inference optimizations — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM) and cloud GPUs (NVIDIA RTX PRO 6000 Blackwell, 98 GB VRAM via Google Colab).
 
@@ -683,4 +683,4 @@ All measurements on a single fixed baseline:
 
 **Last Updated:** 2026-03-18
 **Total Reports:** 62 files (36 production-ready TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy)
-**Total Measurements:** 420,000+ across all reports
+**Total Measurements:** 480,000+ across all reports
