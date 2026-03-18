@@ -74,7 +74,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 
 - **For a quick summary:** Read Key Findings 1-5 above and the Claim Validation table below.
 - **For deployment decisions:** Skip to SS30 (Production Guidance) and the Summary Decision Matrix.
-- **For statistical rigor assessment:** Read SS11 (ANOVA), SS15 (TOST), SS16 (Power), and SS17 (Fisher exact tests). Pay attention to the pseudoreplication caveat in SS11 and the Holm-Bonferroni note in SS25.
+- **For statistical rigor assessment:** Read SS11 (ANOVA), SS15 (TOST), SS16 (Power), and SS17 (Fisher exact tests). Pay attention to the pseudoreplication caveat in SS11 and the Holm-Bonferroni correction in SS17.
 - **For cross-study context:** SS27 compares TR141 to TR138. SS22 provides the directional analysis that reverses TR138's unsafe-direction concern.
 - **For per-model selection:** SS10 (fragility ranking) and SS6 (per-model flip patterns) provide the model-level view.
 - **"SS" prefix** denotes numbered sections (Section Structured). Tables are numbered sequentially and referenced by section.

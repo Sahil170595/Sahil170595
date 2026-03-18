@@ -1,7 +1,7 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Optimization — 70,000+ Measurements, 26 Technical Reports
+## LLM Inference Research & Safety Alignment — 420,000+ Data Points, 36 Technical Reports
 
-This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, and deployment policy — all on a single NVIDIA RTX 4080 Laptop GPU (12 GB VRAM).
+This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, and safety alignment under inference optimizations — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM) and cloud GPUs (NVIDIA RTX PRO 6000 Blackwell, 98 GB VRAM via Google Colab).
 
 ---
 
@@ -17,10 +17,15 @@ Single-agent and multi-agent performance analysis, Rust vs Python cross-language
 
 KV-cache economics, quality baselines, quantization decision matrix, Linux/Triton compile validation, long-context characterization, production workload analysis, N-agent scaling laws, serving stack comparison, GPU kernel profiling (host + in-container), and a predictive capacity planner shipped as the `chimeraforge plan` CLI.
 
-### Conclusive Reports
-**9 synthesis documents spanning both phases.**
+### Phase 3: Safety Alignment (TR134-TR142)
+**9 technical reports. ~350,000+ data points.**
 
-Three dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133), three extended appendices volumes, and three executive whitepapers — providing audit-ready decision guidance with full artifact provenance.
+Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (flagship: 10 models, 6 families, 95,478 data points), and quality-safety correlation.
+
+### Conclusive Reports
+**12 synthesis documents spanning all phases.**
+
+Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137), four extended appendices volumes, and four executive whitepapers — providing audit-ready decision guidance with full artifact provenance.
 
 ---
 
@@ -63,6 +68,21 @@ Three dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR1
 | **TR132** | In-Container GPU Profiling | Complete | Continuous batching amortizes kernels 77-80%, bandwidth 79-83% |
 | **TR133** | Predictive Capacity Planner | Complete | 4/4 validation targets met; `chimeraforge plan` CLI shipped |
 
+### Phase 3: Safety Alignment (TR134-TR142)
+
+| Report | Title | Status | Key Finding |
+|--------|-------|--------|-------------|
+| **TR134** | Alignment Robustness Under Quantization | Complete | Safety robust through Q3_K_S; catastrophic failure at Q2_K; backend > quantization for safety delta |
+| **TR135** | Safety Under Multi-Agent Concurrency | Complete | Null finding confirmed: concurrency has zero detectable effect on safety (I-squared = 0.0%) |
+| **TR136** | Cross-Backend Safety Consistency | Complete | Backend matters more than quant: Llama 1B shows 23pp safety drop Ollama→FP16; no TOST equivalence |
+| **TR137** | The Safety Tax of Inference Optimization | Complete | Quantization 57% of safety cost, backend 41%, concurrency 2%; worst config retains only 57.5% baseline safety |
+| **TR138** | Batch Inference Safety Under Non-Determinism | Complete | Batch non-determinism is a safety failure mode: safety flips 4x more often than capability flips |
+| **TR138 v2** | Batch Safety — Strengthened-Evidence Revision | Complete | Audit layer confirms 59.1% unsafe flip direction; replication yields 1.68% safety vs 0.42% capability flip rate |
+| **TR139** | Multi-Turn Jailbreak Under Quantization | Complete | All 8 strategy ANOVAs reject quant-independence (p < 1e-4); qwen2.5-1.5b/Q2_K/attention_shift reaches 100% ASR |
+| **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
+| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | Complete | 10 models, 6 families, 95,478 data points; 1.3x safety/capability flip ratio; SFT most fragile, DPO most robust |
+| **TR142** | Quality-Safety Correlation Under Quantization | Complete | Safety degrades 13.9x faster than quality at Q3_K_S; quality metrics alone are insufficient safety proxies |
+
 ### Conclusive Reports
 
 | Report | Scope | Size |
@@ -76,6 +96,9 @@ Three dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR1
 | **Conclusive 123-133** | Phase 2 Synthesis | 433KB, 3,327 lines, 60 appendices |
 | **Conclusive 123-133 Extended Appendices** | Phase 2 Deep-Dive Appendices | 62KB |
 | **Conclusive 123-133 Whitepaper** | Phase 2 Executive Guidance | 15KB |
+| **Conclusive 134-137** | Phase 3a Synthesis (Safety Cost of Inference Optimization) | 2,571 lines, 74,254 samples |
+| **Conclusive 134-137 Extended Appendices** | Phase 3a Deep-Dive Appendices | 908 lines |
+| **Conclusive 134-137 Whitepaper** | Phase 3a Executive Guidance | 228 lines |
 
 ### Historical Reports (Superseded)
 
@@ -165,6 +188,24 @@ Six shippable decisions backed by ~62,000 measurements:
 - **Multi-agent throughput plateaus at N=2.** Amdahl's Law with serial fractions s = 0.39-0.54 (R-squared > 0.97). Per-agent throughput at N=8 is 17-20% of solo throughput (TR129).
 
 - **Consumer hardware is 95.4% cheaper than cloud.** TCO at 1B tokens/month: $153/yr consumer versus $2,880/yr AWS on-demand. Break-even for an RTX 4080 occurs at 0.3-2.7 months at 10M requests/month (TR123).
+
+---
+
+## Phase 3 Key Findings
+
+- **Quantization is the dominant safety cost axis, but not universally.** Quantization accounts for 57% of total safety cost (TR137), safety is broadly robust through Q3_K_S for well-aligned models, and Q2_K triggers catastrophic failure across all tested families (TR134). However, model heterogeneity is extreme (I-squared = 99.9%) — universal thresholds are unreliable.
+
+- **Serving backend is the second largest safety variable.** Backend choice accounts for 41% of total safety cost (TR137). Llama 1B shows a 23pp safety drop between Ollama Q4_K_M and vLLM FP16 despite higher precision — driven by chat template divergence between GGUF-embedded and HuggingFace tokenizer configs (TR136). Safety evaluations on one backend do not transfer to another.
+
+- **Concurrency is the one safe axis.** 39,060 samples, all safety slopes indistinguishable from zero, I-squared = 0.0%. Concurrent Ollama requests queue rather than interfere. You can safely scale agents without safety degradation (TR135).
+
+- **Batch non-determinism is a safety failure mode.** Safety outputs flip at a rate 1.3x-4x higher than capability outputs under GPU batch non-determinism (TR138, TR141). The effect varies by alignment type: SFT-aligned phi-3.5-mini is 2.9x more fragile than DPO-aligned stablelm-2-zephyr. Fragility decreases with model scale.
+
+- **Multi-turn jailbreaks are systematically amplified by lower quantization.** All 8 strategy ANOVAs reject quant-independence (p < 1e-4). qwen2.5-1.5b at Q2_K reaches 100% ASR on three attack strategies (TR139). Persistence of initial refusals degrades monotonically with lower bit-width for 3 of 4 models.
+
+- **Quality metrics alone are insufficient safety proxies.** Safety degrades up to 13.9x faster than quality at Q3_K_S on llama3.2-1b. The quality-safety correlation reverses sign between architectures (r = +0.994 on 1b, r = -0.829 on 3b) — pooled analysis is misleading (TR142).
+
+- **Q2_K is the universal vulnerability threshold for many-shot attacks.** Llama models are immune above Q3_K_M; at Q2_K every tested model shows significantly elevated attack success rates. Message array format is dramatically more effective than faux dialogue at the same quantization level (TR140).
 
 ---
 
@@ -261,6 +302,83 @@ Six shippable decisions backed by ~62,000 measurements:
 - V2 strict poller scheduling achieves 100ms grid adherence
 - Thermal equilibrium: Small models reach equilibrium at 48C
 
+### Phase 3
+
+#### TR134: Alignment Robustness Under Quantization
+**File:** `Technical_Report_134.md`
+- 4 models (1.2B-7.6B), 7 quant levels, 6 benchmarks, 3 phases
+- 35,260 evaluated samples, 12,168 judged samples, 26 model-quant variants (Phase 3)
+- Safety robust through Q3_K_S for Llama and Qwen; Mistral degrades earlier
+- Nationality bias is the most vulnerable demographic category (slope = -0.0096)
+
+#### TR135: Safety Under Multi-Agent Concurrency
+**File:** `Technical_Report_135.md`
+- 3 models, 4 concurrency levels (N=1,2,4,8), 6 benchmarks
+- 39,060 raw records, 10,416 prompt-level observations, 9,900 judged samples
+- Null finding: all safety slopes indistinguishable from zero; 8/9 TOST equivalent
+- Latency scales linearly with N; safety does not degrade
+
+#### TR136: Cross-Backend Safety Consistency
+**File:** `Technical_Report_136.md`
+- 3 models, 4 backends (Ollama Q4/Q8, vLLM FP16, TGI FP16), 6 benchmarks
+- 10,416 evaluated samples, 5,616 judged samples
+- Llama 1B: 23pp safety drop Ollama→FP16 (Cohen's d = -0.55 to -0.61, p < 0.0001)
+- Mechanism: GGUF-embedded chat template vs HuggingFace tokenizer_config divergence
+
+#### TR137: The Safety Tax of Inference Optimization
+**File:** `Technical_Report_137.md`
+- Meta-analysis synthesis of TR134-TR136; 74,254 total samples, 18 analysis passes
+- Quantization: 57% of safety cost; Backend: 41%; Concurrency: 2%
+- Worst combined config (Llama 1B Q2_K): 57.5% baseline safety retained (CRITICAL tier)
+- I-squared = 99.9% on quant axis — universal guidelines are unreliable
+
+#### TR138: Batch Inference Safety Under Non-Determinism
+**File:** `Technical_Report_138.md`
+- 4-phase batching study, 31,410 total samples; vLLM + Ollama backends
+- Safety flip rate 4x higher than capability flip rate under batch non-determinism
+- Phase 4 explicit true-batch validates effect is not a timing artifact
+
+#### TR138 v2: Batch Safety — Strengthened-Evidence Revision
+**File:** `Technical_Report_138_v2.md`
+- Audit + replication of TR138 v1; 7,257 replication samples on enriched 187-prompt subset
+- Audit layer: 44 true flip candidates; 59.1% in unsafe direction
+- Replication: 1.68% safety flip rate vs 0.42% capability flip rate (vs v1's 4x ratio)
+- Scorer corrected (v2.2): Unicode curly-quote normalization removed 5 false flip candidates
+- Supersedes: TR138 v1 for quantitative flip-rate claims
+
+#### TR139: Multi-Turn Jailbreak Under Quantization
+**File:** `Technical_Report_139.md`
+- 4 models, 6 GGUF quant levels, 8 attack strategies, 50 harmful behaviors
+- 10,600 conversations (9,600 Phase 1 + 1,000 Phase 2), 37,825 judge labels
+- All 8 strategy ANOVAs reject quant-independence (p < 1e-4); eta-squared 0.031-0.153
+- Highest ASR: qwen2.5-1.5b/Q2_K/attention_shift, context_fusion, crescendo all at 100%
+
+#### TR140: Many-Shot & Long-Context Jailbreak Under Quantization
+**File:** `Technical_Report_140.md`
+- 4 models, 6 quant levels, 5 shot counts, 2 prompt formats, 3 context profiles
+- 15,000 scored samples (12,000 Phase 1 + 3,000 Phase 2), 15,000 judge labels
+- Llama models immune above Q3_K_M; Q2_K is the universal vulnerability threshold
+- Message array format 92% vs 0% faux dialogue on llama3.1-8b Q2_K at N=16
+- Variance decomposition: residual 65.7%, quantization 17.9%, model 12.6%, shot count 2.7%
+
+#### TR141: Cross-Architecture Refusal Fragility Under Batch Perturbation
+**File:** `Technical_Report_141.md`
+- **Flagship cross-architecture batch safety report. v2.1, 1,607 lines.**
+- 10 models (1.2B-14.8B), 6 families (Llama, Qwen, Phi, SmolLM, StableLM, Mistral), 4 alignment types (RLHF, SFT, DPO, Distilled)
+- 70,680 eval records + 24,798 judge labels = **95,478 total data points**
+- Safety flips at 0.63% vs capability at 0.47% (1.3x ratio); cross-architecture spread 2.9x
+- Alignment type significantly predicts fragility (F=4.86, p=0.0078); SFT most fragile, DPO most robust
+- Large-model extension (TR141b): fragility decreases with scale; Qwen 0.98%→0.30% at 14.8B
+- Net-safe directional bias confirmed: 69 compliance→refusal vs 28 refusal→compliance flips
+
+#### TR142: Quality-Safety Correlation Under Quantization
+**File:** `Technical_Report_142.md`
+- Analysis-only cross-reference of TR125 (10,290 quality samples) and TR134 (13,342 safety samples)
+- 2 models (llama3.2-1b, llama3.2-3b), 7 GGUF quant levels, 14 analysis passes
+- Simpson's paradox: llama3.2-1b shows r = +0.994 (coherence × refusal), llama3.2-3b shows r = -0.829
+- Safety degrades 13.9x faster than quality at Q3_K_S on llama3.2-1b
+- TOST confirms Q5_K_M as safe deployment floor; Q4_K_M enters ambiguous zone
+
 ### Phase 2
 
 #### TR123: KV-Cache Production Economics
@@ -353,6 +471,14 @@ Six shippable decisions backed by ~62,000 measurements:
 - Extended Appendices: `Technical_Report_Conclusive_123-133_Extended_Appendices.md` (62KB)
 - Executive Whitepaper: `Technical_Report_Conclusive_123-133_Whitepaper.md` (15KB)
 
+### Phase 3a Synthesis: Technical_Report_Conclusive_134-137
+**File:** `Technical_Report_Conclusive_134-137.md` (2,571 lines)
+- Covers TR134 through TR137: quantization-induced alignment erosion, concurrency invariance, backend-driven template divergence, cross-axis safety taxonomy
+- 74,254 evaluated samples, 24-configuration deployment risk matrix (3 CRITICAL, 3 moderate, 18 low)
+- Key finding: serving backend choice is a previously uncharted safety variable (41% of safety cost)
+- Extended Appendices: `Technical_Report_Conclusive_134-137_Extended_Appendices.md` (908 lines)
+- Executive Whitepaper: `Technical_Report_Conclusive_134-137_Whitepaper.md` (228 lines)
+
 ---
 
 ## Economic Impact
@@ -414,6 +540,18 @@ PublishReady/reports/
 │   ├── Technical_Report_132.md
 │   └── Technical_Report_133.md
 │
+├── Phase 3: Safety Alignment (TR134-TR142)
+│   ├── Technical_Report_134.md
+│   ├── Technical_Report_135.md
+│   ├── Technical_Report_136.md
+│   ├── Technical_Report_137.md
+│   ├── Technical_Report_138.md
+│   ├── Technical_Report_138_v2.md
+│   ├── Technical_Report_139.md
+│   ├── Technical_Report_140.md
+│   ├── Technical_Report_141.md  ← flagship (95,478 data points, 10 models, 6 families)
+│   └── Technical_Report_142.md
+│
 ├── Conclusive Reports
 │   ├── Technical_Report_Conclusive_108-116.md
 │   ├── Technical_Report_Conclusive_108-116_Extended_Appendices.md
@@ -423,7 +561,10 @@ PublishReady/reports/
 │   ├── Technical_Report_Conclusive_117-122_Whitepaper.md
 │   ├── Technical_Report_Conclusive_123-133.md
 │   ├── Technical_Report_Conclusive_123-133_Extended_Appendices.md
-│   └── Technical_Report_Conclusive_123-133_Whitepaper.md
+│   ├── Technical_Report_Conclusive_123-133_Whitepaper.md
+│   ├── Technical_Report_Conclusive_134-137.md
+│   ├── Technical_Report_Conclusive_134-137_Extended_Appendices.md
+│   └── Technical_Report_Conclusive_134-137_Whitepaper.md
 │
 ├── Historical (Superseded)
 │   ├── Technical_Report_111.md
@@ -491,6 +632,26 @@ All measurements on a single fixed baseline:
 10. **Can you predict deployment configurations without running benchmarks?**
     Yes — `chimeraforge plan` uses empirical lookup tables with VRAM R-squared=0.968, throughput R-squared=0.859 (TR133)
 
+### Phase 3
+
+11. **Does quantization degrade safety disproportionately to capability?**
+    Yes, at extreme quant levels — safety degrades up to 13.9x faster than quality at Q3_K_S; effect is model-family-specific (TR134, TR142)
+
+12. **Does running multiple concurrent agents degrade safety?**
+    No — concurrency is the one safe axis; all slopes zero, I-squared = 0.0%, confirmed across 39,060 samples (TR135)
+
+13. **Does the serving backend affect model safety?**
+    Yes — backend accounts for 41% of total safety cost; Llama 1B shows 23pp safety drop Ollama→FP16 from chat template divergence (TR136)
+
+14. **Does batch non-determinism introduce safety failures?**
+    Yes — safety flips are 1.3x-4x more frequent than capability flips under batch perturbation; SFT alignment is most fragile (TR138, TR141)
+
+15. **Does quantization amplify multi-turn jailbreak susceptibility?**
+    Yes — all 8 strategy ANOVAs reject quant-independence; qwen2.5-1.5b/Q2_K reaches 100% ASR on three attack strategies (TR139)
+
+16. **Are quality benchmarks sufficient to monitor safety?**
+    No — quality and safety degradation paths are uncorrelated and direction-reversed across architectures (TR142)
+
 ---
 
 ## Reading Guide
@@ -499,22 +660,27 @@ All measurements on a single fixed baseline:
 1. Start with **TR108-TR110** (Python baselines)
 2. Study **TR112_v2** and **TR114_v2** (Rust vs Python)
 3. Review Phase 2 starting with **TR123** (economics) through **TR133** (capacity planning)
-4. Read the **Conclusive Reports** for synthesis and cross-TR analysis
+4. Review Phase 3 starting with **TR134** (quantization x safety) through **TR142** (quality-safety correlation)
+5. Read the **Conclusive Reports** for synthesis and cross-TR analysis
 
 ### For Engineers
 1. **Single-agent deployment:** TR112_v2 (language choice) + TR125 (quantization)
 2. **Multi-agent deployment:** TR129 (scaling laws) + TR130 (serving stacks)
 3. **Capacity planning:** TR133 + `chimeraforge plan` CLI
 4. **Compilation:** TR126 (what works, what crashes)
+5. **Safety-critical deployment:** TR137 (safety tax synthesis) + TR141 (batch safety, cross-architecture)
+6. **Backend safety validation:** TR136 (backend safety consistency)
+7. **Jailbreak risk assessment:** TR139 (multi-turn) + TR140 (many-shot)
 
 ### For Decision Makers
 1. **Rust vs Python Decision:** `Technical_Report_Conclusive_108-116_Whitepaper.md` (language, architecture, runtime, model)
 2. **Phase 2 Whitepaper:** `Technical_Report_Conclusive_123-133_Whitepaper.md` (15KB, 6 decisions)
-3. **Decision Matrix:** See Phase 2 Deployment Decisions table above
-4. **Cost Analysis:** TR123 ($/token) + TR119 (energy/carbon)
+3. **Phase 3 Whitepaper:** `Technical_Report_Conclusive_134-137_Whitepaper.md` (228 lines, safety decision card)
+4. **Decision Matrix:** See Phase 2 Deployment Decisions table above
+5. **Cost Analysis:** TR123 ($/token) + TR119 (energy/carbon)
 
 ---
 
-**Last Updated:** 2026-02-28
-**Total Reports:** 41 files (26 production-ready TRs + 9 conclusive/whitepaper documents + 6 historical/superseded)
-**Total Measurements:** 70,000+ across all reports
+**Last Updated:** 2026-03-18
+**Total Reports:** 62 files (36 production-ready TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy)
+**Total Measurements:** 420,000+ across all reports
