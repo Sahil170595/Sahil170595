@@ -33,55 +33,55 @@ Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR13
 
 ### Phase 1: Foundation (TR108-TR122)
 
-| Report | Title | Status | Key Finding |
-|--------|-------|--------|-------------|
-| **TR108** | Single-Agent LLM Performance Analysis | Complete | Optimal configs for single-agent inference |
-| **TR109** | Agent Workflow Optimization | Complete | GPU=60, CTX=512, TEMP=0.8 optimal for workflows |
-| **TR110** | Concurrent Multi-Agent Performance (Python) | Complete | 99.25% parallel efficiency achieved |
-| **TR111_v2** | Rust Single-Agent Performance | Complete | 114.54 tok/s baseline, 15.2% faster than Python |
-| **TR112_v2** | Rust vs Python Comparison | Complete | Rust: +15.2% throughput, -58% TTFT, -67% memory |
-| **TR113** | Rust Multi-Agent (Single Ollama) | Complete | 82.2% peak; server contention identified |
-| **TR114_v2** | Rust Multi-Agent (Dual Ollama) | Complete | 98.281% mean efficiency, 0.74% contention |
-| **TR115_v2** | Rust Runtime Optimization | Complete | Tokio-default recommended (98.72% mean, 1.21pp sigma) |
-| **TR116** | Cross-Model Multi-Agent Benchmarks | Complete | Rust + Gemma 3 is king (99.2%); Qwen shows imbalance |
-| **TR117** | Cross-Backend Inference Benchmark | Complete | GPU-compile best mean; ONNX/TRT failures documented |
-| **TR117_multi** | Multi-Agent Root Cause Analysis | Complete | Python event loop saturation (5.33ms mean lag) |
-| **TR118_v2.2** | ONNX Runtime + TensorRT Deep Dive | Complete | TensorRT-fp16 best prefill (2.48ms, -87% vs baseline) |
-| **TR119** | Cost & Energy Analysis | Complete | onnxruntime-gpu best cost ($0.1279/1M tok on-demand) |
-| **TR120** | The "Compile Paradox" Root-Cause Audit | Complete | TR117 compile label misattributed; shape stability critical |
-| **TR121v1** | Model Scaling Study | Complete | Scaling pipeline from 5M to 20B parameters established |
-| **TR122** | Resource Profiling Deep Dive | Complete | Baseline power (20.71W), poller scheduling, thermal equilibrium |
+| Report | Title | Samples | Status | Key Finding |
+|--------|-------|---------|--------|-------------|
+| **TR108** | Single-Agent LLM Performance Analysis | 158 runs | Complete | Optimal configs for single-agent inference |
+| **TR109** | Agent Workflow Optimization | 20 configs | Complete | GPU=60, CTX=512, TEMP=0.8 optimal for workflows |
+| **TR110** | Concurrent Multi-Agent Performance (Python) | 150 runs | Complete | 99.25% parallel efficiency achieved |
+| **TR111_v2** | Rust Single-Agent Performance | 57 runs | Complete | 114.54 tok/s baseline, 15.2% faster than Python |
+| **TR112_v2** | Rust vs Python Comparison | 111 runs | Complete | Rust: +15.2% throughput, -58% TTFT, -67% memory |
+| **TR113** | Rust Multi-Agent (Single Ollama) | 150 runs | Complete | 82.2% peak; server contention identified |
+| **TR114_v2** | Rust Multi-Agent (Dual Ollama) | 150 runs | Complete | 98.281% mean efficiency, 0.74% contention |
+| **TR115_v2** | Rust Runtime Optimization | 150 runs | Complete | Tokio-default recommended (98.72% mean, 1.21pp sigma) |
+| **TR116** | Cross-Model Multi-Agent Benchmarks | 60 runs | Complete | Rust + Gemma 3 is king (99.2%); Qwen shows imbalance |
+| **TR117** | Cross-Backend Inference Benchmark | 3,017 | Complete | GPU-compile best mean; ONNX/TRT failures documented |
+| **TR117_multi** | Multi-Agent Root Cause Analysis | — | Complete | Python event loop saturation (5.33ms mean lag) |
+| **TR118_v2.2** | ONNX Runtime + TensorRT Deep Dive | 360 | Complete | TensorRT-fp16 best prefill (2.48ms, -87% vs baseline) |
+| **TR119** | Cost & Energy Analysis | 360 | Complete | onnxruntime-gpu best cost ($0.1279/1M tok on-demand) |
+| **TR120** | The "Compile Paradox" Root-Cause Audit | 546 | Complete | TR117 compile label misattributed; shape stability critical |
+| **TR121v1** | Model Scaling Study | 684 | Complete | Scaling pipeline from 5M to 20B parameters established |
+| **TR122** | Resource Profiling Deep Dive | 2,041 | Complete | Baseline power (20.71W), poller scheduling, thermal equilibrium |
 
 ### Phase 2: Deployment Framework (TR123-TR133)
 
-| Report | Title | Status | Key Finding |
-|--------|-------|--------|-------------|
-| **TR123** | KV-Cache Production Economics | Complete | Best cost $0.013/1M tokens; cached decode 2-8x cheaper |
-| **TR124** | Quality & Accuracy Baseline | Complete | Backend choice does not affect quality (0/7 ANOVA significant) |
-| **TR125** | Quantization Decision Matrix | Complete | Q4_K_M universal sweet spot (-4.1pp max); Q2_K universally unacceptable |
-| **TR126** | Docker/Linux + Triton Validation | Complete | Compile paradox resolved: 24-60% prefill speedup on Linux; crashes decode |
-| **TR127** | Long-Context Characterization | Complete | VRAM spillover (25-105x cliffs), not quadratic attention, is the bottleneck |
-| **TR128** | Production Workloads | Complete | NUM_PARALLEL is a no-op (0/30 significant); M/D/1 deviates 20.4x |
-| **TR129** | N-Agent Scaling Laws | Complete | Amdahl s=0.39-0.54; throughput plateaus at N=2 |
-| **TR130** | Serving Stack Comparison | Complete | vLLM 2.25x advantage at N=8 via continuous batching |
-| **TR131** | GPU Kernel Profiling | Complete | Overturns TR130: GPU memory bandwidth, not serving stack, is the bottleneck |
-| **TR132** | In-Container GPU Profiling | Complete | Continuous batching amortizes kernels 77-80%, bandwidth 79-83% |
-| **TR133** | Predictive Capacity Planner | Complete | 4/4 validation targets met; `chimeraforge plan` CLI shipped |
+| Report | Title | Samples | Status | Key Finding |
+|--------|-------|---------|--------|-------------|
+| **TR123** | KV-Cache Production Economics | 900 | Complete | Best cost $0.013/1M tokens; cached decode 2-8x cheaper |
+| **TR124** | Quality & Accuracy Baseline | 24,990 | Complete | Backend choice does not affect quality (0/7 ANOVA significant) |
+| **TR125** | Quantization Decision Matrix | 7,650 | Complete | Q4_K_M universal sweet spot (-4.1pp max); Q2_K universally unacceptable |
+| **TR126** | Docker/Linux + Triton Validation | 25,400 | Complete | Compile paradox resolved: 24-60% prefill speedup on Linux; crashes decode |
+| **TR127** | Long-Context Characterization | 1,144 | Complete | VRAM spillover (25-105x cliffs), not quadratic attention, is the bottleneck |
+| **TR128** | Production Workloads | 3,172 | Complete | NUM_PARALLEL is a no-op (0/30 significant); M/D/1 deviates 20.4x |
+| **TR129** | N-Agent Scaling Laws | 5,310 | Complete | Amdahl s=0.39-0.54; throughput plateaus at N=2 |
+| **TR130** | Serving Stack Benchmarking | 4,797 | Complete | vLLM 2.25x advantage at N=8 via continuous batching |
+| **TR131** | GPU Kernel Profiling | 26 runs | Complete | Overturns TR130: GPU memory bandwidth, not serving stack, is the bottleneck |
+| **TR132** | In-Container GPU Profiling | 25 runs | Complete | Continuous batching amortizes kernels 77-80%, bandwidth 79-83% |
+| **TR133** | Predictive Capacity Planner | 19,676 | Complete | 4/4 validation targets met; `chimeraforge plan` CLI shipped |
 
 ### Phase 3: Safety Alignment (TR134-TR142)
 
-| Report | Title | Status | Key Finding |
-|--------|-------|--------|-------------|
-| **TR134** | Alignment Robustness Under Quantization | Complete | Safety robust through Q3_K_S; catastrophic failure at Q2_K; backend > quantization for safety delta |
-| **TR135** | Safety Under Multi-Agent Concurrency | Complete | Null finding confirmed: concurrency has zero detectable effect on safety (I-squared = 0.0%) |
-| **TR136** | Cross-Backend Safety Consistency | Complete | Backend matters more than quant: Llama 1B shows 23pp safety drop Ollama→FP16; no TOST equivalence |
-| **TR137** | The Safety Tax of Inference Optimization | Complete | Quantization 57% of safety cost, backend 41%, concurrency 2%; worst config retains only 57.5% baseline safety |
-| **TR138** | Batch Inference Safety Under Non-Determinism | Complete | Batch non-determinism is a safety failure mode: safety flips 4x more often than capability flips |
-| **TR138 v2** | Batch Safety — Strengthened-Evidence Revision | Complete | Audit layer confirms 59.1% unsafe flip direction; replication yields 1.68% safety vs 0.42% capability flip rate |
-| **TR139** | Multi-Turn Jailbreak Under Quantization | Complete | All 8 strategy ANOVAs reject quant-independence (p < 1e-4); qwen2.5-1.5b/Q2_K/attention_shift reaches 100% ASR |
-| **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
-| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | Complete | 10 models, 6 families, 95,478 data points; 1.3x safety/capability flip ratio; SFT most fragile, DPO most robust |
-| **TR142** | Quality-Safety Correlation Under Quantization | Complete | Safety degrades 13.9x faster than quality at Q3_K_S; quality metrics alone are insufficient safety proxies |
+| Report | Title | Samples | Status | Key Finding |
+|--------|-------|---------|--------|-------------|
+| **TR134** | Alignment Robustness Under Quantization | 36,946 | Complete | Safety robust through Q3_K_S; catastrophic failure at Q2_K; backend > quantization for safety delta |
+| **TR135** | Safety Under Multi-Agent Concurrency | 20,316 | Complete | Null finding confirmed: concurrency has zero detectable effect on safety (I-squared = 0.0%) |
+| **TR136** | Cross-Backend Safety Consistency | 16,032 | Complete | Backend matters more than quant: Llama 1B shows 23pp safety drop Ollama→FP16; no TOST equivalence |
+| **TR137** | The Safety Tax of Inference Optimization | 74,254 | Complete | Quantization 57% of safety cost, backend 41%, concurrency 2%; worst config retains only 57.5% baseline safety |
+| **TR138** | Batch Inference Safety Under Non-Determinism | 31,410 | Complete | Batch non-determinism is a safety failure mode: safety flips 4x more often than capability flips |
+| **TR138 v2** | Batch Safety — Strengthened-Evidence Revision | 7,257 | Complete | Audit layer confirms 59.1% unsafe flip direction; replication yields 1.68% safety vs 0.42% capability flip rate |
+| **TR139** | Multi-Turn Jailbreak Under Quantization | 48,425 | Complete | All 8 strategy ANOVAs reject quant-independence (p < 1e-4); qwen2.5-1.5b/Q2_K/attention_shift reaches 100% ASR |
+| **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | 30,000 | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
+| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 95,478 | Complete | 10 models, 6 families; 1.3x safety/capability flip ratio; SFT most fragile, DPO most robust |
+| **TR142** | Quality-Safety Correlation Under Quantization | 23,632 | Complete | Safety degrades 13.9x faster than quality at Q3_K_S; quality metrics alone are insufficient safety proxies |
 
 ### Conclusive Reports
 
