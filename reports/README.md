@@ -1,5 +1,5 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Safety Alignment — 480,000+ Data Points, 36 Technical Reports
+## LLM Inference Research & Safety Alignment — 540,000+ Data Points, 36 Technical Reports
 
 This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, and safety alignment under inference optimizations — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM) and cloud GPUs (NVIDIA RTX PRO 6000 Blackwell, 98 GB VRAM via Google Colab).
 
@@ -80,7 +80,7 @@ Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR13
 | **TR138 v2** | Batch Safety — Strengthened-Evidence Revision | 7,257 | Complete | Audit layer confirms 59.1% unsafe flip direction; replication yields 1.68% safety vs 0.42% capability flip rate |
 | **TR139** | Multi-Turn Jailbreak Under Quantization | 48,425 | Complete | All 8 strategy ANOVAs reject quant-independence (p < 1e-4); qwen2.5-1.5b/Q2_K/attention_shift reaches 100% ASR |
 | **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | 30,000 | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
-| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 95,478 | Complete | 10 models, 6 families; 1.3x safety/capability flip ratio; SFT most fragile, DPO most robust |
+| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 152,022 | Complete | 10 models, 6 families; 1.3x safety/capability flip ratio; SFT most fragile, DPO most robust |
 | **TR142** | Quality-Safety Correlation Under Quantization | 23,632 | Complete | Safety degrades 13.9x faster than quality at Q3_K_S; quality metrics alone are insufficient safety proxies |
 
 ### Conclusive Reports
@@ -683,4 +683,4 @@ All measurements on a single fixed baseline:
 
 **Last Updated:** 2026-03-18
 **Total Reports:** 62 files (36 production-ready TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy)
-**Total Measurements:** 480,000+ across all reports
+**Total Measurements:** 540,000+ across all reports
