@@ -1,22 +1,24 @@
 # Technical Report 141: Cross-Architecture Refusal Fragility Under Batch Perturbation
-## Safety-Capability Flip Asymmetry Across 10 Models, 6 Families, and 4 Alignment Types
+## Safety-Capability Flip Asymmetry Across 18 Models, 10+ Families, and 4 Alignment Types
 
 | Field | Value |
 |-------|-------|
 | **TR Number** | 141 |
 | **Project** | Banterhearts |
-| **Date** | 2026-03-18 |
-| **Version** | 2.1 (full-depth + LLM judge + large-model extension) |
+| **Date** | 2026-03-19 |
+| **Version** | 3.0 (full-depth + LLM judge + large-model extension + alignment-balance extension) |
 | **Author** | Banterhearts Research Lab |
 | **Git Commit** | `standalone` |
 | **Status** | Complete -- Full-Depth Publication |
 | **Report Type** | Full-depth |
 | **Run Directory** | `research/tr141/results/colab_20260317/tr141_run_20260317_222300/` |
-| **Total Records** | 70,680 eval records + 24,798 judge labels = **95,478 total data points** |
+| **Total Records** | 127,224 eval records + 24,798 judge labels = **152,022 total data points** |
 | **TR141a (core)** | 49,476 records (40,026 Phase 1 + 9,450 Phase 2), 7 models (1.2B-3.8B) |
 | **TR141b (extension)** | 21,204 records (17,154 Phase 1 + 4,050 Phase 2), 3 models (7.2B-14.8B) |
-| **Models** | 10 total (7 TR141a + 3 TR141b; gemma-2-2b and llama3.1-8b dropped, gated access) |
-| **Families** | 6 (Llama, Qwen, Phi, SmolLM, StableLM, Mistral) |
+| **TR141 v3 (alignment-balance)** | 56,544 records (45,744 Phase 1 + 10,800 Phase 2), 8 models spanning 4 alignment types |
+| **Combined v2.1 + v3** | 106,020 scored records across 15 distinct models |
+| **Models** | 18 unique (7 TR141a + 3 TR141b + 8 v3; gemma-2-2b, llama3.1-8b, gemma-3-1b dropped) |
+| **Families** | 10+ (Llama, Qwen, Phi, SmolLM, StableLM, Mistral, OLMo, TinyLlama, DeepSeek, SmolLM3) |
 | **Alignment Types** | 4 (RLHF, SFT, DPO, Distilled) |
 | **Seed** | 137 |
 | **GPU** | NVIDIA RTX PRO 6000 Blackwell Server Edition (98 GB VRAM), Google Colab |
@@ -28,15 +30,15 @@
 
 ## Positioning
 
-TR141 is the cross-architecture extension of the batch-safety perturbation program initiated by TR138. Where TR138 established that batch-induced floating-point non-determinism can disproportionately affect safety outputs on 3 models from 2 families (all RLHF), TR141 scales to 10 models from 6 families (Llama, Qwen, Phi, SmolLM, StableLM, Mistral) spanning 4 alignment paradigms (RLHF, SFT, DPO, distilled) and a parameter range of 1.2B to 14.8B. The core campaign (TR141a, 7 small models) enables the first alignment-type-level analysis of batch-safety fragility; the large-model extension (TR141b, 3 models at 7B-14B) tests whether fragility scales with model size. Together they produce 70,680 evaluation records and 24,798 LLM judge labels. TR141 also uses a different GPU architecture (RTX PRO 6000 Blackwell vs A100), a different seed (137 vs 42), and a larger prompt set, providing an independent replication of the core phenomenon. Downstream, TR141 informs the production guidance for batch-serving safety validation and feeds into the cross-TR meta-analysis framework alongside TR138 and TR139.
+TR141 is the cross-architecture extension of the batch-safety perturbation program initiated by TR138. Where TR138 established that batch-induced floating-point non-determinism can disproportionately affect safety outputs on 3 models from 2 families (all RLHF), TR141 scales to 18 models from 10+ families (Llama, Qwen, Phi, SmolLM, StableLM, Mistral, OLMo, TinyLlama, DeepSeek, SmolLM3) spanning 4 alignment paradigms (RLHF, SFT, DPO, distilled) and a parameter range of 360M to 14.8B. The core campaign (TR141a, 7 small models) enables the first alignment-type-level analysis of batch-safety fragility; the large-model extension (TR141b, 3 models at 7B-14B) tests whether fragility scales with model size; the v3 alignment-balance extension (8 additional models) provides the first adequately powered test of alignment-type effects with n>=3 per category. Together they produce 127,224 evaluation records and 24,798 LLM judge labels (152,022 total data points). TR141 also uses a different GPU architecture (RTX PRO 6000 Blackwell vs A100), a different seed (137 vs 42), and a larger prompt set, providing an independent replication of the core phenomenon. **v3 correction:** The preliminary v2.1 finding that alignment type significantly predicts fragility (ANOVA p=0.008) is overturned with balanced groups -- the model-level ANOVA on 15 models yields F=0.13, p=0.915, and the prompt-level ANOVA yields F=1.88, p=0.131. Downstream, TR141 informs the production guidance for batch-serving safety validation and feeds into the cross-TR meta-analysis framework alongside TR138 and TR139.
 
 ---
 
 ## Abstract
 
-TR141 asks whether batch-induced floating-point non-determinism in GPU inference disproportionately degrades safety outputs, and whether this effect varies systematically across model architectures and alignment approaches. This cross-architecture study evaluates **10 instruction-tuned models** (1.2B-14.8B parameters) from **6 families** spanning **4 alignment paradigms** (RLHF, SFT, DPO, distilled), producing **70,680 evaluation records** and **24,798 LLM judge labels** (95,478 total data points) across two experimental campaigns (TR141a: 7 small models; TR141b: 3 large models) on an NVIDIA RTX PRO 6000 Blackwell Server Edition GPU via Google Colab.
+TR141 asks whether batch-induced floating-point non-determinism in GPU inference disproportionately degrades safety outputs, and whether this effect varies systematically across model architectures and alignment approaches. This cross-architecture study evaluates **18 instruction-tuned models** (360M-14.8B parameters) from **10+ families** spanning **4 alignment paradigms** (RLHF, SFT, DPO, distilled), producing **127,224 evaluation records** and **24,798 LLM judge labels** (152,022 total data points) across three experimental campaigns (TR141a: 7 small models; TR141b: 3 large models; v3: 8 alignment-balance models) on an NVIDIA RTX PRO 6000 Blackwell Server Edition GPU via Google Colab.
 
-The core findings are: (1) Safety outputs flip at **0.63%** versus capability outputs at **0.47%**, a 1.3x ratio that confirms batch perturbation is not safety-neutral but at a substantially lower magnitude than TR138's 4x ratio. (2) Cross-architecture fragility varies by **2.9x** -- phi-3.5-mini (SFT-aligned, 1.11%) is most fragile while stablelm-2-zephyr (DPO-aligned, 0.38%) is least fragile. (3) Alignment type significantly predicts fragility (one-way ANOVA F=4.86, p=0.0078, eta-squared=0.0007). (4) Directional analysis reveals a significant net SAFE bias: 69 compliance-to-refusal flips versus 28 refusal-to-compliance flips (binomial p=3.8e-5), opposite to the expected unsafe direction.
+The core findings are: (1) Safety outputs flip at **0.63%** versus capability outputs at **0.47%**, a 1.3x ratio that confirms batch perturbation is not safety-neutral but at a substantially lower magnitude than TR138's 4x ratio. (2) Cross-architecture fragility varies by **6.3x** across 15 combined models -- phi-2 (SFT-aligned, 2.39%) is the most fragile while tinyllama-1.1b-chat (SFT-aligned, 0.00%) is the least fragile. (3) **v3 CORRECTION:** Alignment type does **not** predict fragility (model-level ANOVA F=0.13, p=0.915, 15 models). Instead, **output instability** — the fraction of responses that change textually under batch perturbation — predicts safety fragility with r=0.91 (p<0.0001), explaining 83% of variance across models. (4) Directional analysis reveals a significant net SAFE bias: combined 159 compliance-to-refusal flips versus 81 refusal-to-compliance flips (66.2% safe direction), replicating and strengthening the v2.1 finding.
 
 The most important non-result is that no critical batch-size threshold was detected for any model -- safety flip rates do not spike at any particular batch size, suggesting the effect is diffuse rather than catastrophic. All TOST equivalence tests confirm that batch-induced mean score differences remain within the +/-3 percentage point practical equivalence margin.
 
@@ -54,7 +56,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 
 2. **Architecture fragility varies by nearly 3x.** phi-3.5-mini (SFT-aligned, 3.8B params) is the most fragile model at 1.11% safety flip rate [95% CI: 0.76%, 1.62%], while stablelm-2-zephyr (DPO-aligned, 1.6B params) and smollm2-1.7b (distilled, 1.7B params) share the lowest fragility at 0.38% [CI: 0.20%, 0.73%]. This 2.9x spread indicates that model selection is a meaningful lever for batch-safety robustness. **Floor-effect caveat:** smollm2-1.7b has only 25 baseline refusals and stablelm-2-zephyr only 60 (compared to 984-1,356 for the RLHF/SFT models). Their low absolute flip rates partly reflect limited opportunity to flip. When normalized by baseline refusals, smollm2-1.7b's fragility is 36.0% (9/25) -- meaning over a third of its refusals are batch-unstable -- versus phi-3.5-mini's 2.25% (26/1,155). See SS10 for the full normalized fragility table.
 
-3. **Alignment type significantly predicts fragility.** One-way ANOVA on safety flip rate by alignment type yields F=4.862, p=0.0078, eta-squared=0.0007. SFT-aligned phi-3.5-mini is the most fragile; DPO-aligned stablelm-2-zephyr and distilled smollm2-1.7b are the most robust. The RLHF group (4 models) falls in between at 0.64%.
+3. **Alignment type does NOT predict fragility; output instability does (v3 correction).** The preliminary v2.1 alignment ANOVA (F=4.86, p=0.008) was a false positive inflated by pseudoreplication with n=1 per non-RLHF category. The v3 extension (8 new models, n>=3 per category, 15 total) yields F=0.13, p=0.915 — alignment type is not a significant predictor. Instead, **output change rate** (the fraction of responses that differ textually from batch=1) predicts safety fragility with r=0.91 (p<0.0001, R-squared=0.83). Models whose outputs are highly sensitive to FP perturbation (phi-2: 43% output change → 2.39% safety flip) are fragile; models with stable outputs (tinyllama: 6% change → 0% flip) are robust — regardless of alignment type. See SS27d for the full correlation analysis.
 
 4. **Phase 2 true-batch validation confirms the effect is not a timing artifact.** Explicit prompt-list batching in Phase 2 produces a 0.94% safety flip rate, higher than Phase 1's 0.63%, with 97.8-100% flip agreement between phases. The effect is real and, if anything, amplified under true tensor batching.
 
@@ -74,7 +76,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 
 - **For a quick summary:** Read Key Findings 1-5 above and the Claim Validation table below.
 - **For deployment decisions:** Skip to SS30 (Production Guidance) and the Summary Decision Matrix.
-- **For statistical rigor assessment:** Read SS11 (ANOVA), SS15 (TOST), SS16 (Power), and SS17 (Fisher exact tests). Pay attention to the pseudoreplication caveat in SS11 and the Holm-Bonferroni correction in SS17.
+- **For statistical rigor assessment:** Read SS11 (ANOVA, with v3 correction), SS27d (alignment-balance extension), SS15 (TOST), SS16 (Power), and SS17 (Fisher exact tests). Pay particular attention to the v3 correction in SS11 and SS27d that overturns the v2.1 alignment ANOVA finding.
 - **For cross-study context:** SS27 compares TR141 to TR138. SS22 provides the directional analysis that reverses TR138's unsafe-direction concern.
 - **For per-model selection:** SS10 (fragility ranking) and SS6 (per-model flip patterns) provide the model-level view.
 - **"SS" prefix** denotes numbered sections (Section Structured). Tables are numbered sequentially and referenced by section.
@@ -82,7 +84,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 ### Core Decisions
 
 - Test safety refusal rates at the production batch size, not at batch=1 baselines
-- Prefer DPO-aligned or distilled models when batch-safety robustness is a priority
+- Alignment type (RLHF, SFT, DPO, distilled) is not a reliable predictor of batch-safety robustness (v3 correction); evaluate individual models instead
 - Monitor TruthfulQA-like ambiguous prompts disproportionately, as they are 5-13x more sensitive to batch perturbation
 - Consider deterministic inference kernels (SGLang deterministic mode) for safety-critical pipelines, accepting approximately 34% throughput cost
 - Do not assume unsafe-direction dominance; net SAFE bias in TR141 suggests architecture-dependent directionality
@@ -91,13 +93,14 @@ The operational conclusion is that batch perturbation introduces a small but sta
 
 | Target | Metric | Required | Achieved | Status |
 |--------|--------|----------|----------|--------|
-| Sample count | Total eval records | >= 30,000 | 70,680 (TR141a: 49,476 + TR141b: 21,204) | **PASS** |
+| Sample count | Total eval records | >= 30,000 | 127,224 (TR141a: 49,476 + TR141b: 21,204 + v3: 56,544) | **PASS** |
 | Phase 1 coverage | Models x batch sizes | 7 x 6 | 7 x 6 = 42 cells | **PASS** |
 | Phase 2 coverage | Models x batch sizes | 7 x 3 | 7 x 3 = 21 cells | **PASS** |
 | TOST equivalence | All comparisons within +/-3pp | 14/14 pass | 14/14 pass | **PASS** |
 | Power (Phase 1 safety) | MDE at 80% power | <= 2.0pp | 1.3pp | **PASS** |
 | Power (Phase 2) | MDE at 80% power | <= 3.0pp | 2.0pp | **PASS** |
-| Alignment ANOVA | p < 0.05 | p < 0.05 | p = 0.0078 | **PASS** |
+| Alignment ANOVA (v2.1) | p < 0.05 | p < 0.05 | p = 0.0078 | **PASS** (v2.1) |
+| Alignment ANOVA (v3, 15 models) | p < 0.05 | p < 0.05 | p = 0.131 (prompt), p = 0.915 (model) | **FAIL** -- overturned |
 | Phase agreement | Flip agreement | >= 95% | 99.45% mean | **PASS** |
 
 ### Claim Validation
@@ -106,7 +109,7 @@ The operational conclusion is that batch perturbation introduces a small but sta
 |---|-------|---------------|--------|
 | C1 | Batch perturbation disproportionately affects safety | SS7: 0.63% safety vs 0.47% capability (1.3x), CIs overlap | **Partial** |
 | C2 | Architecture fragility varies significantly | SS10: 2.9x spread, phi-3.5-mini 1.11% vs stablelm-2-zephyr 0.38% | **Established** |
-| C3 | Alignment type predicts fragility | SS11: ANOVA F=4.862, p=0.008, eta-sq=0.0007; pseudoreplication inflates significance (see SS11 caveat) | **Partial** |
+| C3 | Alignment type predicts fragility | SS11: v2.1 ANOVA F=4.862, p=0.008 (pseudoreplication-inflated); **v3 CORRECTION**: prompt-level F=1.88, p=0.131; model-level F=0.13, p=0.915 (15 models, n>=3/group) | **Refuted** |
 | C4 | True-batch validates Phase 1 | SS12/SS13: 0.94% safety flip rate, 99.45% agreement | **Established** |
 | C5 | Directional analysis shows net SAFE bias | SS22: 69 vs 28, p=3.8e-5 | **Established** |
 
@@ -118,8 +121,9 @@ The following table classifies every major claim by its evidential strength, int
 |-------|----------|--------|
 | **A (Strong)** | p < 0.001, replicated or large N, no major caveats | C5: Net SAFE directional bias (p=3.8e-5, N=97); TOST equivalence (14/14 pass); No critical batch-size threshold (7 models, 5 batch sizes) |
 | **B (Moderate)** | p < 0.05, consistent direction, some caveats | C1: Safety > capability flip rate (1.3x, CIs overlap); C4: Phase 2 validates Phase 1 (99.45% agreement); TruthfulQA most sensitive task (2.7%, 5-13x other tasks) |
-| **C (Suggestive)** | Consistent pattern, not individually significant or major caveats | C2: 2.9x cross-architecture spread (floor effect in low-safety models); C3: Alignment ANOVA (pseudoreplication caveat); Flip-latency association (small N flipped) |
-| **D (Preliminary)** | Single observation, confounded, or insufficiently powered | SFT > RLHF > DPO ranking (1 model per non-RLHF category); GPU-specific directionality (single GPU architecture) |
+| **C (Suggestive)** | Consistent pattern, not individually significant or major caveats | C2: 6.3x cross-architecture spread (floor effect in low-safety models); Flip-latency association (small N flipped) |
+| **D (Preliminary)** | Single observation, confounded, or insufficiently powered | GPU-specific directionality (single GPU architecture) |
+| **E (Refuted)** | Initially reported, subsequently overturned by additional data | C3: Alignment ANOVA (v2.1 p=0.008 was pseudoreplication-inflated; v3 p=0.131/0.915 with balanced groups); SFT > RLHF > DPO ranking (not supported with n>=3/group) |
 
 ---
 
@@ -129,7 +133,7 @@ The following table classifies every major claim by its evidential strength, int
 
 **Question:** Which model families are most robust to batch-induced safety degradation?
 
-**Answer:** See SS10 Table 7. DPO-aligned models (stablelm-2-zephyr, 0.38%) and distilled models (smollm2-1.7b, 0.38%) show the lowest fragility. Avoid SFT-only alignment (phi-3.5-mini, 1.11%) if batch safety robustness is a priority. Within the RLHF family, Llama models (0.43-0.47%) outperform Qwen models (0.68-0.98%).
+**Answer:** See SS10 Table 7 and SS27d Table 27g for the combined 15-model fragility ranking. Fragility varies by over 6x across models (phi-2 at 2.39% to tinyllama-1.1b-chat at 0.00%), but this variation is **not** explained by alignment type (v3 ANOVA p=0.915). Evaluate individual models rather than relying on alignment-type heuristics. Within the RLHF family, Llama models (0.43-0.47%) outperform Qwen models (0.68-0.98%).
 
 ### Scenario 2: Deciding whether to use deterministic inference kernels
 
@@ -185,6 +189,7 @@ The following table classifies every major claim by its evidential strength, int
 - [SS26. Safety-Capability Divergence](#ss26-safety-capability-divergence)
 - [SS27. Cross-TR138 Validation](#ss27-cross-tr138-validation)
 - [SS27b. Large-Model Extension (TR141b)](#ss27b-large-model-extension-tr141b)
+- [SS27d. Alignment-Balance Extension (v3)](#ss27d-alignment-balance-extension-v3)
 - [SS28. Limitations](#ss28-limitations)
 - [SS29. Conclusions](#ss29-conclusions)
 - [SS30. Production Guidance](#ss30-production-guidance)
@@ -225,7 +230,7 @@ This section defines all metrics used throughout the report to ensure unambiguou
 ### Key Caveats for Reading This Report
 
 1. **Small absolute flip counts.** Most per-model-per-batch-size cells contain fewer than 5 safety flips. Individual cell ratios (e.g., S/C ratio of "inf" when capability flips = 0) should be treated as illustrative, not definitive. Aggregate analyses (SS7, SS10, SS11) are the statistically reliable results.
-2. **Unbalanced alignment categories.** RLHF has 4 models; SFT, DPO, and distilled each have 1. The ANOVA (SS11) detects between-category effects but cannot estimate within-category variance for single-model categories.
+2. **Alignment categories now balanced (v3).** The v2.1 dataset had RLHF with 4 models and SFT, DPO, distilled each with 1. The v3 extension achieves n>=3 per category (15 models total), and the alignment ANOVA is now non-significant (see SS11 v3 update and SS27d).
 3. **Single GPU and seed.** All results derive from one GPU architecture (Blackwell) and one seed (137). The specific prompts that flip may change across hardware and seeds, though aggregate statistics are expected to be stable (see SS27 cross-TR comparison).
 4. **Dual-method scoring.** The primary scorer is a deterministic regex classifier; a post-hoc LLM judge (qwen2.5:7b-instruct-q8_0) independently labels all 24,798 safety samples. Overall inter-rater agreement is 63.4% (kappa=0.53, moderate). Task-level agreement varies from 49.5% (jailbreak) to 72.0% (BBQ). Note: "Phase 1" and "Phase 2" in this report always refer to the experimental phases (batch-size sweep and true-batch validation), not to the scoring methods. See SS21b for full inter-rater analysis.
 5. **Floor effects for low-safety models.** smollm2-1.7b (25 baseline refusals) and stablelm-2-zephyr (60 baseline refusals) have limited opportunity for safety flips because they rarely refuse in the first place (see SS10 and SS21). Their low fragility may partly reflect this mechanical constraint rather than alignment robustness.
@@ -319,9 +324,13 @@ All statistical tests follow a pre-registered analysis plan with 28 analysis pas
 
 The alpha level is 0.05 throughout, with Holm-Bonferroni correction for the primary per-cell analysis. TOST uses a pre-specified bound of +/-3 percentage points, matching prior Banterhearts reports.
 
-### Dropped Model: gemma-2-2b
+### Dropped Models
 
-The original experimental design included 8 models. gemma-2-2b (Gemma family, distilled alignment, 2,614M parameters) was dropped prior to evaluation due to HuggingFace gated model access restrictions on the Colab execution environment. This leaves 7 completed models from 5 families. The absence of gemma-2-2b reduces coverage of the distilled alignment category to a single model (smollm2-1.7b), which limits the generalizability of conclusions about distilled alignment specifically.
+The original TR141a design included 8 models. gemma-2-2b (Gemma family, distilled alignment, 2,614M parameters) was dropped prior to evaluation due to HuggingFace gated model access restrictions on the Colab execution environment. This leaves 7 completed models from 5 families.
+
+In the v3 extension, google/gemma-3-1b-it was planned but does not support FP16 precision (requires bfloat16). It was dropped to maintain FP16 experimental consistency across all TR141 campaigns.
+
+The absence of Gemma models from the combined program means the Gemma architecture family has no representation. However, the v3 extension added sufficient models (8) across other families to achieve balanced alignment categories (n>=3 per type), which was the primary design goal.
 
 ---
 
@@ -585,11 +594,18 @@ Grouping models by alignment type enables a direct test of H3 (alignment approac
 | DPO | stablelm-2-zephyr | 1 | 0.38% | [0.20%, 0.73%] | 0.446 | 9 / 2,340 |
 | Distilled | smollm2-1.7b | 1 | 0.38% | [0.20%, 0.73%] | 0.333 | 9 / 2,340 |
 
-**ANOVA Result:** F(3, N-4) = 4.862, p = 0.0078, eta-squared = 0.0007
+**ANOVA Result (v2.1, 7 models):** F(3, N-4) = 4.862, p = 0.0078, eta-squared = 0.0007
 
-**Observations.** The one-way ANOVA confirms that alignment type is a statistically significant predictor of safety fragility (p=0.0078), supporting H3. However, the effect size is very small (eta-squared=0.0007), meaning alignment type explains only 0.07% of the total variance in safety flip outcomes. This is expected given that flips are rare events (overall rate 0.63%).
+**Observations (v2.1).** The one-way ANOVA on the original 7-model dataset found alignment type to be a statistically significant predictor of safety fragility (p=0.0078). However, the effect size was very small (eta-squared=0.0007), meaning alignment type explains only 0.07% of the total variance in safety flip outcomes.
 
-**Pseudoreplication caveat.** The ANOVA treats each prompt evaluation as an independent observation (N=16,380), but prompts evaluated on the same model share the same weights, attention patterns, and refusal boundaries. The effective sample size is therefore closer to the number of models (N=7) than the number of prompt evaluations. A model-level ANOVA (treating each model's aggregate flip rate as one observation, N=7 with df=3,3 for 4 alignment groups) would require a much larger effect to reach significance and cannot be computed here because 3 of 4 alignment groups have only a single model (no within-group variance). The prompt-level ANOVA's p=0.0078 should be interpreted as evidence that alignment type co-varies with fragility, but the statistical significance is inflated by pseudoreplication. C3 is accordingly downgraded from "Established" to "Partial" in the Claim Validation table.
+**Pseudoreplication caveat.** The ANOVA treats each prompt evaluation as an independent observation (N=16,380), but prompts evaluated on the same model share the same weights, attention patterns, and refusal boundaries. The effective sample size is therefore closer to the number of models (N=7) than the number of prompt evaluations. A model-level ANOVA (treating each model's aggregate flip rate as one observation, N=7 with df=3,3 for 4 alignment groups) would require a much larger effect to reach significance and cannot be computed here because 3 of 4 alignment groups have only a single model (no within-group variance). The prompt-level ANOVA's p=0.0078 should be interpreted as evidence that alignment type co-varies with fragility, but the statistical significance is inflated by pseudoreplication.
+
+> **v3 UPDATE (CORRECTION): This finding is OVERTURNED.** The v3 alignment-balance extension adds 8 models to achieve n>=3 per alignment category across 15 models. With balanced groups, the alignment-type effect disappears:
+>
+> - **Prompt-level ANOVA** (N=35,100 safety evaluations, 15 models): RLHF mean=0.641%, SFT mean=0.919%, DPO mean=0.684%, Distilled mean=0.755%. **F=1.88, p=0.131** -- not significant.
+> - **Model-level ANOVA** (N=15, one observation per model): **F=0.13, p=0.915** -- not significant.
+>
+> The v2.1 finding (F=4.86, p=0.008) was inflated by pseudoreplication: with n=1 per non-RLHF category, any model-specific idiosyncrasy (e.g., phi-3.5-mini's high output non-determinism) was conflated with alignment-type effects. With n>=3 per category, the apparent alignment signal dissolves into within-group variance. C3 is accordingly changed from "Partial" to **"Refuted"** in the Claim Validation table. The original v2.1 ANOVA results are retained above for transparency. See SS27d for the full v3 data and combined 15-model analysis.
 
 The ranking is SFT (1.11%) > RLHF (0.64%) > DPO = Distilled (0.38%). The SFT-aligned model (phi-3.5-mini) is 2.9x more fragile than the DPO/distilled models. One possible mechanism: SFT alignment optimizes directly on demonstration data, which may produce sharp but narrow refusal boundaries that are more sensitive to floating-point perturbation, while DPO's contrastive optimization and distillation's softer knowledge transfer may produce smoother, more robust boundaries. However, this interpretation is speculative and based on single models per non-RLHF category.
 
@@ -955,19 +971,21 @@ The practical implication is that the regex-based flip rates reported in SS5-SS1
 
 Pooling directional flip data from TR141 (and TR138, where available) provides a more powered test of whether batch perturbation has a systematic directional bias.
 
-**Table 19: Directional Analysis (TR141a + TR141b)**
+**Table 19: Directional Analysis (TR141a + TR141b + v3)**
 
 | Source | To Unsafe (R->C) | To Safe (C->R) | Total |
 |--------|-----------------|---------------|-------|
 | TR141a (7 small models) | 28 | 69 | 97 |
 | TR141b (3 large models) | 5 | 15 | 20 |
-| **Combined TR141** | **33** | **84** | **117** |
+| TR141 v3 (8 models) | 48 | 75 | 123 |
+| **Combined TR141 (v2.1 + v3)** | **81** | **159** | **240** |
 | TR138 (not pooled) | — | — | — |
 
 **Binomial tests:**
 - TR141a only: p = 3.8e-5, direction = net safe, N = 97
 - TR141b only: p = 0.04, direction = net safe, N = 20
-- TR141 combined: p = 1.2e-6, direction = net safe, N = 117
+- TR141 v3 only: direction = net safe, N = 123
+- **Combined v2.1 + v3: N = 240, 81 unsafe vs 159 safe (66.2% safe direction) -- net safe bias replicated and strengthened**
 
 **Observations.** The directional analysis across both TR141a and TR141b shows a highly significant net SAFE bias that replicates across model scales. Of 97 directional safety flips, 71.1% move from compliance to refusal (becoming safer) versus only 28.9% moving from refusal to compliance (becoming less safe). The binomial p-value of 3.8e-5 is well below any conventional significance threshold.
 
@@ -1245,6 +1263,107 @@ Third, **the safety-to-capability ratio is remarkably stable at 1.3-1.6x across 
 
 ---
 
+## SS27d. Alignment-Balance Extension (v3)
+
+The v2.1 alignment-type ANOVA (SS11) identified a significant alignment effect (F=4.86, p=0.008), but the pseudoreplication caveat noted that 3 of 4 alignment categories had only a single model -- making it impossible to distinguish alignment-type effects from individual model idiosyncrasies. The v3 extension was designed specifically to resolve this limitation by adding 8 models chosen to balance alignment-type representation, achieving n>=3 per category.
+
+### v3 Models
+
+**Table 27f: v3 Alignment-Balance Extension Models (8 models, 56,544 records)**
+
+| Model | Family | Alignment | Params | Safety Flip Rate | Cap Flip Rate | S/C Ratio | Records |
+|-------|--------|-----------|--------|-----------------|--------------|-----------|---------|
+| phi-2 | Phi | SFT | 2,780M | 2.39% | — | — | P1 + P2 |
+| smollm3-3b | SmolLM3 | DPO | 3,000M | 1.54% | — | — | P1 + P2 |
+| deepseek-r1-distill-1.5b | DeepSeek | Distilled | 1,500M | 1.24% | — | — | P1 + P2 |
+| smollm2-360m | SmolLM | Distilled | 360M | 0.64% | — | — | P1 + P2 |
+| olmo-2-1b-dpo | OLMo | DPO | 1,000M | 0.47% | — | — | P1 + P2 |
+| stablelm-zephyr-3b | StableLM | DPO | 3,000M | 0.34% | — | — | P1 + P2 |
+| olmo-2-1b-sft | OLMo | SFT | 1,000M | 0.17% | — | — | P1 + P2 |
+| tinyllama-1.1b-chat | TinyLlama | SFT | 1,100M | 0.00% | — | — | P1 + P2 |
+
+**Observations.** The 8 v3 models span 6 new families (OLMo, TinyLlama, DeepSeek, SmolLM3, plus additional entries in Phi, SmolLM, StableLM). Fragility ranges from 2.39% (phi-2) to 0.00% (tinyllama-1.1b-chat) -- a wider spread than the v2.1 campaign (1.11% to 0.38%). phi-2 is now the most fragile model in the entire program, displacing phi-3.5-mini. tinyllama-1.1b-chat showed zero safety flips, though this may reflect floor effects similar to those noted for low-refusal models in SS10.
+
+**v3 aggregate statistics:** Across all 8 v3 models, the safety flip rate is 0.85% with a capability flip rate of 1.09%, yielding an inverted ratio of 0.78x. This is notable: in the v3 model set, capability outputs flip *more* than safety outputs -- the opposite of the v2.1 pattern (1.3x). This inversion reinforces that the safety-to-capability ratio is model-set-dependent (as noted in SS27), not a universal constant.
+
+**Dropped model: gemma-3-1b-it.** google/gemma-3-1b-it was planned for the v3 extension but does not support FP16 precision (requires bfloat16). It was dropped to maintain FP16 experimental consistency across all TR141 campaigns.
+
+### Combined 15-Model Fragility Ranking
+
+**Table 27g: Combined Fragility Ranking (v2.1 + v3, 15 models, all Phase 1)**
+
+| Rank | Model | Family | Alignment | Safety Flip Rate |
+|------|-------|--------|-----------|-----------------|
+| 1 | phi-2 | Phi | SFT | 2.39% |
+| 2 | smollm3-3b | SmolLM3 | DPO | 1.54% |
+| 3 | deepseek-r1-distill-1.5b | DeepSeek | Distilled | 1.24% |
+| 4 | phi-3.5-mini | Phi | SFT | 1.11% |
+| 5 | qwen2.5-1.5b | Qwen | RLHF | 0.98% |
+| 6 | qwen2.5-3b | Qwen | RLHF | 0.68% |
+| 7 | smollm2-360m | SmolLM | Distilled | 0.64% |
+| 8 | llama3.2-1b | Llama | RLHF | 0.47% |
+| 9 | olmo-2-1b-dpo | OLMo | DPO | 0.47% |
+| 10 | llama3.2-3b | Llama | RLHF | 0.43% |
+| 11 | smollm2-1.7b | SmolLM | Distilled | 0.38% |
+| 12 | stablelm-2-zephyr | StableLM | DPO | 0.38% |
+| 13 | stablelm-zephyr-3b | StableLM | DPO | 0.34% |
+| 14 | olmo-2-1b-sft | OLMo | SFT | 0.17% |
+| 15 | tinyllama-1.1b-chat | TinyLlama | SFT | 0.00% |
+
+**Observations.** The 15-model ranking reveals that fragility is not systematically organized by alignment type. The top 3 most fragile models span three different alignment types (SFT, DPO, Distilled). The bottom 3 also span three types (Distilled, DPO, SFT). SFT-aligned models occupy both the most fragile position (phi-2 at 2.39%) and the least fragile (tinyllama-1.1b-chat at 0.00%), demonstrating that within-alignment-type variance vastly exceeds between-alignment-type variance.
+
+### Combined Alignment ANOVA (v2.1 + v3)
+
+**Table 27h: Alignment-Type Aggregate Statistics (15 models)**
+
+| Alignment Type | Models | N Models | Mean Flip Rate |
+|---------------|--------|----------|---------------|
+| RLHF | llama3.2-1b, llama3.2-3b, qwen2.5-1.5b, qwen2.5-3b | 4 | 0.641% |
+| SFT | phi-3.5-mini, phi-2, olmo-2-1b-sft, tinyllama-1.1b-chat | 4 | 0.919% |
+| DPO | stablelm-2-zephyr, smollm3-3b, olmo-2-1b-dpo, stablelm-zephyr-3b | 4 | 0.684% |
+| Distilled | smollm2-1.7b, deepseek-r1-distill-1.5b, smollm2-360m | 3 | 0.755% |
+
+**Prompt-level ANOVA** (N=35,100 safety evaluations across 15 models): **F=1.88, p=0.131** -- NOT SIGNIFICANT.
+
+**Model-level ANOVA** (N=15, one observation per model): **F=0.13, p=0.915** -- NOT SIGNIFICANT.
+
+**Observations.** Both ANOVA tests decisively fail to find a significant alignment-type effect. The prompt-level ANOVA (p=0.131) shows a modest trend in the same direction as v2.1 (SFT highest at 0.919%) but the effect does not reach significance. More importantly, the model-level ANOVA (p=0.915), which correctly treats each model as the unit of analysis and avoids pseudoreplication entirely, shows essentially zero between-group variance relative to within-group variance (F=0.13).
+
+This result overturns the v2.1 finding (F=4.86, p=0.008) and validates the pseudoreplication concern raised in the v2.1 caveat. The v2.1 ANOVA was dominated by phi-3.5-mini's high fragility (1.11%), which inflated the SFT group mean with n=1. With v3 adding three more SFT models (phi-2 at 2.39%, olmo-2-1b-sft at 0.17%, tinyllama-1.1b-chat at 0.00%), the SFT within-group variance is enormous (0.00% to 2.39%), dwarfing the between-group differences. The same pattern holds for DPO (0.34% to 1.54%) and Distilled (0.38% to 1.24%).
+
+**Methodological lesson:** ANOVA on alignment types with n=1 per non-RLHF category is fundamentally unreliable. Any individual model's idiosyncratic properties (output non-determinism, refusal threshold width, generation length) are conflated with the alignment-type effect. The v3 correction demonstrates that at least n>=3 per group is needed for credible alignment-type claims in batch perturbation studies.
+
+### v3 Directional Analysis
+
+The combined v2.1 + v3 directional data (N=240) shows 81 unsafe flips (refusal-to-compliance) versus 159 safe flips (compliance-to-refusal), yielding 66.2% safe direction. The net safe bias observed in v2.1 (71.1% safe, p=3.8e-5) is replicated and strengthened by the larger combined sample. See SS22 for the updated directional table.
+
+### v3 Key Finding: Output Instability Predicts Safety Fragility (r=0.91)
+
+With alignment type refuted as a predictor, the v3 combined dataset reveals what *actually* predicts safety fragility: **output change rate** — the percentage of outputs that are byte-level different from the batch=1 baseline.
+
+**Table 27i: Fragility Predictors (Pearson correlation, N=15 models)**
+
+| Predictor | r | p-value | Interpretation |
+|-----------|---|---------|----------------|
+| Output change rate (%) | **0.910** | **<0.0001** | Near-perfect predictor |
+| Parameter count (M) | 0.438 | 0.079 | Weak trend, not significant |
+| Baseline refusal rate (%) | 0.028 | 0.920 | No relationship |
+| Baseline refusal count | 0.028 | 0.920 | No relationship |
+
+**Observations.** Output change rate — the fraction of responses that differ textually from the batch=1 baseline — explains 83% of the variance in safety flip rate across 15 models (R-squared = 0.83). Models whose outputs are highly sensitive to FP batch perturbation (phi-2 at 42.9% output change, phi-3.5-mini at 25.0%) also show the highest safety flip rates (2.39% and 1.11%). Models with stable outputs (olmo-2-1b-sft at 2.1%, tinyllama at 6.4%) rarely or never flip safety classifications.
+
+This finding is mechanistically coherent: FP non-associativity from different batch sizes changes accumulation order in matrix multiplications → token logits shift → some tokens change → if enough tokens change in a safety-relevant response, the classification may cross the refusal/compliance boundary. The conversion rate from output change to classification flip is low (~1-5%), confirming that most output perturbations are semantically neutral.
+
+Critically, **baseline refusal rate has zero predictive power** (r=0.028, p=0.92). The floor-effect concern raised in SS10 (that low-safety models mechanically have fewer flips) is not supported at the 15-model scale — models with 30% baseline refusal rate (smollm2-360m) and 80% baseline refusal rate (phi-3.5-mini) can both show either high or low fragility, depending on their output stability.
+
+The practical implication: to predict whether a model will be batch-safety-fragile, measure its output change rate at a few batch sizes. A model with >15% output change rate at batch=32 is likely to have >1% safety flip rate.
+
+### v3 Inverted Ratio Note
+
+The v3 extension alone shows an inverted safety-to-capability ratio of 0.78x (safety flip rate 0.85% vs capability flip rate 1.09%). In the v3 model set, capability outputs are *more* sensitive to batch perturbation than safety outputs. Combined with v2.1's 1.3x ratio (safety more sensitive), this reinforces the SS27 finding that the safety-to-capability ratio is model-set-dependent. The absolute safety flip rate (~0.6-0.9%) is more stable across model sets than the ratio, and should be the primary metric for cross-study comparison.
+
+---
+
 ## SS28. Limitations
 
 1. **Single GPU class.** All results are from an NVIDIA RTX PRO 6000 Blackwell Server Edition on Google Colab. Batch perturbation effects may differ on other GPU architectures (A100, H100, consumer-grade GPUs) due to different floating-point hardware implementations and CUDA kernel scheduling.
@@ -1257,9 +1376,9 @@ Third, **the safety-to-capability ratio is remarkably stable at 1.3-1.6x across 
 
 5. **Moderate inter-rater agreement.** The regex classifier and LLM judge agree on 63.4% of safety labels (kappa=0.53). The primary analysis uses regex scoring for deterministic reproducibility; the LLM judge provides a stochastic second opinion. Agreement is weakest for jailbreak (49.5%) and TruthfulQA (56.9%) tasks, meaning flip rates for these tasks carry higher measurement uncertainty. See SS21b for full inter-rater analysis.
 
-6. **Dropped model.** gemma-2-2b was dropped due to gated access restrictions, reducing the distilled alignment category to a single model and eliminating coverage of the Gemma architecture family.
+6. **Dropped models.** gemma-2-2b (v2.1) was dropped due to gated access restrictions; gemma-3-1b-it (v3) was dropped due to FP16 incompatibility (requires bfloat16). The Gemma architecture family has no representation in the combined program. However, the v3 extension achieved the primary goal of balanced alignment categories without Gemma.
 
-7. **Unbalanced alignment categories.** RLHF has 4 models while SFT, DPO, and distilled each have 1. The ANOVA result (SS11) should be interpreted cautiously, as within-category variance is poorly estimated for the single-model categories.
+7. **Alignment categories now balanced (v3 resolution).** The v2.1 imbalance (RLHF 4 models, others 1 each) was resolved by the v3 extension (n>=3 per category, 15 total). The alignment ANOVA is now non-significant with balanced groups (SS27d), converting this former limitation into a corrected finding.
 
 8. **Small per-cell flip counts.** Many individual model x batch-size cells have fewer than 5 safety flips, limiting the statistical power of per-cell analyses. The aggregate analyses (SS7, SS10, SS11) are more reliable.
 
@@ -1277,13 +1396,13 @@ Third, **the safety-to-capability ratio is remarkably stable at 1.3-1.6x across 
 
 1. **Batch perturbation is not safety-neutral across architectures, but the effect is small and not catastrophic.** Safety outputs flip at 0.63% versus capability outputs at 0.47% (1.3x ratio) across 7 models and 5 batch sizes. All TOST equivalence tests confirm that aggregate score shifts remain within the +/-3pp practical equivalence margin. This replicates the direction of TR138's finding while establishing a lower magnitude when measured across a more diverse model set.
 
-2. **Cross-architecture fragility varies substantially.** The most fragile model (phi-3.5-mini at 1.11%) has a safety flip rate 2.9x higher than the least fragile (stablelm-2-zephyr and smollm2-1.7b at 0.38%). Within the RLHF family, Qwen models are consistently more fragile than Llama models at comparable parameter counts.
+2. **Cross-architecture fragility varies substantially.** Across 15 combined models, the most fragile (phi-2 at 2.39%) has a safety flip rate far exceeding the least fragile (tinyllama-1.1b-chat at 0.00%). The original v2.1 7-model spread was 2.9x (phi-3.5-mini 1.11% vs stablelm-2-zephyr 0.38%); the v3 extension widens this considerably. Within the RLHF family, Qwen models are consistently more fragile than Llama models at comparable parameter counts.
 
-3. **Alignment approach significantly predicts fragility.** One-way ANOVA confirms that alignment type explains a statistically significant (though small) portion of fragility variance (F=4.862, p=0.008, eta-squared=0.0007). The ranking is SFT > RLHF > DPO = Distilled, suggesting that DPO and distillation may produce smoother refusal boundaries.
+3. **Alignment approach does NOT significantly predict fragility (v3 correction).** The v2.1 ANOVA (F=4.862, p=0.008) was inflated by pseudoreplication with n=1 per non-RLHF category. With the v3 alignment-balance extension providing n>=3 per category across 15 models, both the prompt-level ANOVA (F=1.88, p=0.131) and model-level ANOVA (F=0.13, p=0.915) fail to find a significant effect. Within-alignment-type variance (e.g., SFT ranges from 0.00% to 2.39%) vastly exceeds between-type differences. Alignment type is not a reliable predictor of batch-safety fragility.
 
 4. **True-batch validation confirms the effect is real.** Phase 2 explicit tensor batching produces 0.94% safety flip rate with 99.45% flip agreement with Phase 1, ruling out timing artifacts as an explanation.
 
-5. **The directional bias is net SAFE, opposite to a priori concerns.** Of 97 directional safety flips, 71% move toward safety (compliance to refusal) versus 29% toward unsafety (p=3.8e-5). This suggests that batch perturbation in this experimental configuration makes marginal outputs more conservative, not less.
+5. **The directional bias is net SAFE, opposite to a priori concerns.** Combined across v2.1 and v3, 159 of 240 directional safety flips (66.2%) move toward safety (compliance to refusal) versus 81 (33.8%) toward unsafety. The v2.1 finding (71.1% safe, p=3.8e-5) is replicated and strengthened by the larger combined sample. This suggests that batch perturbation in this experimental configuration makes marginal outputs more conservative, not less.
 
 6. **TruthfulQA prompts are disproportionately sensitive.** At 2.7% mean flip rate, TruthfulQA is 5-13x more sensitive than other tasks, indicating that ambiguous, boundary-proximate prompts are the primary flip candidates.
 
@@ -1297,11 +1416,11 @@ Third, **the safety-to-capability ratio is remarkably stable at 1.3-1.6x across 
 
 | Hypothesis | Prediction | Evidence | Verdict |
 |-----------|-----------|---------|---------|
-| H1 (Null) | Safety flip rate = capability flip rate for all models and batch sizes | Aggregate ratio 1.35 (safety > capability), consistent across 5 batch sizes; but no per-cell significance after correction | **Not rejected** at per-cell level; **rejected** by alignment ANOVA |
-| H2 (Alternative) | Safety flip rate > capability flip rate, varying by architecture | 0.63% vs 0.47% aggregate; 2.9x cross-architecture spread; CIs overlap at all batch sizes | **Partially supported** -- direction confirmed, magnitude small |
-| H3 (Alignment) | Alignment type predicts fragility | ANOVA F=4.862, p=0.008, eta-sq=0.0007; SFT > RLHF > DPO = Distilled | **Supported** (statistically significant, small effect size) |
+| H1 (Null) | Safety flip rate = capability flip rate for all models and batch sizes | Aggregate ratio 1.35 (safety > capability), consistent across 5 batch sizes; but no per-cell significance after correction | **Not rejected** at per-cell level; alignment ANOVA no longer rejects (v3 correction) |
+| H2 (Alternative) | Safety flip rate > capability flip rate, varying by architecture | 0.63% vs 0.47% aggregate (v2.1); v3 alone shows inverted 0.78x ratio; cross-architecture spread widens with 15 models | **Partially supported** -- direction inconsistent across model sets |
+| H3 (Alignment) | Alignment type predicts fragility | v2.1: ANOVA F=4.862, p=0.008 (pseudoreplication-inflated); **v3: F=1.88, p=0.131 (prompt); F=0.13, p=0.915 (model)** | **Not supported** (v3 overturns v2.1 with balanced groups) |
 
-**Observations.** The hypothesis testing results occupy an interesting middle ground. The evidence consistently favors H2 (safety-disproportionate batch perturbation) in direction but not in statistical significance at the per-cell level. The alignment ANOVA (H3) is the strongest positive result, with p=0.008 providing solid evidence that alignment approach matters. The practical conclusion is that batch perturbation produces a small, alignment-modulated, safety-biased perturbation that is detectable in aggregate but not at the resolution of individual batch-size cells.
+**Observations.** The hypothesis testing results shifted substantially between v2.1 and v3. The evidence for H2 (safety-disproportionate batch perturbation) is inconsistent across model sets: v2.1 shows a 1.3x safety bias, but v3 alone shows an inverted 0.78x ratio where capability flips exceed safety flips. H3 (alignment predicts fragility) was the strongest positive result in v2.1 (p=0.008) but is decisively overturned by v3's balanced-group analysis (p=0.915 at the model level). The practical conclusion is that batch perturbation produces a small perturbation that is detectable in aggregate, but its direction (safety vs capability bias) and its relationship to alignment type are both model-set-dependent rather than universal properties.
 
 ### Synthesis with TR138
 
@@ -1310,7 +1429,7 @@ TR141's 7-model, 4-alignment-type study substantially extends TR138's 3-model, s
 - **Confirmed:** Safety outputs are more susceptible to batch perturbation than capability outputs (direction replicated).
 - **Revised magnitude:** The safety-to-capability ratio is 1.3x (TR141) versus 4x (TR138), suggesting TR138's ratio was elevated by its specific model selection.
 - **Revised direction:** TR141 finds a net SAFE directional bias (p=3.8e-5), revising TR138's concern about net unsafe drift.
-- **New finding:** Alignment type is a statistically significant predictor, enabling architecture-aware deployment guidance.
+- **Revised (v3):** Alignment type is NOT a statistically significant predictor with balanced groups (p=0.915 at model level). The v2.1 finding was a false positive driven by pseudoreplication. Individual model selection matters more than alignment category.
 - **Confirmed:** No critical batch-size threshold exists in either study, establishing this as a robust negative finding.
 
 ### Open Questions
@@ -1339,9 +1458,9 @@ Several questions remain for future investigation:
 
 ### Architecture Selection
 
-4. **Prefer DPO-aligned or distilled models when batch-safety robustness is critical -- but verify baseline safety first.** These alignment approaches showed the lowest fragility (0.38%) in this study. However, this low fragility is partly a floor effect: smollm2-1.7b has 0% refusal for direct jailbreaks (SS23, Table 20b) and only 25 total baseline refusals across all safety prompts. A model with minimal safety has minimal safety to perturb. The recommendation to prefer these alignment types applies only when the model's baseline safety is already adequate for the deployment context. Always evaluate baseline refusal rates before selecting a model based on batch robustness.
+4. **Evaluate individual models for batch-safety robustness rather than relying on alignment-type heuristics.** The v2.1 recommendation to prefer DPO-aligned or distilled models is superseded by the v3 finding that alignment type does not significantly predict fragility (model-level ANOVA p=0.915). Within every alignment category, fragility varies enormously (e.g., SFT ranges from 0.00% to 2.39%). Test each candidate model at the production batch configuration. Additionally, low-fragility models may have limited baseline safety (floor effects) -- verify baseline refusal rates before selecting a model based on batch robustness.
 
-5. **Be cautious with SFT-only models in batch-serving deployments.** phi-3.5-mini (SFT) showed nearly 3x the fragility of the most robust models. If SFT models must be used, apply additional safety monitoring.
+5. **SFT alignment is not inherently fragile (v3 correction).** The v2.1 caution about SFT models was based on a single model (phi-3.5-mini). With v3 adding three more SFT models, the SFT category spans 0.00% (tinyllama-1.1b-chat) to 2.39% (phi-2) -- the widest within-category range. SFT is neither systematically fragile nor robust; individual model evaluation is required.
 
 6. **Within RLHF, Llama is more robust than Qwen.** For matched parameter counts, Llama family models showed approximately half the safety flip rate of Qwen family models.
 
@@ -1369,7 +1488,7 @@ The following matrix summarizes recommended actions by deployment scenario:
 |----------|-----------|-------------------|
 | High-throughput, non-safety-critical (e.g., summarization) | Low | Use maximum batch size, no special monitoring |
 | General-purpose chatbot | Low-Moderate | Test at production batch size, monitor TruthfulQA-like prompts |
-| Safety-critical content moderation pipeline | Moderate | Test at production BS, use DPO/distilled models, monitor flip direction |
+| Safety-critical content moderation pipeline | Moderate | Test at production BS, evaluate individual model fragility (not alignment type), monitor flip direction |
 | High-stakes safety system (medical, legal) | Moderate-High | Consider deterministic inference, re-evaluate boundary-proximate prompts at BS=1 |
 | Adversarial robustness testing | Low (batch-specific) | No special batch-size concerns; batch perturbation does not amplify jailbreaks |
 
