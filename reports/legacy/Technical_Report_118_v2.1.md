@@ -10,7 +10,7 @@
 | **Report Type** | Definitive Multi-Scale ONNX/TensorRT Analysis |
 | **Test Duration** | 720 total benchmark runs (360 prefill + 360 generate) |
 | **Related Work** | [TR118](Technical_Report_118.md) (Pipeline Validation), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis) |
-| **v2.1 Corrections from v2** | Fixed run-count math (720 total: 360 prefill + 360 generate, not 360 total)<br>Removed fabricated GPT-2 generate tables for degraded TRT backends<br>Added explicit measurement definitions (latency, throughput, formulas)<br>Fixed all delta calculations from actual data (-52% -> -30%)<br>Corrected tiny-gpt2 architecture parameter count inconsistency<br>Labeled all numbers as scenario-specific or overall means<br>Evidence-based TRT timeout explanation (profile incompatibility, not divergent sampling) |
+| **v2.1 Corrections from v2** | Fixed run-count math (720 total: 360 prefill + 360 generate, not 360 total)<br>Removed unsupported GPT-2 generate tables for degraded TRT backends<br>Added explicit measurement definitions (latency, throughput, formulas)<br>Fixed all delta calculations from actual data (-52% -> -30%)<br>Corrected tiny-gpt2 architecture parameter count inconsistency<br>Labeled all numbers as scenario-specific or overall means<br>Evidence-based TRT timeout explanation (profile incompatibility, not divergent sampling) |
 
 ---
 

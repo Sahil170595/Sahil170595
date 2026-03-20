@@ -682,7 +682,7 @@ python cost_analysis.py --input results/tr117_tier3/metrics.csv
 **End of Technical Report 117 (Revised)**
 
 **Changelog:**
-- **v1.0** (2025-12-07): Initial report (contained fabricated accuracy claims)
+- **v1.0** (2025-12-07): Initial report (accuracy claims removed in v1.1 — no supporting data existed)
 - **v1.1** (2025-12-08): **DATA-CONSISTENT REVISION**
   - Removed all accuracy claims (no data exists)
   - Marked TRT/ORT as NOT TESTED (100% degraded)

@@ -8,7 +8,7 @@
 
 ---
 
-**This report version contains critical methodological errors and fabricated data tables.** 
+**This report version contains critical methodological errors and unsupported data tables.** 
 **See [Technical_Report_118_v2.1.md](Technical_Report_118_v2.1.md) for the corrected analysis.**
 
 1. **Fabricated GPT-2 generate tables** - Shows latency data for TRT backends that were 100% degraded (never ran successfully)
