@@ -12,13 +12,13 @@
 
 ## Executive Summary
 
-This report presents a comprehensive benchmark of **5 inference backends** for local-first LLM serving: PyTorch transformers (CPU/GPU, with and without torch.compile) and Ollama. Across **3,017 total runs** (2,471 successful, 546 degraded), we measured latency, throughput, and cost efficiency.
+This report presents a benchmark of **5 inference backends** (3 successfully tested, 2 failed infrastructure checks) for local-first LLM serving: PyTorch transformers (CPU/GPU, with and without torch.compile) and Ollama. Across **3,017 total runs** (2,471 successful, 546 degraded), we measured latency, throughput, and cost efficiency.
 
 ### Key Findings
 
-1. **GPU-compile wins on mean** (389ms) and cost ($0.045/1M tokens)
+1. **GPU-compile wins on mean** (389ms) and cost ($0.045/1M tokens) (based on flat $0.035/hr for all hardware; see Section 6 limitations)
 2. **Plain GPU wins on median** (323ms) - **compile paradox discovered**
-3. **Ollama 8.8x slower** than GPU-compile (3,411ms vs 389ms mean)
+3. **Ollama 8.8x slower** than GPU-compile (3,411ms vs 389ms mean) (confounded by model size: transformers tested tiny-gpt2 124M, Ollama tested 270M-8B)
 4. **CPU compilation ineffective** (2% improvement, p=0.826, not significant)
 5. **TensorRT/ONNXRuntime infrastructure failed** (100% degraded runs)
 
@@ -31,7 +31,7 @@ WARNING **This report reflects ACTUAL test results, not aspirations:**
 - **Single hardware:** RTX 4080 laptop only
 - **Synthetic prompts:** Not production workload traces
 
-**Bottom Line:** For production, **transformers-gpu-compile** delivers best mean latency and cost, but plain GPU has slightly better median. Ollama viable only when model flexibility outweighs 8.8x performance penalty.
+**Bottom Line:** In this benchmark, **transformers-gpu-compile** delivers best mean latency and cost, but plain GPU has slightly better median. Ollama viable only when model flexibility outweighs 8.8x performance penalty (confounded by model size: transformers tested tiny-gpt2 124M, Ollama tested 270M-8B).
 
 ---
 
@@ -102,8 +102,7 @@ Local-first LLM inference requires choosing the optimal backend for speed, cost,
 
 **Latency:**
 - Mean, median, std dev, min, max
-- Time-to-first-token (TTFT)
-- p50, p95, p99
+- TTFT, p50, p95, p99: listed but not reported in this revision
 
 **Throughput:**
 - Tokens/second
@@ -111,7 +110,7 @@ Local-first LLM inference requires choosing the optimal backend for speed, cost,
 
 **Cost:**
 - $/1M tokens (based on $0.035/hour GPU cost)
-- Compute efficiency (tokens/$ and tokens/joule not measured)
+- Compute efficiency (tokens/$)
 
 **Reliability:**
 - Success rate (ok vs degraded vs error)
@@ -127,10 +126,11 @@ Local-first LLM inference requires choosing the optimal backend for speed, cost,
 
 ### 2.6 Statistical Analysis
 
-- **Tests:** Paired t-tests, ANOVA, Bonferroni correction
+- **Tests:** Independent-samples t-tests, ANOVA, Bonferroni correction (corrected alpha = 0.05/4 = 0.0125 for 4 pairwise comparisons)
 - **Effect sizes:** Cohen's d
-- **Confidence intervals:** 95% bootstrap
-- **Significance threshold:** p < 0.05
+- **Confidence intervals:** not computed for this revision
+- **Significance threshold:** p < 0.05 (p < 0.0125 after Bonferroni correction)
+- **Note:** GPU-compile vs Ollama comparison is between different models and cannot be interpreted as a backend-isolated effect.
 
 ---
 
@@ -138,22 +138,24 @@ Local-first LLM inference requires choosing the optimal backend for speed, cost,
 
 ### 3.1 Summary Table
 
-| Backend | Successful Runs | Mean (ms) | Median (ms) | Std (ms) | Cost ($/1M tok) | Throughput (tok/s) |
-|---------|----------------|-----------|-------------|----------|-----------------|-------------------|
-| **transformers-gpu-compile** | 273 | **389.2** | 328.7 | 117.8 | **$0.045** | **215.2** |
-| transformers-gpu | 273 | 404.1 | **322.7** | 223.9 | $0.046 | 211.7 |
-| transformers-cpu-compile | 273 | 559.3 | 526.7 | 103.5 | $0.071 | 137.3 |
-| transformers-cpu | 287 | 570.6 | 530.4 | 117.2 | $0.074 | 132.2 |
-| ollama | 1,365 | 3,410.5 | 1,238.5 | 3,874.9 | $0.106 | 91.9 |
-| **tensorrt** | **0** | **N/A** | **N/A** | **N/A** | **N/A** | **N/A** |
-| **onnxruntime** | **0** | **N/A** | **N/A** | **N/A** | **N/A** | **N/A** |
+| Backend | Primary Model | Successful Runs | Mean (ms) | Median (ms) | Std (ms) | Cost ($/1M tok) | Throughput (tok/s) |
+|---------|--------------|----------------|-----------|-------------|----------|-----------------|-------------------|
+| **transformers-gpu-compile** | tiny-gpt2 (124M) | 273 | **389.2** | 328.7 | 117.8 | **$0.045** | **215.2** |
+| transformers-gpu | tiny-gpt2 (124M) | 273 | 404.1 | **322.7** | 223.9 | $0.046 | 211.7 |
+| transformers-cpu-compile | tiny-gpt2 (124M) | 273 | 559.3 | 526.7 | 103.5 | $0.071 | 137.3 |
+| transformers-cpu | tiny-gpt2 (124M) | 287 | 570.6 | 530.4 | 117.2 | $0.074 | 132.2 |
+| ollama | 270M-8B (mixed) | 1,365 | 3,410.5 | 1,238.5 | 3,874.9 | $0.106 | 91.9 |
+| **tensorrt** | — | **0** | **N/A** | **N/A** | **N/A** | **N/A** | **N/A** |
+| **onnxruntime** | — | **0** | **N/A** | **N/A** | **N/A** | **N/A** | **N/A** |
+
+**Note:** Throughput comparison is across different model sizes. Ollama's 91.9 tok/s is averaged across 270M-8B models; transformers' 215.2 tok/s is from tiny-gpt2 (124M).
 
 **Key Observations:**
 - **Best mean:** GPU-compile (389ms)
 - **Best median:** Plain GPU (323ms) <- **compile paradox**
 - **Best cost:** GPU-compile ($0.045/1M)
 - **Best consistency:** CPU-compile (std 103.5ms)
-- **Worst performance:** Ollama (8.8x slower than GPU-compile)
+- **Worst performance:** Ollama (8.8x slower than GPU-compile) (confounded by model size: transformers tested tiny-gpt2 124M, Ollama tested 270M-8B)
 - **Infrastructure failures:** TRT/ORT 100% degraded
 
 ### 3.2 Status Breakdown
@@ -201,7 +203,7 @@ Total Runs: 3,017
 - FAIL 30s compilation overhead on first run
 - FAIL GPU required
 
-**Recommendation:** Production default for cost-sensitive workloads.
+**Recommendation:** Best-performing in this benchmark for cost-sensitive workloads.
 
 ---
 
@@ -226,7 +228,7 @@ Total Runs: 3,017
 - FAIL Higher variance (outliers up to 3.3s)
 - FAIL GPU required
 
-**Recommendation:** Development/prototyping, p50 SLAs.
+**Recommendation:** Best-performing in this benchmark for p50 SLA workloads; suitable for development/prototyping.
 
 ---
 
@@ -276,11 +278,11 @@ Total Runs: 3,017
 ### 4.5 ollama
 
 **Performance:**
-- Mean: 3,410.5ms (8.8x slower than GPU-compile)
+- Mean: 3,410.5ms (8.8x slower than GPU-compile) (confounded by model size: transformers tested tiny-gpt2 124M, Ollama tested 270M-8B)
 - Median: 1,238.5ms (3.8x slower)
 - Std: 3,874.9ms (TERRIBLE - 114% of mean!)
 - Cost: $0.106/1M tokens (2.35x more expensive)
-- Throughput: 91.9 tok/s (lowest)
+- Throughput: 91.9 tok/s (lowest; averaged across 270M-8B models vs transformers' tiny-gpt2 124M)
 
 **Strengths:**
 - PASS Multi-model flexibility (6 models tested)
@@ -288,7 +290,7 @@ Total Runs: 3,017
 - PASS Good for experimentation
 
 **Weaknesses:**
-- FAIL 8.8x slower than GPU-compile (mean)
+- FAIL 8.8x slower than GPU-compile (mean) (confounded by model size: transformers tested tiny-gpt2 124M, Ollama tested 270M-8B)
 - FAIL 2.35x more expensive
 - FAIL Catastrophic variance (173ms to 27,964ms - 161x range!)
 - FAIL Unreliable for production SLAs
@@ -321,13 +323,15 @@ Total Runs: 3,017
 
 ### 5.1 Backend Comparison (ANOVA)
 
+**CAVEAT:** Backend and model are confounded in this design. Transformers backends tested tiny-gpt2 (124M); Ollama tested 270M-8B models. This ANOVA tests system-level differences, not backend-isolated effects.
+
 **Null Hypothesis:** No difference in mean latency across backends.
 
 **Test:** One-way ANOVA on 5 backends (excludes TRT/ORT).
 
-**Result:** F = 45.86, p < 10^-15 PASS **HIGHLY SIGNIFICANT**
+**Result:** F = 45.86, p < 10^-15 PASS Significant
 
-**Interpretation:** Backend choice critically affects latency.
+**Interpretation:** Backend choice critically affects latency (but confounded with model size).
 
 ---
 
@@ -348,8 +352,9 @@ Total Runs: 3,017
 **GPU-compile vs Ollama:**
 - Mean difference: -3,021.3ms (GPU-compile faster)
 - p-value: < 10^-15 PASS Astronomically significant
-- Cohen's d: 1.60 (huge effect)
-- **Finding:** GPU-compile 8.8x faster, 2.35x cheaper
+- Cohen's d: 1.60 (huge effect) (confounded by model size)
+- **Finding:** GPU-compile 8.8x faster, 2.35x cheaper (confounded by model size: transformers tested tiny-gpt2 124M, Ollama tested 270M-8B)
+- **Note:** GPU-compile vs Ollama comparison is between different models and cannot be interpreted as a backend-isolated effect.
 
 **CPU-compile vs CPU:**
 - Mean difference: -11.2ms (CPU-compile faster)
@@ -436,7 +441,7 @@ All tests on **one laptop** (RTX 4080). Findings may not generalize to:
 - Apple Silicon
 - Cloud providers (AWS, Azure, GCP)
 
-**Fix:** TR123 will validate on multiple hardware.
+Acknowledged limitation; not addressed in the current program (all TRs use RTX 4080 Laptop).
 
 ---
 
@@ -448,15 +453,15 @@ Test prompts are **not production traces**. Real workloads may differ in:
 - Concurrent requests
 - Model switching frequency
 
-**Fix:** TR123 will benchmark on real production traces.
+Acknowledged limitation; TR128 tests production workload patterns but on the same hardware.
 
 ---
 
 ## 8. Recommendations
 
-### 8.1 Production Deployment
+### 8.1 Deployment Guidance (Single-Hardware, Constrained Scope)
 
-**For cost-optimized production:**
+**Best-performing in this benchmark for cost-optimized workloads:**
 ```
 Backend: transformers-gpu-compile
 Config:
@@ -464,28 +469,31 @@ Config:
   BANTER_INFERENCE_TIMEOUT_S=2
   BANTER_LATENCY_GUARDRAIL_MS=500
 
-Expected: 389ms mean, $0.045/1M tokens, 215 tok/s
+Expected: 389ms mean, $0.045/1M tokens (based on flat $0.035/hr for all hardware; see Section 6 limitations), 215 tok/s
+Caveat: Tested on tiny-gpt2 (124M) only. Results may not generalize to larger models or different hardware.
 ```
 
-**For p50 SLA workloads:**
+**Best-performing in this benchmark for p50 SLA workloads:**
 ```
 Backend: transformers-gpu
 Config:
   BANTER_FORCE_BACKEND=transformers-gpu
   BANTER_INFERENCE_TIMEOUT_S=5
 
-Expected: 323ms median, $0.046/1M tokens, 212 tok/s
+Expected: 323ms median, $0.046/1M tokens (based on flat $0.035/hr for all hardware; see Section 6 limitations), 212 tok/s
 Note: Compile paradox - GPU has better median despite worse mean
+Caveat: Tested on tiny-gpt2 (124M) only. Results may not generalize to larger models or different hardware.
 ```
 
-**For multi-model flexibility:**
+**Best-performing in this benchmark for multi-model flexibility:**
 ```
 Backend: ollama
 Config:
   BANTER_OLLAMA_URL=http://localhost:11434
 
-Expected: 3,411ms mean (8.8x slower), $0.106/1M (2.35x more expensive)
+Expected: 3,411ms mean (8.8x slower, confounded by model size), $0.106/1M (based on flat $0.035/hr; see Section 6 limitations)
 Only viable when model swapping > performance
+Caveat: Ollama tested on 270M-8B models vs transformers' tiny-gpt2 (124M). The 8.8x gap is not a backend-isolated comparison.
 ```
 
 **NOT RECOMMENDED:**
@@ -534,20 +542,20 @@ Only viable when model swapping > performance
 
 ### 9.1 Key Findings
 
-1. **transformers-gpu-compile wins on mean** (389ms) and cost ($0.045/1M)
+1. **transformers-gpu-compile wins on mean** (389ms) and cost ($0.045/1M) (based on flat $0.035/hr for all hardware; see Section 6 limitations)
 2. **Plain transformers-gpu wins on median** (323ms) - compile paradox
-3. **Ollama 8.8x slower**, 2.35x more expensive (only viable for multi-model)
+3. **Ollama 8.8x slower**, 2.35x more expensive (confounded by model size: transformers tested tiny-gpt2 124M, Ollama tested 270M-8B; only viable for multi-model)
 4. **CPU compilation ineffective** (2% improvement, p=0.826, not significant)
 5. **TensorRT/ONNX infrastructure failed** (546/546 runs degraded, 0% tested)
 
-### 9.2 Production Recommendation
+### 9.2 Best-Performing in This Benchmark
 
-**transformers-gpu-compile** for cost-sensitive production workloads.
+**transformers-gpu-compile** for cost-sensitive workloads (single-hardware, constrained scope).
 
 **Decision Matrix:**
 - **Need lowest mean latency + cost?** -> GPU-compile
 - **Need best median (p50 SLA)?** -> Plain GPU
-- **Need multi-model flexibility?** -> Ollama (accept 8.8x penalty)
+- **Need multi-model flexibility?** -> Ollama (accept 8.8x penalty, confounded by model size)
 - **CPU-only?** -> Plain CPU (compile brings no benefit)
 - **TensorRT/ONNX?** -> Wait for TR118 (currently 100% broken)
 
@@ -559,8 +567,6 @@ WARNING **This report reflects ACTUAL test results:**
 - **Model skew** (55% tiny-gpt2)
 - **Single hardware** (RTX 4080 laptop)
 - **Synthetic prompts** (not production traces)
-
-**This is honest research, not marketing.**
 
 ---
 
@@ -601,7 +607,7 @@ python cost_analysis.py --input results/tr117_tier3/metrics.csv
 ### 10.3 Hardware Requirements
 
 - NVIDIA GPU (RTX 4000+ or A100)
-- 16GB+ VRAM
+- 12GB+ VRAM (tested on RTX 4080 Laptop, 12.9GB)
 - 32GB+ RAM
 - 100GB+ disk space
 

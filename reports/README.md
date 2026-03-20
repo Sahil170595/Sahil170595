@@ -44,7 +44,7 @@ Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR13
 | **TR114_v2** | Rust Multi-Agent (Dual Ollama) | 150 runs | Complete | 98.281% mean efficiency, 0.74% contention |
 | **TR115_v2** | Rust Runtime Optimization | 150 runs | Complete | Tokio-default recommended (98.72% mean, 1.21pp sigma) |
 | **TR116** | Cross-Model Multi-Agent Benchmarks | 60 runs | Complete | Rust + Gemma 3 is king (99.2%); Qwen shows imbalance |
-| **TR117** | Cross-Backend Inference Benchmark | 3,017 | Complete | GPU-compile best mean; ONNX/TRT failures documented |
+| **TR117** | Cross-Backend Inference Benchmark | 2,471 (546 degraded) | Complete | GPU-compile best mean; ONNX/TRT failures documented |
 | **TR117_multi** | Multi-Agent Root Cause Analysis | — | Complete | Python event loop saturation (5.33ms mean lag) |
 | **TR118_v2.2** | ONNX Runtime + TensorRT Deep Dive | 360 | Complete | TensorRT-fp16 best prefill (2.48ms, -87% vs baseline) |
 | **TR119** | Cost & Energy Analysis | 360 | Complete | onnxruntime-gpu best cost ($0.1279/1M tok on-demand) |
