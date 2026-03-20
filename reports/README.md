@@ -20,7 +20,7 @@ KV-cache economics, quality baselines, quantization decision matrix, Linux/Trito
 ### Phase 3: Safety Alignment (TR134-TR142)
 **9 technical reports. ~350,000+ data points.**
 
-Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (flagship: 10 models, 6 families, 95,478 data points), and quality-safety correlation.
+Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 152,022 data points), and quality-safety correlation.
 
 ### Conclusive Reports
 **12 synthesis documents spanning all phases.**
@@ -549,7 +549,7 @@ PublishReady/reports/
 │   ├── Technical_Report_138_v2.md
 │   ├── Technical_Report_139.md
 │   ├── Technical_Report_140.md
-│   ├── Technical_Report_141.md  ← flagship (95,478 data points, 10 models, 6 families)
+│   ├── Technical_Report_141.md  ← largest study (152,022 data points, 18 models)
 │   └── Technical_Report_142.md
 │
 ├── Conclusive Reports
