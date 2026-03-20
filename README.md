@@ -6,6 +6,7 @@
 
 **Featured:** [Latent Space Podcast Episode](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** .[The Third State in AI alignment](https://substack.com/home/post/p-191551029)
+
 I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. 30 technical reports. 126,000+ empirical measurements. Everything measured, everything reproducible.
 
 ---
