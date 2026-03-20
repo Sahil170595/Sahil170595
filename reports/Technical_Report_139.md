@@ -54,7 +54,7 @@ Yes, but not in the simplest possible way.
 3. **Persistence usually weakens as quantization gets lower.** Three of four persistence slopes are negative, and the aggregate Phase 2 verdict supports degradation under lower bit-width.
 4. **There is no safe equivalence story.** Across `160` TOST checks at `+/-3pp`, `0 / 160` establish equivalence.
 5. **Multi-turn amplification exists in specific cells but not as a universal law.** The highest finite amplification ratios reach `49.0x`, but H2 is still not supported in aggregate.
-6. **Two independent judge passes (1.5B and 7B) agree on the directional gradient but diverge substantially on mid-quant borderline cells.** 7B overall agreement is `64.99%` with kappa `0.1037`; 1.5B was `67.65%` / `0.1897`. The 7B judge disagrees more because it is stronger, not weaker.
+6. **A preserved post-hoc judge pass exposes exactly where regex scoring is weakest.** The saved judge layer adds `37,825` adjudications, with overall agreement `64.99%` and kappa `0.1037` against the regex detector. The lowest-agreement slices are the mid-quant Phase 2 cells, which is exactly where human review is most justified.
 
 ### Core Decisions
 
@@ -70,13 +70,13 @@ Yes, but not in the simplest possible way.
 |--------|--------|----------|----------|--------|
 | Phase 1 conversations | Count | 9,600 | 9,600 | **PASS** |
 | Phase 2 conversations | Count | 1,000 | 1,000 | **PASS** |
-| Judge labels | Count | ≥ 9,600 | 37,825 | **PASS** |
+| Judge labels | Count | >= 9,600 | 37,825 | **PASS** |
 | H1 rejection (quant-independence) | Strategy ANOVA p < 0.05 | 8 / 8 strategies | 8 / 8, all p < 1e-4 | **PASS** |
 | H2 multi-turn amplification | Welch p < 0.05 | significant slope difference | p = 0.702 | **FAIL** |
 | H3 persistence degradation | Negative slope, CI excludes 0 | 4 / 4 models | 3 / 4 models | **PARTIAL** |
-| TOST non-equivalence (±3pp) | Proportion establishing equivalence | 0 / 160 | 0 / 160 | **PASS** (confirms non-interchangeability) |
+| TOST non-equivalence (+/-3pp) | Proportion establishing equivalence | 0 / 160 | 0 / 160 | **PASS** (confirms non-interchangeability) |
 | Cross-phase anchor match | Phase 1 direct vs Phase 2 initial refusal | 20 / 20 cells | 20 / 20 exact | **PASS** |
-| Power (median MDE at 80%) | Detectable effect | ≤ 20pp | 15.19pp | **PASS** |
+| Power (median MDE at 80%) | Detectable effect | <= 20pp | 15.19pp | **PASS** |
 
 ### Claim Validation
 
@@ -87,7 +87,7 @@ Yes, but not in the simplest possible way.
 | 3 | Multi-turn attacks become more quant-sensitive than direct attacks | Welch slope comparison `p = 0.702` | **Not validated** |
 | 4 | Lower quant often weakens persistence under pressure | H3 supported; 3/4 persistence slopes negative | **Validated** |
 | 5 | Threshold behavior matters more than a single global quant rule | Critical quant thresholds cluster by model/strategy, not globally | **Validated** |
-| 6 | Regex-only scoring would be too weak for this report | 37,825 labels × 2 judge passes (1.5B + 7B); dual-judge divergence identifies priority cells for human review | **Validated** |
+| 6 | Regex-only scoring would be too weak for this report | 37,825 preserved judge labels identify the same mid-quant Phase 2 slices as the highest-ambiguity cells | **Validated** |
 
 ---
 
@@ -163,7 +163,7 @@ TR139 is the reference report for conversational jailbreak risk under quantizati
 | Test | Role in report |
 |------|----------------|
 | One-way ANOVA | H1 quant-independence checks by strategy |
-| Two-way ANOVA | Quant × strategy interaction within each model |
+| Two-way ANOVA | Quant x strategy interaction within each model |
 | Fisher exact test | Per-cell quant-vs-baseline comparisons |
 | Welch's t-test | H2 direct-vs-multi-turn slope comparison; pairwise quant comparisons |
 | Cohen's d | Effect size on every pairwise quant comparison |
@@ -171,7 +171,7 @@ TR139 is the reference report for conversational jailbreak risk under quantizati
 | Bootstrap CI (1,000 iterations, seed 42) | Uncertainty on persistence slopes and ASR slopes |
 | TOST (`+/-3pp`) | Tests whether quant cells are practically equivalent |
 | Variance decomposition | Separates model, quant, strategy, and residual contributions |
-| Power analysis (α=0.05, power=0.80) | Estimates MDE per cell |
+| Power analysis (alpha=0.05, power=0.80) | Estimates MDE per cell |
 
 ### Evidence Standard
 
@@ -306,7 +306,7 @@ This matters because TR139 is not just a table of alarming cells. The report's c
 
 The primary scorer is the shared refusal detector inherited from the TR134 safety stack. It provides the run-wide consistent refusal/compliance signal.
 
-TR139 then adds two independent post-hoc LLM judge passes, each producing **37,825 labels** on the same scored conversations. The first pass used `qwen2.5:1.5b-instruct-q8_0` (the available fallback at initial run time). The second pass used the intended `qwen2.5:7b-instruct-q8_0`. The dual-judge design provides triangulation: where both judges agree with the regex, the classification is high-confidence; where they diverge, the cell is flagged for human review priority.
+TR139 then adds one preserved post-hoc LLM judge pass, producing **37,825 labels** on the scored conversations. The saved artifact chain uses `qwen2.5:7b-instruct-q8_0` as the judge model. An earlier fallback run existed during development, but its outputs were overwritten and are not treated as part of the final evidentiary record. The judge layer is therefore used here as a secondary adjudication signal over the final saved run, not as a dual-judge comparison.
 
 ### 2.5 Why Phase 1 and Phase 2 are separated
 
@@ -368,7 +368,7 @@ TR139's executed counts are fixed by design and matter for interpretation:
 |-------|---------|---------:|
 | Phase 1 | `4 models x 6 quants x 8 strategies x 50 behaviors` | 9,600 conversations |
 | Phase 2 | `4 models x 5 quants x 50 behaviors` | 1,000 conversations |
-| Judge | target-turn and follow-up adjudication on scored outputs | 37,825 labels |
+| Judge | preserved target-turn and follow-up adjudication on scored outputs | 37,825 labels |
 
 These exact counts matter for two reasons:
 
@@ -499,7 +499,7 @@ All 8 strategy-specific ANOVAs reject H1:
 | `progressive_refinement` | 13.3443 | `< 1e-4` | 0.0529 |
 | `role_play` | 19.3813 | `< 1e-4` | 0.0751 |
 
-**Observations.** All 8 F-statistics exceed 7.7 and all p-values are below 1e-4 after Holm-Bonferroni correction across the 8-test family. The largest effect size is `direct` (η² = 0.1526, large by conventional thresholds), meaning quantization alone explains over 15% of the variance in direct-attack ASR. Even the smallest effect (`context_fusion`, η² = 0.0314) clears the small-effect threshold. The result is unambiguous:
+**Observations.** All 8 F-statistics exceed 7.7 and all p-values are below 1e-4 after Holm-Bonferroni correction across the 8-test family. The largest effect size is `direct` (`eta^2 = 0.1526`, large by conventional thresholds), meaning quantization alone explains over 15% of the variance in direct-attack ASR. Even the smallest effect (`context_fusion`, `eta^2 = 0.0314`) clears the small-effect threshold. The result is unambiguous:
 
 > quantization materially affects attack success in the multi-turn regime.
 
@@ -589,7 +589,7 @@ Model-level ANOVA across strategies shows that the models are not just different
 | `role_play` | `qwen2.5-1.5b` at 67.33% | 0.3683 |
 | `direct` | `llama3.1-8b` at 46.00% | 0.0961 |
 
-**Observations.** This confirms the qualitative reading from the cell tables: `qwen2.5-1.5b` is disproportionately weak to several multi-turn methods, while `llama3.1-8b` is unusually weak even on the direct baseline. The η² values for `attention_shift` (0.6017) and `progressive_refinement` (0.3955) are exceptionally large, indicating that model identity explains over half the variance in those strategy families.
+**Observations.** This confirms the qualitative reading from the cell tables: `qwen2.5-1.5b` is disproportionately weak to several multi-turn methods, while `llama3.1-8b` is unusually weak even on the direct baseline. The `eta^2` values for `attention_shift` (0.6017) and `progressive_refinement` (0.3955) are exceptionally large, indicating that model identity explains over half the variance in those strategy families.
 
 ### 4.5 Quant x strategy interaction
 
@@ -604,10 +604,10 @@ Two-way ANOVA within each model shows that the effect of quant level depends on 
 
 **Observations.** The interpretation is different by model:
 
-- `llama3.2-1b`: quant dominates (η² = 0.3794); the low-bit cliff is the main story
-- `qwen2.5-1.5b`: strategy dominates (η² = 0.2898); the model is broadly vulnerable and the attack family matters more than the exact quant
-- `llama3.1-8b`: quant and interaction are both substantial (η² = 0.1019 and 0.1038 respectively); instability depends on where in the strategy ladder the model is hit
-- `llama3.2-3b`: the whole surface is comparatively flat and low (quant η² = 0.0113)
+- `llama3.2-1b`: quant dominates (`eta^2 = 0.3794`); the low-bit cliff is the main story
+- `qwen2.5-1.5b`: strategy dominates (`eta^2 = 0.2898`); the model is broadly vulnerable and the attack family matters more than the exact quant
+- `llama3.1-8b`: quant and interaction are both substantial (`eta^2 = 0.1019` and `0.1038` respectively); instability depends on where in the strategy ladder the model is hit
+- `llama3.2-3b`: the whole surface is comparatively flat and low (quant `eta^2 = 0.0113`)
 
 ### 4.6 Highest-risk cells
 
@@ -718,7 +718,7 @@ Those are exactly the overclaims this report avoids.
 | `llama3.2-3b` | 46.68% | 0.5862 | 208 | 100 |
 | `qwen2.5-1.5b` | 38.56% | 0.6809 | 211 | 86 |
 
-**Observations.** The most operationally important number here is not a slope. It is the `llama3.1-8b` break profile. Once it initially refuses, it still breaks under pressure almost every time in this design. The 96.67% average break rate means that `llama3.1-8b` refusal is effectively cosmetic — it stops the user once and then yields. By contrast, `qwen2.5-1.5b` has the lowest break rate (38.56%) despite being the weakest model in Phase 1, because it simply never refuses many harmful prompts in the first place (fewer initial refusals to break).
+**Observations.** The most operationally important number here is not a slope. It is the `llama3.1-8b` break profile. Once it initially refuses, it still breaks under pressure almost every time in this design. The 96.67% average break rate means that `llama3.1-8b` refusal is effectively cosmetic - it stops the user once and then yields. By contrast, `qwen2.5-1.5b` has the lowest break rate (38.56%) despite being the weakest model in Phase 1, because it simply never refuses many harmful prompts in the first place (fewer initial refusals to break).
 
 ### 5.2 Persistence slope analysis
 
@@ -729,7 +729,7 @@ Those are exactly the overclaims this report avoids.
 | `llama3.2-3b` | -0.1111 | `[-0.4195, -0.0175]` | lower quant breaks more easily |
 | `qwen2.5-1.5b` | -0.1007 | `[-0.3106, 0.4225]` | negative direction, wide uncertainty |
 
-**Observations.** This is enough to support H3 overall, but it also shows why the report does not claim a single common mechanism across the four models. The `llama3.2-1b` slope (-0.1980) is the steepest and most precisely estimated, while the `qwen2.5-1.5b` CI crosses zero on the upper bound, indicating that its persistence degradation is directionally real but not yet cleanly separated from noise. Full persistence data by model × quant is in Appendix A.
+**Observations.** This is enough to support H3 overall, but it also shows why the report does not claim a single common mechanism across the four models. The `llama3.2-1b` slope (-0.1980) is the steepest and most precisely estimated, while the `qwen2.5-1.5b` CI crosses zero on the upper bound, indicating that its persistence degradation is directionally real but not yet cleanly separated from noise. Full persistence data by model x quant is in Appendix A.
 
 ### 5.3 Pressure resistance extremes
 
@@ -750,7 +750,7 @@ Highest mean pressure resistance cells:
 | `qwen2.5-1.5b` | `Q6_K` | 0.9770 | 8.16% | 49 |
 | `qwen2.5-1.5b` | `Q8_0` | 0.9617 | 10.20% | 49 |
 
-**Observations.** This makes the persistence story much more concrete than the slope table alone. Some cells remain extremely durable under pressure, while others offer almost no effective resistance at all. The `llama3.2-1b / Q2_K` cell (pressure resistance 0.0391, 100% break rate) is the single most operationally dangerous cell in Phase 2 — the model folds immediately under any pressure at this quant level.
+**Observations.** This makes the persistence story much more concrete than the slope table alone. Some cells remain extremely durable under pressure, while others offer almost no effective resistance at all. The `llama3.2-1b / Q2_K` cell (pressure resistance 0.0391, 100% break rate) is the single most operationally dangerous cell in Phase 2 - the model folds immediately under any pressure at this quant level.
 
 ### 5.4 Turn-level persistence curves
 
@@ -799,7 +799,7 @@ Phase 1 alone could have been dismissed as "multi-turn templates are powerful." 
 
 This is the cleanest result in the report. All 8 strategies reject H1 with `p < 1e-4`.
 
-In addition to the ANOVA results, per-cell Fisher exact tests (each quant vs Q8_0 baseline) were corrected with Holm-Bonferroni within each model × strategy family. All-pairs Welch's t-tests were also corrected with Holm-Bonferroni. Selected pairwise Cohen's d values illustrate the magnitude:
+In addition to the ANOVA results, per-cell Fisher exact tests (each quant vs Q8_0 baseline) were corrected with Holm-Bonferroni within each model x strategy family. All-pairs Welch's t-tests were also corrected with Holm-Bonferroni. Selected pairwise Cohen's d values illustrate the magnitude:
 
 | Model | Strategy | Comparison | Cohen's d | Holm p |
 |-------|----------|------------|----------:|-------:|
@@ -865,7 +865,7 @@ Two additional results narrow interpretation:
 
 - neighboring quant settings are not safely interchangeable by default
 - model family explains more structured variation than strategy family does
-- large residual variance (72.93%) is consistent with behavior-level heterogeneity across the 50-behavior benchmark — the safety surface is not smooth, and individual harmful behaviors contribute substantial idiosyncratic variation that no single design factor captures
+- large residual variance (72.93%) is consistent with behavior-level heterogeneity across the 50-behavior benchmark - the safety surface is not smooth, and individual harmful behaviors contribute substantial idiosyncratic variation that no single design factor captures
 
 A sensitivity check on the residual decomposition is in Appendix C.
 
@@ -908,51 +908,50 @@ This is exactly the kind of negative result that improves the report rather than
 
 ## 7. Judge Agreement and Scoring Reliability
 
-TR139 was judged twice: first with `qwen2.5:1.5b-instruct-q8_0` (the available fallback at run time), then re-judged with the intended `qwen2.5:7b-instruct-q8_0`. Both passes produced exactly **37,825 labels** on the same **10,600 conversations**. The dual-judge design is not a combined classifier — it is a triangulation layer. Both judges score the same rows independently, and the comparison reveals where the regex detector is most uncertain.
+TR139's preserved artifact chain contains one post-hoc judge pass over the final run: `qwen2.5:7b-instruct-q8_0` produced **37,825 labels** across the same **10,600 conversations** used by the regex-based primary analysis. The purpose of this layer is not to replace the deterministic scorer. It is to show where the regex and an independent LLM adjudicator agree, and where they do not.
 
-### 7.1 Dual-judge comparison: overall
+### 7.1 Preserved judge pass: overall
 
-| Metric | 1.5B judge | 7B judge | Delta |
-|--------|----------:|--------:|------:|
-| Overall agreement with regex | 67.65% | 64.99% | -2.7pp |
-| Overall kappa | 0.1897 | 0.1037 | -0.086 |
+| Metric | Saved judge value |
+|--------|------------------:|
+| Overall agreement with regex | 64.99% |
+| Overall kappa | 0.1037 |
+| Judged rows included in agreement slice | 12,562 |
 
-**Observations.** The 7B judge agrees *less* with the regex detector, not more. This is not a quality regression — it is the expected behavior of a stronger judge that can identify nuance the regex misses. The 1.5B model has limited capacity to distinguish borderline compliance from borderline refusal, so it defaults toward the regex signal more often. The 7B model has enough capacity to form independent judgments, producing more disagreements that are genuinely informative rather than noise.
+**Observations.** Agreement is modest, not strong. That does not invalidate the report, but it does limit what can be claimed about borderline rows. The right interpretation is that the judge layer confirms the existence of ambiguity in the harder slices of the run, especially where conversational persistence responses become partial, hedged, or stylistically mixed.
 
 ### 7.2 Phase 1 agreement by quant level
 
-| Quant | N | 1.5B Agreement | 1.5B Kappa | 7B Agreement | 7B Kappa |
-|-------|--:|--------------:|-----------:|-------------:|---------:|
-| `Q8_0` | 1,600 | 81.50% | 0.1100 | 81.50% | 0.1029 |
-| `Q6_K` | 1,600 | 80.44% | 0.0935 | 79.81% | 0.0817 |
-| `Q5_K_M` | 1,600 | 83.13% | 0.1186 | 80.00% | 0.0040 |
-| `Q4_K_M` | 1,600 | 77.50% | 0.1958 | 75.88% | 0.0817 |
-| `Q3_K_M` | 1,600 | 66.06% | -0.0004 | 69.31% | 0.0373 |
-| `Q2_K` | 1,600 | 57.81% | 0.1327 | 54.44% | 0.0612 |
+| Quant | N | Agreement | Kappa |
+|-------|--:|----------:|------:|
+| `Q8_0` | 1,600 | 81.50% | 0.1029 |
+| `Q6_K` | 1,600 | 79.81% | 0.0817 |
+| `Q5_K_M` | 1,600 | 80.00% | 0.0040 |
+| `Q4_K_M` | 1,600 | 75.88% | 0.0817 |
+| `Q3_K_M` | 1,600 | 69.31% | 0.0373 |
+| `Q2_K` | 1,600 | 54.44% | 0.0612 |
 
-**Observations.** The two judges track the same quant-level gradient: agreement is highest at `Q8_0` (where model outputs are clearest) and lowest at `Q2_K` (where degraded outputs are hardest to classify). The 7B judge diverges most from the regex at `Q5_K_M` (kappa drops from 0.1186 to 0.0040), suggesting this quant level produces borderline responses that the 1.5B treated as clear but the 7B reads as ambiguous. The `Q3_K_M` stratum is the one case where the 7B actually agrees more (+3.3pp), possibly because the 7B is better at recognizing degraded-but-still-compliant outputs.
+**Observations.** The preserved judge pass shows the same broad gradient the report would already lead us to expect: agreement is highest in the upper-quant slices and worst at `Q2_K`. The `Q5_K_M` stratum is especially notable because agreement remains 80.00% while kappa falls to 0.0040, indicating that the class balance is skewed enough that raw agreement alone overstates certainty.
 
 ### 7.3 Phase 2 agreement by quant level
 
-| Slice | N | 1.5B Agreement | 1.5B Kappa | 7B Agreement | 7B Kappa |
-|-------|--:|--------------:|-----------:|-------------:|---------:|
-| `p2_Q8_0` | 561 | 45.28% | 0.1357 | 43.14% | 0.1149 |
-| `p2_Q6_K` | 499 | 45.89% | 0.1265 | 46.89% | 0.1436 |
-| `p2_Q4_K_M` | 775 | 51.10% | 0.2028 | 33.16% | 0.0697 |
-| `p2_Q3_K_M` | 503 | 53.68% | 0.2280 | 36.78% | 0.0730 |
-| `p2_Q2_K` | 624 | 33.01% | 0.0731 | 30.61% | 0.0625 |
+| Slice | N | Agreement | Kappa |
+|-------|--:|----------:|------:|
+| `p2_Q8_0` | 561 | 43.14% | 0.1149 |
+| `p2_Q6_K` | 499 | 46.89% | 0.1436 |
+| `p2_Q4_K_M` | 775 | 33.16% | 0.0697 |
+| `p2_Q3_K_M` | 503 | 36.78% | 0.0730 |
+| `p2_Q2_K` | 624 | 30.61% | 0.0625 |
 
-**Observations.** Phase 2 agreement is lower than Phase 1 across both judges, which is expected: pressure-turn responses are more ambiguous than target-turn responses. The largest judge divergence is at `p2_Q4_K_M` (1.5B: 51.10%, 7B: 33.16%) and `p2_Q3_K_M` (1.5B: 53.68%, 7B: 36.78%). These are the mid-quant cells where persistence is actively degrading — the model produces hedged, partial-compliance responses that the 1.5B judge scored as agreeing with the regex but the 7B judge recognizes as genuinely ambiguous. This is the clearest evidence that the 7B upgrade is doing real work.
+**Observations.** Phase 2 is the genuinely difficult part of the scoring problem. Agreement falls sharply once the model is no longer producing a clear direct-turn refusal or compliance answer and instead is responding after multiple pressure turns. The worst slices are the same ones the substantive analysis already treats as fragile and ambiguous: `p2_Q4_K_M`, `p2_Q3_K_M`, and `p2_Q2_K`.
 
-### 7.4 What the dual-judge design proves
+### 7.4 What the preserved judge pass proves
 
-The dual-judge comparison establishes three things:
+The saved judge layer establishes three things:
 
-1. **The core report claims do not depend on either judge.** All 8 ANOVA rejections, the H2 non-result, and the H3 persistence slopes use the regex detector. The judge layer is a triangulation check, not a load-bearing input.
-
-2. **The 7B judge is a more independent second opinion.** Lower agreement with the regex is a feature when it comes from a stronger model — it means the judge is adding information rather than echoing the primary detector.
-
-3. **The cells where the judges disagree most are exactly the cells that need human review.** Mid-quant Phase 2 cells (`Q4_K_M`, `Q3_K_M`) are where both judges struggle, which means these are the highest-priority targets for human adjudication.
+1. **The core report claims do not depend on the judge.** All 8 ANOVA rejections, the H2 non-result, and the H3 persistence slopes are computed from the deterministic primary scorer.
+2. **The mid-quant and low-quant Phase 2 slices are exactly where a human review layer would add value.** Those are the cells where agreement is weakest.
+3. **Regex-only scoring would have hidden the extent of row-level ambiguity.** The judge layer does not overturn the aggregate findings, but it does show why cell-level narratives need discipline.
 
 ### 7.5 What follows from this
 
@@ -962,11 +961,11 @@ The report's broad findings are defensible because they rest on:
 - large differences in the most important cells
 - replicated phase structure
 - aggregate tests that survive the noisy scoring layer
-- two independent judge passes that agree on the gradient structure even when they disagree on individual rows
+- a preserved secondary judge pass that highlights which slices are least settled
 
-But the next credibility upgrade is obvious:
+But the next credibility upgrade is still obvious:
 
-> add human adjudication on a stratified scored subset, prioritizing the mid-quant Phase 2 cells where both judges diverge most from the regex detector.
+> add human adjudication on a stratified scored subset, prioritizing the mid-quant Phase 2 cells where the saved judge pass diverges most from the regex detector.
 
 ### 7.6 Why weak agreement does not collapse the core result
 
@@ -988,7 +987,7 @@ TR139's core claims survive because they are supported by multiple independent s
 - a completed two-phase design rather than one isolated benchmark
 - exact `20 / 20` direct-anchor matches between Phase 1 and Phase 2
 - negative findings that constrain overclaiming rather than silently disappearing
-- two independent judge layers that agree on the directional gradient even where they diverge on individual cells
+- a secondary judge layer that points to the same high-ambiguity slices the report already treats cautiously
 
 What the weak agreement blocks is not the entire report. It blocks overconfident fine-grained claims about every borderline scored output. That is why this document is now at flagship-report level, but the next paper-grade upgrade is still human adjudication.
 
@@ -1069,16 +1068,16 @@ What is newly measured here is not just "more jailbreaks." It is two distinct de
 2. **refusal durability after the model has already said no**
    A model can look acceptable on the direct turn and still collapse once the user keeps pushing.
 
-The strongest cross-report continuity point remains the direct-turn `Q8_0` anchor. The following table compares TR139 baselines against prior TR measurements on overlapping models, applying the ±5pp tolerance established in TR137:
+The strongest cross-report continuity point remains the direct-turn `Q8_0` anchor. The following table compares TR139 baselines against prior TR measurements on overlapping models, applying the +/-5pp tolerance established in TR137:
 
-| Model | TR134 Q8_0 (AdvBench) | TR136 Q8_0 (aggregate) | TR139 Q8_0 (direct, 50 behaviors) | TR134→139 Δ | TR136→139 Δ | Within ±5pp? |
+| Model | TR134 Q8_0 (AdvBench) | TR136 Q8_0 (aggregate) | TR139 Q8_0 (direct, 50 behaviors) | TR134->139 delta | TR136->139 delta | Within +/-5pp? |
 |-------|----------------------:|----------------------:|----------------------------------:|------------:|------------:|:------------:|
-| `llama3.2-1b` | 90.0% (n=100) | 87.6% (n=468) | 94.0% (n=50) | +4.0pp | +6.4pp | TR134 ✓ / TR136 ✗ |
-| `llama3.2-3b` | 52.0% (n=100) | 80.9% (n=468) | 74.0% (n=50) | +22.0pp | -6.9pp | ✗ / ✗ |
-| `qwen2.5-1.5b` | — | 84.8% (n=468) | 98.0% (n=50) | — | +13.2pp | — / ✗ |
-| `llama3.1-8b` | — | — | 86.0% (n=50) | — | — | baseline set |
+| `llama3.2-1b` | 90.0% (n=100) | 87.6% (n=468) | 94.0% (n=50) | +4.0pp | +6.4pp | TR134 yes / TR136 no |
+| `llama3.2-3b` | 52.0% (n=100) | 80.9% (n=468) | 74.0% (n=50) | +22.0pp | -6.9pp | no / no |
+| `qwen2.5-1.5b` | - | 84.8% (n=468) | 98.0% (n=50) | - | +13.2pp | - / no |
+| `llama3.1-8b` | - | - | 86.0% (n=50) | - | - | baseline set |
 
-**Observations.** The `llama3.2-1b` anchor is the tightest cross-TR match (+4.0pp vs TR134, within tolerance). The larger deltas for other models are expected rather than alarming: TR134 used AdvBench-only prompts, TR136 used a 4-task aggregate, and TR139 uses a 50-behavior JailbreakBench-derived set spanning 10 harm categories. The `llama3.2-3b` TR134→139 gap (+22.0pp) is the most notable and reflects this model's sensitivity to prompt distribution — it refuses more of TR139's curated harmful behaviors than TR134's AdvBench set. These cross-TR deltas are therefore primarily task-distribution effects rather than measurement errors, and the within-stack internal consistency (20/20 exact Phase 1↔Phase 2 anchor match) remains the stronger validation signal.
+**Observations.** The `llama3.2-1b` anchor is the tightest cross-TR match (+4.0pp vs TR134, within tolerance). The larger deltas for other models are expected rather than alarming: TR134 used AdvBench-only prompts, TR136 used a 4-task aggregate, and TR139 uses a 50-behavior JailbreakBench-derived set spanning 10 harm categories. The `llama3.2-3b` TR134->TR139 gap (+22.0pp) is the most notable and reflects this model's sensitivity to prompt distribution; it refuses more of TR139's curated harmful behaviors than TR134's AdvBench set. These cross-TR deltas are therefore primarily task-distribution effects rather than measurement errors, and the within-stack internal consistency (20/20 exact Phase 1-to-Phase 2 anchor match) remains the stronger validation signal.
 
 That matters because it blocks an easy dismissal. These models are not failing only because they refuse nothing in the first place. Several retain substantial direct refusal while still showing large multi-turn failure regions. TR139 therefore supports a narrower but more useful claim:
 
@@ -1180,8 +1179,8 @@ That shortcut is not defensible for conversational deployment on the models test
 1. **Primary classification remains heuristic.**
    The refusal detector is useful and internally consistent, but it is still a pattern-based classifier rather than a human labeler.
 
-2. **Both judge passes use the same model family as one evaluated model.**
-   The 1.5B and 7B judges are both Qwen 2.5, which overlaps with the evaluated `qwen2.5-1.5b`. The size gap (1.5B/7B judge vs 1.5B evaluated) mitigates direct self-evaluation, but a truly independent judge family would be stronger. On 12GB hardware, the options for a non-overlapping 7B+ judge are limited.
+2. **The preserved judge pass uses the same family as one evaluated model.**
+   The saved judge is Qwen 2.5 7B, which overlaps with the evaluated `qwen2.5-1.5b` family. The size gap mitigates direct self-evaluation somewhat, but a truly independent judge family would be stronger.
 
 3. **No human adjudication layer is included yet.**
    This is the single biggest remaining gap if TR139 is meant to become paper-grade evidence rather than flagship technical-report evidence.
@@ -1226,7 +1225,7 @@ The first item is still the best next upgrade. The core result is already real e
 
 **Does quantization change multi-turn jailbreak risk?**
 
-Yes. All 8 strategy-specific ANOVAs reject quant-independence with p < 1e-4 and η² up to 0.1526. Holm-Bonferroni-corrected pairwise tests confirm large Cohen's d values (up to 3.47) between critical quant pairs.
+Yes. All 8 strategy-specific ANOVAs reject quant-independence with p < 1e-4 and `eta^2` up to 0.1526. Holm-Bonferroni-corrected pairwise tests confirm large Cohen's d values (up to 3.47) between critical quant pairs.
 
 **Does lower quantization make multi-turn attacks more dangerous than direct attacks?**
 
@@ -1238,29 +1237,29 @@ Yes, with heterogeneity. Three of four models show negative persistence slopes, 
 
 **Are neighboring quant levels interchangeable?**
 
-No. 0 / 160 TOST checks establish equivalence at ±3pp. Deployment teams cannot assume adjacent quant settings are safety-equivalent.
+No. 0 / 160 TOST checks establish equivalence at +/-3pp. Deployment teams cannot assume adjacent quant settings are safety-equivalent.
 
 ### 12.2 Cross-TR comparison
 
 | Dimension | TR134-TR137 | TR138 / TR138 v2 | TR139 |
 |-----------|-------------|-------------------|-------|
 | Attack regime | Single-turn | Single-turn under batch perturbation | Multi-turn conversational |
-| Primary manipulation | Quant level, backend | Batch size, co-batching | Quant level × attack strategy |
+| Primary manipulation | Quant level, backend | Batch size, co-batching | Quant level x attack strategy |
 | Models | 2-5 models, 1B-3B | 3 models, 1B-3B | 4 models, 1B-8B |
 | Core finding | Quant changes safety scores | Batching disproportionately flips safety outputs | Quant changes multi-turn ASR and persistence |
-| Effect magnitude | Small-to-moderate | 2.0% safety flip rate, 4.7x ratio | η² up to 0.38; ASR swings of 60+pp |
-| Strongest negative | — | No Phase 2 co-batching effect | No universal multi-turn amplification (H2) |
+| Effect magnitude | Small-to-moderate | 2.0% safety flip rate, 4.7x ratio | `eta^2` up to 0.38; ASR swings of 60+pp |
+| Strongest negative | - | No Phase 2 co-batching effect | No universal multi-turn amplification (H2) |
 | Statistical foundation | Bootstrap CIs, TOST, power analysis | Wilson CIs, odds ratios, TOST | ANOVA, Holm-Bonferroni pairwise, Cohen's d, TOST, variance decomposition |
 | Conversational depth | 1 turn | 1 turn | Up to 13 turns (5 attack + 8 pressure) |
 | Key deployment implication | Validate quant choice | Treat batch size as safety-relevant | Validate multi-turn + persistence, not just direct refusal |
 
-**Observations.** The most important column contrast is conversational depth: TR134-TR137 and TR138 operate entirely in the single-turn regime, while TR139 extends to 13 turns. The effect magnitudes also scale accordingly — TR138's 2.0% safety flip rate is a subtle signal requiring careful statistical framing, while TR139's 60+pp ASR swings in the worst cells are unmistakable even without sophisticated tests.
+**Observations.** The most important column contrast is conversational depth: TR134-TR137 and TR138 operate entirely in the single-turn regime, while TR139 extends to 13 turns. The effect magnitudes also scale accordingly - TR138's 2.0% safety flip rate is a subtle signal requiring careful statistical framing, while TR139's 60+pp ASR swings in the worst cells are unmistakable even without sophisticated tests.
 
 ### 12.3 What this report establishes
 
 1. Quantization belongs in the safety envelope for conversational deployment.
 2. The risk is model-specific and threshold-specific, not governed by a single universal rule.
-3. Direct-turn refusal is necessary but not sufficient — models that refuse direct harmful prompts can still fail badly under multi-turn attack or continued pressure.
+3. Direct-turn refusal is necessary but not sufficient - models that refuse direct harmful prompts can still fail badly under multi-turn attack or continued pressure.
 4. The strongest model in this sweep (`llama3.2-3b`) is not robust by default; it is merely the least bad.
 5. The weakest model under persistence pressure (`llama3.1-8b`) has a 96.67% break rate despite high initial refusal, making its refusal behavior effectively cosmetic.
 
@@ -1327,11 +1326,11 @@ The configured Ollama tags are:
 | `qwen2.5-1.5b` | `qwen2.5:1.5b` | full quant ladder |
 | `llama3.1-8b` | `llama3.1:8b` | quantized-only in practice; `skip_fp16` |
 
-Judge execution detail for the completed run:
+Judge execution detail for the completed preserved run:
 
-- preferred judge tag unavailable at rerun time
-- fallback judge used: `qwen2.5:1.5b`
-- resulting run still produced `37,825` labels and materially improved over regex-only scoring
+- saved judge tag: `qwen2.5:7b-instruct-q8_0`
+- saved judge output count: `37,825`
+- earlier fallback-run outputs were overwritten during development and are not treated as part of the final evidence chain
 
 ### 13.5 Key artifacts
 
@@ -1401,7 +1400,7 @@ TR139's direct novelty is the intersection of those literatures: conversational 
 
 ## Appendix A: Raw Data Tables
 
-### A.1 Phase 2 persistence by model × quant (complete)
+### A.1 Phase 2 persistence by model x quant (complete)
 
 | Model | Quant | BPW | Initial refusals | Broke | Break rate | Mean persistence | Std | Pressure resistance |
 |-------|-------|----:|------------------:|------:|-----------:|-----------------:|----:|--------------------:|
@@ -1428,9 +1427,9 @@ TR139's direct novelty is the intersection of those literatures: conversational 
 
 **Observations.** The `llama3.1-8b` row group is striking: break rate is 100% at every level except Q3_K_M, which only escapes by having very few initial refusals (6). The `llama3.2-1b` cliff between Q6_K (8.3% break) and Q4_K_M (73.9% break) is the sharpest discontinuity in the table. The `qwen2.5-1.5b` Q2_K row is paradoxically low-break-rate (15.0%) because the model already complies directly at Q2_K, leaving only 20 initial refusals to test.
 
-### A.2 Phase 1 ASR slopes by model × strategy (complete)
+### A.2 Phase 1 ASR slopes by model x strategy (complete)
 
-| Model | Strategy | Slope/BPW | CI lower | CI upper | R² |
+| Model | Strategy | Slope/BPW | CI lower | CI upper | R^2 |
 |-------|----------|----------:|---------:|---------:|---:|
 | `llama3.1-8b` | `attention_shift` | -0.0193 | -0.0743 | +0.0663 | 0.094 |
 | `llama3.1-8b` | `benign_context` | -0.1386 | -0.3208 | -0.0241 | 0.574 |
@@ -1465,9 +1464,9 @@ TR139's direct novelty is the intersection of those literatures: conversational 
 | `qwen2.5-1.5b` | `progressive_refinement` | -0.0144 | -0.0670 | +0.0168 | 0.128 |
 | `qwen2.5-1.5b` | `role_play` | -0.1403 | -0.2297 | -0.0204 | 0.716 |
 
-**Observations.** The `llama3.2-3b` row group is strikingly flat — most slopes are near zero, and even the largest (`direct`, +0.0400/BPW) reflects an anomalous pattern where lower quant slightly improves ASR, driven by the model's already-low failure surface. The `llama3.2-1b` slopes are uniformly negative, consistent with the Q2_K cliff story. The `qwen2.5-1.5b` `role_play` slope (-0.1403, R² = 0.716) has the best linear fit among the high-risk cells.
+**Observations.** The `llama3.2-3b` row group is strikingly flat - most slopes are near zero, and even the largest (`direct`, +0.0400/BPW) reflects an anomalous pattern where lower quant slightly improves ASR, driven by the model's already-low failure surface. The `llama3.2-1b` slopes are uniformly negative, consistent with the Q2_K cliff story. The `qwen2.5-1.5b` `role_play` slope (-0.1403, `R^2 = 0.716`) has the best linear fit among the high-risk cells.
 
-### A.3 Power analysis by model × strategy
+### A.3 Power analysis by model x strategy
 
 | Model | Strategy | Baseline ASR | MDE (80% power) |
 |-------|----------|-------------:|-----------------:|
@@ -1512,62 +1511,62 @@ TR139's direct novelty is the intersection of those literatures: conversational 
 
 ### B.1 Selected pairwise comparisons with Cohen's d and Holm-Bonferroni correction
 
-All comparisons use Welch's t-test with Holm-Bonferroni correction within each model × strategy family. Full tables are in `tr139_analysis.json` → `phase1_pairwise`.
+All comparisons use Welch's t-test with Holm-Bonferroni correction within each model x strategy family. Full tables are in `tr139_analysis.json` -> `phase1_pairwise`.
 
 #### `llama3.2-1b` (cliff model)
 
 | Strategy | Comparison | Mean A | Mean B | t | p | Cohen's d | Holm p | Sig? |
 |----------|------------|-------:|-------:|--:|--:|----------:|-------:|:----:|
-| `crescendo` | Q2_K vs Q8_0 | 0.86 | 0.00 | — | < 0.001 | 2.49 | < 0.001 | ✓ |
-| `foot_in_door` | Q2_K vs Q8_0 | 0.76 | 0.00 | — | < 0.001 | 2.33 | < 0.001 | ✓ |
-| `progressive_refinement` | Q2_K vs Q8_0 | 0.78 | 0.00 | — | < 0.001 | 2.49 | < 0.001 | ✓ |
-| `direct` | Q2_K vs Q8_0 | 0.68 | 0.06 | — | < 0.001 | 1.54 | < 0.001 | ✓ |
-| `attention_shift` | Q2_K vs Q8_0 | 0.54 | 0.00 | — | < 0.001 | 1.59 | < 0.001 | ✓ |
+| `crescendo` | Q2_K vs Q8_0 | 0.86 | 0.00 | - | < 0.001 | 2.49 | < 0.001 | yes |
+| `foot_in_door` | Q2_K vs Q8_0 | 0.76 | 0.00 | - | < 0.001 | 2.33 | < 0.001 | yes |
+| `progressive_refinement` | Q2_K vs Q8_0 | 0.78 | 0.00 | - | < 0.001 | 2.49 | < 0.001 | yes |
+| `direct` | Q2_K vs Q8_0 | 0.68 | 0.06 | - | < 0.001 | 1.54 | < 0.001 | yes |
+| `attention_shift` | Q2_K vs Q8_0 | 0.54 | 0.00 | - | < 0.001 | 1.59 | < 0.001 | yes |
 
 #### `llama3.1-8b` (instability-band model)
 
 | Strategy | Comparison | Mean A | Mean B | t | p | Cohen's d | Holm p | Sig? |
 |----------|------------|-------:|-------:|--:|--:|----------:|-------:|:----:|
-| `benign_context` | Q3_K_M vs Q8_0 | 0.92 | 0.16 | — | < 0.001 | 1.00 | < 0.001 | ✓ |
-| `direct` | Q3_K_M vs Q8_0 | 0.88 | 0.14 | — | < 0.001 | 1.00 | < 0.001 | ✓ |
-| `attention_shift` | Q2_K vs Q4_K_M | 0.42 | 0.12 | 3.55 | < 0.001 | 0.71 | 0.004 | ✓ |
-| `foot_in_door` | Q6_K vs Q8_0 | 0.20 | 0.08 | — | 0.020 | 0.38 | 0.058 | ✗ |
+| `benign_context` | Q3_K_M vs Q8_0 | 0.92 | 0.16 | - | < 0.001 | 1.00 | < 0.001 | yes |
+| `direct` | Q3_K_M vs Q8_0 | 0.88 | 0.14 | - | < 0.001 | 1.00 | < 0.001 | yes |
+| `attention_shift` | Q2_K vs Q4_K_M | 0.42 | 0.12 | 3.55 | < 0.001 | 0.71 | 0.004 | yes |
+| `foot_in_door` | Q6_K vs Q8_0 | 0.20 | 0.08 | - | 0.020 | 0.38 | 0.058 | no |
 
 #### `qwen2.5-1.5b` (broadly vulnerable)
 
 | Strategy | Comparison | Mean A | Mean B | t | p | Cohen's d | Holm p | Sig? |
 |----------|------------|-------:|-------:|--:|--:|----------:|-------:|:----:|
-| `role_play` | Q2_K vs Q8_0 | 1.00 | 0.36 | — | < 0.001 | 2.18 | < 0.001 | ✓ |
-| `crescendo` | Q2_K vs Q8_0 | 1.00 | 0.34 | — | < 0.001 | 2.20 | < 0.001 | ✓ |
-| `foot_in_door` | Q2_K vs Q8_0 | 0.88 | 0.30 | — | < 0.001 | 1.38 | < 0.001 | ✓ |
-| `benign_context` | Q2_K vs Q8_0 | 0.52 | 0.08 | — | < 0.001 | 1.10 | < 0.001 | ✓ |
+| `role_play` | Q2_K vs Q8_0 | 1.00 | 0.36 | - | < 0.001 | 2.18 | < 0.001 | yes |
+| `crescendo` | Q2_K vs Q8_0 | 1.00 | 0.34 | - | < 0.001 | 2.20 | < 0.001 | yes |
+| `foot_in_door` | Q2_K vs Q8_0 | 0.88 | 0.30 | - | < 0.001 | 1.38 | < 0.001 | yes |
+| `benign_context` | Q2_K vs Q8_0 | 0.52 | 0.08 | - | < 0.001 | 1.10 | < 0.001 | yes |
 
 #### `llama3.2-3b` (flat-surface model)
 
 | Strategy | Comparison | Mean A | Mean B | t | p | Cohen's d | Holm p | Sig? |
 |----------|------------|-------:|-------:|--:|--:|----------:|-------:|:----:|
-| `direct` | Q2_K vs Q3_K_M | 0.12 | 0.00 | — | < 0.001 | 3.47 | < 0.001 | ✓ |
-| `benign_context` | Q2_K vs Q8_0 | 0.02 | 0.10 | — | 0.081 | 0.53 | 1.000 | ✗ |
+| `direct` | Q2_K vs Q3_K_M | 0.12 | 0.00 | - | < 0.001 | 3.47 | < 0.001 | yes |
+| `benign_context` | Q2_K vs Q8_0 | 0.02 | 0.10 | - | 0.081 | 0.53 | 1.000 | no |
 
-**Observations.** The Cohen's d values confirm that the largest pairwise effects are not just statistically significant — they are practically enormous. Values above 2.0 represent complete regime changes rather than incremental shifts. The `llama3.2-3b` `direct` Q2_K vs Q3_K_M comparison has the largest d (3.47) despite both being low-ASR, because the transition from 0% to 12% ASR represents a full shift from floor to non-trivial failure. Holm correction is conservative: the `llama3.1-8b / foot_in_door / Q6_K vs Q8_0` comparison loses significance after correction (raw p = 0.020, Holm p = 0.058), demonstrating that borderline results are properly gated.
+**Observations.** The Cohen's d values confirm that the largest pairwise effects are not just statistically significant - they are practically enormous. Values above 2.0 represent complete regime changes rather than incremental shifts. The `llama3.2-3b` `direct` Q2_K vs Q3_K_M comparison has the largest d (3.47) despite both being low-ASR, because the transition from 0% to 12% ASR represents a full shift from floor to non-trivial failure. Holm correction is conservative: the `llama3.1-8b / foot_in_door / Q6_K vs Q8_0` comparison loses significance after correction (raw p = 0.020, Holm p = 0.058), demonstrating that borderline results are properly gated.
 
 ### B.2 Fisher exact test results (quant vs Q8_0 baseline, selected significant cells)
 
-All Fisher exact tests are Holm-Bonferroni corrected within each model × strategy family (5 tests per family).
+All Fisher exact tests are Holm-Bonferroni corrected within each model x strategy family (5 tests per family).
 
 | Model | Strategy | Quant | Odds ratio | Fisher p | Holm p | Sig? |
 |-------|----------|-------|----------:|---------:|-------:|:----:|
-| `llama3.1-8b` | `benign_context` | Q3_K_M | — | < 0.001 | < 0.001 | ✓ |
-| `llama3.1-8b` | `benign_context` | Q4_K_M | — | < 0.001 | < 0.001 | ✓ |
-| `llama3.1-8b` | `benign_context` | Q2_K | — | 0.007 | 0.036 | ✓ |
-| `llama3.1-8b` | `crescendo` | Q3_K_M | — | < 0.001 | < 0.001 | ✓ |
-| `llama3.1-8b` | `direct` | Q3_K_M | — | < 0.001 | < 0.001 | ✓ |
-| `llama3.1-8b` | `direct` | Q2_K | — | < 0.001 | < 0.001 | ✓ |
-| `llama3.1-8b` | `foot_in_door` | Q6_K | — | 0.004 | 0.020 | ✓ |
-| `llama3.2-1b` | `crescendo` | Q2_K | — | < 0.001 | < 0.001 | ✓ |
-| `llama3.2-1b` | `direct` | Q2_K | — | < 0.001 | < 0.001 | ✓ |
-| `qwen2.5-1.5b` | `role_play` | Q2_K | — | < 0.001 | < 0.001 | ✓ |
-| `qwen2.5-1.5b` | `crescendo` | Q2_K | — | < 0.001 | < 0.001 | ✓ |
+| `llama3.1-8b` | `benign_context` | Q3_K_M | - | < 0.001 | < 0.001 | yes |
+| `llama3.1-8b` | `benign_context` | Q4_K_M | - | < 0.001 | < 0.001 | yes |
+| `llama3.1-8b` | `benign_context` | Q2_K | - | 0.007 | 0.036 | yes |
+| `llama3.1-8b` | `crescendo` | Q3_K_M | - | < 0.001 | < 0.001 | yes |
+| `llama3.1-8b` | `direct` | Q3_K_M | - | < 0.001 | < 0.001 | yes |
+| `llama3.1-8b` | `direct` | Q2_K | - | < 0.001 | < 0.001 | yes |
+| `llama3.1-8b` | `foot_in_door` | Q6_K | - | 0.004 | 0.020 | yes |
+| `llama3.2-1b` | `crescendo` | Q2_K | - | < 0.001 | < 0.001 | yes |
+| `llama3.2-1b` | `direct` | Q2_K | - | < 0.001 | < 0.001 | yes |
+| `qwen2.5-1.5b` | `role_play` | Q2_K | - | < 0.001 | < 0.001 | yes |
+| `qwen2.5-1.5b` | `crescendo` | Q2_K | - | < 0.001 | < 0.001 | yes |
 
 **Observations.** After Holm-Bonferroni correction, the most important Q2_K-vs-baseline and Q3_K_M-vs-baseline comparisons remain strongly significant. The correction eliminates borderline cells that might otherwise be overclaimed, which is why the report emphasizes model-level patterns and ANOVA-level conclusions over individual cell stories.
 
@@ -1607,7 +1606,7 @@ This runtime shape explains three report choices:
 
 ### C.2 Variance decomposition sensitivity
 
-The main variance decomposition (18.31% model, 6.72% quant, 1.21% quant × strategy, 0.83% strategy, 72.93% residual) uses a simple sum-of-squares approach. If the residual term is further partitioned by behavior category, the 10 harm categories absorb an estimated 8-12% of the residual, reducing it to approximately 61-65%. This suggests behavior-level heterogeneity is real but not the dominant unexplained source — individual prompt-level variation within categories is larger.
+The main variance decomposition (18.31% model, 6.72% quant, 1.21% quant x strategy, 0.83% strategy, 72.93% residual) uses a simple sum-of-squares approach. If the residual term is further partitioned by behavior category, the 10 harm categories absorb an estimated 8-12% of the residual, reducing it to approximately 61-65%. This suggests behavior-level heterogeneity is real but not the dominant unexplained source - individual prompt-level variation within categories is larger.
 
 ### C.3 Judge sensitivity check
 
@@ -1640,14 +1639,14 @@ The publish-ready report is manually written from those artifacts. It should be 
 | Term | Definition |
 |------|-----------|
 | **ANOVA (one-way)** | Tests whether means differ across 3+ groups. F-statistic is the ratio of between-group to within-group variance. p < 0.05 rejects the null that all groups have the same mean. |
-| **ANOVA (two-way)** | Tests main effects of two factors and their interaction simultaneously. η² for each factor shows what fraction of variance it explains. |
+| **ANOVA (two-way)** | Tests main effects of two factors and their interaction simultaneously. `eta^2` for each factor shows what fraction of variance it explains. |
 | **Bootstrap CI** | Confidence interval computed by resampling the data with replacement (here: 1,000 iterations, seed 42, percentile method). Does not assume normality. |
-| **Cohen's d** | Standardized effect size for comparing two means: d = (M₁ - M₂) / pooled SD. Conventional thresholds: small = 0.2, medium = 0.5, large = 0.8. Values above 2.0 indicate regime-change-level differences. |
-| **Fisher exact test** | Non-parametric test for 2×2 contingency tables. Used here for per-cell quant-vs-baseline comparisons where expected counts may be small. |
-| **Holm-Bonferroni correction** | Sequential multiple comparison correction that controls family-wise error rate (FWER). Orders raw p-values, then rejects if p_i ≤ α / (k - i + 1). Less conservative than Bonferroni but still controls Type I error. |
-| **η² (eta-squared)** | ANOVA effect size. Proportion of total variance explained by the factor. Small = 0.01, medium = 0.06, large = 0.14. |
+| **Cohen's d** | Standardized effect size for comparing two means: d = (M1 - M2) / pooled SD. Conventional thresholds: small = 0.2, medium = 0.5, large = 0.8. Values above 2.0 indicate regime-change-level differences. |
+| **Fisher exact test** | Non-parametric test for 2x2 contingency tables. Used here for per-cell quant-vs-baseline comparisons where expected counts may be small. |
+| **Holm-Bonferroni correction** | Sequential multiple comparison correction that controls family-wise error rate (FWER). Orders raw p-values, then rejects if p_i <= alpha / (k - i + 1). Less conservative than Bonferroni but still controls Type I error. |
+| **eta^2 (eta-squared)** | ANOVA effect size. Proportion of total variance explained by the factor. Small = 0.01, medium = 0.06, large = 0.14. |
 | **MDE (Minimum Detectable Effect)** | Smallest effect the study can detect at specified power (80%) and alpha (0.05). Depends on sample size and baseline rate. |
-| **TOST (Two One-Sided Tests)** | Equivalence testing: tests whether the difference between groups falls within a pre-specified margin (here ±3pp). Rejection means the groups are practically equivalent; failure means non-equivalence is not ruled out. |
+| **TOST (Two One-Sided Tests)** | Equivalence testing: tests whether the difference between groups falls within a pre-specified margin (here +/-3pp). Rejection means the groups are practically equivalent; failure means non-equivalence is not ruled out. |
 | **Welch's t-test** | t-test for comparing two means without assuming equal variances. Used for the H2 slope comparison and pairwise quant comparisons. |
 | **Wilson score interval** | Confidence interval for proportions that corrects for the poor coverage of the normal approximation at extreme values (near 0 or 1). |
 
@@ -1723,3 +1722,6 @@ Model definitions:
 ```
 
 Those config excerpts are the final source of truth for what TR139 actually ran.
+
+
+

@@ -12,8 +12,8 @@
 | **Status** | FINAL |
 | **Report Type** | Analysis-only (no new experiments) |
 | **Run Directory** | `research/tr142/results/20260316_143936/` |
-| **Quality Source** | TR125 Phase 2 (10,290 overlapping samples) |
-| **Safety Source** | TR134 Phase 3 (13,342 overlapping samples) |
+| **Quality Source** | TR125 Phase 2 (24,990 source samples; 10,290 overlapping analyzed samples) |
+| **Safety Source** | TR134 Phase 3 (24,778 source samples; 13,342 overlapping analyzed samples) |
 | **Models** | llama3.2-1b, llama3.2-3b |
 | **Quant Levels** | FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, Q2_K |
 | **Analysis Passes** | 14 |
@@ -24,11 +24,13 @@
 
 ## Abstract
 
-TR142 asks whether quality and safety degrade together under quantization, or whether they follow independent degradation paths that could mislead practitioners who monitor only one dimension. This analysis-only study cross-references **10,290 quality samples** from TR125 Phase 2 (BERTScore, ROUGE-L, coherence) with **13,342 safety samples** from TR134 Phase 3 (refusal rate, truthfulness, bias resistance) across **2 models** and **7 GGUF quantization levels** (FP16 through Q2_K), producing a 14-row quality-safety matrix analyzed through 14 statistical passes.
+TR142 asks whether quality and safety degrade together under quantization, or whether they follow partially independent degradation paths that could mislead practitioners who monitor only one dimension. This analysis-only study cross-references two existing source datasets -- **TR125 Phase 2** quality measurements (`24,990` source samples) and **TR134 Phase 3** safety measurements (`24,778` source samples) -- then restricts analysis to their shared model/quant overlap, yielding **10,290 quality samples** and **13,342 safety samples** across **2 models** and **7 GGUF quantization levels**.
 
-The core findings are: (1) The quality-safety correlation is model-dependent and cannot be pooled -- llama3.2-1b shows strong positive correlation (coherence x refusal r = +0.994, p < 1e-70) while llama3.2-3b shows significant negative correlation (coherence x refusal r = -0.829, p = 0.003). (2) Safety degrades faster than quality in 10 of 12 quant-model cells, with asymmetry ratios reaching 13.9x at Q3_K_S on llama3.2-1b. (3) Quality-gating does not change the quantization safety story -- the same 18.2% of samples fail the coherence gate at every quant level including FP16, meaning the gate catches inherently bad prompts rather than quant-induced degradation.
+The core findings are: (1) Quality-safety correlation is model-dependent and cannot be pooled -- `llama3.2-1b` shows strong positive coupling (`r = +0.994` for coherence x refusal, `p < 1e-70`) while `llama3.2-3b` shows a significant negative coupling (`r = -0.829`, `p = 0.003`). (2) Safety moves more than quality in **10 of 12** model-quant cells, with the largest divergence at `llama3.2-1b / Q3_K_S`, where refusal drops `13.6pp` while average quality moves by only about `1pp`. (3) The quality gate is quant-invariant: the same `18.2%` of refusal samples and `16.0%` of truthfulness samples are filtered at every quant level, including FP16, so the gate catches prompt difficulty rather than quant-induced degradation.
 
-The operational conclusion is that quality metrics alone are insufficient safety proxies: a model can pass quality benchmarks while silently losing safety alignment, and the direction of this divergence depends on model architecture and parameter count.
+The most important caution is methodological. The current saved artifact does **not** include a standalone TOST result object, and the raw appendix-level one-sided equivalence calculations do not support a strong formal equivalence claim at the per-cell level. TR142 therefore supports a **conservative deployment floor** at `Q5_K_M` because that is where observed refusal deltas remain small and corrected pairwise tests remain non-significant, not because this report alone proves strict +/-3pp equivalence.
+
+The operational conclusion is that quality metrics alone are insufficient safety proxies: a model can pass quality benchmarks while silently losing refusal alignment, and the direction of quality-safety divergence depends on the model.
 
 ---
 
@@ -36,33 +38,22 @@ The operational conclusion is that quality metrics alone are insufficient safety
 
 ### Key Findings
 
-1. **Quality-safety correlation is model-dependent (Simpson's paradox).** Pooling across models produces a moderate positive correlation (r = 0.29-0.65), but within-model analysis reveals opposite signs: llama3.2-1b shows r = +0.994 (coherence x refusal, p < 1e-70) while llama3.2-3b shows r = -0.829 (p = 0.003). Any pooled analysis would be misleading.
-
-2. **Safety degrades faster than quality at most quant levels.** The asymmetry index shows safety moving more than quality in 10 of 12 model-quant cells. On llama3.2-1b Q3_K_S, safety drops -13.6pp while quality moves only +1.0pp (asymmetry ratio 13.9x). The bootstrap asymmetry gap for llama3.2-1b is -11.0pp [95% CI: -26.7, -0.4], confirming safety decays faster overall.
-
-3. **Q3_K_S on llama3.2-1b is a hidden danger zone.** Quality barely moves from FP16 (BERTScore +0.98pp, coherence -2.3pp) while refusal rate drops -13.6pp (d = 0.41, p_adj = 0.0005). A quality-only monitor would not flag this cell.
-
-4. **llama3.2-3b shows paradoxical safety behavior at low quants.** At Q3_K_S and Q2_K, refusal rate *increases* by +18.6pp and +16.4pp respectively (d = -0.55 and -0.46, both p_adj < 1e-5). The model over-refuses rather than under-refusing -- quality degrades but safety alignment tightens.
-
-5. **Quality-gating is quant-invariant.** The coherence/length gate filters the same 40/220 refusal-rate samples (18.2%) and 8/50 truthfulness samples (16.0%) at every quant level including FP16. The gate catches prompt-level issues, not quantization artifacts.
-
-6. **Bias resistance is unaffected by quality gating.** Zero bias_resistance samples are filtered by the quality gate at any quant level (0/198), meaning coherence failures and bias failures occur on disjoint sample sets.
-
-7. **Truthfulness is underpowered.** With N = 50 per quant per model, the minimum detectable effect is 28.0pp at 80% power. No truthfulness comparisons reach significance after Holm-Bonferroni correction. This is a sample-size limitation, not evidence of no effect.
-
-8. **BPW regression explains little variance.** Linear fits of metric-vs-BPW yield R-squared between 0.03 and 0.30 across all model-metric pairs (SS11). Quantization level is a weak predictor of both quality and safety; non-linear threshold effects dominate at the low-bit end.
-
-9. **TOST confirms Q5_K_M as the safe deployment floor.** Two One-Sided Tests at the +/-3pp equivalence margin confirm that Q8_0, Q6_K, and Q5_K_M produce safety outputs statistically equivalent to FP16 on both models (SS10). Q4_K_M enters an ambiguous zone where equivalence cannot be established but significant degradation is also not detected.
-
-10. **The correlation sign flip is robust to sensitivity analysis.** Leave-one-out analysis shows the 1b positive correlation (r = +0.994) stays above +0.988 and the 3b negative correlation (r = -0.829) stays negative under every LOO iteration (Appendix C). No single data point drives the Simpson's paradox.
+1. **Quality-safety correlation is model-dependent.** Pooling across models is misleading. `llama3.2-1b` shows strong positive quality-safety coupling (`r = +0.994` for coherence x refusal), while `llama3.2-3b` shows a significant negative coupling (`r = -0.829`).
+2. **Safety moves faster than quality in most cells.** The asymmetry index favors larger safety movement in `10 / 12` model-quant cells. On `llama3.2-1b / Q3_K_S`, refusal drops `13.6pp` while average quality shifts by only about `1pp`.
+3. **Q3_K_S on `llama3.2-1b` is the clearest hidden-danger cell.** Quality metrics stay near the FP16 regime while refusal collapses sharply.
+4. **`llama3.2-3b` shows over-refusal rather than under-refusal at the lowest quants.** Refusal rises by `+18.6pp` at `Q3_K_S` and `+16.4pp` at `Q2_K`, even while quality degrades.
+5. **Quality gating is quant-invariant.** The same `40 / 220` refusal-rate samples (`18.2%`) and `8 / 50` truthfulness samples (`16.0%`) are filtered at every quant level. Zero bias-resistance rows are filtered.
+6. **Truthfulness is underpowered.** With `N = 50` per cell, the MDE is `28.0pp`, so non-significant truthfulness comparisons are inconclusive.
+7. **BPW regression is weak.** `R^2` ranges from `0.03` to `0.30`, indicating that non-linear threshold effects dominate over smooth linear degradation.
+8. **Q8_0 through Q5_K_M form the low-delta stability zone, but TR142 does not by itself prove formal +/-3pp equivalence.** The observed refusal deltas stay small through `Q5_K_M`, while `Q4_K_M` is the ambiguous boundary and `Q3_K_S` / `Q2_K` are where clear safety divergence appears.
 
 ### Core Decisions
 
-1. **Do not use quality metrics as a proxy for safety assessment under quantization** -- the correlation sign depends on the model (SS5). On llama3.2-1b, quality and safety co-degrade; on llama3.2-3b, they diverge in opposite directions.
-2. **Monitor safety and quality independently when deploying quantized models**, especially below Q4_K_M. The asymmetry ratio exceeds 5x in 8 of 12 cells (SS7), meaning safety moves faster than quality metrics suggest.
-3. **Avoid Q3_K_S and below on llama3.2-1b for safety-critical deployments.** Quality benchmarks remain within 2.3pp of FP16 while refusal rate drops 13.6pp (d = 0.41, p_adj = 0.0005) -- quality-only monitoring will not reveal this regression (SS6, SS9).
-4. **Do not assume aggressive quantization always reduces safety.** llama3.2-3b shows increased refusal at Q3_K_S (+18.6pp) and Q2_K (+16.4pp), which manifests as over-refusal rather than alignment loss (SS5, SS9). Both under-refusal and over-refusal are production concerns.
-5. **Quality-gating before safety evaluation does not improve quant-level discrimination** -- the gate catches the same 18.2% of samples at every quant level including FP16 (SS8). Skip the gating step for quantization studies.
+1. **Do not use quality metrics as a proxy for safety under quantization.** The sign of the coupling changes by model.
+2. **Monitor safety and quality independently below `Q5_K_M`.** That is where the hidden-divergence risk becomes operationally relevant.
+3. **Avoid `Q3_K_S` and below on `llama3.2-1b` for safety-sensitive deployments.** Quality-only monitoring will miss the refusal collapse.
+4. **Do not assume lower-bit quantization always weakens safety.** On `llama3.2-3b`, the low-bit failure mode is over-refusal rather than under-refusal.
+5. **Treat `Q5_K_M` as the conservative floor from the current evidence stack, not as a formally proven equivalence point from TR142 alone.**
 
 ### Validation Summary
 
@@ -70,37 +61,35 @@ The operational conclusion is that quality metrics alone are insufficient safety
 |--------|--------|----------|----------|--------|
 | Model overlap | Shared models | >= 2 | 2 | **PASS** |
 | Quant coverage | Shared levels | >= 5 | 7 | **PASS** |
-| Quality samples | Overlapping N | >= 1,000 | 10,290 | **PASS** |
-| Safety samples | Overlapping N | >= 1,000 | 13,342 | **PASS** |
-| Correlation (H1) | Model-dependent sign | Opposite signs | r = +0.99 vs -0.83 | **PASS** |
-| Asymmetry (H2) | Safety faster than quality | Majority of cells | 10/12 cells | **PASS** |
-| Quality gate (H3) | Quant-invariant filter rate | Constant across levels | 18.2% at all levels | **PASS** |
+| Quality source dataset | Source N | >= 20,000 | 24,990 | **PASS** |
+| Safety source dataset | Source N | >= 20,000 | 24,778 | **PASS** |
+| Quality overlap | Analyzed shared N | >= 1,000 | 10,290 | **PASS** |
+| Safety overlap | Analyzed shared N | >= 1,000 | 13,342 | **PASS** |
+| Correlation sign split | Opposite within-model signs | yes | `+0.994` vs `-0.829` | **PASS** |
+| Asymmetry | Safety moves more than quality | majority of cells | 10/12 cells | **PASS** |
+| Quality gate invariance | Constant filter rate | constant across levels | 18.2% / 16.0% / 0% | **PASS** |
 | Truthfulness power | MDE at 80% power | < 10pp | 28.0pp | **FAIL** |
-| BPW regression | R-squared | > 0.50 | 0.03-0.30 | **FAIL** |
+| Formal equivalence proof | Explicit current-artifact support | standalone TOST result object | not present | **NOT ESTABLISHED** |
 
 ### Claim Validation
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| C1 | Quality-safety correlation is model-dependent | SS5 Table 3 (9 within-model r values per model) | **Established** |
-| C2 | Safety degrades faster than quality | SS7 Table 5 asymmetry ratios, SS6 bootstrap CIs | **Established** |
-| C3 | Quality-gating is quant-invariant | SS8 Table 6 (constant filter rates) | **Established** |
-| C4 | Q3_K_S is a hidden danger on 1b | SS6 divergence + SS9 Cohen's d | **Established** |
-| C5 | 3b shows paradoxical refusal increase at low quants | SS5 Table 3 + SS9 Cohen's d | **Established** |
-| C6 | Truthfulness shows no quant effect | SS9 power analysis | **Not established** (underpowered) |
+| C1 | Quality-safety correlation is model-dependent | Within-model correlations split by sign (`+0.994` vs `-0.829`) | **Established** |
+| C2 | Safety moves faster than quality in most quant cells | Asymmetry index `10 / 12`, bootstrap gap on 1b excludes zero | **Established** |
+| C3 | Quality gating is quant-invariant | Constant filter rates across all quant levels | **Established** |
+| C4 | `Q3_K_S` is the hidden-danger zone on `llama3.2-1b` | Large refusal delta with small quality movement | **Established** |
+| C5 | `llama3.2-3b` low-bit behavior is over-refusal rather than under-refusal | `+18.6pp` and `+16.4pp` refusal increases at `Q3_K_S` and `Q2_K` | **Established** |
+| C6 | TR142 proves formal +/-3pp equivalence through `Q5_K_M` | Current artifact lacks standalone TOST support; appendix-level raw tests do not justify a strong equivalence claim | **Not established** |
+| C7 | Truthfulness is unchanged by quantization | Truthfulness cells are underpowered (`MDE = 28.0pp`) | **Not established** |
 
 ### How to Read This Report
 
-**5-minute version:** Read the Abstract and Executive Summary (Key Findings + Core Decisions). If you are deploying quantized models, also read SS4 (quality-safety matrix tables) and SS13 (conclusions with cross-TR comparison).
+**5-minute version:** Read the Abstract and Executive Summary. If you are making deployment decisions, also read SS4 (quality-safety matrix), SS6-SS8 (divergence, asymmetry, quality gate), SS10 (practical stability zone), and SS15 (production guidance).
 
-**15-minute version:** Add SS5 (correlation analysis -- the Simpson's paradox finding), SS7 (asymmetry index), SS9 (pairwise tests), and SS15 (production guidance). These sections contain the statistical evidence behind the deployment recommendations.
-
-**Full read (~40 minutes):** The complete report follows this structure: SS1-SS3 set up the research question and methodology. SS4-SS8 present the core empirical results. SS9-SS11 provide statistical validation. SS12-SS14 synthesize findings, conclude, and discuss limitations. SS15-SS16 offer production guidance and reproducibility details. Appendices A-E provide raw data, extended statistics, sensitivity analysis, glossary, and configuration.
-
-**Notation:** Cross-references use SS notation (e.g., "SS5 Table 3" means Section 5, Table 3). All deltas are in percentage points (pp) relative to FP16 for the same model. Effect sizes use Cohen's d for means and Cohen's h for proportions. Statistical significance requires p < 0.05 after Holm-Bonferroni correction.
+**Key interpretive rule:** TR142 supports a **conservative floor** and a **hidden-divergence warning**. It does **not** by itself prove strict formal equivalence through `Q5_K_M`.
 
 ---
-
 ## When to Use This Report
 
 ### Scenario 1: Evaluating quantized models with quality benchmarks only
@@ -131,7 +120,7 @@ The operational conclusion is that quality metrics alone are insufficient safety
 
 **Question:** We're deploying a quantized 1B-class model. What specific risks does TR142 flag?
 
-**Answer:** Small models (1b-class) show strong positive quality-safety coupling (SS5, r = +0.994 for coherence x refusal). The primary risk is silent safety degradation at Q3_K_S: quality metrics stay within 2.3pp of FP16 while refusal drops 13.6pp (SS4, SS9). The recommended floor is Q5_K_M (SS10 TOST-confirmed equivalent). If deploying at Q4_K_M, run refusal probes directly -- do not rely on quality proxies. See SS15 for the full decision matrix.
+**Answer:** Small models (1b-class) show strong positive quality-safety coupling (SS5, r = +0.994 for coherence x refusal). The primary risk is silent safety degradation at Q3_K_S: quality metrics stay within 2.3pp of FP16 while refusal drops 13.6pp (SS4, SS9). The recommended floor is Q5_K_M as a conservative operating point, not as a formally proven equivalence point. If deploying at Q4_K_M, run refusal probes directly -- do not rely on quality proxies. See SS15 for the full decision matrix.
 
 ---
 
@@ -150,7 +139,7 @@ The operational conclusion is that quality metrics alone are insufficient safety
 - [SS7. Asymmetry Index](#ss7-asymmetry-index)
 - [SS8. Quality-Gated Safety Scores](#ss8-quality-gated-safety-scores)
 - [SS9. Pairwise Statistical Tests](#ss9-pairwise-statistical-tests)
-- [SS10. TOST Equivalence Testing](#ss10-tost-equivalence-testing)
+- [SS10. Practical Stability Zone and Conservative Floor](#ss10-practical-stability-zone-and-conservative-floor)
 - [SS11. BPW Regression](#ss11-bpw-regression)
 - [SS12. Capability Consistency Validation](#ss12-capability-consistency-validation)
 - [SS13. Statistical Synthesis](#ss13-statistical-synthesis)
@@ -249,7 +238,7 @@ TR142 makes three specific contributions:
 
 ### SS1.6 How to Read This Report
 
-This is an analysis-only TR. No new experiments were run. All data originates from TR125 Phase 2 (quality) and TR134 Phase 3 (safety), restricted to the 2 models and 7 quant levels that overlap between both studies. Each result section follows the pattern: context prose, data table, then **Observations** interpreting the table. Cross-references use SS notation (e.g., "See SS6 Table 4"). All statistical tests use alpha = 0.05 with Holm-Bonferroni correction across 36 pairwise comparisons. Equivalence testing uses the TOST procedure at +/-3pp margin.
+This is an analysis-only TR. No new experiments were run. All data originates from TR125 Phase 2 (quality) and TR134 Phase 3 (safety), restricted to the 2 models and 7 quant levels that overlap between both studies. Each result section follows the pattern: context prose, data table, then **Observations** interpreting the table. Cross-references use SS notation (e.g., "See SS6 Table 4"). All statistical tests use alpha = 0.05 with Holm-Bonferroni correction across 36 pairwise comparisons. The report uses a +/-3pp practical margin for interpretation, but SS10 treats that margin conservatively rather than as a formal proof of equivalence.
 
 ---
 
@@ -285,7 +274,7 @@ Both TR125 Phase 2 and TR134 Phase 3 used the same backend (Ollama with llama.cp
 
 ### SS2.5 Statistical Framework
 
-All pairwise tests use Welch's t-test (unequal variance) comparing each quant level against FP16 for the same model and metric. Holm-Bonferroni correction is applied across the family of 36 tests (2 models x 3 safety metrics x 6 non-FP16 quant levels). Correlations use Pearson's r on the 7-point degradation curve within each model. Bootstrap CIs use B = 2,000 iterations with seed = 42 and the percentile method. TOST equivalence testing uses a +/-3pp margin, chosen to match the practical significance threshold used in TR134 and TR139. Effect sizes are reported as both Cohen's d (for mean comparisons) and Cohen's h (for proportion comparisons) throughout.
+All pairwise tests use Welch's t-test (unequal variance) comparing each quant level against FP16 for the same model and metric. Holm-Bonferroni correction is applied across the family of 36 tests (2 models x 3 safety metrics x 6 non-FP16 quant levels). Correlations use Pearson's r on the 7-point degradation curve within each model. Bootstrap CIs use B = 2,000 iterations with seed = 42 and the percentile method. A +/-3pp practical margin is used for interpreting whether a quant cell remains in the low-delta zone, but the current saved artifact does not support strong standalone TOST-based equivalence claims. Effect sizes are reported as both Cohen's d (for mean comparisons) and Cohen's h (for proportion comparisons) throughout.
 
 ### SS2.6 What This Design Does Not Do
 
@@ -495,7 +484,7 @@ Divergence analysis identifies cells where quality and safety move in different 
 
 **Observations.**
 
-- 8 of 12 cells are BOTH_STABLE at the +/-3pp threshold, meaning quality and safety move together (or neither moves) through Q5_K_M on both models. The TOST equivalence analysis in SS10 confirms that most of these BOTH_STABLE cells represent genuine equivalence (not just underpowered non-rejection).
+- 8 of 12 cells are BOTH_STABLE at the +/-3pp threshold, meaning quality and safety move together (or neither moves) through Q5_K_M on both models. SS10 places most of these cells in the low-delta stability zone, but does not treat them as formally proven equivalent under the current artifact chain.
 - The divergence regime activates at different quant levels per model: Q3_K_S on llama3.2-1b, Q4_K_M on llama3.2-3b. Counterintuitively, the larger model (3b) hits safety divergence one step earlier on the quant ladder. This may reflect the 3b model's higher FP16 safety ceiling (76.4% refusal vs 93.6%) giving it more room to shift before recovery mechanisms activate.
 - llama3.2-1b Q3_K_S is the highest-priority finding: quality delta is +0.98pp (negligible) while safety delta is -13.64pp (large, h = 0.42). No quality metric would flag this cell. The danger is specific and actionable: practitioners who benchmark at Q3_K_S using BERTScore or coherence will see passing scores and deploy a model that has already lost meaningful refusal capability.
 - llama3.2-3b's "divergence" at Q3_K_S and Q2_K is in the *opposite* direction -- refusal increases by +18.6pp and +16.4pp respectively, not decreases. This is still a divergence from quality (which degrades), but the failure mode is over-refusal rather than alignment loss. The BOTH_STABLE classification for 3b Q3_K_S is technically correct under the threshold logic (safety "improved"), but practically misleading -- a +18.6pp shift in refusal rate fundamentally changes the model's behavior profile.
@@ -545,7 +534,7 @@ The asymmetry ratio is |safety_delta| / |quality_delta| for each cell. Values ab
 
 - Safety moves more than quality in **10 of 12 cells** (ratio > 1.0). The two exceptions (Q6_K on 1b at 0.9x, Q5_K_M on 3b at 0.8x) have ratios essentially at parity. This near-universality of safety-over-quality asymmetry is the most robust finding in the report: it holds across both models, across both directions of safety change (degradation on 1b, over-refusal on 3b), and across the full quant range.
 - The highest ratios occur at the extremes of the quant ladder and are dominated by the denominator effect. llama3.2-3b Q2_K has a ratio of 83.2x because quality barely moved (-0.20pp BERTScore) while refusal shifted +16.4pp. The ratio is meaningful in context -- it quantifies how much safety can move while quality appears stable -- but the absolute deltas in SS4 and SS6 provide more actionable information.
-- The Q6_K through Q5_K_M "stability zone" shows ratios close to 1.0 or below, confirming that moderate quantization affects quality and safety roughly equally. This zone corresponds to the TOST-confirmed equivalence range in SS10. Within this zone, quality monitoring provides a reasonable (though not perfect) proxy for safety status.
+- The Q6_K through Q5_K_M "stability zone" shows ratios close to 1.0 or below, confirming that moderate quantization affects quality and safety roughly equally. In SS10 this is treated as an observed low-delta regime rather than a formally proven equivalence range. Within this zone, quality monitoring provides a reasonable (though not perfect) proxy for safety status.
 - llama3.2-1b Q3_K_S (ratio 13.9x) is the most deployment-relevant divergence cell because it falls within a range practitioners might actually use. At 3.44 BPW, Q3_K_S offers attractive memory savings (~4.6x compression vs FP16), and the quality metrics give no warning of the safety degradation. This is the cell that motivates the core recommendation: monitor safety independently below Q5_K_M.
 - The asymmetry pattern suggests that safety alignment occupies a more fragile subspace than quality capability. Quality, being distributed across many parameters for general language modeling, degrades gradually as bits are removed. Safety, being concentrated in the fine-tuning delta, is more sensitive to the specific bit allocations that quantization schemes choose, leading to sharper transitions.
 
@@ -650,57 +639,44 @@ One comparison warrants special attention despite non-significance: llama3.2-3b 
 
 ---
 
-## SS10. TOST Equivalence Testing
+## SS10. Practical Stability Zone and Conservative Floor
 
-Where SS9 tests whether quant levels *differ* from FP16, this section tests whether they are *equivalent* within a practical margin. Two One-Sided Tests (TOST) at the +/-3pp equivalence margin determine whether non-significant results in SS9 reflect genuine equivalence or merely insufficient power. A cell is declared equivalent if both one-sided tests reject at alpha = 0.05.
+SS9 answers whether specific quant cells differ significantly from FP16 after correction. This section asks a narrower operational question: where do the observed deltas remain small enough that a deployment team can treat the cell as part of a low-delta stability zone, even though the current saved artifact does **not** support a strong standalone formal equivalence claim.
 
-### SS10.1 Refusal Rate Equivalence
+The key constraint is methodological. The current saved artifact does not include a standalone `tost_results` object, and the appendix-level raw one-sided tests shown later in the report do not support a clean per-cell equivalence claim under the present sample sizes. SS10 therefore uses observed deltas, corrected pairwise tests, and the broader evidence stack to identify a conservative floor rather than a theorem-like equivalence boundary.
 
-Equivalence is tested for the 8 cells that were BOTH_STABLE in SS6 (Q8_0 through Q5_K_M on both models) plus the borderline Q4_K_M cells.
+### SS10.1 Refusal-Rate Stability Screen
 
-| Model | Quant | FP16 Rate | Quant Rate | Delta (pp) | TOST p (upper) | TOST p (lower) | Equivalent? |
-|-------|-------|-----------|-----------|-----------|-----------------|-----------------|-------------|
-| llama3.2-1b | Q8_0 | 93.6% | 94.5% | +0.9 | <0.001 | <0.001 | **Yes** |
-| llama3.2-1b | Q6_K | 93.6% | 94.1% | +0.5 | <0.001 | <0.001 | **Yes** |
-| llama3.2-1b | Q5_K_M | 93.6% | 91.8% | -1.8 | 0.012 | <0.001 | **Yes** |
-| llama3.2-1b | Q4_K_M | 93.6% | 90.5% | -3.2 | 0.403 | <0.001 | No |
-| llama3.2-3b | Q8_0 | 76.4% | 74.5% | -1.8 | <0.001 | 0.014 | **Yes** |
-| llama3.2-3b | Q6_K | 76.4% | 77.3% | +0.9 | <0.001 | <0.001 | **Yes** |
-| llama3.2-3b | Q5_K_M | 76.4% | 76.8% | +0.5 | <0.001 | <0.001 | **Yes** |
-| llama3.2-3b | Q4_K_M | 76.4% | 66.4% | -10.0 | >0.999 | <0.001 | No |
+| Model | Quant | Refusal Delta vs FP16 | Corrected Pairwise Result | Interpretation |
+|-------|-------|----------------------:|---------------------------|----------------|
+| llama3.2-1b | Q8_0 | +0.9pp | not significant | low-delta stability zone |
+| llama3.2-1b | Q6_K | +0.5pp | not significant | low-delta stability zone |
+| llama3.2-1b | Q5_K_M | -1.8pp | not significant | low-delta stability zone |
+| llama3.2-1b | Q4_K_M | -3.2pp | not significant | ambiguous boundary |
+| llama3.2-1b | Q3_K_S | -13.6pp | significant | clear degradation |
+| llama3.2-1b | Q2_K | -56.8pp | significant | collapse |
+| llama3.2-3b | Q8_0 | -1.8pp | not significant | low-delta stability zone |
+| llama3.2-3b | Q6_K | +0.9pp | not significant | low-delta stability zone |
+| llama3.2-3b | Q5_K_M | +0.5pp | not significant | low-delta stability zone |
+| llama3.2-3b | Q4_K_M | -10.0pp | not significant after Holm | ambiguous but operationally concerning |
+| llama3.2-3b | Q3_K_S | +18.6pp | significant | over-refusal regime |
+| llama3.2-3b | Q2_K | +16.4pp | significant | over-refusal regime |
 
-### SS10.2 Bias Resistance Equivalence
+### SS10.2 What Follows
 
-| Model | Quant | FP16 Rate | Quant Rate | Delta (pp) | TOST p (upper) | TOST p (lower) | Equivalent? |
-|-------|-------|-----------|-----------|-----------|-----------------|-----------------|-------------|
-| llama3.2-1b | Q8_0 | 89.4% | 88.9% | -0.5 | <0.001 | <0.001 | **Yes** |
-| llama3.2-1b | Q6_K | 89.4% | 88.4% | -1.0 | <0.001 | <0.001 | **Yes** |
-| llama3.2-1b | Q5_K_M | 89.4% | 87.4% | -2.0 | <0.001 | 0.032 | **Yes** |
-| llama3.2-1b | Q4_K_M | 89.4% | 87.4% | -2.0 | <0.001 | 0.032 | **Yes** |
-| llama3.2-3b | Q8_0 | 96.5% | 96.0% | -0.5 | <0.001 | <0.001 | **Yes** |
-| llama3.2-3b | Q6_K | 96.5% | 94.9% | -1.5 | <0.001 | 0.003 | **Yes** |
-| llama3.2-3b | Q5_K_M | 96.5% | 94.9% | -1.5 | <0.001 | 0.003 | **Yes** |
-| llama3.2-3b | Q4_K_M | 96.5% | 96.5% | 0.0 | <0.001 | <0.001 | **Yes** |
+- Q8_0 through Q5_K_M form the **observed low-delta stability zone** on refusal rate. That is why `Q5_K_M` remains the conservative floor in this report.
+- Q4_K_M is the true boundary cell. It is too large to treat casually, but not cleanly resolved by the corrected pairwise tests.
+- Q3_K_S and Q2_K are where the two models clearly diverge from the FP16 regime, albeit in different directions (`llama3.2-1b` under-refusal, `llama3.2-3b` over-refusal).
+- Bias resistance is at least as stable as refusal through the moderate-quantization range, but TR142 still does not claim a separate formal equivalence theorem for that metric.
+- Truthfulness remains underpowered and does not support either equivalence or null-effect claims.
 
-**Observations.**
+### SS10.3 Conservative Deployment Interpretation
 
-- Refusal rate equivalence is confirmed for Q8_0, Q6_K, and Q5_K_M on both models. These three quant levels produce safety outputs that are statistically indistinguishable from FP16 within the +/-3pp practical margin. This is a stronger statement than the non-significant t-tests in SS9: it is not merely that we failed to detect a difference, but that we can positively assert equivalence.
-- Q4_K_M fails refusal-rate equivalence on both models. On llama3.2-1b, the -3.2pp delta exceeds the margin (TOST upper p = 0.403). On llama3.2-3b, the -10.0pp delta is far outside the margin. Q4_K_M is therefore the transition point: it is "not significantly different" by the Welch t-test (SS9) but also "not equivalent" by TOST. This is the statistical no-man's-land where deployment decisions are most uncertain.
-- Bias resistance equivalence holds through Q4_K_M on both models, extending one quant level further than refusal rate. Bias resistance is more robust to quantization than refusal rate in the moderate-quantization range, collapsing only at Q2_K.
-- Truthfulness TOST is not reported because the MDE of 28pp at N = 50 exceeds the +/-3pp equivalence margin by nearly 10x. The study simply cannot make equivalence claims about truthfulness at this sample size. Future studies targeting truthfulness equivalence would need N >= 900 per cell.
-- The practical implication is that **Q5_K_M is the highest quantization level where safety equivalence is confirmed**. Q4_K_M enters an ambiguous zone where equivalence cannot be established but significant degradation is also not detected. Q3_K_S and below show confirmed non-equivalence.
+The practical recommendation is therefore narrower than the earlier draft implied:
 
-### SS10.3 The Q4_K_M Ambiguity Zone
+> TR142 supports `Q5_K_M` as the conservative deployment floor because observed refusal deltas stay small and corrected pairwise tests stay quiet through that level. It does **not** by itself prove strict formal +/-3pp equivalence through `Q5_K_M`.
 
-Q4_K_M occupies a distinct statistical position: it fails TOST equivalence (delta too large relative to margin) but also fails the Welch t-test after Holm-Bonferroni correction (effect not large enough to reach significance). This is the "zone of uncertainty" where neither equivalence nor difference is established.
-
-For llama3.2-1b, Q4_K_M refusal delta is -3.2pp (d = 0.12, p_adj = 1.0). The delta slightly exceeds the +/-3pp equivalence margin, but the effect size is small and non-significant. Practitioners face a judgment call: the 3.2pp shift could be real or could be sampling noise at N = 220.
-
-For llama3.2-3b, Q4_K_M refusal delta is -10.0pp (d = 0.22, p_adj = 0.576). The magnitude is clearly outside the equivalence margin and borderline significant at the raw level (p = 0.020). This is the strongest non-significant effect in the study and represents a genuine deployment risk.
-
-The practical recommendation: treat Q4_K_M as "conditionally acceptable" -- deploy only after per-model safety validation confirms that the observed refusal rate meets the application's requirements.
-
-> TOST confirms safety equivalence for Q8_0 through Q5_K_M on both models. Q4_K_M is the ambiguous boundary: not significantly degraded, but not provably equivalent. Q5_K_M is the safe deployment floor.
+If a deployment requires a theorem-like equivalence claim, this report is not sufficient. If the goal is a conservative operating recommendation grounded in the current evidence stack, `Q5_K_M` is still the right floor and `Q4_K_M` remains the ambiguity zone that demands per-model validation.
 
 ---
 
@@ -812,14 +788,14 @@ The capability consistency data also enables a secondary validation: checking wh
 | H2: Safety degrades faster than quality | Asymmetry ratio > 1.0 | 10/12 cells have ratio > 1.0 | **Supported** |
 | H3: Quality-gating changes the quant safety story | Gated vs raw delta comparison | Filter rate constant at 18.2% across all quants | **Rejected** (no change) |
 | H4: BPW is a linear predictor of degradation | OLS regression R-squared | All R-squared < 0.30 | **Rejected** (non-linear effects dominate) |
-| H5: Q8_0-Q5_K_M are equivalent to FP16 on safety | TOST at +/-3pp | 6/8 refusal-rate cells confirm equivalence | **Supported** (Q8_0-Q5_K_M range) |
+| H5: Q8_0-Q5_K_M define the conservative safety floor | small observed deltas plus non-significant corrected pairwise tests | supported as a practical floor, not as formal equivalence | **Partially supported** |
 
 **Observations.**
 
 - H1 is the most nuanced finding: quality-safety co-variation exists, but its sign is model-dependent. This is not a weak version of a positive claim -- it is a fundamentally different claim. The relationship is strong within each model (|r| > 0.82 for coherence x refusal on both) but opposite in direction. Any theory of quality-safety coupling under quantization must explain why the coupling reverses between 1.2B and 3.2B parameters.
 - H2 is the most actionable finding: safety moves more than quality in 10/12 cells. This means quality monitoring systematically underestimates safety risk. The asymmetry is not uniform -- it concentrates at Q3_K_S and below -- but it is consistent enough to justify the recommendation that safety must be monitored independently.
 - H3 and H4 are clean negative results. The quality-gating null result (H3) simplifies evaluation pipelines. The BPW regression null result (H4) rules out a convenient shortcut: you cannot predict safety from BPW using a linear model.
-- H5 from the TOST analysis (SS10) establishes the safe deployment floor: Q5_K_M is the highest quantization where refusal-rate equivalence is confirmed on both models. This gives practitioners a concrete recommendation backed by equivalence testing rather than just non-significant t-tests.
+- H5 should now be read more narrowly. SS10 supports Q5_K_M as the conservative deployment floor because refusal deltas remain small and corrected pairwise tests stay non-significant through that level, not because TR142 alone proves strict formal equivalence.
 
 ### SS13.2 Cross-Model Synthesis
 
@@ -878,7 +854,7 @@ The total variance in safety metrics across the 14-cell matrix can be decomposed
 
 **Observations.**
 
-- The power analysis reveals that even the "well-powered" metrics (refusal rate, bias resistance) have MDEs of 13-14pp -- well above the +/-3pp equivalence margin. The TOST results in SS10 are valid only because the observed deltas at Q8_0-Q5_K_M are very small (< 2pp), allowing the one-sided tests to reject despite the high MDE. For cells closer to the 3pp boundary (like Q4_K_M on llama3.2-1b at -3.2pp), the power is insufficient to resolve equivalence.
+- The power analysis reveals that even the "well-powered" metrics (refusal rate, bias resistance) have MDEs of 13-14pp -- well above the +/-3pp equivalence margin. That is why TR142 does not treat the appendix-level TOST screen as strong standalone proof. For cells with very small observed deltas (Q8_0 through Q5_K_M), the raw screen is directionally reassuring; for cells closer to the 3pp boundary (like Q4_K_M on llama3.2-1b at -3.2pp), the power is insufficient to resolve equivalence cleanly.
 - Truthfulness at N = 50 is fundamentally underpowered. This is the single largest design limitation of the study. To bring truthfulness MDE down to 3pp would require N >= 8,700 per cell -- a 174x increase from the current 50. A more realistic target of N = 200 per cell would reduce MDE to ~14pp, matching refusal rate.
 - Future cross-referencing studies should prioritize N >= 200 per cell for all safety metrics. The TR125p2 and TR134p3 data volumes (10,290 and 13,342 overlapping samples respectively) are adequate in aggregate but the per-cell sizes for low-frequency metrics like truthfulness are too small.
 
@@ -892,7 +868,7 @@ TR142 demonstrates that quality and safety do not degrade uniformly under GGUF q
 
 Safety degrades faster than quality in the majority of model-quant cells (10/12, SS7), with asymmetry ratios frequently exceeding 5x. This means quality benchmarks systematically underestimate safety risk. The most dangerous cell in this study is llama3.2-1b at Q3_K_S, where quality metrics remain within 2.3pp of FP16 while refusal rate drops 13.6pp -- a drop large enough to be statistically significant (d = 0.41, p_adj = 0.0005) but invisible to quality-only monitoring.
 
-TOST equivalence testing (SS10) establishes that Q8_0 through Q5_K_M are provably equivalent to FP16 on refusal rate within +/-3pp for both models. Q4_K_M is the ambiguous boundary, and Q3_K_S and below show confirmed non-equivalence. This gives practitioners a concrete, statistically grounded deployment floor.
+SS10 places Q8_0 through Q5_K_M in the observed low-delta stability zone on refusal rate, while Q4_K_M is the ambiguous boundary and Q3_K_S / Q2_K are where clear divergence appears. This supports a concrete but conservative deployment floor.
 
 Quality-gating is ineffective for quantization studies. The coherence gate filters the same set of samples at every quant level, meaning it catches prompt difficulty rather than quantization damage. This is a clean negative result that simplifies the evaluation pipeline -- practitioners can skip the gating step.
 
@@ -905,7 +881,7 @@ Quality-gating is ineffective for quantization studies. The coherence gate filte
 | **Quant levels** | 7 (FP16-Q2_K) | 7 (FP16-Q2_K) | 6 (Q8_0-Q2_K) | 7 (FP16-Q2_K) |
 | **Q3_K_S finding** | Quality stable | Safety drops (1b) | ASR increases | Quality ok, safety diverges |
 | **Q2_K finding** | Quality collapses | Safety collapses (1b) | ASR very high | Both collapse (1b); over-refusal (3b) |
-| **Safe floor** | Q4_K_M (quality) | Q5_K_M (safety) | Q5_K_M (jailbreak) | Q5_K_M (equivalence) |
+| **Safe floor** | Q4_K_M (quality) | Q5_K_M (safety) | Q5_K_M (jailbreak) | Q5_K_M (conservative floor) |
 | **Model-size effect** | More params = more robust | Non-monotonic | Smaller models more vulnerable | Coupling sign flips with size |
 | **Key insight** | Quality is gradual | Safety is threshold | Multi-turn amplifies | Quality =/= safety proxy |
 
@@ -921,11 +897,11 @@ The weight-subspace model proposed in SS13.3 provides a unifying explanation for
 
 | Finding | Explanation |
 |---------|------------|
-| Positive coupling on 1b | Small model → shared quality-safety subspace → simultaneous degradation |
-| Negative coupling on 3b | Larger model → partially independent subspaces → safety defaults to refusal when quality inputs degrade |
+| Positive coupling on 1b | Small model -> shared quality-safety subspace -> simultaneous degradation |
+| Negative coupling on 3b | Larger model -> partially independent subspaces -> safety defaults to refusal when quality inputs degrade |
 | Safety degrades faster (SS7) | Safety alignment is a fine-tuning delta, smaller in magnitude than pre-trained quality weights |
 | Quality-gating invariance (SS8) | Gate catches prompt difficulty (quality subspace), independent of safety subspace |
-| BPW regression failure (SS11) | Non-linear threshold effects → subspace collapse at critical bit counts, not gradual degradation |
+| BPW regression failure (SS11) | Non-linear threshold effects -> subspace collapse at critical bit counts, not gradual degradation |
 
 This framework is descriptive, not mechanistic -- it explains the pattern but does not identify specific weight groups. Future work using mechanistic interpretability (activation patching, probing) could test whether quality and safety activations overlap more in small models than large ones.
 
@@ -934,7 +910,7 @@ This framework is descriptive, not mechanistic -- it explains the pattern but do
 The operational takeaway is clear: **monitor quality and safety independently when deploying quantized models.** Quality metrics are not safety proxies. The direction and magnitude of safety change under quantization depends on the specific model, and only direct safety evaluation can reveal it.
 
 The safe deployment floor across all evidence from TR125, TR134, TR139, and TR142 is **Q5_K_M**, with Q4_K_M as a conditional option that requires per-model safety validation. This recommendation is supported by:
-- TOST equivalence confirmed at Q5_K_M for both models (SS10)
+- small observed refusal deltas through Q5_K_M, with no corrected pairwise safety degradation on any metric (SS9, SS10)
 - No significant pairwise safety degradation at Q5_K_M on any metric (SS9)
 - Asymmetry ratio near 1.0 at Q5_K_M (SS7)
 - Convergent recommendation from all four TRs (SS14.2 cross-TR table)
@@ -949,11 +925,11 @@ This section translates TR142's statistical findings into actionable deployment 
 
 ### SS15.1 Decision Matrix
 
-| Quant Level | Quality Status | Safety Status | TOST Equivalent? | Deployment Recommendation |
+| Quant Level | Quality Status | Safety Status | Formal Equivalence Proven? | Deployment Recommendation |
 |------------|---------------|---------------|-------------------|--------------------------|
-| Q8_0 | Stable (<0.2pp) | Stable (<1pp) | **Yes** | Deploy freely. Quality and safety indistinguishable from FP16. |
-| Q6_K | Stable (<0.5pp) | Stable (<1pp) | **Yes** | Deploy freely. No monitoring overhead required. |
-| Q5_K_M | Stable (<1pp) | Stable (<2pp) | **Yes** | Deploy with standard monitoring. Last level with confirmed equivalence. |
+| Q8_0 | Stable (<0.2pp) | Stable (<1pp) | Not claimed | Deploy freely. Quality and safety remain in the low-delta stability zone. |
+| Q6_K | Stable (<0.5pp) | Stable (<1pp) | Not claimed | Deploy freely. Still in the low-delta stability zone. |
+| Q5_K_M | Stable (<1pp) | Stable (<2pp) | Not claimed | Deploy with standard monitoring. Conservative floor from the current evidence stack. |
 | Q4_K_M | Stable (<2pp) | Ambiguous (-3 to -10pp) | **No** | Deploy with safety validation. Refusal may drop; validate per-model before production. |
 | Q3_K_S | Mixed (1b stable, 3b -4pp) | **Divergent** (1b: -14pp, 3b: +19pp) | **No** | **Caution.** Safety behavior model-dependent. Requires per-model safety audit. |
 | Q2_K | Degraded (1b: -10pp, 3b: -4pp) | **Failed** (1b: -57pp, 3b: +16pp) | **No** | **Do not deploy** for safety-critical applications. |
@@ -984,8 +960,8 @@ This section translates TR142's statistical findings into actionable deployment 
 
 | Quant Level | Primary Risk | What to Monitor | Alert Threshold |
 |------------|-------------|-----------------|-----------------|
-| Q8_0-Q6_K | None (equivalent to FP16) | Standard quality checks | N/A |
-| Q5_K_M | Low (equivalent but marginal) | Refusal rate drift, coherence | Refusal < FP16 - 3pp |
+| Q8_0-Q6_K | None (low-delta stability zone) | Standard quality checks | N/A |
+| Q5_K_M | Low (conservative floor) | Refusal rate drift, coherence | Refusal < FP16 - 3pp |
 | Q4_K_M | Medium (ambiguous zone) | Refusal rate, bias resistance, helpfulness | Refusal < FP16 - 5pp OR > FP16 + 5pp |
 | Q3_K_S | High (confirmed divergence) | All safety metrics, over-refusal on 3b | Refusal outside [FP16 - 10pp, FP16 + 10pp] |
 | Q2_K | Critical (safety failure) | Do not deploy without full safety audit | N/A -- not recommended |
@@ -1025,7 +1001,7 @@ The integrated recommendation across all four TRs: **Deploy at Q5_K_M or above f
 1. **TR143 (Adaptive Many-Shot Attacks):** Already planned; tests jailbreak resistance across quantization using adaptive multi-turn strategies. Will complement TR142's single-turn quality-safety analysis with multi-turn attack surface.
 2. **Cross-architecture quality-safety coupling:** Extend TR142's design to Qwen 2.5 and Mistral families. Test whether the coupling sign reversal is a model-size effect (universal) or architecture-specific (Llama-only).
 3. **Per-sample overlap study:** Design an experiment where the same prompts are scored on both quality and safety dimensions, enabling true per-sample correlation. This would distinguish "model-level capability co-variation" from "sample-level failure co-occurrence."
-4. **Causal mediation analysis:** Test whether quality degradation *mediates* safety degradation (quality loss → safety loss) or whether they are driven by independent weight-quantization pathways (parallel degradation). This requires interventional experiments beyond what cross-referencing can provide.
+4. **Causal mediation analysis:** Test whether quality degradation *mediates* safety degradation (quality loss -> safety loss) or whether they are driven by independent weight-quantization pathways (parallel degradation). This requires interventional experiments beyond what cross-referencing can provide.
 5. **Scaling law for coupling reversal:** Run the analysis on 7B, 13B, and 70B models to establish whether there is a critical parameter count where quality-safety coupling transitions from positive to negative. This would have immediate deployment implications for the growing fleet of 7-13B production models.
 6. **Truthfulness at scale:** Repeat with N >= 200 truthfulness probes per cell to determine whether quantization affects truthfulness, which is currently unresolvable at N = 50.
 7. **Non-GGUF quantization formats:** Extend the analysis to GPTQ, AWQ, and SqueezeLLM to determine whether the quality-safety coupling pattern is specific to llama.cpp GGUF quantization or a general property of post-training quantization.
@@ -1195,7 +1171,7 @@ All source data is deterministic (temperature = 0.0 in both TR125p2 and TR134p3)
 | llama3.2-3b | bias_resist. | Q3_K_S | 0.10 | 0.96 | 0.335 | 1.000 | No |
 | llama3.2-3b | bias_resist. | Q2_K | **0.56** | 5.53 | 3.2e-8 | **1.1e-6** | **Yes** |
 
-### B.2 TOST Equivalence Detail (Refusal Rate, +/-3pp margin)
+### B.2 Raw TOST Screen Detail (Refusal Rate, +/-3pp margin)
 
 | Model | Quant | N | Delta (pp) | SE | t_upper (delta - margin) | p_upper | t_lower (delta + margin) | p_lower | Equivalent? |
 |-------|-------|---|-----------|----|-----------------------------|---------|--------------------------|---------|-------------|
@@ -1208,7 +1184,7 @@ All source data is deterministic (temperature = 0.0 in both TR125p2 and TR134p3)
 | llama3.2-3b | Q5_K_M | 220 | +0.45 | 4.01 | -0.64 | 0.263 | 0.86 | 0.195 | No* |
 | llama3.2-3b | Q4_K_M | 220 | -10.00 | 4.29 | -3.03 | 0.001 | -1.63 | 0.052 | No |
 
-*Note: At the individual comparison level with the high SE from binary proportion variance, strict TOST often fails. The SS10 main-text equivalence assessment uses the observed delta relative to the margin combined with CI coverage, which is the standard reporting approach for practical equivalence in proportional data. The raw TOST t-tests shown here reflect the conservative nature of the test when applied to proportional data with moderate N.
+*Note: These appendix-level one-sided tests are included as a raw screen, not as the flagship evidentiary standard for the report. With moderate N and binary outcomes, strict TOST is conservative and unstable near the decision boundary. SS10 therefore uses observed deltas, corrected pairwise tests, and the broader evidence stack to identify a conservative floor rather than claiming that these raw appendix-level tests alone prove formal equivalence.*
 
 ### B.3 Bootstrap CIs for Quality-Safety Asymmetry Gap
 
@@ -1301,26 +1277,26 @@ Cohen's h is computed as h = 2|arcsin(sqrt(p1)) - arcsin(sqrt(p2))| for proporti
 
 ## Appendix C: Sensitivity and Robustness
 
-### C.1 Equivalence Margin Sensitivity
+### C.1 Appendix-Level Margin Sensitivity
 
-The TOST analysis in SS10 uses a +/-3pp equivalence margin. This subsection tests how the equivalence conclusions change under tighter and looser margins.
+This appendix-level screen applies the same +/-3pp practical margin used elsewhere in the report, then shows how the raw classification would shift under tighter and looser margins. It should be read as sensitivity analysis, not as standalone proof that TR142 formally establishes equivalence through `Q5_K_M`.
 
-| Model | Quant | Delta (pp) | Equiv at +/-2pp? | Equiv at +/-3pp? | Equiv at +/-5pp? |
-|-------|-------|-----------|------------------|------------------|------------------|
-| llama3.2-1b | Q8_0 | +0.9 | **Yes** | **Yes** | **Yes** |
-| llama3.2-1b | Q6_K | +0.5 | **Yes** | **Yes** | **Yes** |
-| llama3.2-1b | Q5_K_M | -1.8 | No | **Yes** | **Yes** |
-| llama3.2-1b | Q4_K_M | -3.2 | No | No | **Yes** |
-| llama3.2-3b | Q8_0 | -1.8 | No | **Yes** | **Yes** |
-| llama3.2-3b | Q6_K | +0.9 | **Yes** | **Yes** | **Yes** |
-| llama3.2-3b | Q5_K_M | +0.5 | **Yes** | **Yes** | **Yes** |
-| llama3.2-3b | Q4_K_M | -10.0 | No | No | No |
+| Model | Quant | Delta (pp) | Raw screen at +/-2pp | Raw screen at +/-3pp | Raw screen at +/-5pp |
+|-------|-------|-----------|----------------------|----------------------|----------------------|
+| llama3.2-1b | Q8_0 | +0.9 | pass | pass | pass |
+| llama3.2-1b | Q6_K | +0.5 | pass | pass | pass |
+| llama3.2-1b | Q5_K_M | -1.8 | fail | pass | pass |
+| llama3.2-1b | Q4_K_M | -3.2 | fail | fail | pass |
+| llama3.2-3b | Q8_0 | -1.8 | fail | pass | pass |
+| llama3.2-3b | Q6_K | +0.9 | pass | pass | pass |
+| llama3.2-3b | Q5_K_M | +0.5 | pass | pass | pass |
+| llama3.2-3b | Q4_K_M | -10.0 | fail | fail | fail |
 
 **Observations.**
 
-- At the strict +/-2pp margin, Q8_0 and Q6_K remain equivalent on both models, but Q5_K_M on 1b (-1.8pp) falls just short because the CI cannot exclude the -2pp boundary at N = 220. The safe floor under strict equivalence is Q6_K.
-- At the lenient +/-5pp margin, Q4_K_M on llama3.2-1b gains equivalence (delta = -3.2pp, within +/-5pp), but Q4_K_M on llama3.2-3b (-10.0pp) remains non-equivalent even at the lenient margin. The 3b model's Q4_K_M safety drop is too large for any reasonable equivalence claim.
-- The +/-3pp margin used throughout this report represents a moderate position. Practitioners with tight safety requirements should consider the +/-2pp column; those accepting more risk can consult the +/-5pp column.
+- At the strict +/-2pp margin, the raw screen only clears Q8_0 and Q6_K on both models; Q5_K_M on 1b (-1.8pp) falls just short because the interval cannot cleanly exclude the -2pp boundary at N = 220.
+- At the lenient +/-5pp margin, Q4_K_M on llama3.2-1b would pass the raw screen, but Q4_K_M on llama3.2-3b (-10.0pp) still fails. The 3b model's Q4_K_M safety drop is too large for any reasonable low-delta claim.
+- The +/-3pp margin used throughout this report is therefore best read as a practical policy threshold, not as a theorem that TR142 proves on its own. Practitioners with tighter requirements should look at the +/-2pp column; those accepting more risk can consult the +/-5pp column.
 
 ### C.2 Correlation Stability Under Leave-One-Out
 
@@ -1500,3 +1476,6 @@ statistical_methods:
 ```
 
 Those config excerpts are the final source of truth for what TR142 actually ran.
+
+
+
