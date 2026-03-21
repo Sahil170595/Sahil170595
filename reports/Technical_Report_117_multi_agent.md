@@ -16,7 +16,7 @@
 
 ## Executive Summary
 
-This technical report presents the definitive root cause analysis of the three critical performance anomalies observed in TR116: the **Python Ceiling** (86% efficiency cap), the **Qwen Mystery** (unexpectedly lower efficiency despite high throughput), and the **Ranking Flip** (slower models achieving higher system efficiency). Through invasive event loop instrumentation and controlled experiments, we have isolated the exact mechanisms driving these behaviors.
+This technical report presents the root cause analysis of the three critical performance anomalies observed in TR116: the **Python Ceiling** (86% efficiency cap), the **Qwen Mystery** (unexpectedly lower efficiency despite high throughput), and the **Ranking Flip** (slower models achieving higher system efficiency). Through invasive event loop instrumentation and controlled experiments, we have isolated the exact mechanisms driving these behaviors.
 
 ### Critical Context
 
@@ -125,7 +125,7 @@ This study addresses:
 
 **Significance:**
 - First micro-level analysis of Python `asyncio` behavior under LLM streaming workloads
-- First definitive answer on hardware vs software bottlenecks for Qwen
+- First clear answer on hardware vs software bottlenecks for Qwen
 - First controlled experiment proving "slower is faster" in event-driven systems
 - Production-grade migration decision framework (Python mitigation vs Rust migration)
 
@@ -349,7 +349,7 @@ For each incoming HTTP chunk, the event loop must:
 
 **Pearson Correlation (Loop Lag p99 vs Efficiency):** **r = -0.94** (p < 0.01)
 
-**Interpretation:** Across our 15 instrumented runs, loop lag p99 explains **88% of the variance** in efficiency (r^2 = 0.88). This is a **smoking gun** correlation, definitively proving that event loop saturation is the root cause of the Python ceiling within this experimental setup.
+**Interpretation:** Across our 15 instrumented runs, loop lag p99 explains **88% of the variance** in efficiency (r^2 = 0.88). This is a **smoking gun** correlation, providing strong evidence that event loop saturation is the root cause of the Python ceiling within this experimental setup.
 
 ### 3.6 Buffer Size A/B Test
 
@@ -709,7 +709,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 **A:** **Event loop saturation (moderate).** At ~100 chunks/sec per agent (dual agents ~200 chunks/sec total), the single-threaded `asyncio` loop experiences loop lag with mean 5.33ms and p99 12.13ms. While this creates some serialization overhead, Python multi-agent systems can sustain ~91% efficiency (speedup ~1.82x) under these conditions--higher than initially hypothesized (86%) but still below Rust's 98-99%.
 
 **Q2: Is Qwen's inefficiency hardware or software?**
-**A:** **Software-bound (high confidence).** No evidence of PCIe saturation (<0.2% bandwidth utilized) or VRAM limits (83% utilization). The most likely causes are: (1) BPE tokenizer CPU overhead, (2) higher chunk rate amplifying loop lag. A follow-up tokenizer micro-benchmark would provide definitive confirmation.
+**A:** **Software-bound (high confidence).** No evidence of PCIe saturation (<0.2% bandwidth utilized) or VRAM limits (83% utilization). The most likely causes are: (1) BPE tokenizer CPU overhead, (2) higher chunk rate amplifying loop lag. A follow-up tokenizer micro-benchmark would provide direct confirmation.
 
 **Q3: Why do slower models achieve higher efficiency (The "Ranking Flip")?**
 **A:** **Partially explained, but "Goldilocks Zone" not validated.** Llama 3.1's ~68 tok/s generates fewer events/sec, potentially reducing loop contention. However, TR117's throttling experiment (reducing Gemma 3 to 60 tok/s) **decreased** efficiency from ~90.8% to ~88.5%, contradicting the "slower is faster" hypothesis. The ranking flip may be driven by model-specific factors (tokenization, decode patterns) rather than pure event rate.
@@ -727,7 +727,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 4. **Rust Immunity:** Tokio's multi-threaded work-stealing scheduler eliminates the loop lag bottleneck entirely, achieving 98-99% efficiency even at 200+ tok/s aggregate throughput.
 
-5. **Qwen is Software-Bound (Likely):** No hardware saturation detected (PCIe <0.2% utilized). The most likely cause is tokenizer overhead + chunk rate amplification, though a follow-up micro-benchmark is needed for definitive confirmation.
+5. **Qwen is Software-Bound (Likely):** No hardware saturation detected (PCIe <0.2% utilized). The most likely cause is tokenizer overhead + chunk rate amplification, though a follow-up micro-benchmark is needed for direct confirmation.
 
 ### 9.3 Production Recommendations
 

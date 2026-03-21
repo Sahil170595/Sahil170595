@@ -30,7 +30,7 @@ TR124 established quality baselines and confirmed backend equivalence, but left 
 
 Key findings:
 
-- **Q4_K_M is the universal sweet spot:** 21 of 29 quantized variants maintain benchmark accuracy within 5pp of baseline. All 5 models preserve negligible-to-acceptable quality at Q4_K_M; FP16-baselined models save 30-67% vs FP16, and llama3.1-8b saves 49% vs its Q8_0 baseline.
+- **Q4_K_M is the sweet spot across all tested models:** 21 of 29 quantized variants maintain benchmark accuracy within 5pp of baseline. All 5 models preserve negligible-to-acceptable quality at Q4_K_M; FP16-baselined models save 30-67% vs FP16, and llama3.1-8b saves 49% vs its Q8_0 baseline.
 - **The quality cliff is at Q3_K_S, not Q4_K_M:** llama3.2-3b loses -10.1pp, qwen2.5-1.5b loses -12.2pp, and llama3.2-1b loses -9.5pp at Q3_K_S. Q4_K_M is safe; Q3_K_S is not.
 - **Q2_K is universally unacceptable:** Every model tested loses >11pp benchmark accuracy at Q2_K. qwen2.5-1.5b loses -40.6pp -- near-random performance.
 - **phi-2 is the most quantization-robust model:** All quant levels Q3_K_S and above stay within -1.8pp of FP16. phi-2 at Q3_K_S loses only -0.4pp.
@@ -130,15 +130,15 @@ TR125 answers: **which quantization level should you choose for each model, and 
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | Q4_K_M preserves quality across all models | Benchmark accuracy within 5pp for all 5 models (SS8). Wilson CIs overlap baselines (SS8.1-8.5). TOST at +/-3pp fails (SS15.5) -- point estimate validated but equivalence unconfirmed | **Validated** (point estimate; TOST underpowered) |
-| 2 | Quality cliff occurs at Q3_K_S boundary | 3/5 models lose >9pp at Q3_K_S (SS8) | **Validated** (model-dependent) |
-| 3 | Q2_K is universally unacceptable | All 5 models lose >11pp benchmark accuracy (SS8) | **Validated** |
-| 4 | phi-2 is most quantization-robust | Max loss -1.8pp through Q4_K_M, -0.4pp at Q3_K_S (SS8) | **Validated** |
-| 5 | Rescored accuracy resolves formatting noise | phi-2: 26% raw vs 59% rescored (SS8) | **Validated** |
-| 6 | Native timing eliminates HTTP overhead | CV 10-42% native vs 37-68% wall-clock (SS10) | **Validated** |
-| 7 | Cost savings of 30-67% at Q4_K_M | Per-model cost table (SS12) | **Validated** |
-| 8 | Phase 1 confound identified and resolved | Base-vs-instruct in TR124 FP16 baselines (SS4) | **Validated** |
-| 9 | Q8_0 is equivalent to FP16 for most models | Max delta 1.6pp across 4 models with both levels (SS8) | **Validated** |
+| 1 | Q4_K_M preserves quality across all models | Benchmark accuracy within 5pp for all 5 models (SS8). Wilson CIs overlap baselines (SS8.1-8.5). TOST at +/-3pp fails (SS15.5) -- point estimate validated but equivalence unconfirmed | **Demonstrated** (point estimate; TOST underpowered) |
+| 2 | Quality cliff occurs at Q3_K_S boundary | 3/5 models lose >9pp at Q3_K_S (SS8) | **Demonstrated** (model-dependent) |
+| 3 | Q2_K is universally unacceptable | All 5 models lose >11pp benchmark accuracy (SS8) | **Demonstrated** |
+| 4 | phi-2 is most quantization-robust | Max loss -1.8pp through Q4_K_M, -0.4pp at Q3_K_S (SS8) | **Demonstrated** |
+| 5 | Rescored accuracy resolves formatting noise | phi-2: 26% raw vs 59% rescored (SS8) | **Demonstrated** |
+| 6 | Native timing eliminates HTTP overhead | CV 10-42% native vs 37-68% wall-clock (SS10) | **Demonstrated** |
+| 7 | Cost savings of 30-67% at Q4_K_M | Per-model cost table (SS12) | **Demonstrated** |
+| 8 | Phase 1 confound identified and resolved | Base-vs-instruct in TR124 FP16 baselines (SS4) | **Demonstrated** |
+| 9 | Q8_0 is equivalent to FP16 for most models | Max delta 1.6pp across 4 models with both levels (SS8) | **Demonstrated** |
 | 10 | Larger models tolerate quantization better (8B vs 1B) | llama3.1-8b: -2.7pp at Q4_K_M vs llama3.2-1b: -2.3pp (SS8) | **Partially validated** -- phi-2 at 2.7B is most robust |
 
 ---
@@ -237,7 +237,7 @@ TR125 is the quantization decision guide for the Banterhearts research program. 
 2. Where is the **quality cliff** -- the quant level at which accuracy degrades beyond acceptability?
 3. Does the quality cliff **differ by model size** (1.2B vs 3.2B vs 8B)?
 4. What are the **cost savings** at each quant level, and do they justify the quality trade-off?
-5. Is there a **universal sweet spot** quant level that works across all models?
+5. Is there a **recommended default** quant level that works across all tested models?
 6. How do **generation quality metrics** (BERTScore, coherence, ROUGE-L) compare to **benchmark accuracy** as quality gates?
 
 ### 1.2 Why This Matters

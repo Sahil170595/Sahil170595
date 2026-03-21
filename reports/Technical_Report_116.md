@@ -1,5 +1,5 @@
 # Technical Report 116: Cross-Model Benchmarks & Runtime Architecture Analysis
-## Qwen 2.5 vs Gemma 3 vs Llama 3.1 8B: Comprehensive Multi-Agent Performance Study
+## Qwen 2.5 vs Gemma 3 vs Llama 3.1 8B: Multi-Agent Performance Study
 
 | Field | Value |
 |-------|-------|
@@ -7,7 +7,8 @@
 | **Project** | Chimeraforge LLM Performance Research |
 | **Date** | 2025-11-26 |
 | **Author** | Research Team |
-| **Report Type** | Definitive Cross-Model & Cross-Runtime Analysis |
+| **Report Type** | Cross-Model & Cross-Runtime Analysis |
+| **Artifacts** | `research/tr116/` (cross-analysis of TR110, TR114 shared datasets) |
 | **Test Duration** | 12+ hours (60 multi-agent runs across 6 model-runtime combinations) |
 | **Related Work** | [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent), [TR115_v2](Technical_Report_115_v2.md) (Rust Runtime Deep Dive), [TR110](Technical_Report_110.md) (Python Multi-Agent) |
 
@@ -15,7 +16,7 @@
 
 ## Executive Summary
 
-This technical report presents the definitive analysis of how **model architecture** (Qwen 2.5, Gemma 3, Llama 3.1) interacts with **runtime implementation** (Rust/Tokio vs Python/asyncio) in dual-agent concurrent workloads. Through 60 comprehensive benchmark runs across 3 models x 2 runtimes x 2 scenarios x 5 runs, we establish the true performance characteristics of different LLM architectures under high-concurrency coordination overhead.
+This technical report presents a systematic analysis of how **model architecture** (Qwen 2.5, Gemma 3, Llama 3.1) interacts with **runtime implementation** (Rust/Tokio vs Python/asyncio) in dual-agent concurrent workloads. Through 60 benchmark runs across 3 models x 2 runtimes x 2 scenarios x 5 runs, we establish the performance characteristics of different LLM architectures under high-concurrency coordination overhead.
 
 **Critical Context:**
 This report extends TR114_v2 and TR115_v2 by isolating **model choice** as an independent variable while holding runtime and infrastructure constant. Previous reports established that Rust achieves 90-99% multi-agent efficiency (TR114_v2) and that tokio-default is the optimal runtime (TR115_v2). TR116 answers: **Does model choice matter for multi-agent scaling?**
@@ -23,8 +24,8 @@ This report extends TR114_v2 and TR115_v2 by isolating **model choice** as an in
 ### Key Findings
 
 **Multi-Agent Efficiency Rankings (Rust, baseline-vs-chimera):**
-1. **Gemma 3** (gemma3:latest): **97.3% efficiency** (1.95x speedup) - TOP **CHAMPION**
-2. **Llama 3.1 8B** (llama3.1:8b-instruct-q4_0): **96.5% efficiency** (1.93x speedup) - PASS **EXCELLENT**
+1. **Gemma 3** (gemma3:latest): **97.3% efficiency** (1.95x speedup) - TOP PERFORMER
+2. **Llama 3.1 8B** (llama3.1:8b-instruct-q4_0): **96.5% efficiency** (1.93x speedup) - PASS
 3. **Qwen 2.5 7B** (qwen2.5:7b): **90.0% efficiency** (1.80x speedup) - WARNING **GOOD BUT HEAVY**
 
 **Multi-Agent Efficiency Rankings (Python, baseline-vs-chimera):**
@@ -34,7 +35,7 @@ This report extends TR114_v2 and TR115_v2 by isolating **model choice** as an in
 
 **Critical Discoveries:**
 1. **Rust Dominates Across All Models:** Rust achieves **+12-17pp higher efficiency** than Python for the same model. This is a structural runtime advantage, not model-specific.
-2. **Gemma 3 is the Scaling King:** Achieves **99.2% efficiency in chimera-homo** (Rust), approaching theoretical maximum (2.0x speedup).
+2. **Gemma 3 Scales Best:** Achieves **99.2% efficiency in chimera-homo** (Rust), approaching theoretical maximum (2.0x speedup).
 3. **Qwen 2.5 Shows Coordination Overhead:** Despite being a 7B model, Qwen achieves **13-19pp lower efficiency** than Gemma/Llama in multi-agent scenarios, suggesting heavier KV cache or different attention patterns.
 4. **Python Efficiency Ceiling:** Python never exceeds **86% efficiency**, while Rust consistently hits **90-99%** across all models.
 5. **Model Choice Matters More in Python:** Python's efficiency spread is **6.2pp** (77.6-83.8%), while Rust's is **7.3pp** (90.0-97.3%). Weaker runtimes amplify model differences.
@@ -43,8 +44,8 @@ This report extends TR114_v2 and TR115_v2 by isolating **model choice** as an in
 ### Business Impact
 
 **Strategic Insights:**
-- **Production Runtime:** **Rust is mandatory** for high-concurrency multi-agent systems. The 12-17pp efficiency gap translates to 15-20% longer wall time in Python.
-- **Production Model:** **Gemma 3** is the clear winner for agent swarms (97.3% Rust, 80.2% Python).
+- **Production Runtime:** **Rust is strongly recommended** for high-concurrency multi-agent systems. The 12-17pp efficiency gap translates to 15-20% longer wall time in Python.
+- **Production Model:** **Gemma 3** is the highest-performing option for agent swarms (97.3% Rust, 80.2% Python).
 - **Qwen 2.5 Trade-off:** Lower multi-agent efficiency (90% Rust, 77.6% Python) may be acceptable for specialized reasoning tasks, but not for high-frequency coordination.
 - **Llama 3.1 Surprise:** Despite being slower (68 tok/s vs Gemma's 100 tok/s), Llama scales nearly as well as Gemma in Rust (96.5% vs 97.3%), making it viable for reasoning-heavy agents.
 
@@ -63,7 +64,7 @@ For production multi-agent deployments: **Rust + Gemma 3** is the optimal stack.
 
 1. [Introduction & Objectives](#1-introduction--objectives)
 2. [Methodology & Experimental Design](#2-methodology--experimental-design)
-3. [Comprehensive Results Analysis](#3-comprehensive-results-analysis)
+3. [Results Analysis](#3-results-analysis)
 4. [Model-Specific Deep Dive](#4-model-specific-deep-dive)
 5. [Runtime Comparison (Rust vs Python)](#5-runtime-comparison-rust-vs-python)
 6. [Cross-Model Efficiency Analysis](#6-cross-model-efficiency-analysis)
@@ -108,10 +109,10 @@ This study addresses:
 - **Scenarios:** 2 (baseline-vs-chimera, chimera-homo)
 - **Total Runs:** 60 (3 models x 2 runtimes x 2 scenarios x 5 runs)
 
-**Significance:**
-- First systematic cross-model multi-agent benchmark
-- First quantification of model-specific coordination overhead
-- Production-grade recommendations for model selection in agent systems
+**Scope:**
+- Systematic cross-model multi-agent benchmark
+- Quantification of model-specific coordination overhead
+- Data-driven recommendations for model selection in agent systems
 
 ---
 
@@ -184,7 +185,7 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 
 ---
 
-## 3. Comprehensive Results Analysis
+## 3. Results Analysis
 
 ### 3.1 Overall Performance Summary
 
@@ -256,7 +257,7 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 **Characteristics:**
 - **Lightweight:** 4.3B params, smallest model tested
 - **Fast:** ~100 tok/s single-agent (TR111_v2)
-- **Excellent Scaling:** 99.2% efficiency in Rust is near-theoretical maximum
+- **Strong Scaling:** 99.2% efficiency in Rust is near-theoretical maximum
 
 **Why Gemma Excels:**
 1. **Small KV Cache:** 4.3B params  less memory contention during dual-agent execution
@@ -278,7 +279,7 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 **Characteristics:**
 - **Larger:** 8B params (1.8 Gemma size)
 - **Slower:** ~68 tok/s single-agent
-- **Excellent Scaling:** 98.5% efficiency in Rust, 85.8% in Python
+- **Strong Scaling:** 98.5% efficiency in Rust, 85.8% in Python
 
 **Why Llama Scales Well Despite Size:**
 1. **Q4_0 Quantization:** Aggressive quantization reduces memory overhead
@@ -365,14 +366,14 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 ### 6.1 Model Ranking by Runtime
 
 **Rust Multi-Agent Rankings:**
-1. Gemma 3: **99.2%** (chimera-homo) -  **GOLD**
-2. Llama 3.1: **98.5%** (chimera-homo) -  **SILVER**
-3. Qwen 2.5: **90.0%** (baseline-vs-chimera) -  **BRONZE**
+1. Gemma 3: **99.2%** (chimera-homo)
+2. Llama 3.1: **98.5%** (chimera-homo)
+3. Qwen 2.5: **90.0%** (baseline-vs-chimera)
 
 **Python Multi-Agent Rankings:**
-1. Llama 3.1: **85.8%** (chimera-homo) -  **GOLD**
-2. Gemma 3: **84.9%** (chimera-homo) -  **SILVER**
-3. Qwen 2.5: **84.1%** (chimera-homo) -  **BRONZE**
+1. Llama 3.1: **85.8%** (chimera-homo)
+2. Gemma 3: **84.9%** (chimera-homo)
+3. Qwen 2.5: **84.1%** (chimera-homo)
 
 **Observation:** Rankings **flip** between Rust and Python. Gemma wins in Rust (99.2%), but Llama wins in Python (85.8%). This suggests **Python benefits from slower models** (more time for event loop to process other tasks).
 
@@ -409,7 +410,7 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 | Qwen | Rust | baseline | 90.0% | 2.3pp | 2.6% |
 | Qwen | Rust | homo | 89.4% | 1.5pp | 1.7% |
 
-**Rust Consistency:** CV < 2% for all models (excellent)
+**Rust Consistency:** CV < 2% for all models (low variance)
 
 ---
 
@@ -449,7 +450,7 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 ### 9.1 Key Takeaways
 
 1. **Rust Dominates Multi-Agent:** +12-17pp efficiency over Python, consistent across all models.
-2. **Gemma 3 is the Scaling King:** 99.2% efficiency in Rust, 84.9% in Python.
+2. **Gemma 3 Scales Best:** 99.2% efficiency in Rust, 84.9% in Python.
 3. **Qwen 2.5 Requires Caution:** 90% Rust / 77% Python suggests coordination overhead from model architecture.
 4. **Python Has an Efficiency Ceiling:** Never exceeds 86% multi-agent efficiency, regardless of model.
 5. **Model Choice Matters:** 9.8pp efficiency spread in Rust, 8.2pp in Python.
@@ -492,9 +493,8 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 - llama3.1:8b-instruct-q4_0
 
 **Artifacts:**
-- Raw Data: experiments/TR116/results/**
-- Scripts: experiments/TR116/scripts/**
-- Report Draft: experiments/TR116/PRD.md
+- TR Directory: `research/tr116/` (cross-analysis of TR110, TR114 shared datasets)
+- Published Report: `PublishReady/reports/Technical_Report_116.md`
 
 ---
 
@@ -644,7 +644,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 |-----|---------|------------|----------------------|-------------|------------|-------|
 | 1 | 1.70x | 85.08% | +30.47 tok/s | +1422.8 ms | No | High imbalance |
 | 2 | 1.70x | 85.18% | +30.69 tok/s | +119.4 ms | No | High imbalance |
-| 3 | 1.99x | 99.58% | -0.35 tok/s | +17.7 ms | No | Perfect balance |
+| 3 | 1.99x | 99.58% | -0.35 tok/s | +17.7 ms | No | Near-zero imbalance |
 | 4 | 1.98x | 98.79% | -13.13 tok/s | +86.9 ms | No | Reverse imbalance |
 | 5 | 1.62x | 81.20% | +14.33 tok/s | +49.8 ms | No | Moderate imbalance |
 
@@ -864,7 +864,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 
 ## 14. Conclusions
 
-### 14.1 Definitive Model Rankings
+### 14.1 Model Rankings
 
 **For Multi-Agent Production:**
 1. **Gemma 3 + Rust:** 99.2% efficiency, lowest TCO ($58k 5-year), fastest
@@ -878,7 +878,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 ### 14.2 Final Recommendations
 
 **Production Deployment (2025-2026):**
-- **Runtime:** Rust (tokio-default) mandatory
+- **Runtime:** Rust (tokio-default) strongly recommended for SLOs above 95%
 - **Model:** Gemma 3 (99.2% efficiency)
 - **Config:** chimera-homo, GPU 80, CTX 512, TEMP 1.0
 - **Infrastructure:** Dual Ollama (ports 11434/11435)
@@ -895,7 +895,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 
 ---
 
-**End of Technical Report 116 (Comprehensive Edition)**
+**End of Technical Report 116**
 
 Generated: 2025-11-26
 Total Sections: 14
@@ -909,7 +909,7 @@ Runtimes Compared: 2
 
 # APPENDIX A: Granular Per-Run Analysis
 
-# TR116 Comprehensive Per-Run Granular Analysis
+# TR116 Per-Run Granular Analysis
 
 **Generated from 60 benchmark runs**
 

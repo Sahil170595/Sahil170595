@@ -8,13 +8,14 @@
 | **Test Environment** | NVIDIA GeForce RTX 4080 Laptop (12GB VRAM), Intel i9-13980HX |
 | **Model** | gemma3:latest (4.3B parameters, Q4_K_M quantization) |
 | **Configurations Tested** | 18 parameter combinations |
+| **Artifacts** | `research/tr111/artifacts/` (tr111_v2_summary.csv, tr109_full_config_stats.csv) |
 | **Related Work** | [TR108](Technical_Report_108.md), [TR109](Technical_Report_109.md), [TR110](Technical_Report_110.md) |
 
 ---
 
 ## Executive Summary
 
-This technical report presents a comprehensive performance analysis of Rust-based LLM agents using the Chimera optimization framework. Through systematic testing of 18 configuration combinations across GPU layer allocation (60/80/120), context sizes (256/512/1024 tokens), and temperature settings (0.6/0.8), we establish performance characteristics of Rust agents for production deployment.
+This technical report presents a performance analysis of Rust-based LLM agents using the Chimera optimization framework. Through systematic testing of 18 configuration combinations across GPU layer allocation (60/80/120), context sizes (256/512/1024 tokens), and temperature settings (0.6/0.8), we establish performance characteristics of Rust agents for production deployment.
 
 **Key Findings:**
 - **Throughput Consistency:** Rust agents achieved 97.9-99.5 tok/s across all configurations with minimal variance
@@ -23,8 +24,8 @@ This technical report presents a comprehensive performance analysis of Rust-base
 - **TTFT Characteristics:** 2.1% average TTFT increase (vs -9.4% for Python), indicating different optimization trade-offs
 - **Best Configuration:** GPU=60, CTX=1024, TEMP=0.8 (+0.606% throughput, -0.5% TTFT reduction)
 
-**Critical Discovery:**
-Rust agents demonstrate **higher optimization success rates** and **more consistent performance** compared to Python agents, suggesting that Rust's zero-cost abstractions and efficient async runtime provide better baseline performance that benefits more reliably from Chimera optimization.
+**Key Finding:**
+Rust agents demonstrate higher optimization success rates (72.2% vs 38.9%) and lower throughput variance (CV 0.40% vs 2-5%) compared to Python agents (TR109), consistent with lower baseline overhead from Rust's async runtime.
 
 ---
 
@@ -86,7 +87,7 @@ Based on Rust's language characteristics:
 - Streaming API with true TTFT measurement (first token timing)
 - Multiple runs per configuration (typically 3)
 - Statistical aggregation (mean +/- stddev)
-- Comprehensive metrics: throughput, TTFT, prompt eval, generation, load times
+- Collected metrics: throughput, TTFT, prompt eval, generation, load times
 - JSON output for programmatic analysis
 
 **Prompt Complexity:**
@@ -129,16 +130,16 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 | Throughput Range | 97.88 - 99.53 tok/s |
 | Mean Throughput | 98.86 tok/s |
 | Throughput Stddev | 0.40 tok/s |
-| Throughput CV | **0.40%** PASS |
+| Throughput CV | 0.40% |
 | | |
 | TTFT Range | 3513.7 - 4040.3 ms |
 | Mean TTFT | 3793.4 ms |
 | TTFT Stddev | 103.2 ms |
-| TTFT CV | **2.72%** PASS |
+| TTFT CV | 2.72% |
 
 **Consistency Analysis:**
-- Coefficient of Variation (CV) for throughput: **0.40%** - exceptionally consistent
-- CV for TTFT: **2.72%** - highly stable
+- Coefficient of Variation (CV) for throughput: 0.40%
+- CV for TTFT: 2.72%
 - All configurations within **1.65 tok/s** bandwidth (97.88-99.53)
 
 ### 3.2 Top Performing Configurations
@@ -169,7 +170,7 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 
 | Outcome | Count | Percentage |
 |---------|-------|------------|
-| Positive Throughput Improvement | 13 | **72.2%** PASS |
+| Positive Throughput Improvement | 13 | 72.2% |
 | Negative Throughput Change | 5 | 27.8% |
 | | | |
 | Mean Improvement | +0.138% | (positive overall) |
@@ -189,8 +190,8 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 | GPU Layers | Configs | Positive Rate | Mean Delta (%) | Best Config |
 |------------|---------|---------------|------------|-------------|
 | 60 | 6 | 50.0% | +0.140 | CTX=1024, TEMP=0.8 (+0.606%) |
-| 80 | 6 | 83.3% PASS | +0.217 | CTX=256, TEMP=0.8 (+0.566%) |
-| 120 | 6 | 83.3% PASS | +0.055 | None significantly positive |
+| 80 | 6 | 83.3% | +0.217 | CTX=256, TEMP=0.8 (+0.566%) |
+| 120 | 6 | 83.3% | +0.055 | No config above +0.2% |
 
 **Finding:** **GPU=80 layers optimal** for Rust agents, showing highest average improvement and 83.3% success rate.
 
@@ -202,7 +203,7 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 |---------|---------|---------------|------------|-------------|
 | 256 | 6 | 66.7% | +0.061 | GPU=80, TEMP=0.8 (+0.566%) |
 | 512 | 6 | 66.7% | +0.077 | GPU=80, TEMP=0.8 (+0.194%) |
-| 1024 | 6 | 83.3% PASS | +0.276 | GPU=60, TEMP=0.8 (+0.606%) |
+| 1024 | 6 | 83.3% | +0.276 | GPU=60, TEMP=0.8 (+0.606%) |
 
 **Finding:** **CTX=1024 optimal** - highest success rate (83.3%) and highest average improvement (+0.276%).
 
@@ -213,7 +214,7 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 | Temperature | Configs | Positive Rate | Mean Delta (%) |
 |-------------|---------|---------------|------------|
 | 0.6 | 9 | 66.7% | +0.078 |
-| 0.8 | 9 | 77.8% PASS | +0.197 |
+| 0.8 | 9 | 77.8% | +0.197 |
 
 **Finding:** **TEMP=0.8 optimal** - higher success rate and nearly 2.5x better improvement than TEMP=0.6.
 
@@ -244,18 +245,18 @@ Max:     99.53 tok/s
 Range:   1.65 tok/s (1.67% of median)
 ```
 
-**Interpretation:** Extremely tight distribution indicates Rust agent performance is **highly predictable** across configurations.
+**Interpretation:** The 1.65 tok/s range (1.67% of median) indicates low sensitivity to configuration parameters.
 
 ### 5.2 Coefficient of Variation Analysis
 
 | Metric | CV | Interpretation |
 |--------|-----|----------------|
-| Throughput | 0.40% | Excellent consistency |
-| TTFT | 2.72% | Very good consistency |
-| Baseline Throughput | 0.36% | Slightly better than Chimera |
-| Chimera Throughput | 0.43% | Still excellent |
+| Throughput | 0.40% | Sub-1% variation |
+| TTFT | 2.72% | Low variation |
+| Baseline Throughput | 0.36% | Marginally lower than Chimera |
+| Chimera Throughput | 0.43% | Sub-1% variation |
 
-**Finding:** Rust agents maintain **sub-1% throughput variation** across all configurations - significantly better than typical Python agent variance (2-5%).
+**Finding:** Rust agents maintain sub-1% throughput CV across all configurations, compared to 2-5% for Python agents (TR109).
 
 ### 5.3 Improvement Significance
 
@@ -267,7 +268,7 @@ Range:   1.65 tok/s (1.67% of median)
 - **95% CI:** [-0.016%, +0.292%]
 - **p-value:** 0.075 (marginally significant)
 
-**Interpretation:** While mean improvement is positive, high consistency of baseline means improvements are modest but **reliable**.
+**Interpretation:** The 95% CI includes zero, so mean improvement is not statistically significant at alpha = 0.05 (p = 0.075). The positive direction across 72.2% of configurations is consistent but the effect size is small.
 
 ---
 
@@ -301,16 +302,16 @@ OllamaOptions {
 ### 6.2 When to Use Rust Agents
 
 **Rust Advantages:**
-- PASS **Consistency:** 0.4% CV vs 2-5% for Python
-- PASS **Success Rate:** 72% vs 39% optimization success
-- PASS **Memory:** Lower overhead (~60-80MB vs 80-120MB Python)
-- PASS **Deployment:** Single binary, no runtime dependencies
+- **Consistency:** 0.4% CV vs 2-5% for Python
+- **Success Rate:** 72% vs 39% optimization success
+- **Memory:** Lower overhead (~60-80MB vs 80-120MB Python)
+- **Deployment:** Single binary, no runtime dependencies
 
 **Python Advantages:**
-- PASS **Peak Gains:** Can achieve higher peaks (+2.2% in TR109)
-- PASS **TTFT Improvements:** Better TTFT optimization potential
-- PASS **Ecosystem:** Richer AI/ML libraries
-- PASS **Development Speed:** Faster iteration
+- **Peak Gains:** Can achieve higher peaks (+2.2% in TR109)
+- **TTFT Improvements:** Better TTFT optimization potential
+- **Ecosystem:** Richer AI/ML libraries
+- **Development Speed:** Faster iteration
 
 ### 6.3 Hybrid Strategy
 
@@ -329,8 +330,8 @@ OllamaOptions {
 | Metric | Python (TR109) | Rust (TR111) | Delta |
 |--------|----------------|--------------|-------|
 | **Throughput Range** | 98.7-101.1 tok/s | 97.9-99.5 tok/s | Rust 1.0 tok/s lower |
-| **Throughput CV** | ~2-5% | 0.40% | **Rust 5-12x more consistent** |
-| **Optimization Success** | 38.9% | 72.2% | **Rust 1.86x higher** |
+| **Throughput CV** | ~2-5% | 0.40% | Rust 5-12x lower CV |
+| **Optimization Success** | 38.9% | 72.2% | Rust 1.86x higher |
 | **Mean Improvement** | +0.095% | +0.138% | Rust +45% better |
 | **Best Config Gain** | +2.20% | +0.606% | Python 3.6x higher peak |
 | **TTFT Behavior** | -9.4% avg | +2.1% avg | Different trade-off |
@@ -339,17 +340,17 @@ OllamaOptions {
 
 **Throughput:**
 - Python achieves slightly higher absolute throughput (99.2 vs 98.9 avg)
-- Rust provides more **predictable** performance
+- Rust shows lower variance across configurations
 - Both are GPU-bound; language overhead minimal
 
 **Optimization:**
-- Python has **higher variance** - can achieve bigger gains but less reliably
-- Rust **consistently improves** - smaller gains but 72% success rate
+- Python has higher variance -- can achieve larger gains but less reliably
+- Rust shows smaller gains but at a 72.2% success rate
 - Python's best config (+2.2%) is an outlier; Rust's best (+0.6%) is representative
 
 **TTFT:**
 - Python benefits more from TTFT optimization (-9.4% avg)
-- Rust shows slight TTFT increase (+2.1%), suggesting **different optimization profile**
+- Rust shows slight TTFT increase (+2.1%), suggesting a different optimization profile
 - Hypothesis: Rust's efficient baseline leaves less room for TTFT improvement
 
 ### 7.3 Production Implications
@@ -374,11 +375,11 @@ OllamaOptions {
 
 ### 8.1 Key Findings
 
-1. **Rust Agents are Highly Consistent:** 0.40% throughput CV demonstrates exceptional predictability
-2. **Optimization Works Better in Rust:** 72% success rate vs 39% for Python
+1. **Rust Agents Show Low Variance:** 0.40% throughput CV across 18 configurations
+2. **Higher Optimization Success Rate in Rust:** 72.2% vs 38.9% for Python (TR109)
 3. **Trade-off Profile Differs:** Rust optimizes for throughput consistency; Python for TTFT reduction
 4. **Absolute Performance Similar:** Both languages achieve 98-101 tok/s (GPU-bound)
-5. **Production-Ready:** Rust agents suitable for production with proven reliability
+5. **Deployment Characteristics:** Rust agents offer single-binary deployment with low memory overhead
 
 ### 8.2 Optimal Configuration
 
@@ -393,7 +394,7 @@ OllamaOptions {
 - **TR108:** Established single-agent baselines (~102 tok/s)
 - **TR109:** Demonstrated Python agent optimization (+2.2% peak)
 - **TR110:** Showed Python multi-agent efficiency (99.3%)
-- **TR111:** Proves Rust agents offer **consistency advantage** at similar throughput
+- **TR111:** Rust agents show lower variance (CV 0.40%) at similar throughput levels
 
 ### 8.4 Future Work
 
@@ -409,7 +410,7 @@ OllamaOptions {
 
 ### Appendix A: Complete Results Table
 
-See `artifacts/rust_vs_python_sweep_summary.csv` for full dataset.
+See `research/tr111/artifacts/tr111_v2_summary.csv` for full dataset.
 
 ### Appendix B: Reproducibility
 
@@ -442,7 +443,7 @@ cargo build --release
 
 **Document Version:** 1.0
 **Last Updated:** November 10, 2025
-**Status:** PASS Publication Ready
+**Status:** Publication Ready
 
 ---
 

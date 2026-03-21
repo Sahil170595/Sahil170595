@@ -19,7 +19,7 @@ TR117 surfaced an apparent contradiction:
 
 > The "-compile" backend looks better on mean latency, while the non-compile backend looks better on median latency.
 
-This report makes the situation definitive.
+This report resolves the situation.
 
 Claim status (to prevent misreads):
 
@@ -60,7 +60,7 @@ Environment behavior summary:
 - On the Windows host (Python 3.13): Inductor GPU compile fails (Triton missing) and the runner falls back to `aot_eager` (explicitly recorded).
 - In Triton Docker (Linux): Inductor runs successfully; tail behavior depends on shape stability.
 
-### Root cause (definitive)
+### Root cause (established)
 
 The "compile paradox" as stated in TR117 is a **misattribution**:
 
@@ -263,7 +263,7 @@ This matters because on some platforms `hasattr(torch, "compile")` is true, but 
 TR120 uses two environments for a reason:
 
 - **Windows host:** representative of the local-first dev environment, but Inductor+Triton GPU compilation is not available for this Python/OS combo in the tested stack (falls back; recorded).
-- **Triton Docker (Linux):** provides a known-good Inductor+Triton toolchain so we can collect definitive compiler evidence.
+- **Triton Docker (Linux):** provides a known-good Inductor+Triton toolchain so we can collect direct compiler evidence.
 
 ---
 
@@ -435,7 +435,7 @@ This run executes inside `nvcr.io/nvidia/tritonserver:25.08-trtllm-python-py3` (
 
 #### Controlled-run configuration (what was held constant)
 
-The controlled runner exists to remove confounds that make compiler claims non-definitive:
+The controlled runner exists to remove confounds that make compiler claims inconclusive:
 
 - Model is loaded once (no per-measurement weight load).
 - Prompts are tokenized once (tokenizer variance removed from timed region).
@@ -846,7 +846,7 @@ This report includes KV-cached decode explicitly in the controlled harness (`kv_
 3. **Decode introduces unavoidable shape pressure.** `past_key_values` grows every step; even after padding prompt shapes, the compiler is still exposed to a moving-shape state boundary (Section 5.4).
 4. **CUDAGraph output reuse can be a real hazard in decode loops.** TR120 disables Inductor cudagraph trees for the padded+decode run to avoid overwrite hazards and make the results reproducible.
 
-### 8.2 What remains to make decode "definitive" (frontier-grade)
+### 8.2 What remains for decode
 
 TR120.B is still incomplete as a full decode study because it has not yet been integrated into the broader experimentation pipeline (TR117-style matrix + plots + report narrative), and because decode behavior is sensitive to model size and kernel availability.
 
@@ -873,12 +873,12 @@ The TR120 controlled runner already provides the scaffold for this; the missing 
 ### 9.1 Limitations (explicit)
 
 1. TR117 label-only results are not attributable to torch.compile in this repo.
-2. Inductor+Triton compilation is not available on the Windows host Python stack used for development; TR120 therefore relies on a GPU-enabled Linux Docker environment for definitive compiler evidence.
+2. Inductor+Triton compilation is not available on the Windows host Python stack used for development; TR120 therefore relies on a GPU-enabled Linux Docker environment for direct compiler evidence.
 3. The controlled runs use a small model (`models/tiny-gpt2`) on one GPU; larger models and different kernel stacks (FlashAttention, paged attention) can change decode behavior materially.
-4. This report is distribution- and artifact-definitive, but not yet profiler-definitive: it does not include `torch.profiler`/Nsight traces that pinpoint which kernels or graph breaks cause the decode regression.
+4. This report is distribution- and artifact-confirmed, but not yet profiler-confirmed: it does not include `torch.profiler`/Nsight traces that pinpoint which kernels or graph breaks cause the decode regression.
 5. Compile strategy space is not exhausted: only a small set of compile modes (`reduce-overhead`, `dynamic` ablation for prefill) are explored here.
 
-### 9.2 Next steps (to become "compiler-definitive")
+### 9.2 Next steps (to reach compiler-confirmed status)
 
 1. Add profiler evidence:
    - `torch.profiler` traces for prefill vs KV decode, eager vs compiled

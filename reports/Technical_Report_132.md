@@ -20,7 +20,7 @@
 
 TR131 established that GPU memory bandwidth saturation is the root cause of multi-agent throughput degradation, with Ollama losing 82% of per-agent throughput at N=8 and PyTorch Direct losing 86%. TR130 demonstrated that production serving stacks (vLLM and TGI) degrade only 39--56% under the same load -- a 26--44 percentage-point scaling advantage -- but lacked kernel-level evidence for *why*.
 
-TR132 provides the causal mechanism. Using a novel in-container Nsight Systems profiling methodology that overcomes WSL2/WDDM CUDA visibility limitations, we captured CUPTI traces from inside Docker containers running vLLM and TGI. The approach mounts the Linux nsys binary into each container, wraps the server entrypoint with `nsys profile --trace cuda`, and extracts cross-platform `.nsys-rep` traces via volume mounts.
+TR132 provides the causal mechanism. Using an in-container Nsight Systems profiling methodology that overcomes WSL2/WDDM CUDA visibility limitations, we captured CUPTI traces from inside Docker containers running vLLM and TGI. The approach mounts the Linux nsys binary into each container, wraps the server entrypoint with `nsys profile --trace cuda`, and extracts cross-platform `.nsys-rep` traces via volume mounts.
 
 **The central finding: continuous batching amortizes kernel launches and memory bandwidth across concurrent requests.** At N=8, vLLM reduces per-token kernel count by 80% (from 55--77 kernels/token at N=1 to 11--15 at N=8, p < 10^-6, d > 600) and per-token memory operation time by 79--83% (p < 0.001, d > 21). This 4.7--5.8x bandwidth amortization directly explains the 26--44 percentage-point scaling advantage over Ollama (which cannot batch). TGI shows nearly identical amortization (4.7--4.8x), confirming that the mechanism is architectural -- continuous batching itself -- not implementation-specific.
 
@@ -185,7 +185,7 @@ TR132 completes the causal chain by answering: **what GPU-level mechanism gives 
 
 ### SS1.2 Experimental Design
 
-TR132 profiles vLLM and TGI at the GPU kernel level using a novel in-container Nsight Systems methodology. Two models (LLaMA-3.2-1B, LLaMA-3.2-3B) are tested at two concurrency levels (N=1, N=8) across two backends (vLLM, TGI), with 3 repetitions per condition (24 profiled runs total). Ollama baselines are cross-referenced from TR131.
+TR132 profiles vLLM and TGI at the GPU kernel level using an in-container Nsight Systems methodology. Two models (LLaMA-3.2-1B, LLaMA-3.2-3B) are tested at two concurrency levels (N=1, N=8) across two backends (vLLM, TGI), with 3 repetitions per condition (24 profiled runs total). Ollama baselines are cross-referenced from TR131.
 
 | Factor | Controlled? | Value |
 |--------|------------|-------|

@@ -1,5 +1,5 @@
 # Conclusive Report 117-122: From Benchmarking to Decision-Grade Inference
-## A dissertation-style synthesis of performance, cost, scaling, compiler behavior, and physical limits
+## Synthesis of performance, cost, scaling, compiler behavior, and physical limits
 
 | Field | Value |
 |-------|-------|
@@ -14,7 +14,7 @@
 
 ## Abstract
 
-This dissertation-style report synthesizes TR117 through TR122 into a single decision-grade narrative for local-first LLM inference on a fixed hardware baseline. The research arc begins with a single-model performance matrix (TR117), then evolves into a reproducible and validated measurement stack (TR118_v2.2), a fully explicit cost and energy model (TR119v1), a compiler attribution audit with controlled reproduction (TR120), a regime-aware scaling study across model sizes (TR121v1), and a physics-based measurement layer that defines what can and cannot be trusted at the event level (TR122). The synthesis establishes three stable principles: (1) decode throughput dominates end-to-end capacity once generation is moderate, (2) workload shape and model structure govern performance more reliably than parameter count in small-model GPU regimes, and (3) energy attribution is valid only when the measurement system can observe the event window. The report does not claim universal scaling laws or cross-hardware generality; it provides an artifact-backed decision framework within the measured boundary conditions. External research on transformer architecture and efficient attention is cited for context [1]-[3], and system-level measurement references are included for instrumentation grounding [5]-[8].
+This comprehensive report synthesizes TR117 through TR122 into a single decision-grade narrative for local-first LLM inference on a fixed hardware baseline. The research arc begins with a single-model performance matrix (TR117), then evolves into a reproducible and validated measurement stack (TR118_v2.2), a fully explicit cost and energy model (TR119v1), a compiler attribution audit with controlled reproduction (TR120), a regime-aware scaling study across model sizes (TR121v1), and a physics-based measurement layer that defines what can and cannot be trusted at the event level (TR122). The synthesis establishes three stable principles: (1) decode throughput dominates end-to-end capacity once generation is moderate, (2) workload shape and model structure govern performance more reliably than parameter count in small-model GPU regimes, and (3) energy attribution is valid only when the measurement system can observe the event window. The report does not claim universal scaling laws or cross-hardware generality; it provides an artifact-backed decision framework within the measured boundary conditions. External research on transformer architecture and efficient attention is cited for context [1]-[3], and system-level measurement references are included for instrumentation grounding [5]-[8].
 
 This synthesis also makes explicit the chain-of-custody between measurement and claim, including where the chain fails. In particular, it distinguishes: (a) what is measured at the backend boundary, (b) what is modeled from those measurements, and (c) what is inferred for production decisions. This is not a semantic nicety; it is the difference between a benchmark that reads well and a report that survives audit.
 
@@ -138,7 +138,7 @@ The research program is intentionally sequential. Each report closes a failure m
 1. TR117 establishes a baseline matrix but exposes distribution paradoxes and label drift risk.
 2. TR118_v2.2 hardens the artifact pipeline so later claims are reproducible, not just repeatable.
 3. TR119v1 converts throughput into cost and energy, forcing a decision-grade framing.
-4. TR120 proves compiler attribution and shows why shape stability must be a policy, not a hope.
+4. TR120 demonstrates compiler attribution and shows why shape stability must be a policy, not a hope.
 5. TR121v1 replaces the single-model worldview with regime-aware scaling and structural predictors.
 6. TR122 defines the physics floor: what can and cannot be trusted at the event scale.
 
@@ -176,6 +176,8 @@ Manifest requirements (minimum):
 ## 1. Introduction and Research Questions
 
 ### 1.1 Motivation
+
+Deploying LLMs on consumer hardware requires measurement infrastructure that does not yet exist in the open-source ecosystem. Before you can optimize deployment, you need to know what to measure, how to measure it reliably, and when a measurement is trustworthy enough to act on. This phase builds that measurement foundation.
 
 Performance research for LLM inference often fails not because the measurements are wrong, but because the questions are mis-scoped. A benchmark that answers "which backend is faster" on a single model can still be operationally misleading if it ignores cost, energy, workload shape, or physics. The TR117-TR122 sequence was constructed to close these gaps deliberately.
 
@@ -756,7 +758,7 @@ Decision implications:
 
 ---
 
-### 5.7 Extended Analyses (dissertation depth)
+### 5.7 Extended Analyses (extended depth)
 
 This section expands each report's logic into a deeper narrative. It is intentionally verbose and analytical, designed to make the chain of reasoning visible without requiring readers to jump back into the individual report files. The content here is not new data; it is a tighter articulation of why the data lead to the stated decisions.
 
@@ -1536,7 +1538,7 @@ This appendix provides a narrative expansion of the implications for research pr
 
 ## Appendix O: Extended Results Narratives
 
-This appendix provides long-form narratives for each report's results, written in a dissertation style. The goal is to clarify how the measured artifacts become the conclusions presented in the main body.
+This appendix provides long-form narratives for each report's results, written in extended narrative form. The goal is to clarify how the measured artifacts become the conclusions presented in the main body.
 
 ### O.1 TR117 Narrative
 
@@ -2055,7 +2057,7 @@ This appendix lists additional system-level terms (scheduler, queueing, kernel f
 
 ## Appendix AP: Extended Synthesis Narrative
 
-This appendix provides a long-form synthesis that complements the main body. It is written in narrative style to reflect the "mini dissertation" requirement and to make the report accessible to readers who want a continuous argument rather than modular sections.
+This appendix provides a long-form synthesis that complements the main body. It is written in narrative style to make the report accessible to readers who want a continuous argument rather than modular sections.
 
 ### AP.1 The arc from measurement to decision
 
@@ -2854,3 +2856,7 @@ Using this map, a decision-maker can identify which report to consult before cha
 - Compiler-real: a backend path that actually invokes torch.compile and records compile metadata.
 - Energy gating: the policy of marking per-event energy as no_data if insufficient samples exist.
 - Baseline subtraction: removing idle power from measured power to isolate inference energy.
+
+---
+
+*Note: This work has not been externally peer reviewed. All findings represent the output of a single research program without independent expert verification.*

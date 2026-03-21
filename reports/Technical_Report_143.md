@@ -55,7 +55,7 @@ The question of cross-request interference in batched inference has received min
 
 The closest related work is in the floating-point non-determinism literature. Johansson et al. (2024) documented that CUDA GEMM operations produce different results depending on the number of concurrent warps, and traced this to accumulation-order differences in thread-block reduction. TR143's proposed mechanism (SS9 Mechanistic Interpretation) builds on this observation: if the accumulation order depends on batch size, and batch size varies between solo and batched processing, then the logits at each token position will differ by a small epsilon.
 
-The safety evaluation literature (Harmbench, JailbreakBench, SafeDecoding) evaluates models exclusively under solo processing. TR143 provides the first systematic evidence that batched evaluation produces marginally different safety outcomes, establishing a gap between evaluation-time and deployment-time safety measurement.
+The safety evaluation literature (Harmbench, JailbreakBench, SafeDecoding) evaluates models exclusively under solo processing. TR143 provides evidence that batched evaluation produces marginally different safety outcomes, establishing a gap between evaluation-time and deployment-time safety measurement.
 
 ---
 
@@ -942,7 +942,7 @@ TR138 established the foundational finding: increasing batch size from 1 to 8 pr
 
 ### TR141: Output Instability Predicts Fragility
 
-TR141 scaled the investigation to 7 models across 3 architectures (GQA, MHA, MQA) and 5 alignment types. Its central finding: output instability (byte-level divergence between outputs at different batch sizes) predicts which models experience safety flips, with r = 0.91. This correlation means that models whose outputs are more sensitive to FP perturbation are also more likely to have safety-relevant flips. Critically, TR141 found that alignment type does not predict fragility (ANOVA p = 0.915) -- RLHF, DPO, SFT, and unaligned models are equally susceptible, conditional on their output instability. TR141 also found that the net direction of flips across its 7 models was toward safe (more comply-to-refuse than refuse-to-comply), though this was aggregated across a different model set than TR143.
+TR141 scaled the investigation to 7 models across 3 architectures (GQA, MHA, MQA) and 5 alignment types. Its central finding: output instability (byte-level divergence between outputs at different batch sizes) predicts which models experience safety flips, with r = 0.91. This correlation means that models whose outputs are more sensitive to FP perturbation are also more likely to have safety-relevant flips. Critically, TR141 found that alignment type does not predict fragility (ANOVA p = 0.942) -- RLHF, DPO, SFT, and unaligned models are equally susceptible, conditional on their output instability. TR141 also found that the net direction of flips across its 7 models was toward safe (more comply-to-refuse than refuse-to-comply), though this was aggregated across a different model set than TR143.
 
 ### TR143: Composition Does Not Matter, But Direction Does
 
@@ -957,7 +957,7 @@ Second, when individual prompts do flip, they flip toward unsafe 88-92% of the t
 | Batch perturbation exists | **Yes** (4x ratio, 0.6% flip rate) | **Yes** (output instability varies by model) | **Yes** (88-92% directional bias in flips) |
 | What drives perturbation magnitude | Batch size | Model architecture + output instability (r=0.91) | Not batch content (all compositions equivalent) |
 | Direction of flips | Not characterized | Net safe (across 7 models) | Net unsafe (across 3 small models, 88-92%) |
-| Alignment type matters | Not tested | **No** (ANOVA p=0.915) | Not tested (all instruct-tuned) |
+| Alignment type matters | Not tested | **No** (ANOVA p=0.942) | Not tested (all instruct-tuned) |
 | Composition content matters | Not tested | Not tested | **No** (MH OR = 1.004, CI crosses 1.0) |
 
 The synthesis: **batching introduces a small, universal, model-dependent perturbation to safety outcomes.** The perturbation magnitude depends on the model's output instability (TR141), not on what else is in the batch (TR143). The direction of the rare flips may depend on model size and alignment strength, with smaller models showing a directional bias toward unsafe (TR143) and larger models showing a possible bias toward safe (TR141). The net effect is operationally negligible at batch size 8, but the directional bias warrants monitoring as batch sizes scale in production.

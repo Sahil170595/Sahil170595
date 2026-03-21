@@ -158,7 +158,7 @@ TR119 makes performance actionable by translating throughput into:
 Use TR119 in two passes:
 
 1. **Choose the likely winner** from the mean-across-scenarios tables (Section 5). This is a robust default when you do not yet have an exact production workload distribution.
-2. **Re-weight by your workload** using the scenario-winner table (Section 5.2) and (ideally) re-run TR119 with your real batch/sequence/token mix. This is mandatory for high-volume deployment decisions.
+2. **Re-weight by your workload** using the scenario-winner table (Section 5.2) and (ideally) re-run TR119 with your real batch/sequence/token mix. This is strongly recommended for high-volume deployment decisions.
 
 ### 1.4 Research evolution (how we got here)
 
@@ -547,7 +547,7 @@ If you can deploy intelligently, you need the scenario-level winners.
 | prefill | single_medium | onnxruntime-gpu | 0.1212 | onnxruntime-cpu | 0.3170 |
 | prefill | single_long | onnxruntime-gpu | 0.1223 | transformers-gpu | 0.2437 |
 
-This is the core "frontier-grade" nuance:
+This is the core nuance:
 
 - If your workload is *batch-dominant prefill*, `transformers-gpu` can be cheaper than `onnxruntime-gpu`.
 - If your workload includes *meaningful generation*, `onnxruntime-gpu` dominates end-to-end.
@@ -1130,7 +1130,7 @@ This report is designed to be decision-grade for the stated scope. It is also ex
 5. **Energy is not full-system energy.** GPU-backend energy uses GPU power (NVML) and does not add CPU package power; carbon numbers for GPU backends should be treated as lower bounds.
 6. **Pricing is configurable inputs.** The absolute $/token depends on the configured hourly rate and energy rate; the ranking is the main stable insight.
 
-### 13.2 Next steps (frontier-grade follow-through)
+### 13.2 Next steps
 
 1. Add KV-cache generation benchmarking and cost modeling (decode realistic).
 2. Extend `max_new_tokens` and `max_seq_len` to cover longer decode trajectories.

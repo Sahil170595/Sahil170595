@@ -143,7 +143,7 @@ TR135 answers: **does running multiple concurrent agents against a shared Ollama
 | 2 | Safety degrades faster than capability under concurrency | All models "both stable", divergence < 0.001 (Section 7) | **Refuted** |
 | 3 | Concurrency amplifies jailbreaks | 11/12 compliance slopes = 0.000 (Section 11) | **Refuted** |
 | 4 | Agent disagreement predicts lower safety | No consistent negative correlation (Section 12) | **Refuted** |
-| 5 | TR135 baselines match TR134 | 9/12 tasks within 5pp (Section 14) | **Validated** |
+| 5 | TR135 baselines match TR134 | 9/12 tasks within 5pp (Section 14) | **Demonstrated** |
 
 ### Key Decisions for Practitioners
 

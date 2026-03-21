@@ -39,7 +39,7 @@ This report **supersedes** the original TR112, which compared an outdated Rust m
 - **Python:** Choose for **rapid prototyping, exploratory optimization, development velocity**
 - **Winner:** **Rust for production workloads** (15% faster, 67% less memory, 83% faster startup)
 
-**Critical Insight:**
+**Observation:**
 For **GPU-bound LLM inference workloads with full workflow complexity**, Rust provides significant operational advantages (performance, consistency, resource efficiency) while maintaining type safety and deployment simplicity. Python retains advantages in development velocity and ecosystem richness.
 
 **Business Impact Preview:**

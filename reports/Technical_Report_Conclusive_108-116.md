@@ -1,5 +1,5 @@
 # Conclusive Report 108-116: From Python Baseline to Rust Production --- Language, Architecture, Runtime, and Model Selection for Multi-Agent LLM Systems
-## A dissertation-style synthesis of single-agent optimization, cross-language migration, multi-agent coordination, runtime analysis, and cross-model validation
+## Synthesis of single-agent optimization, cross-language migration, multi-agent coordination, runtime analysis, and cross-model validation
 
 | Field | Value |
 |-------|-------|
@@ -14,7 +14,7 @@
 
 ## Abstract
 
-This dissertation-style report synthesizes nine technical reports (TR108 through TR116) into a single decision-grade narrative for multi-agent LLM inference on consumer hardware. The research arc begins with single-agent parameter optimization on Ollama-served models (TR108), discovers that agent workflow optimization diverges fundamentally from single-inference tuning (TR109), and establishes a Python multi-agent gold standard at 99.25% parallel efficiency with dual Ollama instances (TR110). The program then migrates to Rust with full workflow parity, demonstrating 15.2% higher throughput, 58% faster time-to-first-token, and 67% lower memory consumption at the single-agent level (TR111_v2, TR112_v2). An initial multi-agent deployment in Rust reveals a single-Ollama bottleneck producing 63% resource contention (TR113), which is resolved by adopting dual Ollama architecture to achieve 99.4% peak efficiency and surpass the Python baseline (TR114_v2). A systematic evaluation of five async runtimes identifies tokio-default as the production winner on consistency grounds (98.72% mean, 1.21pp standard deviation), not peak performance (TR115_v2). Cross-model validation across Gemma 3, Llama 3.1 8B, and Qwen 2.5 7B confirms that Rust's 12-17 percentage-point efficiency advantage over Python is structural and model-independent, with Gemma 3 achieving 99.2% chimera-homo efficiency as the scaling champion and Llama 3.1 offering 96.5% for reasoning-intensive workloads (TR116). Across 903+ benchmark runs, the synthesis establishes six decisions that can be shipped: Rust for production language, dual Ollama for multi-agent architecture, tokio-default for async runtime, Gemma 3 or Llama 3.1 for model selection, and agent-specific configuration parameters (GPU=60-80, CTX=256-512) that diverge from single-inference optima. A structural Python efficiency ceiling at approximately 86% is identified and attributed to asyncio event-loop contention under concurrent LLM workloads, making Rust mandatory for deployments targeting sustained throughput above 100 tokens per second. This work is decision-grade, not universal: all conclusions are bounded to the measured hardware baseline (RTX 4080 Laptop GPU, i9-13980HX, 32 GB DDR5) and the Ollama inference stack.
+This report synthesizes nine technical reports (TR108 through TR116) into a single decision-grade narrative for multi-agent LLM inference on consumer hardware. The research arc begins with single-agent parameter optimization on Ollama-served models (TR108), discovers that agent workflow optimization diverges fundamentally from single-inference tuning (TR109), and establishes a Python multi-agent gold standard at 99.25% parallel efficiency with dual Ollama instances (TR110). The program then migrates to Rust with full workflow parity, demonstrating 15.2% higher throughput, 58% faster time-to-first-token, and 67% lower memory consumption at the single-agent level (TR111_v2, TR112_v2). An initial multi-agent deployment in Rust reveals a single-Ollama bottleneck producing 63% resource contention (TR113), which is resolved by adopting dual Ollama architecture to achieve 99.4% peak efficiency and surpass the Python baseline (TR114_v2). A systematic evaluation of five async runtimes identifies tokio-default as the production winner on consistency grounds (98.72% mean, 1.21pp standard deviation), not peak performance (TR115_v2). Cross-model validation across Gemma 3, Llama 3.1 8B, and Qwen 2.5 7B confirms that Rust's 12-17 percentage-point efficiency advantage over Python is structural and model-independent, with Gemma 3 achieving 99.2% chimera-homo efficiency as the scaling champion and Llama 3.1 offering 96.5% for reasoning-intensive workloads (TR116). Across 903+ benchmark runs, the synthesis establishes six decisions that can be shipped: Rust for production language, dual Ollama for multi-agent architecture, tokio-default for async runtime, Gemma 3 or Llama 3.1 for model selection, and agent-specific configuration parameters (GPU=60-80, CTX=256-512) that diverge from single-inference optima. A structural Python efficiency ceiling at approximately 86% is identified and attributed to asyncio event-loop contention under concurrent LLM workloads, making Rust mandatory for deployments targeting sustained throughput above 100 tokens per second. This work is decision-grade, not universal: all conclusions are bounded to the measured hardware baseline (RTX 4080 Laptop GPU, i9-13980HX, 32 GB DDR5) and the Ollama inference stack.
 
 ---
 
@@ -49,7 +49,7 @@ The research program is intentionally sequential. Each report closes a failure m
 
 4. **TR111_v2** achieves full Rust-Python workflow parity (file I/O, multi-stage LLM calls, metric collection) and reveals Rust is 15.2% faster in single-agent throughput (114.54 vs 99.34 tok/s). This reverses the earlier incorrect assumption of Python superiority. This is the Rust parity proof.
 
-5. **TR112_v2** provides the definitive cross-language comparison: Rust wins on throughput (+15.2%), consistency (CV 2.6% vs 4.8%), cold-start TTFT (-58%), memory (-67%), and startup time (-83%). Python retains advantages in development velocity and peak optimization variance. This is the language decision.
+5. **TR112_v2** provides the comprehensive cross-language comparison: Rust wins on throughput (+15.2%), consistency (CV 2.6% vs 4.8%), cold-start TTFT (-58%), memory (-67%), and startup time (-83%). Python retains advantages in development velocity and peak optimization variance. This is the language decision.
 
 6. **TR113** deploys Rust multi-agent with a single Ollama instance and discovers catastrophic performance: 82.2% peak efficiency, 63% resource contention rate, and a -17.0 percentage-point gap versus Python. The root cause is server-level request serialization, not a Rust runtime deficiency. This is the architecture failure.
 
@@ -165,6 +165,8 @@ Supplemental material remains mirrored in `PublishReady/reports/Technical_Report
 
 ### 1.1 Motivation
 
+As open-weight LLMs become deployable on consumer hardware, the engineering decisions that determine deployment quality — language runtime, serving architecture, async framework, model selection — need empirical grounding rather than community folklore. This phase establishes that grounding for multi-agent LLM workloads on consumer GPUs.
+
 The migration from Python to Rust for LLM agent workloads is a question that recurs across the industry, but it is rarely answered with controlled, artifact-backed evidence under fixed hardware conditions. Most comparisons rely on micro-benchmarks (single HTTP calls, trivial async tasks) that do not capture the interaction between language runtime, inference server topology, model architecture, and multi-step agent workflow complexity. The result is that teams make language and architecture decisions based on intuition, community sentiment, or synthetic benchmarks that do not transfer to production agent workloads.
 
 The TR108-TR116 research program was constructed to close this gap. The central challenge is not "which language is faster" in isolation, but whether the performance characteristics observed in single-agent inference benchmarks survive the transition to concurrent multi-agent workflows --- and if not, what architectural interventions restore or exceed the expected performance.
@@ -201,7 +203,7 @@ This synthesis contributes six decision-grade deliverables:
 
 - **Runtime selection methodology:** A consistency-first selection framework for async runtimes that rejects peak-performance comparisons in favor of standard deviation, minimum efficiency, and failure mode analysis. The methodology is transferable to any runtime selection problem where all candidates achieve similar peaks.
 
-- **Cross-model validation:** The first systematic measurement of how model architecture interacts with multi-agent coordination, demonstrating that the Rust-Python efficiency gap is structural (12-17pp) and model-independent, while model choice affects absolute efficiency within a given runtime.
+- **Cross-model validation:** A systematic measurement of how model architecture interacts with multi-agent coordination within the tested configurations, demonstrating that the Rust-Python efficiency gap is structural (12-17pp) and model-independent, while model choice affects absolute efficiency within a given runtime.
 
 - **Configuration transfer analysis:** Empirical evidence that single-inference optima (GPU=999, CTX=4096) produce suboptimal results in agent workflows, with specific agent-optimized parameters (GPU=60-80, CTX=256-512) that improve performance. This is a direct challenge to the common practice of applying inference benchmarks to agent deployment.
 
@@ -536,7 +538,7 @@ This section presents each technical report as a self-contained result, followin
 
 **Research question.** Which model and configuration yields the highest throughput for single-agent inference on consumer GPU hardware, and how do quantization, GPU offload, and context size interact to determine performance?
 
-TR108 is the foundational benchmark of the research program. It establishes the first systematic performance matrix for local-first LLM inference on the RTX 4080 Laptop GPU, testing 158+ configurations across six model variants with gaming dialogue prompts representative of the Banterhearts application domain. The report's significance extends beyond its numerical findings: it defines the measurement methodology, the configuration parameter space, and the model selection criteria that every subsequent report inherits or explicitly modifies.
+TR108 is the foundational benchmark of the research program. It establishes a systematic performance matrix for local-first LLM inference on the RTX 4080 Laptop GPU, testing 158+ configurations across six model variants with gaming dialogue prompts representative of the Banterhearts application domain. The report's significance extends beyond its numerical findings: it defines the measurement methodology, the configuration parameter space, and the model selection criteria that every subsequent report inherits or explicitly modifies.
 
 #### 5.1.1 Experimental design and artifact boundary
 
@@ -548,7 +550,7 @@ The artifact structure stores per-run throughput (tokens per second), TTFT (time
 
 #### 5.1.2 Key findings
 
-The throughput hierarchy across model variants is definitive and architecturally grounded:
+The throughput hierarchy across model variants is consistent and architecturally grounded:
 
 **Model throughput ranking (best configurations):**
 
@@ -682,7 +684,7 @@ TR109's scope is bounded by several constraints that subsequent reports must add
 
 TR109's configuration transfer failure is likely to generalize to any system where a serving layer (Ollama, vLLM, TGI) maintains state between sequential calls within a workflow. The specific optimal values (GPU=60-80, CTX=256-512) are hardware-dependent, but the structural finding -- that agent-optimal configurations differ from inference-optimal configurations -- is architecturally grounded and expected to transfer.
 
-The transferable output is a **policy rule**: never deploy an inference-benchmarked configuration into an agent workflow without agent-level validation. The specific configuration values are a starting point for the RTX 4080 + Gemma3:latest combination, not a universal prescription.
+The transferable output is a **policy rule**: avoid deploying an inference-benchmarked configuration into an agent workflow without agent-level validation. The specific configuration values are a starting point for the RTX 4080 + Gemma3:latest combination, not a universal prescription.
 
 **Evidence snapshot (artifact-backed):**
 
@@ -2572,7 +2574,7 @@ The multi-agent arc (TR110 through TR114_v2) is the program's most complete inve
 
 ### O.4 TR115_v2 Narrative
 
-TR115_v2 resolved the runtime selection question definitively by demonstrating that all four working runtimes achieve near-identical peak efficiency (99.87--99.99%), making consistency the selection criterion. Tokio-default's 1.21pp sigma -- the lowest of all runtimes -- established it as the production recommendation. The async-std catastrophic failure (50% serialization across all 150 runs) served as a cautionary tale about ecosystem compatibility.
+TR115_v2 resolved the runtime selection question by demonstrating that all four working runtimes achieve near-identical peak efficiency (99.87--99.99%), making consistency the selection criterion. Tokio-default's 1.21pp sigma -- the lowest of all runtimes -- established it as the production recommendation. The async-std catastrophic failure (50% serialization across all 150 runs) served as a cautionary tale about ecosystem compatibility.
 
 ### O.5 TR116 Narrative
 
@@ -2816,3 +2818,5 @@ Likelihood
 ---
 
 *End of Appendices A through T.*
+
+*Note: This work has not been externally peer reviewed. All findings represent the output of a single research program without independent expert verification.*

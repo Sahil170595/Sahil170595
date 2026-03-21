@@ -8,6 +8,7 @@
 | **Date** | October 10, 2025 |
 | **Test Duration** | 3 hours 15 minutes (150 benchmark runs) |
 | **Framework** | Banterhearts Chimera Multi-Agent System |
+| **Artifact Path** | `research/tr110/` (analysis scripts), `banterhearts/demo_multiagent/comprehensive_test_results/` (raw results) |
 | **Related Work** | [TR108](../../reports/Technical_Report_108.md), [TR109](../../reports/Technical_Report_109.md) |
 
 ---
@@ -16,7 +17,7 @@
 
 ## Executive Summary
 
-This report presents a comprehensive empirical analysis of concurrent multi-agent LLM execution using Chimera optimization strategies. Through 30 test configurations and 150 individual benchmark runs, we systematically evaluated three deployment scenarios across varying GPU layer allocations (60-120), context sizes (512-2048 tokens), and temperature settings (0.6-1.0).
+This report presents an empirical analysis of concurrent multi-agent LLM execution using Chimera optimization strategies. Through 30 test configurations and 150 individual benchmark runs, we systematically evaluated three deployment scenarios across varying GPU layer allocations (60-120), context sizes (512-2048 tokens), and temperature settings (0.6-1.0).
 
 ### Key Findings
 
@@ -144,7 +145,7 @@ Following [TR108's](../../reports/Technical_Report_108.md) single-agent LLM perf
 
 #### 3.1.1 The GPU=60 Memory Pressure Cliff
 
-Tests 1 and 2 reveal a **catastrophic failure mode** at GPU=60 layer allocation when mixing baseline and Chimera agents. The 30+ second TTFT penalties are not gradual degradation but rather hard contention events caused by:
+Tests 1 and 2 reveal a **severe performance degradation mode** at GPU=60 layer allocation when mixing baseline and Chimera agents. The 30+ second TTFT penalties are not gradual degradation but rather hard contention events caused by:
 
 **VRAM Exhaustion Mechanism:**
 - Baseline agent (Ollama defaults): ~3.5 GB VRAM (full offload, CTX=2048 internal buffer)
@@ -197,7 +198,7 @@ Test 5 achieves 89.1% efficiency (1.781x speedup) despite GPU=120 providing more
 
 At 83% saturation, CUDA's scheduler begins introducing **fairness delays** to prevent starvation, adding ~50-100ms overhead per agent--enough to reduce efficiency from 97.9% to 89.1%.
 
-**Critical Finding:** For mixed deployments, **GPU=80 is optimal**--not because it's the fastest single-agent config, but because it maximizes concurrent throughput by avoiding memory bandwidth contention.
+**Key Finding:** For mixed deployments, **GPU=80 is optimal**--not because it's the fastest single-agent config, but because it maximizes concurrent throughput by avoiding memory bandwidth contention.
 
 ### 3.2 Scenario 2: Heterogeneous Chimera
 
@@ -215,7 +216,7 @@ At 83% saturation, CUDA's scheduler begins introducing **fairness delays** to pr
 
 #### 3.2.1 The Asymmetric Allocation Trap
 
-Test 8's catastrophic 72.7% efficiency stems from **bidirectional resource starvation** when agents have vastly different memory footprints:
+Test 8's 72.7% efficiency drop stems from **bidirectional resource starvation** when agents have vastly different memory footprints:
 
 **Agent 1 (GPU=60, CTX=1024) Resource Profile:**
 - Model layers: 60/26 = full offload (clamped)
@@ -256,7 +257,7 @@ The negative delta indicates Agent 2 benefited from Agent 1's L2 cache warming. 
 2. Combined working set fits in L2 (16 MB on RTX 4080)
 3. No context eviction occurs between agents
 
-**Critical Insight:** Heterogeneous configs can **outperform homogeneous** when carefully tuned to exploit cache hierarchy, but this is fragile--Test 8 shows it breaks down with larger contexts.
+**Observation:** Heterogeneous configs can **outperform homogeneous** when carefully tuned to exploit cache hierarchy, but this is fragile--Test 8 shows it breaks down with larger contexts.
 
 #### 3.2.3 The 160-Layer Budget Ceiling
 
@@ -340,7 +341,7 @@ As generation_time up (due to larger context/output), efficiency -> 100%
 
 The 2048-token context generates ~1.8x more tokens than 512 (longer, more detailed reports), **diluting the fixed 2.1s coordination overhead** from 2.2% to 0.6% of total runtime.
 
-**Critical Insight:** For concurrent agents, **prefer larger contexts**--not just for quality, but for parallel efficiency. The sweet spot is the maximum context that fits in VRAM without triggering fragmentation (2048 tokens for 2 agents on RTX 4080).
+**Observation:** For concurrent agents, **prefer larger contexts**--not just for quality, but for parallel efficiency. The sweet spot is the maximum context that fits in VRAM without triggering fragmentation (2048 tokens for 2 agents on RTX 4080).
 
 #### 3.3.2 The Temperature-Throughput Coupling
 
@@ -441,7 +442,7 @@ This overhead is **irreducible** with current architecture--representing the phy
 | 80         | 1/15 runs (7%)                | 0/15 runs (0%)            | 0/40 runs (0%)         |
 | 120        | 1/10 runs (10%)               | 0/10 runs (0%)            | 0/30 runs (0%)         |
 
-**Critical Finding:** **GPU=80 layers is the minimum threshold** to avoid contention when mixing baseline and Chimera agents. Below 80, memory pressure causes swap-induced latency spikes.
+**Key Finding:** **GPU=80 layers is the minimum threshold** to avoid contention when mixing baseline and Chimera agents. Below 80, memory pressure causes swap-induced latency spikes.
 
 ### 4.3 VRAM Utilization Patterns
 
@@ -879,7 +880,7 @@ def test_concurrent_efficiency():
 
 ## 9. Conclusions
 
-This study definitively answers the core research questions posed in Section 1.2:
+This study addresses the core research questions posed in Section 1.2:
 
 **Q1: Maximum Concurrent Speedup**
 Homogeneous Chimera agents achieve **1.985x speedup** with 99.25% parallel efficiency (Test 108), demonstrating near-perfect concurrent execution on commodity hardware.

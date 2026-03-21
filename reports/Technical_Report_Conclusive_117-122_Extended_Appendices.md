@@ -57,7 +57,7 @@ This appendix provides a narrative expansion of the implications for research pr
 
 ## Appendix O: Extended Results Narratives
 
-This appendix provides long-form narratives for each report's results, written in a dissertation style. The goal is to clarify how the measured artifacts become the conclusions presented in the main body.
+This appendix provides long-form narratives for each report's results, written in extended narrative form. The goal is to clarify how the measured artifacts become the conclusions presented in the main body.
 
 ### O.1 TR117 Narrative
 
@@ -509,7 +509,7 @@ This appendix lists additional system-level terms (scheduler, queueing, kernel f
 
 ## Appendix AP: Extended Synthesis Narrative
 
-This appendix provides a long-form synthesis that complements the main body. It is written in narrative style to reflect the "mini dissertation" requirement and to make the report accessible to readers who want a continuous argument rather than modular sections.
+This appendix provides a long-form synthesis that complements the main body. It is written in narrative style to make the report accessible to readers who want a continuous argument rather than modular sections.
 
 ### AP.1 The arc from measurement to decision
 

@@ -275,7 +275,7 @@ The transformer attention mechanism (Vaswani et al., 2017) requires key and valu
 
 ### K.2 Quantization: GPTQ, AWQ, and GGUF/llama.cpp
 
-Post-training quantization compresses model weights from FP16 (2 bytes) to lower bit-widths (4-bit, 3-bit, 2-bit), reducing memory footprint and increasing throughput at the cost of quality. Three major approaches dominate the literature: GPTQ (Frantar et al., 2022), which uses second-order information for optimal rounding; AWQ (Lin et al., 2023), which preserves salient weights based on activation distributions; and GGUF (llama.cpp project), which provides a family of k-quant variants (Q2_K through Q8_0) optimized for CPU and mixed-precision inference. TR125 provides the first systematic evaluation of k-quant quality across 5 models and 7 quantization levels using real benchmark data (MMLU, ARC-Challenge), establishing Q4_K_M as the universal sweet spot where quality loss is negligible (-4.1pp) but memory savings are substantial (30-67%).
+Post-training quantization compresses model weights from FP16 (2 bytes) to lower bit-widths (4-bit, 3-bit, 2-bit), reducing memory footprint and increasing throughput at the cost of quality. Three major approaches dominate the literature: GPTQ (Frantar et al., 2022), which uses second-order information for optimal rounding; AWQ (Lin et al., 2023), which preserves salient weights based on activation distributions; and GGUF (llama.cpp project), which provides a family of k-quant variants (Q2_K through Q8_0) optimized for CPU and mixed-precision inference. TR125 provides a systematic evaluation of k-quant quality across 5 models and 7 quantization levels using real benchmark data (MMLU, ARC-Challenge), establishing Q4_K_M as the recommended default across tested models where quality loss is negligible (-4.1pp) but memory savings are substantial (30-67%).
 
 ### K.3 Serving Stacks: vLLM, TGI, and Continuous Batching
 
@@ -287,7 +287,7 @@ Nsight Systems (NVIDIA) provides system-level tracing of CUDA kernel launches, m
 
 ### K.5 Amdahl's Law in Modern Systems
 
-Amdahl's Law (Amdahl, 1967) predicts that speedup from parallelism is limited by the serial fraction of a workload: S(N) = 1 / (s + (1-s)/N). While well-known in parallel computing, its application to LLM inference serving is novel. TR129 fits Amdahl's Law to multi-agent inference data with R^2 > 0.97, finding serial fractions of s = 0.39-0.54. This is unusually high compared to typical HPC workloads (s < 0.05), reflecting the fundamentally sequential nature of autoregressive decoding on a single GPU. The finding that s varies by model (0.39 for llama3.2-3b vs 0.54 for llama3.2-1b) suggests that the serial fraction is not purely hardware-determined but depends on the model's memory access pattern.
+Amdahl's Law (Amdahl, 1967) predicts that speedup from parallelism is limited by the serial fraction of a workload: S(N) = 1 / (s + (1-s)/N). While well-known in parallel computing, its application to LLM inference serving is uncommon. TR129 fits Amdahl's Law to multi-agent inference data with R^2 > 0.97, finding serial fractions of s = 0.39-0.54. This is unusually high compared to typical HPC workloads (s < 0.05), reflecting the fundamentally sequential nature of autoregressive decoding on a single GPU. The finding that s varies by model (0.39 for llama3.2-3b vs 0.54 for llama3.2-1b) suggests that the serial fraction is not purely hardware-determined but depends on the model's memory access pattern.
 
 ### K.6 Quality Evaluation: SemScore, BERTScore, and Benchmarks
 
@@ -317,7 +317,7 @@ This appendix provides detailed per-TR measurement boundaries to prevent acciden
 
 **TR131 (GPU Kernel Profiling):** nsys-traced kernel execution and memory operations. Model loading, nsys startup, and trace export are excluded. Profiling overhead validated at < 1% TPS impact. Not directly comparable to wall-clock measurements (profiling adds systematic overhead, but it is bounded).
 
-**TR132 (In-Container Profiling):** In-container nsys-traced kernels using a novel methodology: Linux nsys binary volume-mounted into Docker containers. Container startup, nsys mounting, and trace export are excluded. Traces are 11.6-17.4 MB each. Comparable to TR131 methodology but applied inside containers.
+**TR132 (In-Container Profiling):** In-container nsys-traced kernels using a custom methodology: Linux nsys binary volume-mounted into Docker containers. Container startup, nsys mounting, and trace export are excluded. Traces are 11.6-17.4 MB each. Comparable to TR131 methodology but applied inside containers.
 
 **TR133 (Predictive Planner):** No timed measurement; prediction only. All timing data is inherited from TR123-TR130. Validation is against held-out empirical data (20% holdout, 3,939 records), not against new measurements.
 
@@ -374,7 +374,7 @@ This transition is non-trivial. The planner must validate its own predictions (4
 
 ## Appendix O: Extended Results Narratives
 
-This appendix provides dissertation-style narratives for each of the eleven technical reports in Phase 2. Each narrative explains the report's contribution in the context of the overall research arc, highlights its key findings, and identifies how it reshapes the understanding that preceded it.
+This appendix provides extended narratives for each of the eleven technical reports in Phase 2. Each narrative explains the report's contribution in the context of the overall research arc, highlights its key findings, and identifies how it reshapes the understanding that preceded it.
 
 ### O.1 TR123: The Economic Foundation
 
@@ -390,7 +390,7 @@ TR125 transforms quantization from a binary choice ("full precision or some comp
 
 ### O.4 TR126: Resolving the Mystery
 
-TR126 is the most satisfying report in the program because it resolves a genuine mystery. The Phase 1 compile paradox (TR120 on Windows) appeared to show that torch.compile hurts performance -- or at best does nothing. This was deeply puzzling because torch.compile with Triton should, in theory, generate optimized GPU kernels. TR126 proves that the Windows result was an artifact: Windows uses aot_eager as its Triton fallback, which performs no real compilation. On Linux with genuine Triton, compilation delivers 24-60% prefill latency reduction across all 7 models with 916 generated Triton kernels and Cohen's d = -0.59. The report also reveals an important limitation that Windows had obscured: compiled decode crashes in all tested modes (reduce-overhead and mode="default"). Since compile never worked on Windows, this crash was never triggered. The five independent evidence lines (environment validation, Triton kernel generation, statistical significance, mode comparison, and PyTorch version rerun) make the conclusion exceptionally robust. The net policy is crisp: compile prefill on Linux, never compile decode, never compile on Windows.
+TR126 is the most satisfying report in the program because it resolves a genuine mystery. The Phase 1 compile paradox (TR120 on Windows) appeared to show that torch.compile hurts performance -- or at best does nothing. This was deeply puzzling because torch.compile with Triton should, in theory, generate optimized GPU kernels. TR126 demonstrates that the Windows result was an artifact: Windows uses aot_eager as its Triton fallback, which performs no real compilation. On Linux with genuine Triton, compilation delivers 24-60% prefill latency reduction across all 7 models with 916 generated Triton kernels and Cohen's d = -0.59. The report also reveals an important limitation that Windows had obscured: compiled decode crashes in all tested modes (reduce-overhead and mode="default"). Since compile never worked on Windows, this crash was never triggered. The five independent evidence lines (environment validation, Triton kernel generation, statistical significance, mode comparison, and PyTorch version rerun) make the conclusion exceptionally robust. The net policy is crisp: compile prefill on Linux, never compile decode, never compile on Windows.
 
 ### O.5 TR127: The Two-Regime Discovery
 
@@ -412,9 +412,9 @@ TR130 identifies the solution to TR129's scaling problem: continuous batching vi
 
 TR131 is the causal test that overturns the serving-stack hypothesis. The experimental design is elegant in its simplicity: remove the serving stack entirely (PyTorch Direct, no HTTP server, no Go runtime, no request queuing) and see whether the degradation persists. It does. PyTorch Direct degrades 86.4% at N=8, which is worse than Ollama's 82.1%. This is a definitive refutation: if the degradation is worse without the serving stack, the serving stack cannot be the cause. The mechanism is GPU memory bandwidth contention. Memory operation time increases +74% at N=8 (p = 6.4 x 10^-5, the sole Holm-surviving test in the full comparison). Maximum concurrent kernels equals 1 in all conditions -- hardware serialization, not software serialization. The GPU physics overturns the serving-stack hypothesis completely. The question shifts from "why is Ollama slow?" to "why is vLLM faster despite the same GPU physics?"
 
-### O.10 TR132: Proving the Mechanism
+### O.10 TR132: Demonstrating the Mechanism
 
-TR132 completes the causal chain. If the bottleneck is GPU memory bandwidth (TR131), and vLLM scales better (TR130), then vLLM must be doing something to reduce bandwidth demand per token. TR132 proves exactly this with a novel in-container profiling methodology: Linux nsys binary volume-mounted into Docker containers running vLLM and TGI under WSL2/WDDM. Continuous batching reduces kernel launches by 77-80% at N=8 (all p < 10^-6, Cohen's d > 600, 4/4 Holm-significant tests). Memory bandwidth per token drops 79-83%. The amortization ratio is 4.7-5.8x, which is 59-72% of the theoretical 8:1 maximum. The fact that vLLM and TGI show identical amortization proves that the mechanism is continuous batching itself, not any implementation-specific optimization. This resolves the TR130/TR131 apparent contradiction: vLLM scales better not because Ollama's serving stack is bad, but because continuous batching amortizes the GPU memory bandwidth bottleneck that TR131 identified.
+TR132 completes the causal chain. If the bottleneck is GPU memory bandwidth (TR131), and vLLM scales better (TR130), then vLLM must be doing something to reduce bandwidth demand per token. TR132 demonstrates exactly this with an in-container profiling methodology: Linux nsys binary volume-mounted into Docker containers running vLLM and TGI under WSL2/WDDM. Continuous batching reduces kernel launches by 77-80% at N=8 (all p < 10^-6, Cohen's d > 600, 4/4 Holm-significant tests). Memory bandwidth per token drops 79-83%. The amortization ratio is 4.7-5.8x, which is 59-72% of the theoretical 8:1 maximum. The fact that vLLM and TGI show identical amortization demonstrates that the mechanism is continuous batching itself, not any implementation-specific optimization. This resolves the TR130/TR131 apparent contradiction: vLLM scales better not because Ollama's serving stack is bad, but because continuous batching amortizes the GPU memory bandwidth bottleneck that TR131 identified.
 
 ### O.11 TR133: The Capstone
 

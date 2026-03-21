@@ -1118,7 +1118,7 @@ The following questions are raised by TR140's findings but cannot be answered wi
 
 ## SS20. Conclusions
 
-TR140 provides the first systematic measurement of many-shot jailbreak susceptibility under GGUF quantization on open-weight models. The principal conclusions are:
+TR140 provides a systematic measurement of many-shot jailbreak susceptibility under GGUF quantization on open-weight models. The principal conclusions are:
 
 1. **Many-shot jailbreaking is a model-specific and format-specific threat, not a quantization-specific one.** Quantization amplifies existing vulnerabilities but does not create them. qwen2.5-1.5b is vulnerable at every quant level; Llama models are immune above Q3_K_M. The implication is that safety evaluations must be model-specific -- family-level conclusions ("Llama is safe") hold within family but do not transfer across families.
 

@@ -23,7 +23,7 @@
 
 TR138 is a flagship report in the Banterhearts safety-serving line. Its contribution is intentionally narrow and empirical rather than broad and speculative.
 
-The novelty claim here is narrow and defensible:
+The contribution here is narrow and defensible:
 
 > prior work treats batch non-determinism mainly as a reproducibility, numerical, or performance issue; TR138 tests whether it is also a **safety failure mode**.
 
@@ -37,7 +37,7 @@ The report is deliberately more cautious on two other axes:
 - **Phase 2:** co-batching interference is not clearly established
 - **Phase 3:** quantization x concurrency is operationally useful, but it is not itself a batching result
 
-The report keeps those boundaries explicit so the novelty claim stays defensible.
+The report keeps those boundaries explicit so the contribution claim stays defensible.
 
 ---
 
@@ -724,11 +724,11 @@ Mean flip-agreement with Phase 1 synchronized dispatch is **99.4%**, which indic
 | quant_x_concurrency | high as a quantization story, low as a concurrency story | Quantization dominates; concurrency contributes no detectable effect |
 | true_batching | moderate | About 5.2pp observed effect, and the signal survives the cleaner mechanism test |
 
-### 10.4 Novel empirical datapoints uncovered by TR138
+### 10.4 Empirical datapoints uncovered by TR138
 
-TR138 is not novel because it shows that floating-point inference can vary. That was already known. The novelty is in the exact safety-facing datapoints it adds.
+TR138's contribution is not in showing that floating-point inference can vary -- that was already known. The contribution is in the exact safety-facing datapoints it adds.
 
-| Novel datapoint | Why it matters |
+| Datapoint | Why it matters |
 |-----------------|----------------|
 | Non-baseline Phase 1 outputs are only about `92%` byte-identical, but score-changing rows are much rarer (`0.5%` safety, `0.1%` capability aggregate) | Separates harmless wording churn from behaviorally meaningful flips |
 | Among classified safety flips, `69.0%` move from refusal to compliance | Shows the instability is directionally unsafe rather than symmetric noise |
@@ -1084,7 +1084,7 @@ The cross-model ANOVA reports:
 - `p < 1e-16`
 - `eta^2 = 0.071`
 
-That is a real category effect and a non-trivial one. But it still should not be overstated. This section is descriptive. It does not by itself prove that batching uniquely amplifies bias in those categories. What it proves is that category-level bias performance is uneven, and that this unevenness persists across the model slate used in TR138.
+That is a real category effect and a non-trivial one. But it still should not be overstated. This section is descriptive. It does not by itself prove that batching uniquely amplifies bias in those categories. What it shows is that category-level bias performance is uneven, and that this unevenness persists across the model slate used in TR138.
 
 ### 16.3 How to use this section
 
@@ -1444,7 +1444,7 @@ After TR138, the story is more complete:
 - even when weights and prompts stay fixed, the serving configuration itself can induce small but safety-skewed instability
 - explicit true batching confirms that this is not just an arrival-timing artifact
 
-That is a novel and publishable result, provided it is described with the same caution the data requires.
+That is a significant result, provided it is described with the same caution the data requires.
 
 ### 22.5 What follows logically from the evidence
 

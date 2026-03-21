@@ -119,13 +119,13 @@ Key findings: (1) Quantization accounts for 57% of total safety cost, backend ch
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | Quantization is the most dangerous axis | Mean 20.6pp delta, Cohen's d = 1.93 (Llama 1B) | **Validated** for Llama 1B; **Mixed** at aggregate level (CI includes negative) |
-| 2 | Concurrency is safety-neutral | Max delta 0.4pp, I^2 = 0.0%, all slopes ~0 | **Validated** |
-| 3 | Backend choice matters more than quantization for some models | Llama 1B: backend d = -0.60 vs quant d = 0.05 within TR136 | **Validated** for within-backend comparison |
-| 4 | No backend pair is equivalent at +/-3pp | All 18 TOST tests fail (from TR136) | **Validated** |
+| 1 | Quantization is the most dangerous axis | Mean 20.6pp delta, Cohen's d = 1.93 (Llama 1B) | **Demonstrated** for Llama 1B; **Mixed** at aggregate level (CI includes negative) |
+| 2 | Concurrency is safety-neutral | Max delta 0.4pp, I^2 = 0.0%, all slopes ~0 | **Demonstrated** |
+| 3 | Backend choice matters more than quantization for some models | Llama 1B: backend d = -0.60 vs quant d = 0.05 within TR136 | **Demonstrated** for within-backend comparison |
+| 4 | No backend pair is equivalent at +/-3pp | All 18 TOST tests fail (from TR136) | **Demonstrated** |
 | 5 | Effects are additive across axes | No factorial design to test; additive model used | **Assumed, not validated** |
 | 6 | Safety degrades faster than capability | Only 3/10 model-axis combinations | **Refuted** as universal claim |
-| 7 | Jailbreak vulnerability increases at lower quant | All 4 technique slopes negative | **Validated** |
+| 7 | Jailbreak vulnerability increases at lower quant | All 4 technique slopes negative | **Demonstrated** |
 | 8 | Model families agree on which axis is dangerous | ANOVA p = 0.1370, I^2 = 99.9% on quant | **Refuted** -- extreme disagreement |
 
 ### Key Decisions for Practitioners

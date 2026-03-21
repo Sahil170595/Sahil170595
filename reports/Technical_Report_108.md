@@ -9,6 +9,7 @@
 | **Test Duration** | ~2 weeks (Oct 2025) |
 | **Total Benchmark Runs** | 158+ configurations tested |
 | **Models Evaluated** | Llama3.1 (3 quantizations) + Gemma3 (3 variants) |
+| **Data Path** | `research/tr108/data/` |
 
 ---
 
@@ -236,7 +237,7 @@ Five representative gaming scenarios from `prompts/banter_prompts.txt`:
 | 9 | 60 | 4096 | 0.8 | 77.76 | 0.081 | 0.077 |
 | 10 | 80 | 1024 | 0.8 | 77.76 | 0.101 | 0.099 |
 
-**Critical Insights:**
+**Key Observations:**
 
 1. **GPU Layer Optimization:**
    - num_gpu=40 achieves highest throughput (78.42 tok/s)
@@ -335,7 +336,7 @@ Memory: 72.1% average (system total, not LLM-specific)
 | 9 | 80 | 1024 | 0.4 | 101.67 | 0.139 | 0.126 |
 | 10 | 999 | 4096 | 0.8 | 101.64 | 0.121 | 0.108 |
 
-**Critical Insights:**
+**Key Observations:**
 
 1. **Different Optimization Pattern vs Llama:**
    - Gemma3 prefers full GPU offload (999 layers)
@@ -434,7 +435,7 @@ Gemma3:latest (3.3 GB model):
 - num_gpu=999: 102.31 tok/s (BEST)
 ```
 
-**Critical Insights:**
+**Key Observations:**
 
 1. **Model-Specific Optimization:**
    - Larger models (Llama 4.7GB): Partial offload optimal
@@ -470,7 +471,7 @@ Gemma3:latest:
 - 4096: 102.31 tok/s (BEST)
 ```
 
-**Critical Insights:**
+**Key Observations:**
 
 1. **Architecture-Dependent Behavior:**
    - Llama: Smaller contexts = higher throughput
@@ -504,7 +505,7 @@ Throughput Impact:
 - Quality impact more significant than speed
 ```
 
-**Critical Insights:**
+**Key Observations:**
 
 1. **Low Temperature Bottleneck:**
    - temp=0.2 causes prompt evaluation slowdown
@@ -537,7 +538,7 @@ Throughput Impact:
 | Llama3.1:q5_K_M | 5.7 | 65.18 | 11 |
 | Llama3.1:q8_0 | 8.5 | 46.57 | 5.5 |
 
-**Critical Insights:**
+**Key Observations:**
 
 1. **Exponential Relationship:**
    - Throughput scales inversely with model size
@@ -574,7 +575,7 @@ Throughput Impact:
 | QAT (1b) | 1.0 GB | 187.2 tok/s | **Better** | Quantization-aware training |
 | Full (latest) | 3.3 GB | 102.31 tok/s | Best | No quantization |
 
-**Critical Insights:**
+**Key Observations:**
 
 1. **Post-Training Quantization (Llama):**
    - q4_0 is sweet spot: 64% faster than q8_0, minimal quality loss
@@ -614,7 +615,7 @@ Gemma3:270m:
 - Difference: +12,967%
 ```
 
-**Critical Insights:**
+**Key Observations:**
 
 1. **Model Loading Overhead:**
    - Smaller models show larger % cold-start penalty
@@ -687,7 +688,7 @@ Gemma3:270m:
 | Llama3.1:q5_K_M | 7.0 | 65.18 | 9.3 |
 | Llama3.1:q8_0 | 9.0 | 46.57 | 5.2 |
 
-**Critical Insights:**
+**Key Observations:**
 - Gemma3:270m: 17x more memory-efficient than Llama q4_0
 - Efficiency inversely proportional to model size
 - For edge deployment: smaller models massively advantageous

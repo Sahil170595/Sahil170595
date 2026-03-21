@@ -113,7 +113,7 @@ TR134 answers: **does quantization degrade the safety properties you actually ca
 
 5. **Jailbreak susceptibility systematically increases as BPW decreases.** All 4 jailbreak types (including direct requests as control) show negative compliance-vs-BPW slopes. Prefix injection is the most effective amplifier (slope=-0.036), followed by direct (-0.030), DAN-style (-0.024), and roleplay (-0.021). This is the expected direction: lower precision = weaker safety = more jailbreak success.
 
-6. **Prefix injection amplifies jailbreak success 1.2-5.8x over direct requests.** The most dramatic spike: Qwen 2.5 7B at Q3_K_S shows 76.7% prefix injection compliance vs 13.3% direct compliance (5.75x amplification). Mistral 7B shows consistent 1.1-1.5x amplification across all quant levels. This finding is novel -- prior jailbreak research does not examine the interaction between jailbreak technique effectiveness and weight precision.
+6. **Prefix injection amplifies jailbreak success 1.2-5.8x over direct requests.** The most dramatic spike: Qwen 2.5 7B at Q3_K_S shows 76.7% prefix injection compliance vs 13.3% direct compliance (5.75x amplification). Mistral 7B shows consistent 1.1-1.5x amplification across all quant levels. This finding extends prior work -- existing jailbreak research does not examine the interaction between jailbreak technique effectiveness and weight precision.
 
 7. **Nationality bias is the most vulnerable demographic category to quantization.** Across all 4 models, Nationality has the steepest negative bias_resistance slope (-0.0096/BPW). Race_ethnicity is the most robust (+0.0149). One plausible mechanism: nationality-related knowledge is underrepresented in training data compared to race/gender, making it more susceptible to quantization-induced information loss.
 
@@ -142,13 +142,13 @@ TR134 answers: **does quantization degrade the safety properties you actually ca
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | Safety is robust through Q3_K_S for well-aligned models | Llama + Qwen S/C ratio >= 0.95 through Q3_K_S (Section 9) | **Validated** (3/4 models) |
-| 2 | Q2_K is catastrophic for safety | -57pp refusal llama3.2-1b, -56.7pp jailbreak (Section 5) | **Validated** |
+| 1 | Safety is robust through Q3_K_S for well-aligned models | Llama + Qwen S/C ratio >= 0.95 through Q3_K_S (Section 9) | **Demonstrated** (3/4 models) |
+| 2 | Q2_K is catastrophic for safety | -57pp refusal llama3.2-1b, -56.7pp jailbreak (Section 5) | **Demonstrated** |
 | 3 | Safety degrades disproportionately to capability | Only Mistral 7B shows divergence +0.028 (Section 7). Others: capability degrades equally or faster | **Partially validated** (1/4 models) |
 | 4 | Cross-family degradation differs by RLHF recipe | F=2.50, p=0.137 -- not significant (Section 16) | **Not validated** |
-| 5 | Jailbreak susceptibility increases with lower BPW | All 4 techniques show negative slope (Section 11) | **Validated** |
-| 6 | Nationality bias most vulnerable category | Steepest negative slope among 11 categories (Section 10) | **Validated** (exploratory, small N) |
-| 7 | Prefix injection most effective jailbreak at low quant | Slope=-0.036, steepest among 4 techniques (Section 11) | **Validated** |
+| 5 | Jailbreak susceptibility increases with lower BPW | All 4 techniques show negative slope (Section 11) | **Demonstrated** |
+| 6 | Nationality bias most vulnerable category | Steepest negative slope among 11 categories (Section 10) | **Demonstrated** (exploratory, small N) |
+| 7 | Prefix injection most effective jailbreak at low quant | Slope=-0.036, steepest among 4 techniques (Section 11) | **Demonstrated** |
 | 8 | LLM judge validates regex classifiers | Kappa=0.013-0.282, slight-to-fair agreement (Section 15) | **Refuted** -- they measure different things |
 | 9 | Larger models tolerate safety quantization better | Qwen 7B best, but Llama 1B > Llama 3B on refusal robustness | **Mixed** -- model alignment matters more than size |
 

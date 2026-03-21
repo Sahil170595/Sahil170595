@@ -8,6 +8,7 @@
 | **Date** | November 12, 2025 |
 | **Test Duration** | 45 minutes (19 benchmark configurations) |
 | **Framework** | Demo_rust_multiagent (Rust async/tokio implementation) |
+| **Artifact Path** | `research/tr110/rust_multiagent/Demo_rust_multiagent_results/` |
 | **Related Work** | [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111](Technical_Report_111.md) (Rust Single-Agent), [TR112](Technical_Report_112.md) (Rust vs Python Single-Agent) |
 
 ---
@@ -16,7 +17,7 @@
 
 ## Executive Summary
 
-This report presents a comprehensive empirical analysis of Rust-based concurrent multi-agent LLM execution, directly mirroring the methodology established in TR110's Python evaluation. Through 19 test configurations spanning three deployment scenarios (baseline vs. Chimera, heterogeneous Chimera, and homogeneous Chimera), we systematically evaluate concurrency speedup, parallel efficiency, and resource contention patterns using identical hardware and model configurations as TR110.
+This report presents an empirical analysis of Rust-based concurrent multi-agent LLM execution, directly mirroring the methodology established in TR110's Python evaluation. Through 19 test configurations spanning three deployment scenarios (baseline vs. Chimera, heterogeneous Chimera, and homogeneous Chimera), we systematically evaluate concurrency speedup, parallel efficiency, and resource contention patterns using identical hardware and model configurations as TR110.
 
 ### Key Findings
 
@@ -32,7 +33,7 @@ This report presents a comprehensive empirical analysis of Rust-based concurrent
 
 ### Business Impact
 
-- **Production Reality Check:** Python remains the superior choice for multi-agent LLM deployments. Rust's theoretical concurrency advantages (async/await, zero-cost abstractions) do **not materialize** in LLM inference workloads due to I/O-bound operations and HTTP client overhead.
+- **Multi-Agent Performance Under Load:** Python achieved higher throughput in multi-agent LLM deployments across all tested configurations. Rust's theoretical concurrency advantages (async/await, zero-cost abstractions) did **not materialize** in LLM inference workloads due to I/O-bound operations and HTTP client overhead.
 
 - **Cost-Benefit Analysis:** Rust's 18% lower concurrency speedup translates to requiring **22% more instances** to achieve Python's throughput (1.0/0.82 = 1.22x multiplier).
 
@@ -44,7 +45,7 @@ This report presents a comprehensive empirical analysis of Rust-based concurrent
 
 ### 1.1 Background
 
-Building on [TR111's](Technical_Report_111.md) single-agent Rust performance evaluation and [TR112's](Technical_Report_112.md) cross-language comparison, this study extends our benchmarking framework to **concurrent multi-agent execution in Rust**. The core question: *Can Rust's async runtime deliver superior multi-agent coordination compared to Python's asyncio, or do LLM inference workloads negate Rust's concurrency advantages?*
+Building on [TR111's](Technical_Report_111.md) single-agent Rust performance evaluation and [TR112's](Technical_Report_112.md) cross-language comparison, this study extends our benchmarking framework to **concurrent multi-agent execution in Rust**. The core question: *Can Rust's async runtime deliver higher multi-agent coordination throughput compared to Python's asyncio, or do LLM inference workloads negate Rust's concurrency advantages?*
 
 This report directly compares against [TR110's](Technical_Report_110.md) Python multi-agent results using identical test scenarios, hardware, and evaluation metrics.
 
@@ -213,7 +214,7 @@ Configurations with TEMP=0.6 consistently outperformed TEMP=0.8 in baseline_vs_c
 
 #### 3.1.3 High Contention Rate (92%)
 
-Only 1 of 13 baseline_vs_chimera configs avoided contention (GPU=120, CTX=512, TEMP=0.6). This is **dramatically worse** than Python:
+Only 1 of 13 baseline_vs_chimera configs avoided contention (GPU=120, CTX=512, TEMP=0.6). This is **substantially worse** than Python:
 
 | Scenario | Rust Contention Rate | Python Contention Rate (TR110) |
 |----------|---------------------|-------------------------------|
@@ -286,7 +287,7 @@ The two configs tested different temperature combinations:
 
 #### 3.3.1 Peak Rust Multi-Agent Performance
 
-The best homogeneous config (GPU=80, CTX=1024, TEMP=0.6) achieved **82.2% efficiency** with 1.644x speedup. This is Rust's **absolute peak** for multi-agent execution but falls **17.0pp short** of Python's 99.25% (TR110 Test 108: GPU=80, CTX=2048, TEMP=1.0).
+The best homogeneous config (GPU=80, CTX=1024, TEMP=0.6) achieved **82.2% efficiency** with 1.644x speedup. This is Rust's **highest observed** multi-agent efficiency but falls **17.0pp short** of Python's 99.25% (TR110 Test 108: GPU=80, CTX=2048, TEMP=1.0).
 
 **Direct Comparison (Closest Configs):**
 
@@ -346,7 +347,7 @@ This is **unexpected** for identical agent configurations. Python's homogeneous 
 | **Heterogeneous** | 1.573x (78.6%) | 1.461x (73.0%) | 1.981x (99.0%) | 1.846x (92.3%) | **-20.6%** | **-20.9%** |
 | **Homogeneous** | 1.644x (82.2%) | 1.482x (74.1%) | 1.985x (99.25%) | 1.976x (98.8%) | **-17.2%** | **-25.0%** |
 
-**Overall Verdict:** Python delivers **18-25% higher concurrency speedup** across all scenarios, with the gap widening in homogeneous deployments where runtime efficiency matters most.
+**Summary:** Python delivered **18-25% higher concurrency speedup** across all scenarios, with the gap widening in homogeneous deployments where runtime efficiency matters most.
 
 ### 4.2 Efficiency Distribution
 
@@ -525,11 +526,11 @@ If deploying Rust multi-agent for non-throughput reasons:
 
 ### 7.1 Key Takeaways
 
-1. **Python Wins for Multi-Agent LLM Deployment:** 18-25% higher concurrency speedup, 17pp higher efficiency ceiling, and 2.2x lower contention rate make Python the clear production choice for throughput-oriented workloads.
+1. **Python Outperformed Rust in Multi-Agent LLM Throughput:** 18-25% higher concurrency speedup, 17pp higher efficiency ceiling, and 2.2x lower contention rate favor Python for throughput-oriented workloads.
 
 2. **Rust's Concurrency Theory Doesn't Materialize:** Despite async/await and zero-cost abstractions, Rust multi-agent execution is bottlenecked by **I/O patterns and architectural choices** (single Ollama instance), not runtime efficiency.
 
-3. **Temperature 0.6 is Rust's Secret Weapon:** Consistently outperformed TEMP=0.8 by 8-14pp in homogeneous scenarios--a Rust-specific optimization not present in Python.
+3. **Temperature 0.6 Favors Rust Concurrency:** Consistently outperformed TEMP=0.8 by 8-14pp in homogeneous scenarios--a Rust-specific pattern not observed in Python.
 
 4. **Architectural Parity Could Close the Gap:** Implementing dual Ollama instances in Rust would likely recover 15-18pp efficiency, bringing peak performance to ~97% (within 2pp of Python).
 
@@ -546,7 +547,7 @@ Rust multi-agent is justified when:
 - **Consistency matters more than peak throughput** (Rust sigma=5.5pp vs Python sigma=7.4pp)
 - **Existing Rust infrastructure** makes Python integration costly
 
-For pure LLM inference throughput: **Python remains superior**.
+For pure LLM inference throughput: **Python achieved higher results in these benchmarks**.
 
 ### 7.3 Future Work
 

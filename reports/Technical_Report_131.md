@@ -952,7 +952,7 @@ TR131 overturns this: **GPU memory physics.**
 | Best single-GPU multi-agent throughput | vLLM with Q4 quantization | Continuous batching + low bandwidth demand |
 | Lowest per-agent latency at N=1 | Ollama with Q4_0 | Highest single-agent TPS (160 tok/s) |
 | Better than 82% per-agent degradation | Continuous batching server | vLLM/TGI amortize bandwidth across sequences |
-| Root-cause diagnosis for your workload | Profile with nsys first | Intuitive attribution can be wrong (this report proves it) |
+| Root-cause diagnosis for your workload | Profile with nsys first | Intuitive attribution can be wrong (this report demonstrates it) |
 
 ### SS19.4 What Changes for the Banterhearts Research Program
 

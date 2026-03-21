@@ -82,12 +82,12 @@ Yes, but not in the simplest possible way.
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | Quantization changes multi-turn ASR | 8/8 strategy ANOVAs reject H1, all `p < 1e-4` | **Validated** |
+| 1 | Quantization changes multi-turn ASR | 8/8 strategy ANOVAs reject H1, all `p < 1e-4` | **Demonstrated** |
 | 2 | Lower quant always worsens multi-turn risk | Model-level sweep shows mixed threshold patterns, not universal monotonicity | **Not validated** |
 | 3 | Multi-turn attacks become more quant-sensitive than direct attacks | Welch slope comparison `p = 0.702` | **Not validated** |
-| 4 | Lower quant often weakens persistence under pressure | H3 supported; 3/4 persistence slopes negative | **Validated** |
-| 5 | Threshold behavior matters more than a single global quant rule | Critical quant thresholds cluster by model/strategy, not globally | **Validated** |
-| 6 | Regex-only scoring would be too weak for this report | 37,825 preserved judge labels identify the same mid-quant Phase 2 slices as the highest-ambiguity cells | **Validated** |
+| 4 | Lower quant often weakens persistence under pressure | H3 supported; 3/4 persistence slopes negative | **Demonstrated** |
+| 5 | Threshold behavior matters more than a single global quant rule | Critical quant thresholds cluster by model/strategy, not globally | **Demonstrated** |
+| 6 | Regex-only scoring would be too weak for this report | 37,825 preserved judge labels identify the same mid-quant Phase 2 slices as the highest-ambiguity cells | **Demonstrated** |
 
 ---
 
@@ -894,7 +894,7 @@ It rules out three easy but wrong summaries:
 1. **"Multi-turn attacks are always the thing quantization amplifies most."**
    Not shown. Some direct baselines degrade sharply too, especially in the weakest cells.
 
-2. **"Any large amplification ratio proves special multi-turn sensitivity."**
+2. **"Any large amplification ratio demonstrates special multi-turn sensitivity."**
    Not by itself. Very large amplification ratios can arise when the direct denominator is tiny and the multi-turn numerator is merely moderate.
 
 3. **"The right global story is direct vs multi-turn."**
@@ -945,7 +945,7 @@ TR139's preserved artifact chain contains one post-hoc judge pass over the final
 
 **Observations.** Phase 2 is the genuinely difficult part of the scoring problem. Agreement falls sharply once the model is no longer producing a clear direct-turn refusal or compliance answer and instead is responding after multiple pressure turns. The worst slices are the same ones the substantive analysis already treats as fragile and ambiguous: `p2_Q4_K_M`, `p2_Q3_K_M`, and `p2_Q2_K`.
 
-### 7.4 What the preserved judge pass proves
+### 7.4 What the preserved judge pass shows
 
 The saved judge layer establishes three things:
 

@@ -73,14 +73,14 @@ TR127 answers: **how does inference performance scale with context length on con
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | Quadratic attention cost is empirically visible on RTX 4080 | Pre-spillover exponents b = 1.58-1.78, quadratic R^2 = 0.999+ (SS4) | **Validated** (pre-spillover only) |
-| 2 | VRAM becomes the bottleneck before compute does | Spillover at 8-16K tokens causes 25-105x cliffs (SS6) | **Validated** |
-| 3 | TTFT scales superlinearly with context length | HF: 9,004x TTFT increase over 32x context growth (SS7) | **Validated** (HF only; Ollama is sub-linear) |
-| 4 | There is a context-length "cliff" where performance drops dramatically | 25-105x latency jumps at spillover thresholds (SS4, SS12) | **Validated** (HF only) |
-| 5 | Ollama eliminates quadratic scaling | Sub-linear exponents b < 0.2, all 3 models (SS4) | **Validated** |
-| 6 | Decode throughput degrades with context length | 41-53% Ollama decode degradation, 95% HF decode collapse (SS5) | **Validated** |
-| 7 | Empirical VRAM growth cross-validates with TR123 | Slopes 0.75-1.16 MB/token vs theoretical KV 12-37 KB/token; 20-95x overhead quantified as attention workspace + allocator (SS6.4) | **Validated** (with reinterpretation: slope is total context-dependent memory, not pure KV cost) |
-| 8 | Model size determines context budget | 3B model spills at 8K, 0.5B/1.5B at 16K (SS6) | **Validated** |
+| 1 | Quadratic attention cost is empirically visible on RTX 4080 | Pre-spillover exponents b = 1.58-1.78, quadratic R^2 = 0.999+ (SS4) | **Demonstrated** (pre-spillover only) |
+| 2 | VRAM becomes the bottleneck before compute does | Spillover at 8-16K tokens causes 25-105x cliffs (SS6) | **Demonstrated** |
+| 3 | TTFT scales superlinearly with context length | HF: 9,004x TTFT increase over 32x context growth (SS7) | **Demonstrated** (HF only; Ollama is sub-linear) |
+| 4 | There is a context-length "cliff" where performance drops dramatically | 25-105x latency jumps at spillover thresholds (SS4, SS12) | **Demonstrated** (HF only) |
+| 5 | Ollama eliminates quadratic scaling | Sub-linear exponents b < 0.2, all 3 models (SS4) | **Demonstrated** |
+| 6 | Decode throughput degrades with context length | 41-53% Ollama decode degradation, 95% HF decode collapse (SS5) | **Demonstrated** |
+| 7 | Empirical VRAM growth cross-validates with TR123 | Slopes 0.75-1.16 MB/token vs theoretical KV 12-37 KB/token; 20-95x overhead quantified as attention workspace + allocator (SS6.4) | **Demonstrated** (with reinterpretation: slope is total context-dependent memory, not pure KV cost) |
+| 8 | Model size determines context budget | 3B model spills at 8K, 0.5B/1.5B at 16K (SS6) | **Demonstrated** |
 
 ---
 
@@ -264,7 +264,7 @@ Every prior report in this research program (TR108-TR126) tested at most ~2K tok
 
 Without empirical context-length scaling data, production teams cannot answer basic capacity questions: "How many tokens of context can I stuff before latency becomes unacceptable?" or "Should I use FP16 HF or quantized Ollama for my 8K-context RAG pipeline?"
 
-TR127 fills this gap with the first systematic context-length sweep on consumer hardware in this research program. It also reveals a phenomenon -- VRAM spillover via CUDA Unified Memory -- that was invisible in short-context experiments and would silently degrade production deployments.
+TR127 fills this gap with a systematic context-length sweep on consumer hardware within this research program. It also reveals a phenomenon -- VRAM spillover via CUDA Unified Memory -- that was invisible in short-context experiments and would silently degrade production deployments.
 
 ### 1.3 Scope
 
@@ -886,7 +886,7 @@ TTFT equals prefill latency -- the time from receiving a prompt to producing the
 
 **HF crosses the 1-second TTFT threshold at 4K tokens for ALL models.** This means that for any interactive application processing more than ~4K tokens of context on a 12 GB consumer GPU, HF transformers in FP16 is not viable. At 8K+ tokens, TTFT ranges from 5 seconds (qwen2.5-0.5b) to 62 seconds (qwen2.5-3b, in thrashing regime).
 
-**For TTFT-sensitive applications, Ollama is the only viable backend on consumer hardware at long contexts.** The 50,000x TTFT difference at 16K tokens (10 ms Ollama vs 533 seconds HF) is not a performance difference -- it's a qualitative capability gap.
+**For TTFT-sensitive applications, Ollama is the most viable backend tested on consumer hardware at long contexts.** The 50,000x TTFT difference at 16K tokens (10 ms Ollama vs 533 seconds HF) is not a performance difference -- it's a qualitative capability gap.
 
 ---
 

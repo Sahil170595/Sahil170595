@@ -1,5 +1,5 @@
 # Technical Report 115 v2: Rust Async Runtime Performance Deep Dive
-## Comprehensive Multi-Runtime Analysis for Multi-Agent LLM Workloads
+## Multi-Runtime Analysis for Multi-Agent LLM Workloads
 
 | Field | Value |
 |-------|-------|
@@ -7,23 +7,24 @@
 | **Project** | Banterhearts LLM Performance Research |
 | **Date** | 2025-11-15 |
 | **Author** | Research Team |
-| **Report Type** | Definitive Runtime Performance Analysis |
-| **Test Duration** | 12+ hours (150 comprehensive benchmark runs) |
+| **Report Type** | Runtime Performance Analysis |
+| **Artifacts** | `research/tr115/runtime_optimization/results/` |
+| **Test Duration** | 12+ hours (150 benchmark runs) |
 | **Related Work** | [TR110](Technical_Report_110.md) (Python Multi-Agent Baseline), [TR111_v2](Technical_Report_111_v2.md) (Rust Single-Agent), [TR112_v2](Technical_Report_112_v2.md) (Rust vs Python Comparison), [TR114_v2](Technical_Report_114_v2.md) (Rust Multi-Agent Analysis) |
 
 ---
 
 ## Executive Summary
 
-This technical report presents the definitive analysis of Rust async runtime performance for multi-agent LLM workloads. Through 150 comprehensive benchmark runs across 5 async runtimes (tokio-default, tokio-localset, async-std, smol, smol-1kb), we establish the performance characteristics of different runtime architectures and provide production-grade recommendations.
+This technical report presents a systematic analysis of Rust async runtime performance for multi-agent LLM workloads. Through 150 benchmark runs across 5 async runtimes (tokio-default, tokio-localset, async-std, smol, smol-1kb), we establish the performance characteristics of different runtime architectures and provide production-grade recommendations.
 
 **Critical Context:**
 This v2 report supersedes TR115 v1 by:
 1. **Correcting baseline references:** All comparisons use TR111_v2/TR112_v2/TR114_v2 corrected baselines
-2. **Comprehensive data ingestion:** 150 runs (vs 30 in v1) for statistical robustness
+2. **Expanded data ingestion:** 150 runs (vs 30 in v1) for statistical robustness
 3. **Async-std failure analysis:** Root cause identified and documented
 4. **HTTP buffering hypothesis:** 1KB vs 8KB thoroughly evaluated
-5. **Production recommendations:** Definitive guidance for deployment
+5. **Production recommendations:** Data-backed guidance for deployment
 
 ### Key Findings
 
@@ -61,7 +62,7 @@ This v2 report supersedes TR115 v1 by:
 - **Production choice:** **Tokio-default** (best consistency: 1.21pp sigma) or **smol-1KB** (second best: 1.32pp sigma)
 
 **Key Decision:**
-After 150 benchmarks and 3 reports (TR113/TR114/TR115), the definitive answer is: **All working runtimes achieve ~100% peak, so choose based on consistency.** Production recommendation: **tokio-default** (1.21pp sigma, most reliable) or **smol-1KB** (1.32pp sigma, smallest binary). Avoid tokio-localset (too variable) and smol (pathological failures).
+After 150 benchmarks and 3 reports (TR113/TR114/TR115), the data consistently show: **All working runtimes achieve ~100% peak, so choose based on consistency.** Production recommendation: **tokio-default** (1.21pp sigma, most reliable) or **smol-1KB** (1.32pp sigma, smallest binary). Avoid tokio-localset (too variable) and smol (pathological failures).
 
 ---
 
@@ -69,7 +70,7 @@ After 150 benchmarks and 3 reports (TR113/TR114/TR115), the definitive answer is
 
 1. [Introduction & Research Evolution](#1-introduction--research-evolution)
 2. [Methodology & Experimental Design](#2-methodology--experimental-design)
-3. [Comprehensive Results Analysis](#3-comprehensive-results-analysis)
+3. [Full Results Analysis](#3-full-results-analysis)
 4. [Statistical Deep Dive](#4-statistical-deep-dive)
 5. [Async-std Catastrophic Failure Analysis](#5-async-std-catastrophic-failure-analysis)
 6. [Smol Pathological Failure Analysis](#6-smol-pathological-failure-analysis)
@@ -116,8 +117,8 @@ After 150 benchmarks and 3 reports (TR113/TR114/TR115), the definitive answer is
 - Finding: LocalSet 93.6%, smol-1KB 96.3%, async-std 50%
 - **Limitation:** Insufficient data (5 runs per runtime x 1 config each)
 
-**November 15, 2025 - TR115_v2 (This Report):** Definitive runtime analysis (150 benchmarks):
-- Comprehensive testing: 5 runtimes x 6 configs x 5 runs = 150 total
+**November 15, 2025 - TR115_v2 (This Report):** Systematic runtime analysis (150 benchmarks):
+- Full matrix: 5 runtimes x 6 configs x 5 runs = 150 total
 - **Finding:** Tokio-default 99.29% peak (highest of all)
 - **Verdict:** Work-stealing wins, LocalSet hypothesis rejected
 
@@ -140,8 +141,8 @@ This study addresses:
 - **Configurations:** 6 scenarios (baseline-vs-chimera, chimera-hetero, 4x chimera-homo)
 
 **Significance:**
-- First comprehensive multi-runtime analysis (150 runs vs TR115 v1's 30)
-- First definitive answer on work-stealing vs thread-pinning for I/O-bound workloads
+- First multi-runtime analysis at this scale (150 runs vs TR115 v1's 30)
+- First empirical answer on work-stealing vs thread-pinning for I/O-bound workloads
 - First root cause analysis of async-std failure mode
 - Production-ready recommendations backed by 435+ total benchmark runs (TR113/114/115)
 
@@ -286,7 +287,7 @@ fn main() {
 
 ---
 
-## 3. Comprehensive Results Analysis
+## 3. Full Results Analysis
 
 ### 3.1 Overall Performance Summary (All 150 Runs)
 
@@ -331,7 +332,7 @@ fn main() {
 | smol | 90.8 | 93.6 | 1.82-1.87x | Stable |
 | async-std | 49.99 | 49.99 | 1.00x | Failed |
 
-**Critical Finding:**
+**Key Finding:**
 On **large context (2048 tokens)**, tokio-localset **collapses to 86.43%** (worst performer), while tokio-default **peaks at 99.29%** (best overall). This is a **12.86pp performance inversion** driven by load imbalance.
 
 **Root Cause:** Large contexts cause agents to have **heterogeneous execution times**. Thread-pinned execution (LocalSet) cannot rebalance work -> one thread idle while the other works. Work-stealing scheduler (tokio-default) continuously rebalances -> near-perfect utilization.
@@ -399,7 +400,7 @@ On **large context (2048 tokens)**, tokio-localset **collapses to 86.43%** (wors
 **Interpretation:**
 - **Tokio-default:** Highest median (99.11%), tight distribution (P5-P95: 95.35-99.88%, 4.53pp range)
 - **Tokio-localset:** High median (99.40%) but **terrible P5** (86.43%) shows bimodal distribution (good runs + bad runs)
-- **Smol-1KB:** Excellent consistency (P5-P95: 95.43-99.92%, 4.49pp range), second-best median (98.86%)
+- **Smol-1KB:** Strong consistency (P5-P95: 95.43-99.92%, 4.49pp range), second-best median (98.86%)
 - **Smol:** Wider spread (P5-P95: 93.37-99.79%, 6.42pp range) with pathological low outlier at 72.80%
 - **Async-std:** Dirac delta function at 50% (no variance)
 
@@ -553,7 +554,7 @@ async fn main() {
 
 ### 6.1 The 72.80% Failure
 
-**Critical Discovery:**
+**Key Finding:**
 Smol runtime, despite achieving 99.87% peak efficiency (nearly perfect), experiences a **catastrophic 72.80% failure** on `chimera_homo_gpu80_ctx2048/run_5`. This represents a **27.07pp drop** from peak performance.
 
 **Failure Characteristics:**
@@ -588,7 +589,7 @@ From the metrics:
 - **Smol:** Minimal executor + no work-stealing + no custom buffering -> **catastrophic failure**
 
 **Production Impact:**
-A 27pp efficiency drop means **37% longer execution time** (1.456x vs 2.0x expected). This single failure **disqualifies smol for production** despite its excellent peak performance.
+A 27pp efficiency drop means **37% longer execution time** (1.456x vs 2.0x expected). This single failure **disqualifies smol for production** despite its high peak performance.
 
 ---
 
@@ -708,7 +709,7 @@ Thread-pinned execution (tokio::LocalSet) reduces context switching overhead -> 
 | **Small Context (ctx512)** | 96.4% | 97.1% | **-0.7pp** (LocalSet wins) |
 | **Large Context (ctx2048)** | **99.29%** | **86.43%** | **+12.86pp** PASS (Default WINS) |
 
-**Critical Finding:**
+**Key Finding:**
 Work-stealing (tokio-default) **outperforms** thread-pinning (localset) **on large context** by **12.86pp**, but **underperforms on small context** by 0.7pp.
 
 ### 7.3 Root Cause Analysis
@@ -846,7 +847,7 @@ async fn main() {
 
 ## 10. Production Deployment Strategy
 
-### 9.1 Definitive Runtime Recommendation
+### 9.1 Runtime Recommendation
 
 **After 150 benchmarks across 5 runtimes:**
 
@@ -893,7 +894,7 @@ async fn main() {
 
 **Optimal Ollama Configuration (from TR114_v2):**
 ```toml
-# Dual Ollama (mandatory for multi-agent)
+# Dual Ollama (recommended for multi-agent efficiency above 90%)
 [ollama1]
 port = 11434
 
@@ -1016,7 +1017,7 @@ reqwest = { version = "0.11", features = ["json"] }
 ### 10.4 Final Verdict
 
 **The Answer Based on Data:**
-After 150 benchmarks, 5 runtimes, and 3 reports (TR113/TR114/TR115), the definitive answer is:
+After 150 benchmarks, 5 runtimes, and 3 reports (TR113/TR114/TR115), the data consistently show:
 
 ```rust
 // Production-optimal: tokio-default (most consistent)
@@ -1119,7 +1120,7 @@ fn main() {
 **Performance Progression:**
 - TR113 -> TR114: +13.5pp (dual Ollama)
 - TR114 -> TR115 v1: +0.6pp (runtime optimization)
-- TR115 v1 -> TR115 v2: +2.99pp (comprehensive testing reveals tokio-default peak)
+- TR115 v1 -> TR115 v2: +2.99pp (full-matrix testing reveals tokio-default peak)
 - **Total improvement:** 82.2% -> 99.29% = **+17.09pp** over 3 reports
 
 ### Appendix D: Glossary

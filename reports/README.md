@@ -25,7 +25,7 @@ Alignment robustness under quantization, multi-agent concurrency safety, cross-b
 ### Conclusive Reports
 **12 synthesis documents spanning all phases.**
 
-Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137), four extended appendices volumes, and four executive whitepapers — providing audit-ready decision guidance with full artifact provenance.
+Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR138-TR143), five extended appendices volumes, and five executive whitepapers — providing decision guidance with artifact provenance.
 
 ---
 
@@ -58,7 +58,7 @@ Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR13
 |--------|-------|---------|--------|-------------|
 | **TR123** | KV-Cache Production Economics | 900 | Complete | Best cost $0.013/1M tokens; cached decode 2-8x cheaper |
 | **TR124** | Quality & Accuracy Baseline | 24,990 | Complete | Backend choice does not affect quality (0/7 ANOVA significant) |
-| **TR125** | Quantization Decision Matrix | 7,650 | Complete | Q4_K_M universal sweet spot (-4.1pp max); Q2_K universally unacceptable |
+| **TR125** | Quantization Decision Matrix | 7,650 | Complete | Q4_K_M recommended default across tested models (-4.1pp max); Q2_K universally unacceptable |
 | **TR126** | Docker/Linux + Triton Validation | 25,400 | Complete | Compile paradox resolved: 24-60% prefill speedup on Linux; crashes decode |
 | **TR127** | Long-Context Characterization | 1,144 | Complete | VRAM spillover (25-105x cliffs), not quadratic attention, is the bottleneck |
 | **TR128** | Production Workloads | 3,172 | Complete | NUM_PARALLEL is a no-op (0/30 significant); M/D/1 deviates 20.4x |
@@ -68,7 +68,7 @@ Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR13
 | **TR132** | In-Container GPU Profiling | 25 runs | Complete | Continuous batching amortizes kernels 77-80%, bandwidth 79-83% |
 | **TR133** | Predictive Capacity Planner | 19,676 | Complete | 4/4 validation targets met; `chimeraforge plan` CLI shipped |
 
-### Phase 3: Safety Alignment (TR134-TR142)
+### Phase 3: Safety Alignment (TR134-TR143)
 
 | Report | Title | Samples | Status | Key Finding |
 |--------|-------|---------|--------|-------------|
@@ -76,11 +76,11 @@ Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR13
 | **TR135** | Safety Under Multi-Agent Concurrency | 20,316 | Complete | Null finding confirmed: concurrency has zero detectable effect on safety (I-squared = 0.0%) |
 | **TR136** | Cross-Backend Safety Consistency | 16,032 | Complete | Backend matters more than quant: Llama 1B shows 23pp safety drop Ollama→FP16; no TOST equivalence |
 | **TR137** | The Safety Tax of Inference Optimization | 74,254 | Complete | Quantization 57% of safety cost, backend 41%, concurrency 2%; worst config retains only 57.5% baseline safety |
-| **TR138** | Batch Inference Safety Under Non-Determinism | 31,410 | Complete | Batch non-determinism is a safety failure mode: safety flips 4x more often than capability flips |
+| **TR138** | Batch Inference Safety Under Non-Determinism | 31,410 | Complete | Batch non-determinism produces 0.6% automated flip rate (0.16% human-adjudicated genuine); 73% of automated detections are regex artifacts |
 | **TR138 v2** | Batch Safety — Strengthened-Evidence Revision | 7,257 | Complete | Audit layer confirms 59.1% unsafe flip direction; replication yields 1.68% safety vs 0.42% capability flip rate |
 | **TR139** | Multi-Turn Jailbreak Under Quantization | 48,425 | Complete | All 8 strategy ANOVAs reject quant-independence (p < 1e-4); qwen2.5-1.5b/Q2_K/attention_shift reaches 100% ASR |
 | **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | 30,000 | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
-| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 152,022 | Complete | 10 models, 6 families; 1.3x safety/capability flip ratio; SFT most fragile, DPO most robust |
+| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 152,022 | Complete (v3.1) | 18 models, 10+ families; 0.94x safety/capability ratio (near parity); alignment type not predictive (p=0.942); output instability predicts fragility (r=0.91) |
 | **TR142** | Quality-Safety Correlation Under Quantization | 23,632 | Complete | Safety degrades 13.9x faster than quality at Q3_K_S; quality metrics alone are insufficient safety proxies |
 | **TR143** | Cross-Request Safety Leakage Under Continuous Batching | 14,250 | Complete (v2.0) | Aggregate composition effect not significant; directional asymmetry IS significant — 88-92% of flips trend unsafe (p=0.006) |
 
@@ -100,6 +100,9 @@ Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR13
 | **Conclusive 134-137** | Phase 3a Synthesis (Safety Cost of Inference Optimization) | 2,571 lines, 74,254 samples |
 | **Conclusive 134-137 Extended Appendices** | Phase 3a Deep-Dive Appendices | 908 lines |
 | **Conclusive 134-137 Whitepaper** | Phase 3a Executive Guidance | 228 lines |
+| **Conclusive 138-143** | Phase 3.5/4 Synthesis (Safety Attack Surface) | 2,497 lines, 306,996 samples |
+| **Conclusive 138-143 Extended Appendices** | Phase 3.5/4 Deep-Dive Appendices | 722 lines |
+| **Conclusive 138-143 Whitepaper** | Phase 3.5/4 Executive Guidance | 253 lines |
 
 ### Historical Reports (Superseded)
 
@@ -200,7 +203,7 @@ Six shippable decisions backed by ~62,000 measurements:
 
 - **Concurrency is the one safe axis.** 39,060 samples, all safety slopes indistinguishable from zero, I-squared = 0.0%. Concurrent Ollama requests queue rather than interfere. You can safely scale agents without safety degradation (TR135).
 
-- **Batch non-determinism is a safety failure mode.** Safety outputs flip at a rate 1.3x-4x higher than capability outputs under GPU batch non-determinism (TR138, TR141). The effect varies by alignment type: SFT-aligned phi-3.5-mini is 2.9x more fragile than DPO-aligned stablelm-2-zephyr. Fragility decreases with model scale.
+- **Batch non-determinism introduces small safety instability.** Automated detection shows 0.6% flip rate; human adjudication (n=63, single reviewer) reduces this to 0.16% genuine (TR138). Across 15 models, fragility varies from 0.00% to 2.39% (TR141). Alignment type does not predict fragility (p=0.942); output instability is the sole reliable predictor tested (r=0.91).
 
 - **Multi-turn jailbreaks are systematically amplified by lower quantization.** All 8 strategy ANOVAs reject quant-independence (p < 1e-4). qwen2.5-1.5b at Q2_K reaches 100% ASR on three attack strategies (TR139). Persistence of initial refusals degrades monotonically with lower bit-width for 3 of 4 models.
 
@@ -245,7 +248,7 @@ Six shippable decisions backed by ~62,000 measurements:
 #### TR113: Rust Multi-Agent (Single Ollama)
 **File:** `Technical_Report_113.md`
 - 82.2% peak efficiency, 63% contention rate
-- Critical Discovery: Server-level serialization bottleneck; dual Ollama required
+- Finding: Server-level serialization bottleneck; dual Ollama required
 
 #### TR114_v2: Rust Multi-Agent (Dual Ollama)
 **File:** `Technical_Report_114_v2.md`
@@ -364,13 +367,13 @@ Six shippable decisions backed by ~62,000 measurements:
 
 #### TR141: Cross-Architecture Refusal Fragility Under Batch Perturbation
 **File:** `Technical_Report_141.md`
-- **Flagship cross-architecture batch safety report. v2.1, 1,607 lines.**
-- 10 models (1.2B-14.8B), 6 families (Llama, Qwen, Phi, SmolLM, StableLM, Mistral), 4 alignment types (RLHF, SFT, DPO, Distilled)
-- 70,680 eval records + 24,798 judge labels = **95,478 total data points**
-- Safety flips at 0.63% vs capability at 0.47% (1.3x ratio); cross-architecture spread 2.9x
-- Alignment type significantly predicts fragility (F=4.86, p=0.0078); SFT most fragile, DPO most robust
-- Large-model extension (TR141b): fragility decreases with scale; Qwen 0.98%→0.30% at 14.8B
-- Net-safe directional bias confirmed: 69 compliance→refusal vs 28 refusal→compliance flips
+- **Cross-architecture batch safety report. v3.1, 1,726 lines.**
+- 18 models (360M-14.8B), 10+ families, 4 alignment types (RLHF, SFT, DPO, Distilled)
+- 127,224 evaluation records across three campaigns; combined v2.1+v3 synthesis: 106,020 scored records
+- Combined synthesis: 0.75% safety vs 0.80% capability (0.94x ratio, near parity)
+- Alignment type NOT predictive (F=0.13, p=0.942 model-level); v2.1 p=0.008 was false positive from pseudoreplication
+- Output instability predicts fragility (r=0.91, R²=0.83); cross-architecture spread 0.00%-2.39%
+- Net-safe directional bias: 159 compliance→refusal vs 81 refusal→compliance flips (p=1e-6)
 
 #### TR142: Quality-Safety Correlation Under Quantization
 **File:** `Technical_Report_142.md`
@@ -396,7 +399,7 @@ Six shippable decisions backed by ~62,000 measurements:
 #### TR125: Quantization Decision Matrix
 **File:** `Technical_Report_125.md`
 - 5 models x 7 quantization levels (Q2_K through FP16)
-- Q4_K_M: universal sweet spot (-4.1pp max accuracy loss)
+- Q4_K_M: recommended default across tested models (-4.1pp max accuracy loss)
 - Q2_K: universally unacceptable (>11pp loss all models; qwen2.5-1.5b -40.6pp)
 
 #### TR126: Docker/Linux + Triton Validation
@@ -619,7 +622,7 @@ All measurements on a single fixed baseline:
    No — 0/7 ANOVA significant at temp=0 across 5 models (TR124)
 
 6. **What quantization level should you default to?**
-   Q4_K_M — universal sweet spot, at most -4.1pp accuracy loss, 30-67% cost savings (TR125)
+   Q4_K_M — recommended default across tested models, at most -4.1pp accuracy loss, 30-67% cost savings (TR125)
 
 7. **Does torch.compile help?**
    Prefill only, Linux only, 24-60% speedup; decode crashes 100% of the time (TR126)
@@ -645,7 +648,7 @@ All measurements on a single fixed baseline:
     Yes — backend accounts for 41% of total safety cost; Llama 1B shows 23pp safety drop Ollama→FP16 from chat template divergence (TR136)
 
 14. **Does batch non-determinism introduce safety failures?**
-    Yes — safety flips are 1.3x-4x more frequent than capability flips under batch perturbation; SFT alignment is most fragile (TR138, TR141)
+    Yes — batch perturbation produces measurable safety instability (0.16% human-adjudicated genuine rate, TR138). Fragility varies 0.00%-2.39% across 15 models; alignment type is not predictive (p=0.942), output instability is (r=0.91) (TR141)
 
 15. **Does quantization amplify multi-turn jailbreak susceptibility?**
     Yes — all 8 strategy ANOVAs reject quant-independence; qwen2.5-1.5b/Q2_K reaches 100% ASR on three attack strategies (TR139)
@@ -683,5 +686,5 @@ All measurements on a single fixed baseline:
 ---
 
 **Last Updated:** 2026-03-20
-**Total Reports:** 63 files (36 production-ready TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + TR143)
+**Total Reports:** 63 files (36 completed TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + TR143)
 **Total Measurements:** 555,648+ across all reports

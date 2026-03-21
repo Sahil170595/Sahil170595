@@ -9,6 +9,7 @@
 | **Test Duration** | 1 day (Oct 9, 2025) |
 | **Total Benchmark Runs** | 20+ configurations tested across 3 experimental phases |
 | **Models Evaluated** | Gemma3:latest, Llama3.1:8b-instruct-q4_0 |
+| **Run Directory** | `research/tr109/` (source scripts, rust_agent benchmark code) |
 | **Related Work** | [Technical Report 108](Technical_Report_108.md) |
 
 ---
@@ -25,7 +26,7 @@ This technical report extends the findings of Technical Report 108 by evaluating
 - Model warmth benefits are masked by process isolation and task complexity
 - Single-run measurements insufficient: >=3 runs required for statistical significance
 
-**Critical Discovery:**
+**Key Finding:**
 Configurations optimal for single-inference tasks (Technical Report 108) do **not** transfer directly to agent workflows. Agent tasks require distinct optimization strategies that balance throughput, latency, quality, and resource efficiency across multi-step operations.
 
 ---

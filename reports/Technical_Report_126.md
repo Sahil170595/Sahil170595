@@ -93,22 +93,22 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | Compile paradox is artifact of Windows aot_eager | Phase 2: -40.0% speedup on Linux, all scenarios significant (SS5) | **Validated** |
-| 2 | Real Triton delivers consistent prefill speedups | Phase 2: 6/6 scenarios, 6/6 models show compile helps (SS5) | **Validated** |
-| 3 | `reduce-overhead` breaks autoregressive decode | Phase 3: 100% crash rate on kv_decode/e2e_kv compiled (SS9) | **Validated** |
-| 4 | Backend rankings are mode-dependent | Phase 3: compile wins prefill, Ollama wins decode (SS8-SS9) | **Validated** |
-| 5 | Ollama decode is faster than eager HF | Phase 3: 7x speedup, d = 2.38, p < 10^-209 (SS9) | **Validated** |
-| 6 | Model scale inverts prefill winner | Phase 3: small models -> compile wins; large -> Ollama wins (SS9). TOST confirms 1.5B tie at epsilon=1ms (p=0.001, SS9.2) | **Validated** |
-| 7 | Triton compilation is physically present | Phase 1: 0 graph breaks; Phase 2: 916 cumulative cached kernels; 24-60% speedups prove kernel optimization (SS3, Appendix B). Note: `inductor_backend` flag returns false-negative -- see Appendix B for explanation | **Validated** (5 positive evidence lines; 1 false-negative flag explained) |
-| 8 | Environment parity with Windows runs | Phase 1: same GPU, same weights, deterministic decode verified (SS3) | **Validated** |
-| 9 | Scale crossover is statistically significant | ANOVA interaction: F(8,1608) = 453.1, p < 10^-16, eta^2 = 0.107 (SS11.4) | **Validated** |
-| 10 | Compiled decode provides no speedup | Phase 2 baseline: +2.2% overhead, d = 0.026, p = 0.43, 1,890 measurements (SS5.6) | **Validated** |
-| 11 | CUDA graph crash is length-dependent | Phase 2 @ 64 tokens: 1,890 OK; Phase 3 @ 128 tokens: 100% crash (SS10.1) | **Validated** |
-| 12 | `mode="default"` does not fix decode crash | mode="default" experiment: identical CUDAGraphs crash via Inductor graph trees (SS10.5) | **Validated** |
-| 13 | All comparisons survive multiple-testing correction | 5/5 tests pass Bonferroni (alpha=0.01) and Holm step-down (SS9.5) | **Validated** |
+| 1 | Compile paradox is artifact of Windows aot_eager | Phase 2: -40.0% speedup on Linux, all scenarios significant (SS5) | **Demonstrated** |
+| 2 | Real Triton delivers consistent prefill speedups | Phase 2: 6/6 scenarios, 6/6 models show compile helps (SS5) | **Demonstrated** |
+| 3 | `reduce-overhead` breaks autoregressive decode | Phase 3: 100% crash rate on kv_decode/e2e_kv compiled (SS9) | **Demonstrated** |
+| 4 | Backend rankings are mode-dependent | Phase 3: compile wins prefill, Ollama wins decode (SS8-SS9) | **Demonstrated** |
+| 5 | Ollama decode is faster than eager HF | Phase 3: 7x speedup, d = 2.38, p < 10^-209 (SS9) | **Demonstrated** |
+| 6 | Model scale inverts prefill winner | Phase 3: small models -> compile wins; large -> Ollama wins (SS9). TOST confirms 1.5B tie at epsilon=1ms (p=0.001, SS9.2) | **Demonstrated** |
+| 7 | Triton compilation is physically present | Phase 1: 0 graph breaks; Phase 2: 916 cumulative cached kernels; 24-60% speedups prove kernel optimization (SS3, Appendix B). Note: `inductor_backend` flag returns false-negative -- see Appendix B for explanation | **Demonstrated** (5 positive evidence lines; 1 false-negative flag explained) |
+| 8 | Environment parity with Windows runs | Phase 1: same GPU, same weights, deterministic decode verified (SS3) | **Demonstrated** |
+| 9 | Scale crossover is statistically significant | ANOVA interaction: F(8,1608) = 453.1, p < 10^-16, eta^2 = 0.107 (SS11.4) | **Demonstrated** |
+| 10 | Compiled decode provides no speedup | Phase 2 baseline: +2.2% overhead, d = 0.026, p = 0.43, 1,890 measurements (SS5.6) | **Demonstrated** |
+| 11 | CUDA graph crash is length-dependent | Phase 2 @ 64 tokens: 1,890 OK; Phase 3 @ 128 tokens: 100% crash (SS10.1) | **Demonstrated** |
+| 12 | `mode="default"` does not fix decode crash | mode="default" experiment: identical CUDAGraphs crash via Inductor graph trees (SS10.5) | **Demonstrated** |
+| 13 | All comparisons survive multiple-testing correction | 5/5 tests pass Bonferroni (alpha=0.01) and Holm step-down (SS9.5) | **Demonstrated** |
 | 14 | Crash root cause is architectural (CUDA graphs + dynamic KV cache) | v3 prototype: patching `dealloc_current_path_weakrefs()` + `check_memory_pool` still crashes via `get_non_cudagraph_inps`. `torch.cat` in `DynamicCache.update` is fundamentally incompatible with CUDA graph replay (SS10.7). Assertion fix PR [#175562](https://github.com/pytorch/pytorch/pull/175562) is valid but separate. | **Validated (architectural)** |
-| 15 | Bug persists across PyTorch versions (2.8 -> 2.10) | Full Phase 3 rerun on PyTorch 2.10.0a0 (NGC 26.01, CUDA 13.1, Triton 3.6.0): 4,522 measurements, compiled decode 100% crash, identical root cause (SS10.6) | **Validated** |
-| 16 | StaticCache enables but does not accelerate compiled decode | `mode="default"` + StaticCache: decode works but 5.8x slower (3,588 ms vs 622 ms). `reduce-overhead` + StaticCache: still crashes. Known upstream issue [huggingface/transformers#27837](https://github.com/huggingface/transformers/issues/27837) (SS10.8) | **Validated** |
+| 15 | Bug persists across PyTorch versions (2.8 -> 2.10) | Full Phase 3 rerun on PyTorch 2.10.0a0 (NGC 26.01, CUDA 13.1, Triton 3.6.0): 4,522 measurements, compiled decode 100% crash, identical root cause (SS10.6) | **Demonstrated** |
+| 16 | StaticCache enables but does not accelerate compiled decode | `mode="default"` + StaticCache: decode works but 5.8x slower (3,588 ms vs 622 ms). `reduce-overhead` + StaticCache: still crashes. Known upstream issue [huggingface/transformers#27837](https://github.com/huggingface/transformers/issues/27837) (SS10.8) | **Demonstrated** |
 
 ---
 
@@ -1002,7 +1002,7 @@ Across all 3 Phase 3 modes, there are **5 unique pairwise tests** (3 prefill pai
 
 ## 10. Phase 3 Results: Decode & End-to-End
 
-### 10.1 Critical Finding: `reduce-overhead` Breaks Autoregressive Decode
+### 10.1 Key Finding: `reduce-overhead` Breaks Autoregressive Decode
 
 Compiled models using `mode="reduce-overhead"` crash on every kv_decode and e2e_kv scenario for every model tested:
 
@@ -1721,7 +1721,7 @@ Total: **916 cached Triton kernels** across 6 models (17-245 per model). Larger 
 1. **Triton present:** Triton 3.3.1 importable and functional (Phase 1 gate, 4/4 checks pass)
 2. **Kernels generated:** 916 Triton kernels materialized on disk in `TRITON_CACHE_DIR` -- this cannot happen without Inductor routing through Triton
 3. **Zero graph breaks:** Phase 1 gate verified `torch.compile(backend="inductor")` with 0 graph breaks
-4. **Performance proves compilation:** 24-60% prefill speedups are physically impossible under `aot_eager` (which adds overhead, not removes it). The speedup magnitudes are consistent with Triton kernel fusion literature.
+4. **Performance demonstrates compilation:** 24-60% prefill speedups are physically impossible under `aot_eager` (which adds overhead, not removes it). The speedup magnitudes are consistent with Triton kernel fusion literature.
 5. **No fallback recorded:** Unlike TR120 on Windows, no `aot_eager` fallback appears in any manifest
 
 A more robust future detection method would record `torch._dynamo.utils.counters` (unique_graphs, graph_break_count) after compilation, as done in TR120 but not implemented in TR126's runner. The `inductor_backend` field should be treated as unreliable in PyTorch nightly builds.

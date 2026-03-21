@@ -81,10 +81,10 @@ The answer is sobering for anyone expecting Ollama's NUM_PARALLEL setting to imp
 | 2 | M/D/1 predicts queue wait accurately | Deviation up to 20.4x at NP=4 (SS5) | **Refuted** (at NP>1) |
 | 3 | Streaming adds latency overhead | 0/9 tests significant after Holm--Bonferroni (SS8) | **Refuted** |
 | 4 | GPU throttles under sustained LLM load | Peak 66 degrees C, 0 throttle events across 412 measurements (SS6) | **Refuted** |
-| 5 | TTFT degrades under load | TTFT amplification up to 29.9x at 2.0 req/s (SS8) | **Validated** (queueing) |
-| 6 | Multi-turn context accumulation increases latency | Per-turn latency grows with full context; prompt tokens reach 1,365 at turn 9 (SS10) | **Validated** |
+| 5 | TTFT degrades under load | TTFT amplification up to 29.9x at 2.0 req/s (SS8) | **Demonstrated** (queueing) |
+| 6 | Multi-turn context accumulation increases latency | Per-turn latency grows with full context; prompt tokens reach 1,365 at turn 9 (SS10) | **Demonstrated** |
 | 7 | Sliding-window context management recovers performance | llama3.2-1b: 5.9%, d = 1.12, p = 0.042, n=8 (SS11). Would not survive Bonferroni across 3 models (threshold = 0.017). Other models: p > 0.2 | **Inconclusive** --- borderline for 1 model, needs more data |
-| 8 | Queue depth grows with arrival rate | Monotonic growth confirmed: 0.6--0.8 at 0.5 rps to 11.9--13.5 at 10 rps (SS5) | **Validated** |
+| 8 | Queue depth grows with arrival rate | Monotonic growth confirmed: 0.6--0.8 at 0.5 rps to 11.9--13.5 at 10 rps (SS5) | **Demonstrated** |
 
 ---
 

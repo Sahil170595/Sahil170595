@@ -1137,7 +1137,7 @@ For INT8 to achieve 2x speedup, need: `Compute / Memory_BW > 2x`
 - **ONNX CPU NOT significant:** p = 0.123 (12% chance of random variation)
 - **INT8 = FP16 confirmed:** p = 0.488 (no meaningful difference)
 
-**Critical Finding:** ONNX CPU's 32% slowdown at scale is **not statistically significant** (p = 0.123), suggesting high variance. However, the crossover phenomenon (21.9x -> 0.68x) **is significant** due to massive scale of change.
+**Key Finding:** ONNX CPU's 32% slowdown at scale is **not statistically significant** (p = 0.123), suggesting high variance. However, the crossover phenomenon (21.9x -> 0.68x) **is significant** due to massive scale of change.
 
 ### 15.2 Confidence Intervals (95%)
 

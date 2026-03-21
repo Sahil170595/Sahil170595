@@ -9,6 +9,7 @@
 | **Test Duration** | 6 hours 15 minutes (150 benchmark runs) |
 | **Framework** | Demo_rust_multiagent (Rust async/tokio + Dual Ollama) |
 | **Related Work** | [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111](Technical_Report_111.md) (Rust Single-Agent), [TR112](Technical_Report_112.md) (Rust vs Python Single-Agent), [TR113](Technical_Report_113.md) (Rust Multi-Agent Single Ollama) |
+| **Artifacts** | `Demo_rust_multiagent/Demo_rust_multiagent_results_tr110_dual/` (150 metrics.json files), `analyze_tr114_results.py` |
 
 ---
 
@@ -20,24 +21,24 @@ This report validates TR113's architectural hypothesis that single Ollama instan
 
 ### Key Findings
 
-1. **Hypothesis Confirmed (Yes):** Dual Ollama architecture delivers **+17.3pp efficiency gain** (72.0% -> 89.3%) and **+24% speedup improvement** (1.440x -> 1.785x), validating TR113's prediction of +15-18pp improvement from eliminating server-level resource contention.
+1. **Hypothesis: Supported.** Dual Ollama architecture delivers **+17.3pp efficiency gain** (72.0% -> 89.3%) and **+24% speedup improvement** (1.440x -> 1.785x), consistent with TR113's prediction of +15-18pp improvement from eliminating server-level resource contention.
 
-2. **Peak Performance Achievement:** Best configuration (GPU=80/100, CTX=512/1024, heterogeneous) reached **1.914x speedup with 95.7% efficiency**, compared to TR113's 1.644x/82.2%. This represents **83% reduction in gap to theoretical 2.0x ideal**.
+2. **Peak Configuration Result:** Best configuration (GPU=80/100, CTX=512/1024, heterogeneous) reached **1.914x speedup with 95.7% efficiency**, compared to TR113's 1.644x/82.2%, representing an **83% reduction in gap to theoretical 2.0x ideal**.
 
-3. **Consistent Excellence Across Phases:** All three test phases achieved >87% average efficiency:
+3. **Consistent Results Across Phases:** All three test phases achieved >87% average efficiency:
    - Phase 1 (Core Sweep): 89.3% (90 runs)
    - Phase 2 (Temp/Context): 89.7% (45 runs)
    - Phase 3 (Validation): 87.6% (15 runs)
 
-4. **Contention Near-Elimination:** Resource contention dropped from 63% (TR113) to **6% (TR114)**, a **10x reduction**, proving dual Ollama isolation prevents server-level serialization.
+4. **Contention Reduction:** Resource contention dropped from 63% (TR113) to **6% (TR114)**, a **10x reduction**, indicating dual Ollama isolation prevents server-level serialization.
 
-5. **Homogeneous Superiority:** Chimera homogeneous scenario (both agents identical config) achieved **90.1% average efficiency** vs 88.2-88.4% for mixed/heterogeneous, with **lowest contention rate (2.5%)**.
+5. **Homogeneous Advantage:** Chimera homogeneous scenario (both agents identical config) achieved **90.1% average efficiency** vs 88.2-88.4% for mixed/heterogeneous, with **lowest contention rate (2.5%)**.
 
 6. **Remaining Python Gap:** Despite architectural parity, Rust peaked at 95.7% vs Python's 99.25% (TR110), a **-3.6pp delta**. This residual gap stems from Rust runtime overhead (tokio work-stealing, reqwest buffering) rather than architecture.
 
 ### Business Impact
 
-- **Dual Ollama Mandatory for Production Rust Multi-Agent:** Single-instance deployment is **unacceptable** for Rust (72% vs 89% efficiency). Python tolerates single-instance better due to asyncio's lighter I/O model.
+- **Dual Ollama Recommended for Production Rust Multi-Agent:** Single-instance deployment yields substantially lower efficiency for Rust (72% vs 89%). Python tolerates single-instance better due to asyncio's lighter I/O model.
 
 - **Rust Now Competitive for Multi-Agent:** 89.3% average efficiency makes Rust a **viable production choice** where consistency (5.5pp StdDev) and memory safety justify the -6.5pp gap to Python's 95.8% average.
 
@@ -363,7 +364,7 @@ This reveals a fundamental difference: **Python's asyncio scales better with lar
 
 1. **Homogeneous Confirmed Best:** 90.5% mean efficiency vs 89.4% (baseline_vs_chimera) and 85.6% (chimera_hetero). Identical agent configurations minimize tokio scheduler overhead.
 
-2. **Heterogeneous Validation Surprise:** The symmetric hetero config (GPU=80/80) performed **worse** (85.6%) than Phase 1's asymmetric GPU=80/100 (91.3%). Suggests symmetric allocation causes work-stealing thrashing when both agents compete for identical resources.
+2. **Heterogeneous Validation Result:** The symmetric hetero config (GPU=80/80) performed **worse** (85.6%) than Phase 1's asymmetric GPU=80/100 (91.3%). This suggests symmetric allocation causes work-stealing thrashing when both agents compete for identical resources.
 
 3. **Phase 2 Config Stable:** CTX=2048, TEMP=1.0 achieved 90.5% in Phase 3 validation, confirming reproducibility across independent runs.
 
@@ -390,9 +391,9 @@ This reveals a fundamental difference: **Python's asyncio scales better with lar
 
 TR113 predicted dual Ollama would deliver **+15-18pp efficiency gain**. Actual result: **+17.3pp mean improvement**, with peak improvement of **+13.5pp**.
 
-**Yes HYPOTHESIS CONFIRMED**
+**Hypothesis: Supported.**
 
-The 17.3pp gain falls squarely in the predicted 15-18pp range, validating that single Ollama instance serialization was the root cause of TR113's underperformance.
+The 17.3pp gain falls within the predicted 15-18pp range, supporting the conclusion that single Ollama instance serialization was the primary cause of TR113's lower performance.
 
 ### 4.2 Scenario-Level Comparison
 
@@ -418,7 +419,7 @@ The 17.3pp gain falls squarely in the predicted 15-18pp range, validating that s
 - GPU=120: 13% contention (6/55 runs, mostly CTX=2048)
 - **Overall:** 6% (9/150 runs)
 
-**Critical Finding:** Contention is now **context-dependent** rather than GPU-dependent. All 9 contention events occurred at **CTX>=1024**, with 7/9 at **CTX=2048**. Dual Ollama eliminates server-level contention but doesn't prevent VRAM pressure at extreme context sizes.
+**Key Finding:** Contention is now **context-dependent** rather than GPU-dependent. All 9 contention events occurred at **CTX>=1024**, with 7/9 at **CTX=2048**. Dual Ollama eliminates server-level contention but doesn't prevent VRAM pressure at extreme context sizes.
 
 ### 4.4 Configuration Sensitivity
 
@@ -730,7 +731,7 @@ No Existing Python infrastructure makes Rust adoption costly
 - **Rust (dual Ollama)** is now a **viable production alternative** (95.7% peak efficiency)
 - The choice depends on **organizational priorities**: peak throughput (Python) vs consistency + safety (Rust)
 
-**Dual Ollama is mandatory for Rust.** Single-instance deployment (TR113: 82.2% peak) is **unacceptable** for production Rust multi-agent systems. Operators must deploy two Ollama instances on separate ports to achieve competitive performance.
+**Dual Ollama is strongly recommended for Rust.** Single-instance deployment (TR113: 82.2% peak) yields substantially lower efficiency for production Rust multi-agent systems. Operators should deploy two Ollama instances on separate ports to achieve competitive performance.
 
 ---
 

@@ -129,14 +129,14 @@ These definitions are inherited from TR134 for cross-TR comparability. Safety me
 
 | # | Claim | Evidence Base | Status |
 |---|-------|--------------|--------|
-| 1 | Backend choice affects safety scores | Chi-squared significant for all 3 models (Section 14) | **Validated** |
-| 2 | Backend effect > quantization effect | Decomposition d: backend 0.15-0.60 vs quant 0.01-0.08 (Section 6) | **Validated** |
-| 3 | vLLM and TGI are interchangeable | 95.7% agreement, d < 0.03 (Section 11) | **Validated** (practical, not TOST-formal) |
-| 4 | Jailbreak refusal is most affected | V = 0.19-0.51 across all models (Section 14) | **Validated** |
+| 1 | Backend choice affects safety scores | Chi-squared significant for all 3 models (Section 14) | **Demonstrated** |
+| 2 | Backend effect > quantization effect | Decomposition d: backend 0.15-0.60 vs quant 0.01-0.08 (Section 6) | **Demonstrated** |
+| 3 | vLLM and TGI are interchangeable | 95.7% agreement, d < 0.03 (Section 11) | **Demonstrated** (practical, not TOST-formal) |
+| 4 | Jailbreak refusal is most affected | V = 0.19-0.51 across all models (Section 14) | **Demonstrated** |
 | 5 | Safety varies more than capability | Range ratio 6.28x for Llama 1B (Section 9) | **Partially validated** -- only for Llama 1B; ratio ~1.0 for others |
-| 6 | Effect is model-size-dependent | Gaps: 24pp (1B), 6pp (3B), 5pp (1.5B) (Section 5) | **Validated** (direction clear, but family confounded with size) |
+| 6 | Effect is model-size-dependent | Gaps: 24pp (1B), 6pp (3B), 5pp (1.5B) (Section 5) | **Demonstrated** (direction clear, but family confounded with size) |
 | 7 | Chat template divergence is the mechanism | Textual divergence (Jaccard 0.20-0.28) + safety-specific effect (Section 12) | **Supported but not proven** -- correlational, not causal |
-| 8 | No backend pair is formally equivalent | 0/18 TOST tests pass (Section 10) | **Validated** |
+| 8 | No backend pair is formally equivalent | 0/18 TOST tests pass (Section 10) | **Demonstrated** |
 
 ### Key Decisions for Practitioners
 
@@ -276,7 +276,7 @@ No prior work that we are aware of:
 |-----------|-------------|-------------------|
 | [TR134](Technical_Report_134.md) | Quantization x safety across 4 models, jailbreak amplification, per-category bias | Safety classifiers, jailbreak task set, BBQ benchmark, LLM judge module, Q4_K_M baselines for cross-validation |
 | [TR135](Technical_Report_135.md) | Concurrency x safety, null finding (concurrency does not affect safety) | Establishes that Ollama serialization eliminates concurrency confounds; Ollama Q4_K_M reference scores |
-| [TR125](Technical_Report_125.md) | Quantization decision matrix (capability focus) | Q4_K_M as "universal sweet spot" -- TR136 tests whether this holds across backends |
+| [TR125](Technical_Report_125.md) | Quantization decision matrix (capability focus) | Q4_K_M as "sweet spot across all tested models" -- TR136 tests whether this holds across backends |
 | [TR133](Technical_Report_133.md) | VRAM modeling and latency prediction | VRAM estimates for model selection feasibility |
 | Rottger et al. (2024) | HarmBench: standardized safety evaluation | Methodological precedent for multi-backend safety comparison |
 | Huang et al. (2024) | Chat template effects on LLM behavior | Theoretical basis for chat template divergence hypothesis |

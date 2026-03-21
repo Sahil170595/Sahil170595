@@ -28,7 +28,7 @@ TR142 asks whether quality and safety degrade together under quantization, or wh
 
 The core findings are: (1) Quality-safety correlation is model-dependent and cannot be pooled -- `llama3.2-1b` shows strong positive coupling (`r = +0.994` for coherence x refusal, `p < 1e-70`) while `llama3.2-3b` shows a significant negative coupling (`r = -0.829`, `p = 0.003`). (2) Safety moves more than quality in **10 of 12** model-quant cells, with the largest divergence at `llama3.2-1b / Q3_K_S`, where refusal drops `13.6pp` while average quality moves by only about `1pp`. (3) The quality gate is quant-invariant: the same `18.2%` of refusal samples and `16.0%` of truthfulness samples are filtered at every quant level, including FP16, so the gate catches prompt difficulty rather than quant-induced degradation.
 
-The most important caution is methodological. The current saved artifact does **not** include a standalone TOST result object, and the raw appendix-level one-sided equivalence calculations do not support a strong formal equivalence claim at the per-cell level. TR142 therefore supports a **conservative deployment floor** at `Q5_K_M` because that is where observed refusal deltas remain small and corrected pairwise tests remain non-significant, not because this report alone proves strict +/-3pp equivalence.
+The most important caution is methodological. The current saved artifact does **not** include a standalone TOST result object, and the raw appendix-level one-sided equivalence calculations do not support a strong formal equivalence claim at the per-cell level. TR142 therefore supports a **conservative deployment floor** at `Q5_K_M` because that is where observed refusal deltas remain small and corrected pairwise tests remain non-significant, not because this report alone establishes strict +/-3pp equivalence.
 
 The operational conclusion is that quality metrics alone are insufficient safety proxies: a model can pass quality benchmarks while silently losing refusal alignment, and the direction of quality-safety divergence depends on the model.
 
@@ -232,7 +232,7 @@ Prior work on quantization effects (Dettmers et al., 2023; Frantar et al., 2022)
 ### SS1.5 Contribution
 
 TR142 makes three specific contributions:
-1. **First characterization of quality-safety coupling under GGUF quantization.** Prior work treated quality and safety as independent evaluation dimensions. TR142 shows they are correlated, but the correlation is model-dependent (Simpson's paradox).
+1. **Characterization of quality-safety coupling under GGUF quantization.** Prior work treated quality and safety as independent evaluation dimensions. TR142 shows they are correlated, but the correlation is model-dependent (Simpson's paradox).
 2. **Identification of the Q3_K_S hidden danger zone.** This is the first quantization study to identify a specific quant level where quality metrics pass while safety metrics fail, providing a concrete deployment hazard that quality-only evaluation would miss.
 3. **Demonstration that quality-gating is quant-invariant.** The null result on quality-gating simplifies evaluation pipelines and rules out a plausible pre-processing step that might have been assumed to improve safety evaluation.
 
@@ -795,7 +795,7 @@ The capability consistency data also enables a secondary validation: checking wh
 - H1 is the most nuanced finding: quality-safety co-variation exists, but its sign is model-dependent. This is not a weak version of a positive claim -- it is a fundamentally different claim. The relationship is strong within each model (|r| > 0.82 for coherence x refusal on both) but opposite in direction. Any theory of quality-safety coupling under quantization must explain why the coupling reverses between 1.2B and 3.2B parameters.
 - H2 is the most actionable finding: safety moves more than quality in 10/12 cells. This means quality monitoring systematically underestimates safety risk. The asymmetry is not uniform -- it concentrates at Q3_K_S and below -- but it is consistent enough to justify the recommendation that safety must be monitored independently.
 - H3 and H4 are clean negative results. The quality-gating null result (H3) simplifies evaluation pipelines. The BPW regression null result (H4) rules out a convenient shortcut: you cannot predict safety from BPW using a linear model.
-- H5 should now be read more narrowly. SS10 supports Q5_K_M as the conservative deployment floor because refusal deltas remain small and corrected pairwise tests stay non-significant through that level, not because TR142 alone proves strict formal equivalence.
+- H5 should now be read more narrowly. SS10 supports Q5_K_M as the conservative deployment floor because refusal deltas remain small and corrected pairwise tests stay non-significant through that level, not because TR142 alone establishes strict formal equivalence.
 
 ### SS13.2 Cross-Model Synthesis
 
@@ -1296,7 +1296,7 @@ This appendix-level screen applies the same +/-3pp practical margin used elsewhe
 
 - At the strict +/-2pp margin, the raw screen only clears Q8_0 and Q6_K on both models; Q5_K_M on 1b (-1.8pp) falls just short because the interval cannot cleanly exclude the -2pp boundary at N = 220.
 - At the lenient +/-5pp margin, Q4_K_M on llama3.2-1b would pass the raw screen, but Q4_K_M on llama3.2-3b (-10.0pp) still fails. The 3b model's Q4_K_M safety drop is too large for any reasonable low-delta claim.
-- The +/-3pp margin used throughout this report is therefore best read as a practical policy threshold, not as a theorem that TR142 proves on its own. Practitioners with tighter requirements should look at the +/-2pp column; those accepting more risk can consult the +/-5pp column.
+- The +/-3pp margin used throughout this report is therefore best read as a practical policy threshold, not as a theorem that TR142 establishes on its own. Practitioners with tighter requirements should look at the +/-2pp column; those accepting more risk can consult the +/-5pp column.
 
 ### C.2 Correlation Stability Under Leave-One-Out
 

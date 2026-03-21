@@ -6,7 +6,8 @@
 | **Project** | Banterhearts LLM Performance Research |
 | **Date** | November 14, 2025 |
 | **Author** | Research Team |
-| **Report Type** | Comprehensive Runtime Performance Analysis |
+| **Report Type** | Runtime Performance Analysis |
+| **Artifacts** | `research/tr115/runtime_optimization/results/` |
 
 ---
 

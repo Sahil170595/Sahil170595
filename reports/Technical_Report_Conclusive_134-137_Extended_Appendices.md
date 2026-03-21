@@ -486,7 +486,7 @@ Prior to this research, the literature on quantization effects was almost entire
 
 The gap this research fills is systematic: no prior work measured safety-specific effects of GGUF k-quant quantization across multiple models, multiple safety tasks, and multiple quantization levels. The closest prior work examined individual models at individual quantization levels, without the cross-model I-squared analysis that reveals the extreme heterogeneity.
 
-The key finding that distinguishes this work: the safety cost of quantization is model-specific, not method-specific. Two models quantized with the same method (GGUF k-quant) show opposite safety impacts (Llama 1B: -35.2pp; Llama 3B: +6.0pp). This means quantization method benchmarks (comparing GPTQ vs AWQ vs GGUF) are insufficient -- the model-quantization interaction dominates.
+A key finding: the safety cost of quantization is model-specific, not method-specific. Two models quantized with the same method (GGUF k-quant) show opposite safety impacts (Llama 1B: -35.2pp; Llama 3B: +6.0pp). This means quantization method benchmarks (comparing GPTQ vs AWQ vs GGUF) are insufficient -- the model-quantization interaction dominates.
 
 ### K.3 Safety Benchmarks
 
@@ -537,7 +537,7 @@ Prior observations of template effects exist in scattered form:
 - Ollama documentation mentions that templates can be customized but does not quantify the safety impact of doing so
 - Community reports of "model behaves differently on different backends" are common but rarely investigated systematically
 
-TR136 is the first systematic measurement of chat template divergence as a safety variable, producing the 4-25pp safety delta that drives the backend migration policy.
+TR136 is, to our knowledge, the first measurement of chat template divergence as a safety variable, producing the 4-25pp safety delta that drives the backend migration policy.
 
 ---
 
@@ -610,7 +610,7 @@ These are engineering problems with known solution patterns. The contribution of
 
 ## Appendix O Extended: Extended Results Narratives
 
-This appendix provides dissertation-style narratives for each technical report's primary contribution. Each subsection tells the story of the findings in extended prose, contextualizing the numbers within the broader research arc.
+This appendix provides extended narratives for each technical report's primary contribution. Each subsection tells the story of the findings in extended prose, contextualizing the numbers within the broader research arc.
 
 ### O.1 TR134: The Quantization Safety Map
 

@@ -111,13 +111,13 @@ Across this matrix (5 models x 3 backends x 5 scenarios x 7 reps = 525 cells, wi
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | KV-cached decode is cheaper than uncached | Phase-split cost tables (Sec. 5.3) vs TR119 baseline | **Validated** |
-| 2 | torch.compile provides 1.2--2.5x decode speedup | 12 model/scenario comparisons (Sec. 9.1) | **Validated** |
-| 3 | GQA reduces KV memory 3--11x vs MHA | Theoretical + empirical at 2K context (Sec. 8.3), 30/30 exact | **Validated** |
-| 4 | Infra cost dominates over energy cost | Cost decomposition: 66--99% infra across 12 combos (Sec. 6.1) | **Validated** |
-| 5 | Consumer hardware is 95% cheaper than cloud | Multi-tier pricing across 11 tiers (Sec. 10.1) | **Validated** |
-| 6 | KV cache memory formula is exact | 30/30 empirical matches (Sec. 8.2) | **Validated** |
-| 7 | Prefill is 10--100x cheaper than decode per token | 50 phase-split measurements (Sec. 5.3) | **Validated** |
+| 1 | KV-cached decode is cheaper than uncached | Phase-split cost tables (Sec. 5.3) vs TR119 baseline | **Demonstrated** |
+| 2 | torch.compile provides 1.2--2.5x decode speedup | 12 model/scenario comparisons (Sec. 9.1) | **Demonstrated** |
+| 3 | GQA reduces KV memory 3--11x vs MHA | Theoretical + empirical at 2K context (Sec. 8.3), 30/30 exact | **Demonstrated** |
+| 4 | Infra cost dominates over energy cost | Cost decomposition: 66--99% infra across 12 combos (Sec. 6.1) | **Demonstrated** |
+| 5 | Consumer hardware is 95% cheaper than cloud | Multi-tier pricing across 11 tiers (Sec. 10.1) | **Demonstrated** |
+| 6 | KV cache memory formula is exact | 30/30 empirical matches (Sec. 8.2) | **Demonstrated** |
+| 7 | Prefill is 10--100x cheaper than decode per token | 50 phase-split measurements (Sec. 5.3) | **Demonstrated** |
 
 ---
 

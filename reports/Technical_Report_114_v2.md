@@ -11,12 +11,13 @@
 | **Total Configurations** | 27 (7 baseline-vs-chimera, 7 chimera-hetero, 13 chimera-homo) |
 | **Total Runs** | 135 (27 configs x 5 runs each) |
 | **Related Work** | [TR110](Technical_Report_110.md) (Python Multi-Agent), [TR111_v2](Technical_Report_111_v2.md) (Rust Single-Agent), [TR112_v2](Technical_Report_112_v2.md) (Rust vs Python Comparison), [TR115](Technical_Report_115.md) (Rust Runtime Optimization) |
+| **Artifacts** | `Demo_rust_multiagent/runs/tr110_rust_full/` (135 benchmark runs), `Demo_rust_multiagent/summary.json` |
 
 ---
 
 ## Executive Summary
 
-This technical report presents the definitive analysis of Rust multi-agent concurrent execution with full architectural parity to Python (TR110). Through 135 comprehensive benchmark runs across 27 configurations using dual Ollama instances, we establish the true performance characteristics of Rust async multi-agent workflows and quantify the **multi-agent coordination overhead** that transforms Rust's 15% single-agent advantage into a 3-4% multi-agent gap against Python.
+This technical report presents a systematic analysis of Rust multi-agent concurrent execution with full architectural parity to Python (TR110). Through 135 comprehensive benchmark runs across 27 configurations using dual Ollama instances, we establish the true performance characteristics of Rust async multi-agent workflows and quantify the **multi-agent coordination overhead** that transforms Rust's 15% single-agent advantage into a 3-4% multi-agent gap against Python.
 
 **Critical Context:**
 This v2 report supersedes the previous TR113/TR114 analyses by:
@@ -49,7 +50,7 @@ This v2 report supersedes the previous TR113/TR114 analyses by:
 - **Rust strengths preserved:** Memory efficiency (67% less), startup speed (83% faster), type safety
 - **Python wins multi-agent:** 3-4% better coordination efficiency at scale
 - **Recommendation:** Rust for single-agent production, Python for multi-agent orchestration
-- **Hybrid strategy optimal:** Rust workers + Python coordinator = best of both worlds
+- **Hybrid strategy:** Rust workers + Python coordinator combines strengths of both runtimes
 
 ---
 
@@ -77,7 +78,7 @@ This v2 report supersedes the previous TR113/TR114 analyses by:
 
 1. **TR113 (November 12, 2025):** Initial Rust multi-agent tests revealed 82.2% peak efficiency using single Ollama instance. Hypothesis: Server serialization limiting performance.
 
-2. **TR114 v1 (November 13, 2025):** Dual Ollama validation achieved 95.7% efficiency (+17.3pp improvement), confirming hypothesis. However, still referenced incorrect TR111 baselines (Rust 98.86 tok/s, implying Python superiority).
+2. **TR114 v1 (November 13, 2025):** Dual Ollama validation achieved 95.7% efficiency (+17.3pp improvement), confirming hypothesis. However, still referenced incorrect TR111 baselines (Rust 98.86 tok/s, implying Python advantage).
 
 3. **TR111_v2 (November 14, 2025):** Comprehensive single-agent retesting with full workflow parity revealed Rust is actually **15.2% faster** than Python (114.54 vs 99.34 tok/s), completely reversing prior understanding.
 
@@ -86,7 +87,7 @@ This v2 report supersedes the previous TR113/TR114 analyses by:
 5. **TR114_v2 (November 15, 2025 - This Report):** Reanalysis of multi-agent performance with corrected baselines reveals **Rust's Multi-Agent Excellence**: Despite expectations, Rust's 15% single-agent throughput advantage translates to **superior multi-agent coordination** (98.281% mean vs Python's 95.8%).
 
 **Critical Question:**
-How does Rust, which dominates single-agent performance by 15%, maintain and even extend this advantage in multi-agent scenarios? Does coordination overhead differ between Rust's Tokio and Python's asyncio?
+How does Rust, which leads single-agent performance by 15%, maintain this advantage in multi-agent scenarios? Does coordination overhead differ between Rust's Tokio and Python's asyncio?
 
 ### 1.2 Research Questions
 
@@ -220,7 +221,7 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 | **TTFT Delta (ms)** | -2328.6 | +459.2 | -43.2 | -28.3 | 312.5 | N/A |
 
 **Key Observations:**
-1. **High median efficiency:** 98.6% indicates most runs perform excellently
+1. **High median efficiency:** 98.6% indicates most runs achieve strong performance
 2. **Wide efficiency range:** 61.7-99.98% (38.3pp spread) driven by outlier runs
 3. **Low CV:** 5.0% demonstrates good consistency across configurations
 4. **Throughput balance:** Mean delta near zero (+0.09 tok/s) shows balanced agent performance
@@ -313,11 +314,11 @@ Framework: Demo_rust_multiagent (tokio async runtime)
 |------|--------|----------|-----|------------|---------|-------|
 | 1 | test108 | chimera_homo | 1 | **99.992%** | 1.9998x | Best overall run |
 | 2 | test006 | baseline_vs_chimera | 3 | **99.961%** | 1.9992x | Near-theoretical maximum |
-| 3 | test013 | chimera_homo | 4 | **99.950%** | 1.9990x | Excellent homo run |
+| 3 | test013 | chimera_homo | 4 | **99.950%** | 1.9990x | High-efficiency homo run |
 | 4 | test104 | chimera_homo | 5 | **99.933%** | 1.9987x | Validation config |
 | 5 | test202 | baseline_vs_chimera | 5 | **99.932%** | 1.9986x | Best baseline-vs-chimera |
 
-**Insight:** Peak single runs achieve near-perfect 2.0x speedup (99.992% efficiency = 1.9998x). Config averages stabilize at 98-99%, demonstrating reliable high performance.
+**Observation:** Peak single runs approach the theoretical 2.0x speedup limit (99.992% efficiency = 1.9998x). Config averages stabilize at 98-99%, indicating reliable performance across runs.
 
 ### 3.4 Worst Performing Outliers
 
@@ -428,10 +429,10 @@ If Rust maintained its single-agent advantage in multi-agent, we'd expect ~110-1
 | Metric | Python (TR110) | Rust (TR114_v2) | Rust Advantage | Notes |
 |--------|---------------|-----------------|----------------|-------|
 | **Best Config Avg Efficiency** | 99.25% (test108) | 99.396% (test011) | +0.15pp | Rust slight edge |
-| **Best Single Run** | 99.25% | 99.992% (test108) | +0.74pp | Rust approaches perfect |
+| **Best Single Run** | 99.25% | 99.992% (test108) | +0.74pp | Rust |
 | **Mean Efficiency** | 95.8% | 98.281% | +2.48pp | Rust more consistent |
 | **P95 Efficiency** | ~98.5% | 99.8% | +1.3pp | Rust better tail |
-| **Contention Rate** | 10-15% | 0.74% | **-10-14pp** | Rust dramatically better |
+| **Contention Rate** | 10-15% | 0.74% | **-10-14pp** | Rust |
 | **Consistency (CV)** | 7.4pp | 4.9pp | **-2.5pp** | Rust more predictable |
 
 **Verdict on Multi-Agent Performance:** Rust **matches or slightly exceeds** Python in multi-agent efficiency.
@@ -448,7 +449,7 @@ If Rust maintained its single-agent advantage in multi-agent, we'd expect ~110-1
 | **Startup** | 1.5s | 0.2s | **-83%** |
 
 **The Reality:**
-- **Single-Agent:** Rust dominates by 15% (throughput), 58% (latency), 67% (memory)
+- **Single-Agent:** Rust leads by 15% (throughput), 58% (latency), 67% (memory)
 - **Multi-Agent:** Rust **exceeds Python** by +2.48pp in mean efficiency (98.281% vs 95.8%)
 - **Implication:** Multi-agent coordination **preserves and extends** Rust's advantages
 
@@ -507,8 +508,8 @@ async fn run_multi_agent() -> Result<(AgentResult, AgentResult)> {
   - Rust: 114.54 tok/s -> 42 tok/s = **-63% degradation**
   - Python: 99.34 tok/s -> 42 tok/s = **-58% degradation**
 
-**Critical Insight:**
-Both languages experience **massive degradation** in multi-agent scenarios (-58% to -63%), but Rust loses its 15% single-agent advantage. The degradation is **not** due to multi-agent coordination overhead alone, but rather:
+**Observation:**
+Both languages experience **substantial degradation** in multi-agent scenarios (-58% to -63%), and Rust loses its 15% single-agent advantage. The degradation is **not** due to multi-agent coordination overhead alone, but rather:
 1. **Different workload characteristics:** Multi-agent tasks may involve more I/O waits
 2. **Model loading overhead:** Each agent loads model separately
 3. **Prompt complexity differences:** Multi-agent prompts may be heavier
@@ -661,7 +662,7 @@ Multi-agent coordination overhead exists (~1-2%), but is **not the primary drive
 **Benefits:**
 - Python handles **orchestration** (its strength)
 - Rust handles **inference** (its strength)
-- Best of both worlds: 15% faster workers + efficient coordination
+- Combines Rust inference speed (15% faster) with Python coordination efficiency
 
 ---
 
@@ -812,7 +813,7 @@ contention_risk = "Very Low"
 **Monthly Savings:** $200 (50% cost reduction from memory efficiency)
 **Annual Savings:** $2,400
 
-**But Wait:** This ignores single-agent potential...
+**Note:** This comparison ignores single-agent potential.
 
 ### 8.2 Hybrid Architecture Cost Analysis
 
@@ -853,7 +854,7 @@ contention_risk = "Very Low"
 **Performance:**
 - Hybrid: **15% faster per agent** (114.54 vs ~42 tok/s effective multi-agent)
 - Hybrid: **Better orchestration** (Python's simpler coordination)
-- **Best of both worlds**
+- **Combines strengths of both runtimes**
 
 ### 8.3 ROI Analysis
 
@@ -880,7 +881,7 @@ contention_risk = "Very Low"
 - **Rust Multi-Agent:** $33k dev + $25k ops = **$58k** (13% savings)
 - **Hybrid:** $41k dev + $27.6k ops = **$68.6k** (2% more than Python)
 
-**Surprise Finding:** Hybrid has **higher TCO** due to development complexity ($19k more than Rust multi-agent), despite operational savings.
+**Notable Finding:** Hybrid has **higher TCO** due to development complexity ($19k more than Rust multi-agent), despite operational savings.
 
 **However:** TCO ignores **performance**:
 - Hybrid: 15% faster per agent (114.54 vs ~42 tok/s)
@@ -1086,7 +1087,7 @@ contention_risk = "Very Low"
 - PASS **Budget allows higher dev cost** ($19k additional)
 - PASS **Long-term strategic** (>5 years to break even)
 - PASS **Architectural flexibility** valued
-- PASS **Best-of-both-worlds** justified
+- PASS **Combined-strengths approach** justified
 
 ### 10.4 Final Verdict
 
@@ -1241,7 +1242,7 @@ This research builds upon:
 - **Technical Report 113:** Rust multi-agent initial analysis (identified dual Ollama requirement)
 - **Technical Report 115:** Rust async runtime analysis (quantified runtime overhead)
 
-Special thanks to the Ollama team for robust local LLM inference, and the Rust/Tokio community for excellent async ecosystem support.
+This work used the Ollama local LLM inference server and the Rust/Tokio async ecosystem.
 
 ---
 

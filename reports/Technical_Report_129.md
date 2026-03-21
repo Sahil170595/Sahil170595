@@ -209,7 +209,7 @@ The closest prior work is TR114v2 (in this series), which tested N=2 agents on t
 
 The vLLM and TGI papers characterize throughput under open-loop arrivals (request rate as independent variable), which corresponds to TR128's paradigm. Closed-loop scaling (agent count as independent variable, bounded concurrency) is a different workload model that these systems have not characterized.
 
-**TR129 fills this gap:** it provides the first systematic closed-loop scaling characterization from N=1 to N=8, with formal Amdahl analysis, fairness quantification, and think-time interaction on consumer hardware.
+**TR129 fills this gap:** it provides a systematic closed-loop scaling characterization from N=1 to N=8, with formal Amdahl analysis, fairness quantification, and think-time interaction on consumer hardware.
 
 ### 1.5 Key Distinction: Closed-Loop vs Open-Loop
 
@@ -957,7 +957,7 @@ TR129's findings interact with and extend several earlier technical reports. Thi
 |-------------|--------------|--------------|--------|
 | **TR114v2** | 2-agent efficiency = 98.28% (HF backend) | Efficiency is backend-dependent: Ollama yields 80% at N=2. Backend serial overhead is the dominant factor. | **Extended** |
 | **TR121v1** | Inference cost scales sub-linearly with model size | Confirmed: larger models have lower serial fractions (less overhead per useful compute), consistent with sub-linear cost scaling. | **Confirmed** |
-| **TR125** | Q4_K_M is universal sweet spot for quality | Unchanged. TR129 uses default quantization (Q4_0 via Ollama). Serial fraction may differ at other quant levels if decode speed changes. | **Unaffected** |
+| **TR125** | Q4_K_M is recommended default across tested models for quality | Unchanged. TR129 uses default quantization (Q4_0 via Ollama). Serial fraction may differ at other quant levels if decode speed changes. | **Unaffected** |
 | **TR126** | torch.compile wins prefill but crashes decode | Relevant: if compiled decode worked, it might reduce the serial fraction by amortizing CUDA overhead. Compile's prefill benefit is irrelevant for multi-agent decode-bound workloads. | **Contextualized** |
 | **TR127** | VRAM thrashing above capacity causes non-linear degradation | TR129 stays well within VRAM budget (max 51%). Long-context multi-agent scenarios (SS18 future work) would combine TR127's VRAM limits with TR129's scaling curves. | **Complementary** |
 | **TR128** | OLLAMA_NUM_PARALLEL is a no-op; streaming adds zero overhead | Confirmed: TR129's closed-loop protocol (non-streaming) produces consistent results. NUM_PARALLEL being a no-op explains why adding agents doesn't unlock hidden parallelism. | **Confirmed** |
@@ -1115,7 +1115,7 @@ This separation explains why TR129's Amdahl model works: the serial fraction s c
 
 ## SS16: Conclusions
 
-TR129 provides the first systematic characterization of closed-loop multi-agent LLM inference scaling on consumer GPU hardware. The results answer the five research questions posed in SS1:
+TR129 provides a systematic characterization of closed-loop multi-agent LLM inference scaling on consumer GPU hardware. The results answer the five research questions posed in SS1:
 
 **Q1: At what agent count does per-agent throughput collapse?** The degradation is gradual, not a phase transition. Efficiency drops below 50% at N=3--4 (model-dependent). At N=8, agents get 17--20% of solo throughput. The degradation is smooth and well-described by Amdahl's Law.
 

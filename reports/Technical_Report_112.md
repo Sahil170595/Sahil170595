@@ -9,12 +9,13 @@
 | **Model** | gemma3:latest (4.3B parameters, Q4_K_M quantization) |
 | **Configurations Tested** | 18 matching configs per language (36 total) |
 | **Related Work** | [TR109](Technical_Report_109.md) (Python), [TR111](Technical_Report_111.md) (Rust) |
+| **Artifacts** | `research/tr112/artifacts/` (sweep summary CSVs, language stats, analysis scripts) |
 
 ---
 
 ## Executive Summary
 
-This technical report provides the first comprehensive, apples-to-apples comparison of Rust and Python LLM agents using identical test methodology, hardware, and model configuration. Through systematic testing of 36 configuration combinations (18 per language), we establish clear performance trade-offs for production deployment decisions.
+This technical report provides a direct, apples-to-apples comparison of Rust and Python LLM agents using identical test methodology, hardware, and model configuration. Through systematic testing of 36 configuration combinations (18 per language), we establish performance trade-offs for production deployment decisions.
 
 **Key Findings:**
 
@@ -29,7 +30,7 @@ This technical report provides the first comprehensive, apples-to-apples compari
 - **Python:** Choose for **peak performance, rapid iteration, TTFT optimization**
 - **Both:** Suitable for production; selection depends on operational priorities
 
-**Critical Insight:**
+**Key Finding:**
 The **language choice matters less than expected** for LLM inference performance (GPU-bound workload). However, **operational characteristics differ significantly** - Rust provides predictability while Python offers performance peaks.
 
 ---
@@ -52,7 +53,7 @@ The **language choice matters less than expected** for LLM inference performance
 
 ### 1.1 Motivation
 
-While Technical Report 109 (Python) and Technical Report 111 (Rust) establish individual language performance, **no prior work directly compares them** under identical conditions. This report fills that gap, providing data-driven guidance for production deployment decisions.
+While Technical Report 109 (Python) and Technical Report 111 (Rust) establish individual language performance, neither compares the two under identical conditions. This report provides that comparison, using matched configurations to give data-driven guidance for production deployment decisions.
 
 ### 1.2 Comparison Scope
 
@@ -190,7 +191,7 @@ IQR: 0.80 tok/s
 | **Python** | 7/18 (38.9%) | +0.095 | **+2.20** 1st | -0.48 |
 | **Rust** | 13/18 (72.2%) PASS | **+0.138** | +0.61 | -0.45 |
 
-**Critical Insight:**
+**Key Finding:**
 - Python achieves **higher peak gains** when optimization works (+2.2%)
 - Rust achieves **more consistent gains** (72% success rate)
 - **Trade-off:** Python = "high risk, high reward"; Rust = "reliable incremental"
@@ -241,7 +242,7 @@ The 2.7x TTFT difference suggests **different measurement methodology** or **imp
 | **Python** | 18/18 (100%) | **-9.4%** PASS | **+68.4%** |
 | **Rust** | 7/18 (38.9%) | +2.1% | +9.1% |
 
-**Critical Finding:**
+**Key Finding:**
 - Python **consistently reduces TTFT** with Chimera optimization
 - Rust shows **TTFT increase** on average (+2.1%)
 - Suggests **different optimization trade-off profiles**

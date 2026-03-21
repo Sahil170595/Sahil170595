@@ -88,16 +88,16 @@ TR124 answers: **do our backends produce equivalent quality, and which model-bac
 
 | # | Claim | Evidence Base | Status |
 |---|-------|---------------|--------|
-| 1 | FP16 and FP32 backends produce equivalent quality | ANOVA + Holm-Bonferroni on 7 metrics (Sec. 5) | **Validated** |
-| 2 | Quality scales with parameter count | Composite scores across 5 models (Sec. 6) | **Validated** (with caveats) |
-| 3 | Benchmark scores match published values | MMLU/HellaSwag/ARC-Easy vs Open LLM Leaderboard (Sec. 8) | **Validated** |
-| 4 | Metric computation is deterministic at temp=0 | GPU vs CPU produce identical benchmark answers (Sec. 5.3) | **Validated** |
-| 5 | Quality-cost Pareto identifies efficiency frontier | Cross-reference with TR123 cost data (Sec. 10) | **Validated** |
+| 1 | FP16 and FP32 backends produce equivalent quality | ANOVA + Holm-Bonferroni on 7 metrics (Sec. 5) | **Demonstrated** |
+| 2 | Quality scales with parameter count | Composite scores across 5 models (Sec. 6) | **Demonstrated** (with caveats) |
+| 3 | Benchmark scores match published values | MMLU/HellaSwag/ARC-Easy vs Open LLM Leaderboard (Sec. 8) | **Demonstrated** |
+| 4 | Metric computation is deterministic at temp=0 | GPU vs CPU produce identical benchmark answers (Sec. 5.3) | **Demonstrated** |
+| 5 | Quality-cost Pareto identifies efficiency frontier | Cross-reference with TR123 cost data (Sec. 10) | **Demonstrated** |
 | 6 | ROUGE/BERTScore/SemScore agree on model ranking | Metric agreement analysis (Sec. 9) | **Partially validated** (57%) |
-| 7 | Each model has a distinct task-specific quality profile | Per-model deep dives (Sec. 7) | **Validated** |
-| 8 | Quantization degrades quality predictably | Phase 2 FP16 deltas across 4 models (Sec. 17) | **Validated** -- coherence hit hardest |
-| 9 | Quality is unstable under non-greedy decoding | Phase 3 CV analysis, 600 samples (Sec. 18) | **Validated** -- mean CV 0.33 at temp=0.7 |
-| 10 | torch.compile does not alter output diversity | Phase 3 Levene's test on 5 metrics (Sec. 18) | **Validated** -- 0/5 significant |
+| 7 | Each model has a distinct task-specific quality profile | Per-model deep dives (Sec. 7) | **Demonstrated** |
+| 8 | Quantization degrades quality predictably | Phase 2 FP16 deltas across 4 models (Sec. 17) | **Demonstrated** -- coherence hit hardest |
+| 9 | Quality is unstable under non-greedy decoding | Phase 3 CV analysis, 600 samples (Sec. 18) | **Demonstrated** -- mean CV 0.33 at temp=0.7 |
+| 10 | torch.compile does not alter output diversity | Phase 3 Levene's test on 5 metrics (Sec. 18) | **Demonstrated** -- 0/5 significant |
 
 ---
 
