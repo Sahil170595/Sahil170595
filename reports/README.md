@@ -1,5 +1,5 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Safety Alignment — 540,000+ Data Points, 36 Technical Reports
+## LLM Inference Research & Safety Alignment — 555,648+ Data Points, 36 Technical Reports
 
 This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, and safety alignment under inference optimizations — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM) and cloud GPUs (NVIDIA RTX PRO 6000 Blackwell, 98 GB VRAM via Google Colab).
 
@@ -17,10 +17,10 @@ Single-agent and multi-agent performance analysis, Rust vs Python cross-language
 
 KV-cache economics, quality baselines, quantization decision matrix, Linux/Triton compile validation, long-context characterization, production workload analysis, N-agent scaling laws, serving stack comparison, GPU kernel profiling (host + in-container), and a predictive capacity planner shipped as the `chimeraforge plan` CLI.
 
-### Phase 3: Safety Alignment (TR134-TR142)
-**9 technical reports. ~350,000+ data points.**
+### Phase 3: Safety Alignment (TR134-TR143)
+**10 technical reports. ~365,000+ data points.**
 
-Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 152,022 data points), and quality-safety correlation.
+Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 152,022 data points), quality-safety correlation, and cross-request safety leakage under continuous batching (TR143).
 
 ### Conclusive Reports
 **12 synthesis documents spanning all phases.**
@@ -82,6 +82,7 @@ Four dissertation-style conclusive reports (TR108-TR116, TR117-TR122, TR123-TR13
 | **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | 30,000 | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
 | **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 152,022 | Complete | 10 models, 6 families; 1.3x safety/capability flip ratio; SFT most fragile, DPO most robust |
 | **TR142** | Quality-Safety Correlation Under Quantization | 23,632 | Complete | Safety degrades 13.9x faster than quality at Q3_K_S; quality metrics alone are insufficient safety proxies |
+| **TR143** | Cross-Request Safety Leakage Under Continuous Batching | 14,250 | Complete (v2.0) | Aggregate composition effect not significant; directional asymmetry IS significant — 88-92% of flips trend unsafe (p=0.006) |
 
 ### Conclusive Reports
 
@@ -681,6 +682,6 @@ All measurements on a single fixed baseline:
 
 ---
 
-**Last Updated:** 2026-03-18
-**Total Reports:** 62 files (36 production-ready TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy)
-**Total Measurements:** 540,000+ across all reports
+**Last Updated:** 2026-03-20
+**Total Reports:** 63 files (36 production-ready TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + TR143)
+**Total Measurements:** 555,648+ across all reports
