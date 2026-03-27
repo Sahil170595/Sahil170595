@@ -451,7 +451,7 @@ The critical methodological correction: v2.1 reported alignment-type ANOVA at p 
 
 TR142 is an analysis-only study that cross-references two existing source datasets: TR125 Phase 2 quality measurements (24,990 source samples) and TR134 Phase 3 safety measurements (24,778 source samples). The analysis restricts to the shared model/quant overlap (2 models: llama3.2-1b, llama3.2-3b; 7 quantization levels: FP16 through Q2_K), yielding 10,290 quality samples and 13,342 safety samples.
 
-The 14 analysis passes compute within-model Pearson correlations between quality and safety metrics, asymmetry indices (which moves more at each quant level), BPW regression, quality-gate invariance testing, and per-cell divergence analysis. The key methodological contribution is the per-model correlation analysis rather than pooled analysis: pooling the two models would produce a misleading aggregate because the within-model correlations have opposite signs.
+The 14 analysis passes compute within-model Pearson correlations between quality and safety metrics, asymmetry indices (which moves more at each quant level), BPW regression, quality-gate analysis, and per-cell divergence analysis. The key methodological contribution is the per-model correlation analysis rather than pooled analysis: pooling the two models would produce a misleading aggregate because the within-model correlations have opposite signs.
 
 ### 3.7 TR143: Cross-request composition protocol
 
@@ -823,13 +823,13 @@ Practitioners commonly validate quantized deployments using quality benchmarks (
 
 | Metric | Value | Context |
 |--------|-------|---------|
-| Quality-safety correlation (llama3.2-1b) | r = +0.994, p < 1e-70 | Strong positive coupling |
-| Quality-safety correlation (llama3.2-3b) | r = -0.829, p = 0.003 | Significant negative coupling |
+| Quality-safety correlation (llama3.2-1b) | r = +0.994, p = 5.8e-5 | Strong positive coupling |
+| Quality-safety correlation (llama3.2-3b) | r = -0.829, p = 0.041 | Nominal negative coupling |
 | Safety/quality divergence at Q3_K_S (1b) | 13.9x | Refusal drops 13.6pp, quality moves ~1pp |
 | Cells where safety moves more | 10 / 12 | Safety is the more sensitive metric |
 | llama3.2-3b over-refusal at Q3_K_S | +18.6pp | Refusal increases as quality degrades |
 | llama3.2-3b over-refusal at Q2_K | +16.4pp | Same pattern |
-| Quality gate invariance | 18.2% / 16.0% / 0% | Constant filter rate across all quant levels |
+| Quality gate responsiveness | refusal 5.9%-34.5%; truth 4.0%-24.0%; bias 0% | Gate reacts to low-bit degeneration but does not restore proxy validity |
 | Truthfulness MDE | 28.0pp | Underpowered for small effects |
 | BPW regression R-squared | 0.03-0.30 | Non-linear thresholds dominate |
 | Formal TOST proof | Not established | Current artifact lacks standalone TOST object |
@@ -840,11 +840,11 @@ The opposite-sign correlations between the two models are equally concerning fro
 
 The practical consequence is that no single quality-safety correlation can be applied across models. A deployment validation protocol that uses quality as a safety proxy will be approximately correct for models like llama3.2-1b (where the correlation is strongly positive) and systematically wrong for models like llama3.2-3b (where the correlation is negative). Since there is no way to know a priori which direction the correlation runs for a new model, the only safe practice is to measure safety directly.
 
-The quality-gate invariance finding (18.2% of refusal samples and 16.0% of truthfulness samples filtered at every quant level, including FP16) provides an important calibration: the quality gate catches prompt difficulty, not quantization-induced degradation. The same prompts that are hard at FP16 are hard at Q2_K. The quality gate does not adaptively detect quantization-specific failures because quantization-specific failures do not look different from normal prompt difficulty to a quality classifier.
+The updated quality-gating analysis provides a different calibration than the earlier draft. The gate is not invariant: refusal filter rates range from 5.9% to 34.5%, and truthfulness filter rates range from 4.0% to 24.0%. The gate reacts to visibly broken low-bit outputs, but the hidden-danger and over-refusal regimes remain after gating, so it still does not restore a reliable quality proxy.
 
 The BPW regression weakness (R-squared 0.03-0.30) reveals that the quality-safety divergence is not a smooth linear function of bits per weight. Instead, it follows a threshold pattern: quality and safety track together through the high-precision range (Q8_0 to Q5_K_M), diverge at a model-specific threshold (Q4_K_M for some models, Q3_K_S for others), and show extreme divergence at Q2_K. This non-linearity means that linear extrapolation from high-precision validation data will underestimate the safety degradation at low-precision deployment levels. The conservative floor at Q5_K_M (where quality and safety remain coupled across both tested models) provides a reference point, but individual models may diverge at different thresholds.
 
-The quality-gate invariance finding (constant filter rate across all quantization levels) has implications for evaluation methodology. A quality gate that removes 18.2% of prompts before safety scoring will remove the same prompts at every quantization level. This means the quality gate does not adaptively screen for quantization-specific failures -- it removes hard prompts regardless of quantization. A safety-specific gate, by contrast, would show increasing filter rates at lower quantization levels, because quantization creates new safety failures that are not present at FP16. The absence of such a safety-specific gate in standard deployment validation practices is the methodological gap that TR142 exposes.
+The revised gating result has implications for evaluation methodology. A simple quality gate does become more active at lower precision, so it is not quant-blind. But even with that responsiveness, the gate still does not adaptively solve the safety problem: the same hidden-danger and over-refusal cells remain after gating. The methodological gap TR142 exposes is therefore narrower and more precise: quality cleanup is not the same thing as safety measurement.
 
 The over-refusal finding on llama3.2-3b (+18.6pp refusal increase at Q3_K_S) adds an important nuance to the quantization safety picture. Over-refusal is not a safety success -- it means the model refuses legitimate requests alongside harmful ones, degrading utility. But from a pure safety perspective, over-refusal is the "safe" failure mode: a model that refuses everything, including benign requests, is safer than a model that complies with everything, including harmful requests. The tension between safety (maximize refusal of harmful requests) and utility (minimize refusal of benign requests) means that over-refusal at low quantization creates a different operational problem than under-refusal, but not a safety problem in the narrow sense.
 
@@ -1029,7 +1029,7 @@ TR142 establishes that quality and safety follow partially independent degradati
 
 **Implication for deployment validation:** Quality metrics are neither sufficient nor reliable indicators of safety. A comprehensive safety evaluation requires safety-specific benchmarks (AdvBench, jailbreak resistance, bias probes) at the target quantization level, regardless of quality benchmark results.
 
-The quality-gate invariance (constant filter rate across quant levels) has a deeper implication: quality gates are quant-blind. A quality gate that filters out 18.2% of prompts at FP16 filters out the same 18.2% at Q2_K. The prompts filtered are the inherently difficult prompts (those that challenge any model at any precision), not the prompts that become dangerous specifically because of quantization. A safety-specific gate, by contrast, would show increasing filter rates at lower precision, catching the prompts whose safety outcomes degrade under quantization. The absence of safety-specific gating in standard deployment pipelines means that quantization-induced safety failures pass through quality gates undetected.
+The revised quality-gating result has a deeper implication: even a gate that reacts to quantization damage is still not enough. Filter rates increase at lower precision, so the gate does catch more visibly broken generations. But the crucial safety shifts still survive after gating, which means quality gates cannot substitute for safety-specific validation in deployment pipelines.
 
 The Simpson's paradox in quality-safety trends (noted in TR142) is worth discussing. When quality and safety are aggregated across models, the trends may appear to move together, creating a false impression of coupling. When disaggregated by model, the opposite-sign correlations emerge: llama3.2-1b shows positive coupling, llama3.2-3b shows negative coupling. Pooling these two models produces a near-zero aggregate correlation that masks the strong within-model relationships. This is a textbook Simpson's paradox, and it has direct practical consequences: any deployment validation that pools quality-safety data across models will miss the model-specific divergence patterns that are the actual safety risk.
 
@@ -1590,9 +1590,9 @@ Every major claim in this synthesis is mapped to a specific TR, section, data so
 | ANOVA p = 0.942 (alignment type) | TR141 v3 | SS11 | Same | Model-level ANOVA, n>=3/category | Balanced groups |
 | 6.3x fragility range | TR141 | Combined synthesis | Same | 15 models | phi-2 2.39% to tinyllama 0.00% |
 | 66.2% net-safe directional bias | TR141 | Directional analysis | Same | 240 flips | Binomial p = 1e-6 |
-| 13.9x safety/quality divergence | TR142 | SS6-SS8 | `research/tr142/results/20260316_143936/` | 23,632 | Cross-reference TR125 + TR134 |
-| r = +0.994 (llama3.2-1b quality-safety) | TR142 | SS5 | Same | Within-model Pearson | p < 1e-70 |
-| r = -0.829 (llama3.2-3b quality-safety) | TR142 | SS5 | Same | Within-model Pearson | p = 0.003 |
+| 13.9x safety/quality divergence | TR142 | SS6-SS8 | `research/tr142/results/20260326_183953/` | 23,632 | Cross-reference TR125 + TR134 |
+| r = +0.994 (llama3.2-1b quality-safety) | TR142 | SS5 | Same | Within-model Pearson | p = 5.8e-5 |
+| r = -0.829 (llama3.2-3b quality-safety) | TR142 | SS5 | Same | Within-model Pearson | p = 0.041 |
 | All McNemar p > 0.125 (composition) | TR143 | SS7 | `research/tr143/results/20260319_174950/` | 9,930 Phase 1 | 21 tests, Holm-corrected |
 | Cochran's Q all p > 0.34 | TR143 | SS8 | Same | Per-model omnibus | 3 models |
 | 88-92% directional asymmetry | TR143 | SS9 | Same | Binomial test | p = 0.006 for mixed-4/3 |
@@ -2150,7 +2150,7 @@ The scale-dependence of this finding is the key open question. At 468 prompts pe
 | TR140 | `research/tr140/results/20260316_164907/` | 15,000 | JSONL + analysis JSON |
 | TR141 (core) | `research/tr141/results/colab_20260317/tr141_run_20260317_222300/` | 49,476 | JSONL + analysis JSON |
 | TR141 (v3) | `research/tr141/results/20260318_194013/` | 56,544 | JSONL + analysis JSON |
-| TR142 | `research/tr142/results/20260316_143936/` | 23,632 (cross-reference) | Analysis JSON |
+| TR142 | `research/tr142/results/20260326_183953/` | 23,632 (cross-reference) | Analysis JSON |
 | TR143 | `research/tr143/results/20260319_174950/` | 14,250 | JSONL + analysis JSON (1,624 lines) |
 
 ### M.2 Analysis pass counts
@@ -2161,7 +2161,7 @@ The scale-dependence of this finding is the key open question. At 468 prompts pe
 | TR139 | 25+ | Strategy ANOVA, H2 slope comparison, persistence analysis, dual-judge agreement |
 | TR140 | 25 | Fisher exact, power-law fit, variance decomposition, format comparison |
 | TR141 | 28 | Output identity, flip rate, ANOVA, instability regression, combined synthesis |
-| TR142 | 14 | Correlation, asymmetry index, quality-gate invariance, BPW regression |
+| TR142 | 14 | Correlation, asymmetry index, quality-gate analysis, BPW regression |
 | TR143 | 23 | McNemar, Cochran's Q, MH, directional binomial, temporal logistic, co-batch verification |
 
 ### M.3 Version history

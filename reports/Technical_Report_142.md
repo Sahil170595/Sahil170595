@@ -5,13 +5,13 @@
 |-------|-------|
 | **TR Number** | 142 |
 | **Project** | Banterhearts |
-| **Date** | 2026-03-16 |
-| **Version** | 2.0 |
+| **Date** | 2026-03-26 |
+| **Version** | 2.1 |
 | **Author** | Research Team |
-| **Git Commit** | d2c3fdac |
+| **Git Commit** | 9959b4fb |
 | **Status** | FINAL |
 | **Report Type** | Analysis-only (no new experiments) |
-| **Run Directory** | `research/tr142/results/20260316_143936/` |
+| **Run Directory** | `research/tr142/results/20260326_183953/` |
 | **Quality Source** | TR125 Phase 2 (24,990 source samples; 10,290 overlapping analyzed samples) |
 | **Safety Source** | TR134 Phase 3 (24,778 source samples; 13,342 overlapping analyzed samples) |
 | **Models** | llama3.2-1b, llama3.2-3b |
@@ -26,11 +26,11 @@
 
 TR142 asks whether quality and safety degrade together under quantization, or whether they follow partially independent degradation paths that could mislead practitioners who monitor only one dimension. This analysis-only study cross-references two existing source datasets -- **TR125 Phase 2** quality measurements (`24,990` source samples) and **TR134 Phase 3** safety measurements (`24,778` source samples) -- then restricts analysis to their shared model/quant overlap, yielding **10,290 quality samples** and **13,342 safety samples** across **2 models** and **7 GGUF quantization levels**.
 
-The core findings are: (1) Quality-safety correlation is model-dependent and cannot be pooled -- `llama3.2-1b` shows strong positive coupling (`r = +0.994` for coherence x refusal, `p < 1e-70`) while `llama3.2-3b` shows a significant negative coupling (`r = -0.829`, `p = 0.003`). (2) Safety moves more than quality in **10 of 12** model-quant cells, with the largest divergence at `llama3.2-1b / Q3_K_S`, where refusal drops `13.6pp` while average quality moves by only about `1pp`. (3) The quality gate is quant-invariant: the same `18.2%` of refusal samples and `16.0%` of truthfulness samples are filtered at every quant level, including FP16, so the gate catches prompt difficulty rather than quant-induced degradation.
+The core findings are: (1) Quality-safety correlation is model-dependent and cannot be pooled -- `llama3.2-1b` shows strong positive coupling (`r = +0.994` for coherence x refusal, `p = 5.8e-5`) while `llama3.2-3b` shows a nominally significant negative coupling (`r = -0.829`, `p = 0.041`). (2) Safety moves more than quality in **10 of 12** model-quant cells, with the clearest hidden-danger cell at `llama3.2-1b / Q3_K_S`, where refusal drops `13.6pp` while average quality moves by only about `1pp`. (3) A simple coherence/length quality gate is **responsive rather than invariant**: refusal filter rates range from `5.9%` to `34.5%` and truthfulness filter rates range from `4.0%` to `24.0%`, yet the gate does **not** remove the hidden-danger or over-refusal regimes.
 
 The most important caution is methodological. The current saved artifact does **not** include a standalone TOST result object, and the raw appendix-level one-sided equivalence calculations do not support a strong formal equivalence claim at the per-cell level. TR142 therefore supports a **conservative deployment floor** at `Q5_K_M` because that is where observed refusal deltas remain small and corrected pairwise tests remain non-significant, not because this report alone establishes strict +/-3pp equivalence.
 
-The operational conclusion is that quality metrics alone are insufficient safety proxies: a model can pass quality benchmarks while silently losing refusal alignment, and the direction of quality-safety divergence depends on the model.
+The operational conclusion is that quality metrics alone are insufficient safety proxies: a model can pass quality benchmarks while silently losing refusal alignment, and the direction of quality-safety divergence depends on the model. Quality-gating helps remove visibly broken generations at low precision, but it still does not rescue quality-only safety screening.
 
 ---
 
@@ -38,11 +38,11 @@ The operational conclusion is that quality metrics alone are insufficient safety
 
 ### Key Findings
 
-1. **Quality-safety correlation is model-dependent.** Pooling across models is misleading. `llama3.2-1b` shows strong positive quality-safety coupling (`r = +0.994` for coherence x refusal), while `llama3.2-3b` shows a significant negative coupling (`r = -0.829`).
+1. **Quality-safety correlation is model-dependent.** Pooling across models is misleading. `llama3.2-1b` shows strong positive quality-safety coupling (`r = +0.994` for coherence x refusal), while `llama3.2-3b` shows a nominally significant negative coupling (`r = -0.829`, `p = 0.041`).
 2. **Safety moves faster than quality in most cells.** The asymmetry index favors larger safety movement in `10 / 12` model-quant cells. On `llama3.2-1b / Q3_K_S`, refusal drops `13.6pp` while average quality shifts by only about `1pp`.
 3. **Q3_K_S on `llama3.2-1b` is the clearest hidden-danger cell.** Quality metrics stay near the FP16 regime while refusal collapses sharply.
 4. **`llama3.2-3b` shows over-refusal rather than under-refusal at the lowest quants.** Refusal rises by `+18.6pp` at `Q3_K_S` and `+16.4pp` at `Q2_K`, even while quality degrades.
-5. **Quality gating is quant-invariant.** The same `40 / 220` refusal-rate samples (`18.2%`) and `8 / 50` truthfulness samples (`16.0%`) are filtered at every quant level. Zero bias-resistance rows are filtered.
+5. **Quality gating is responsive, not restorative.** Refusal filter rates range from `5.9%` to `34.5%`, truthfulness filter rates range from `4.0%` to `24.0%`, and bias-resistance rows remain unfiltered. The gate removes more degenerate outputs at low precision but does not eliminate the hidden-danger or over-refusal regimes.
 6. **Truthfulness is underpowered.** With `N = 50` per cell, the MDE is `28.0pp`, so non-significant truthfulness comparisons are inconclusive.
 7. **BPW regression is weak.** `R^2` ranges from `0.03` to `0.30`, indicating that non-linear threshold effects dominate over smooth linear degradation.
 8. **Q8_0 through Q5_K_M form the low-delta stability zone, but TR142 does not by itself prove formal +/-3pp equivalence.** The observed refusal deltas stay small through `Q5_K_M`, while `Q4_K_M` is the ambiguous boundary and `Q3_K_S` / `Q2_K` are where clear safety divergence appears.
@@ -67,7 +67,7 @@ The operational conclusion is that quality metrics alone are insufficient safety
 | Safety overlap | Analyzed shared N | >= 1,000 | 13,342 | **PASS** |
 | Correlation sign split | Opposite within-model signs | yes | `+0.994` vs `-0.829` | **PASS** |
 | Asymmetry | Safety moves more than quality | majority of cells | 10/12 cells | **PASS** |
-| Quality gate invariance | Constant filter rate | constant across levels | 18.2% / 16.0% / 0% | **PASS** |
+| Quality gate responsiveness | Filter rate varies with quant | variable across levels | refusal 5.9%-34.5%; truth 4.0%-24.0%; bias 0% | **PASS** |
 | Truthfulness power | MDE at 80% power | < 10pp | 28.0pp | **FAIL** |
 | Formal equivalence proof | Explicit current-artifact support | standalone TOST result object | not present | **NOT ESTABLISHED** |
 
@@ -77,7 +77,7 @@ The operational conclusion is that quality metrics alone are insufficient safety
 |---|-------|---------------|--------|
 | C1 | Quality-safety correlation is model-dependent | Within-model correlations split by sign (`+0.994` vs `-0.829`) | **Established** |
 | C2 | Safety moves faster than quality in most quant cells | Asymmetry index `10 / 12`, bootstrap gap on 1b excludes zero | **Established** |
-| C3 | Quality gating is quant-invariant | Constant filter rates across all quant levels | **Established** |
+| C3 | Quality gating does not restore quality-only safety screening | Filter rates rise at aggressive quants, but gated scores preserve the same hidden-danger and over-refusal regimes | **Established** |
 | C4 | `Q3_K_S` is the hidden-danger zone on `llama3.2-1b` | Large refusal delta with small quality movement | **Established** |
 | C5 | `llama3.2-3b` low-bit behavior is over-refusal rather than under-refusal | `+18.6pp` and `+16.4pp` refusal increases at `Q3_K_S` and `Q2_K` | **Established** |
 | C6 | TR142 proves formal +/-3pp equivalence through `Q5_K_M` | Current artifact lacks standalone TOST support; appendix-level raw tests do not justify a strong equivalence claim | **Not established** |
@@ -102,7 +102,7 @@ The operational conclusion is that quality metrics alone are insufficient safety
 
 **Question:** Should we filter out low-quality outputs before computing safety scores to get a cleaner signal?
 
-**Answer:** No -- it won't help for quantization studies. SS8 shows the quality gate filters the exact same samples (18.2%) at every quant level including FP16. The gate catches inherently difficult prompts, not quant-induced failures. Adding it just reduces your effective sample size.
+**Answer:** No -- not as a substitute for direct safety evaluation. SS8 shows that a simple coherence/length gate becomes much more active at aggressive quants (refusal filter rates range from 5.9% to 34.5%), so it does react to low-precision degeneration. But the gated scores preserve the same hidden-danger and over-refusal regimes, so the gate does not restore a reliable quality proxy.
 
 ### Scenario 3: Choosing a quantization level for a safety-critical application
 
@@ -234,7 +234,7 @@ Prior work on quantization effects (Dettmers et al., 2023; Frantar et al., 2022)
 TR142 makes three specific contributions:
 1. **Characterization of quality-safety coupling under GGUF quantization.** Prior work treated quality and safety as independent evaluation dimensions. TR142 shows they are correlated, but the correlation is model-dependent (Simpson's paradox).
 2. **Identification of the Q3_K_S hidden danger zone.** This is the first quantization study to identify a specific quant level where quality metrics pass while safety metrics fail, providing a concrete deployment hazard that quality-only evaluation would miss.
-3. **Demonstration that quality-gating is quant-invariant.** The null result on quality-gating simplifies evaluation pipelines and rules out a plausible pre-processing step that might have been assumed to improve safety evaluation.
+3. **Demonstration that simple quality-gating is responsive but not sufficient.** The gate becomes more active in the low-bit cliff, but it still does not repair the quality-proxy problem or remove the need for direct safety measurement.
 
 ### SS1.6 How to Read This Report
 
@@ -260,7 +260,7 @@ The unit of analysis is a (model, quant) cell in the merged matrix. Each cell co
 
 ### SS2.3 How Rows Become Claims
 
-Raw sample-level scores from TR125p2 and TR134p3 are aggregated to cell means. Cell means are compared across quant levels using Welch's t-test with Holm-Bonferroni correction. Correlations are computed on the 7-point degradation curve (one point per quant level) within each model. A claim requires both statistical significance (p_adj < 0.05) and practical significance (delta > 3pp or |d| > 0.4).
+Raw sample-level scores from TR125p2 and TR134p3 are aggregated to cell means. Cell means are compared across quant levels using Welch's t-test with Holm-Bonferroni correction. Correlations are computed on the six non-FP16 quant points within each model, with pooled correlations computed across the 12 non-FP16 model-quant cells. A claim requires both statistical significance (p_adj < 0.05) and practical significance (delta > 3pp or |d| > 0.4).
 
 The pipeline from raw data to claims follows four stages:
 1. **Aggregation**: Per-sample binary scores (0/1 for safety, continuous for quality) are averaged within each (model, quant, metric) cell.
@@ -274,7 +274,7 @@ Both TR125 Phase 2 and TR134 Phase 3 used the same backend (Ollama with llama.cp
 
 ### SS2.5 Statistical Framework
 
-All pairwise tests use Welch's t-test (unequal variance) comparing each quant level against FP16 for the same model and metric. Holm-Bonferroni correction is applied across the family of 36 tests (2 models x 3 safety metrics x 6 non-FP16 quant levels). Correlations use Pearson's r on the 7-point degradation curve within each model. Bootstrap CIs use B = 2,000 iterations with seed = 42 and the percentile method. A +/-3pp practical margin is used for interpreting whether a quant cell remains in the low-delta zone, but the current saved artifact does not support strong standalone TOST-based equivalence claims. Effect sizes are reported as both Cohen's d (for mean comparisons) and Cohen's h (for proportion comparisons) throughout.
+All pairwise tests use Welch's t-test (unequal variance) comparing each quant level against FP16 for the same model and metric. Holm-Bonferroni correction is applied across the family of 36 tests (2 models x 3 safety metrics x 6 non-FP16 quant levels). Correlations use Pearson's r on the six non-FP16 quant points within each model, with pooled correlations computed across the 12 non-FP16 model-quant cells. Bootstrap CIs use B = 2,000 iterations with seed = 42 and the percentile method. A +/-3pp practical margin is used for interpreting whether a quant cell remains in the low-delta zone, but the current saved artifact does not support strong standalone TOST-based equivalence claims. Effect sizes are reported as both Cohen's d (for mean comparisons) and Cohen's h (for proportion comparisons) throughout.
 
 ### SS2.6 What This Design Does Not Do
 
@@ -366,7 +366,7 @@ This section presents the merged 14-row matrix that forms the basis for all subs
 - Safety tells a different story. Refusal rate begins declining at Q5_K_M (-1.8pp), accelerates at Q3_K_S (-13.6pp), and collapses at Q2_K (-56.8pp). The safety degradation curve is steeper and activates earlier than the quality curve. In Cohen's h terms, the Q3_K_S refusal drop corresponds to h = 0.42 (medium effect), and Q2_K reaches h = 1.33 (very large), computed as h = 2|arcsin(sqrt(0.936)) - arcsin(sqrt(p_quant))|.
 - Q3_K_S is the critical divergence point: quality metrics are within 2.3pp of FP16, but refusal rate has already dropped 13.6pp. A quality-only evaluation would miss this. The practical implication is that any deployment monitoring system that relies solely on BERTScore or coherence checks would certify Q3_K_S as acceptable when it has already lost meaningful safety alignment.
 - The anomalous Q4_K_M quality *improvement* (+1.88pp BERTScore, +3.10pp ROUGE-L) likely reflects sampling variance at that quant level rather than a genuine capability gain. At N = 100-150, a 1.9pp shift in BERTScore is within the expected bootstrap CI range and should not be interpreted as evidence that 4-bit quantization enhances quality.
-- Bias resistance shows a paradoxical pattern at Q3_K_S: it increases to 99.5% (+10.1pp from FP16, h = 0.52, medium effect). This is statistically significant (p_adj = 0.0002, SS9) and may reflect the model defaulting to refusal-like templates that happen to avoid bias markers while simultaneously failing on targeted refusal tasks.
+- Bias resistance shows a paradoxical pattern at Q3_K_S: it increases to 99.5% (+10.1pp from FP16, h = 0.52, medium effect). This is statistically significant (p_adj = 0.000374, SS9) and may reflect the model defaulting to refusal-like templates that happen to avoid bias markers while simultaneously failing on targeted refusal tasks.
 - Truthfulness fluctuates between 44% and 58% across all quant levels with no monotonic trend. Given the MDE of 28pp at N = 50 (SS9), none of these fluctuations are interpretable as quant effects.
 
 > On llama3.2-1b, quality passes at Q3_K_S while safety fails -- monitoring quality alone creates a false sense of security. The refusal-rate cliff activates 1-2 quant steps before the quality cliff.
@@ -388,7 +388,7 @@ This section presents the merged 14-row matrix that forms the basis for all subs
 - Quality degradation on llama3.2-3b is more gradual than on 1b. BERTScore stays within 0.9pp of FP16 all the way down to Q4_K_M. Even at Q3_K_S, BERTScore only drops 3.9pp (vs. near-zero on 1b). This resilience likely reflects the 2.6x parameter advantage: the 3b model has more redundant capacity to absorb quantization noise before quality-relevant representations degrade.
 - The safety story is inverted relative to 1b. Instead of declining, refusal rate *increases* at Q3_K_S (+18.6pp, h = 0.56) and Q2_K (+16.4pp, h = 0.47). The model becomes more conservative -- over-refusing rather than under-refusing. This is confirmed statistically in SS9 with significant negative Cohen's d values (d = -0.55 and -0.46, both p_adj < 4e-5). The mechanism may be instruction-following degradation: as quantization corrupts the model's ability to parse nuanced prompts, it defaults to refusal as a conservative fallback.
 - Q4_K_M is the exception: refusal drops -10.0pp (h = 0.22) while quality barely moves (-0.89pp BERTScore). This is the only 3b cell showing the 1b-like pattern of "quality stable, safety drops." Although this comparison does not survive Holm-Bonferroni correction (p_adj = 0.576), the practical magnitude (-10pp refusal) is worth monitoring in deployment.
-- Bias resistance holds steady (within 2.0pp) from FP16 through Q3_K_S, then collapses at Q2_K (-17.7pp, h = 0.58, d = 0.56, p_adj = 1.1e-6). This binary threshold effect -- stable until sudden collapse -- contrasts with the gradual quality degradation and suggests that bias resistance relies on a small set of weight configurations that remain intact until extreme quantization destroys them.
+- Bias resistance holds steady (within 2.0pp) from FP16 through Q3_K_S, then collapses at Q2_K (-17.7pp, h = 0.58, d = 0.56, p_adj = 2.53e-6). This binary threshold effect -- stable until sudden collapse -- contrasts with the gradual quality degradation and suggests that bias resistance relies on a small set of weight configurations that remain intact until extreme quantization destroys them.
 - The anomalous Q2_K BERTScore near-preservation (only -0.20pp) combined with coherence drop (-3.99pp) suggests the model produces semantically similar but less structured outputs at extreme quantization. BERTScore captures token-level embedding similarity, which may be preserved even when discourse-level coherence degrades -- a dissociation between local and global output quality.
 - Truthfulness on llama3.2-3b trends upward at lower quants (49% at FP16 to 54% at Q2_K), but this 5pp shift is well within the 28pp MDE and cannot be distinguished from noise. The direction is suggestive but uninterpretable at this sample size.
 
@@ -398,58 +398,58 @@ This section presents the merged 14-row matrix that forms the basis for all subs
 
 ## SS5. Correlation Analysis
 
-This section addresses Q12 directly: do quality and safety co-vary under quantization? Pearson correlations are computed on the 7-point degradation curve (FP16 through Q2_K) for each model independently, plus a pooled (cross-model) analysis.
+This section addresses Q12 directly: do quality and safety co-vary under quantization? Pearson correlations are computed on the six non-FP16 quant points for each model independently, plus a pooled (cross-model) analysis over 12 model-quant cells.
 
 ### SS5.1 Within-Model Correlations
 
 **Table 3a: llama3.2-1b quality-safety Pearson r**
 
-| Quality Metric | Safety Metric | r | p | Significant? |
+| Quality Metric | Safety Metric | r | p | N | Significant? |
 |---------------|--------------|---|---|-------------|
-| BERTScore | Refusal Rate | **+0.917** | 4.4e-6 | Yes |
-| BERTScore | Truthfulness | +0.708 | 0.045 | Yes |
-| BERTScore | Bias Resistance | **+0.848** | 0.001 | Yes |
-| ROUGE-L | Refusal Rate | **+0.934** | 1.6e-7 | Yes |
-| ROUGE-L | Truthfulness | +0.749 | 0.024 | Yes |
-| ROUGE-L | Bias Resistance | +0.761 | 0.019 | Yes |
-| Coherence | Refusal Rate | **+0.994** | 2.3e-71 | Yes |
-| Coherence | Truthfulness | +0.707 | 0.046 | Yes |
-| Coherence | Bias Resistance | +0.672 | 0.070 | No |
+| BERTScore | Refusal Rate | **+0.917** | 0.0101 | 6 | Yes |
+| BERTScore | Truthfulness | +0.708 | 0.116 | 6 | No |
+| BERTScore | Bias Resistance | **+0.848** | 0.033 | 6 | Yes |
+| ROUGE-L | Refusal Rate | **+0.934** | 0.0063 | 6 | Yes |
+| ROUGE-L | Truthfulness | +0.749 | 0.0864 | 6 | No |
+| ROUGE-L | Bias Resistance | +0.761 | 0.0789 | 6 | No |
+| Coherence | Refusal Rate | **+0.994** | 5.77e-5 | 6 | Yes |
+| Coherence | Truthfulness | +0.707 | 0.116 | 6 | No |
+| Coherence | Bias Resistance | +0.672 | 0.144 | 6 | No |
 
 **Table 3b: llama3.2-3b quality-safety Pearson r**
 
-| Quality Metric | Safety Metric | r | p | Significant? |
+| Quality Metric | Safety Metric | r | p | N | Significant? |
 |---------------|--------------|---|---|-------------|
-| BERTScore | Refusal Rate | -0.530 | 0.212 | No |
-| BERTScore | Truthfulness | -0.007 | 0.988 | No |
-| BERTScore | Bias Resistance | -0.195 | 0.692 | No |
-| ROUGE-L | Refusal Rate | **-0.761** | 0.019 | Yes |
-| ROUGE-L | Truthfulness | -0.285 | 0.553 | No |
-| ROUGE-L | Bias Resistance | +0.587 | 0.148 | No |
-| Coherence | Refusal Rate | **-0.829** | 0.003 | Yes |
-| Coherence | Truthfulness | -0.154 | 0.755 | No |
-| Coherence | Bias Resistance | +0.279 | 0.561 | No |
+| BERTScore | Refusal Rate | -0.530 | 0.280 | 6 | No |
+| BERTScore | Truthfulness | -0.007 | 0.989 | 6 | No |
+| BERTScore | Bias Resistance | -0.195 | 0.712 | 6 | No |
+| ROUGE-L | Refusal Rate | -0.761 | 0.079 | 6 | No |
+| ROUGE-L | Truthfulness | -0.285 | 0.585 | 6 | No |
+| ROUGE-L | Bias Resistance | +0.587 | 0.221 | 6 | No |
+| Coherence | Refusal Rate | **-0.829** | 0.0413 | 6 | Yes |
+| Coherence | Truthfulness | -0.154 | 0.770 | 6 | No |
+| Coherence | Bias Resistance | +0.279 | 0.592 | 6 | No |
 
 **Table 3c: Pooled (cross-model) correlations (selected)**
 
 | Quality Metric | Safety Metric | r | p | N | Significant? |
 |---------------|--------------|---|---|---|-------------|
-| BERTScore | Refusal Rate | +0.648 | 0.007 | 14 | Yes |
-| BERTScore | Truthfulness | +0.454 | 0.108 | 14 | No |
-| BERTScore | Bias Resistance | +0.562 | 0.032 | 14 | Yes |
-| ROUGE-L | Refusal Rate | +0.582 | 0.024 | 14 | Yes |
-| ROUGE-L | Bias Resistance | +0.679 | 0.003 | 14 | Yes |
-| Coherence | Refusal Rate | +0.292 | 0.334 | 14 | No |
-| Coherence | Bias Resistance | +0.497 | 0.070 | 14 | No |
+| BERTScore | Refusal Rate | +0.648 | 0.0226 | 12 | Yes |
+| BERTScore | Truthfulness | +0.454 | 0.139 | 12 | No |
+| BERTScore | Bias Resistance | +0.562 | 0.0572 | 12 | No |
+| ROUGE-L | Refusal Rate | +0.582 | 0.0471 | 12 | Yes |
+| ROUGE-L | Bias Resistance | +0.679 | 0.0151 | 12 | Yes |
+| Coherence | Refusal Rate | +0.292 | 0.356 | 12 | No |
+| Coherence | Bias Resistance | +0.497 | 0.100 | 12 | No |
 
 **Observations.**
 
-- llama3.2-1b shows uniformly strong positive correlations: all 9 pairs are positive, 8 of 9 are significant. Coherence x Refusal Rate is nearly perfect (r = +0.994, p < 1e-70). When quality goes down, safety goes down. This tight coupling suggests that on small models, the same weight subspace supports both quality and safety, so quantization damage to that subspace degrades both simultaneously.
-- llama3.2-3b shows the opposite pattern: the two significant correlations (ROUGE-L x Refusal and Coherence x Refusal) are *negative* (r = -0.761 and -0.829). When quality goes down, refusal goes *up*. The remaining 7 pairs are non-significant (all |r| < 0.59). This suggests that on the 3b model, quality and safety occupy partially independent weight subspaces, and quantization-induced noise at the safety boundary pushes the model toward conservative refusal rather than permissive compliance.
-- Pooled correlations (Table 3c) produce misleading moderate positives because the 1b model's strong positive signal dominates. The pooled BERTScore x Refusal r = +0.648 (p = 0.007) would suggest quality tracks safety -- a dangerous conclusion to draw. This is a textbook Simpson's paradox: the aggregate trend reverses when you condition on model identity. The practical implication is severe: any evaluation framework that pools across model sizes when assessing quality-safety coupling will produce incorrect deployment guidance.
-- The coherence-refusal pair produces the strongest correlations in both models (|r| > 0.82), suggesting coherence is the quality metric most coupled to safety alignment under quantization. BERTScore, while popular, shows weaker coupling on the 3b model (r = -0.53, not significant) -- its token-level granularity may miss the discourse-level features that safety alignment depends on.
-- The asymmetry in significant pairs is itself informative: 8/9 significant on 1b versus 2/9 on 3b. This does not mean quality-safety coupling is absent on 3b -- it means the relationship is non-linear and concentrated in the refusal dimension. The 3b model maintains independence between quality and safety across most metric pairs, with only the refusal channel showing consistent (negative) coupling.
-- The pooled correlations (Table 3c) are instructive as a cautionary example. Six of nine pooled pairs are positive, four significantly so. A naive analyst would conclude "quality and safety are positively correlated under quantization" -- a statement that is true for 1b, false for 3b, and misleading as a general claim. The pooled Coherence x Refusal (r = +0.292, not significant) averages out the 1b r = +0.994 and the 3b r = -0.829, losing the strong within-model signal entirely. This is the defining feature of Simpson's paradox: the aggregate tells the wrong story.
+- llama3.2-1b still shows uniformly positive quality-safety coupling. The strongest axis is Coherence x Refusal Rate (r = +0.994, p = 5.77e-5), with nominally significant positive refusal correlations for BERTScore and ROUGE-L as well. On the 1B model, lower quality and lower refusal tend to co-occur under aggressive quantization.
+- llama3.2-3b shows the opposite directional pattern on refusal. All three refusal correlations are negative, and the strongest one -- Coherence x Refusal Rate (r = -0.829, p = 0.0413) -- remains nominally significant. This means lower quality can coincide with *higher* refusal on the 3B model.
+- Pooled correlations (Table 3c) remain misleading because the 1B model's positive signal dominates the aggregate. The pooled BERTScore x Refusal correlation is +0.648 (p = 0.0226), which would suggest quality tracks safety if analyzed naively. That conclusion is wrong once the data are stratified by model.
+- The coherence-refusal pair remains the clearest illustration of the paradox: r = +0.994 on 1B, r = -0.829 on 3B, and only r = +0.292 when pooled. The aggregate trend describes neither model accurately.
+- Because each model contributes only six non-FP16 points, the correlation results should be read mainly by direction and effect size. The paradox does not depend on every nominally significant entry surviving a family-wise correction; it depends on the stable sign split between the two models.
+- The operational implication is unchanged: any evaluation framework that pools across model sizes when assessing quality-safety coupling can produce incorrect deployment guidance.
 
 > The quality-safety correlation sign flips between models. Pooling across models produces a Simpson's paradox artifact. Always analyze per-model. Coherence is the strongest quality proxy for safety coupling in both directions.
 
@@ -457,7 +457,7 @@ This section addresses Q12 directly: do quality and safety co-vary under quantiz
 
 ## SS6. Divergence and Asymmetry Analysis
 
-Divergence analysis identifies cells where quality and safety move in different directions or at different rates. A cell is classified as: BOTH_STABLE (both deltas within +/-3pp), SAFETY_ONLY_DEGRADES (quality within +/-3pp but safety exceeds +/-3pp), QUALITY_ONLY_DEGRADES, SAFETY_DEGRADES_FASTER, or BOTH_DEGRADE.
+Divergence analysis identifies cells where quality and safety move in different directions or at different rates. A cell is classified as: BOTH_STABLE (both deltas within +/-3pp), SAFETY_SHIFT_WITH_STABLE_QUALITY (quality stays within +/-3pp while safety shifts materially in either direction), MIXED_OR_BORDERLINE (one axis sits near the threshold or the direction split makes the simple labels misleading), or SAFETY_DEGRADES_FASTER (both move, but safety moves much more).
 
 ### SS6.1 Divergence Classification
 
@@ -468,29 +468,25 @@ Divergence analysis identifies cells where quality and safety move in different 
 | llama3.2-1b | Q8_0 | 8.00 | -0.15 | +0.91 | BOTH_STABLE |
 | llama3.2-1b | Q6_K | 6.56 | -0.48 | +0.45 | BOTH_STABLE |
 | llama3.2-1b | Q5_K_M | 5.69 | -0.67 | -1.82 | BOTH_STABLE |
-| llama3.2-1b | Q4_K_M | 4.85 | +1.88 | -3.18 | BOTH_STABLE |
-| **llama3.2-1b** | **Q3_K_S** | **3.44** | **+0.98** | **-13.64** | **SAFETY_ONLY_DEGRADES** |
+| llama3.2-1b | Q4_K_M | 4.85 | +1.88 | -3.18 | MIXED_OR_BORDERLINE |
+| **llama3.2-1b** | **Q3_K_S** | **3.44** | **+0.98** | **-13.64** | **SAFETY_SHIFT_WITH_STABLE_QUALITY** |
 | **llama3.2-1b** | **Q2_K** | **2.63** | **-9.61** | **-56.82** | **SAFETY_DEGRADES_FASTER** |
 | llama3.2-3b | Q8_0 | 8.00 | -0.18 | -1.82 | BOTH_STABLE |
 | llama3.2-3b | Q6_K | 6.56 | +0.02 | +0.91 | BOTH_STABLE |
 | llama3.2-3b | Q5_K_M | 5.69 | -0.54 | +0.45 | BOTH_STABLE |
-| **llama3.2-3b** | **Q4_K_M** | **4.85** | **-0.89** | **-10.00** | **SAFETY_ONLY_DEGRADES** |
-| llama3.2-3b | Q3_K_S | 3.44 | -3.92 | +18.64 | BOTH_STABLE* |
-| llama3.2-3b | Q2_K | 2.63 | -0.20 | +16.36 | SAFETY_ONLY_DEGRADES** |
-
-*Q3_K_S on 3b: safety_delta is +18.6pp (refusal *increase*), classified BOTH_STABLE by the threshold logic because the safety direction is "improvement" not degradation. See SS7 for the asymmetry interpretation.
-
-**Q2_K on 3b: quality barely moves (-0.20pp) while safety shifts +16.4pp. The safety shift is an *increase* in refusal (over-refusing).
+| **llama3.2-3b** | **Q4_K_M** | **4.85** | **-0.89** | **-10.00** | **SAFETY_SHIFT_WITH_STABLE_QUALITY** |
+| llama3.2-3b | Q3_K_S | 3.44 | -3.92 | +18.64 | MIXED_OR_BORDERLINE |
+| llama3.2-3b | Q2_K | 2.63 | -0.20 | +16.36 | SAFETY_SHIFT_WITH_STABLE_QUALITY |
 
 **Observations.**
 
-- 8 of 12 cells are BOTH_STABLE at the +/-3pp threshold, meaning quality and safety move together (or neither moves) through Q5_K_M on both models. SS10 places most of these cells in the low-delta stability zone, but does not treat them as formally proven equivalent under the current artifact chain.
+- 6 of 12 cells are BOTH_STABLE at the +/-3pp threshold, all in the Q8_0 through Q5_K_M range. SS10 still treats this as an observed low-delta regime rather than a formal equivalence proof.
 - The divergence regime activates at different quant levels per model: Q3_K_S on llama3.2-1b, Q4_K_M on llama3.2-3b. Counterintuitively, the larger model (3b) hits safety divergence one step earlier on the quant ladder. This may reflect the 3b model's higher FP16 safety ceiling (76.4% refusal vs 93.6%) giving it more room to shift before recovery mechanisms activate.
 - llama3.2-1b Q3_K_S is the highest-priority finding: quality delta is +0.98pp (negligible) while safety delta is -13.64pp (large, h = 0.42). No quality metric would flag this cell. The danger is specific and actionable: practitioners who benchmark at Q3_K_S using BERTScore or coherence will see passing scores and deploy a model that has already lost meaningful refusal capability.
-- llama3.2-3b's "divergence" at Q3_K_S and Q2_K is in the *opposite* direction -- refusal increases by +18.6pp and +16.4pp respectively, not decreases. This is still a divergence from quality (which degrades), but the failure mode is over-refusal rather than alignment loss. The BOTH_STABLE classification for 3b Q3_K_S is technically correct under the threshold logic (safety "improved"), but practically misleading -- a +18.6pp shift in refusal rate fundamentally changes the model's behavior profile.
-- The three true SAFETY_ONLY_DEGRADES cells (1b Q3_K_S, 3b Q4_K_M, 3b Q2_K) represent the highest-risk deployment configurations: quality monitoring gives a clean signal while safety has already shifted. These are the cells where dual-monitoring would change the deployment decision.
+- llama3.2-3b's divergence at Q3_K_S and Q2_K is in the *opposite* direction -- refusal increases by +18.6pp and +16.4pp respectively while quality degrades. This is still a dangerous divergence, but it is an over-refusal shift rather than under-refusal.
+- The key deployment-relevant cells are therefore 1B Q3_K_S (hidden under-refusal), 3B Q4_K_M (quality-stable safety drop), and 3B Q2_K (quality-stable over-refusal), with 1B Q2_K standing out as the full collapse regime.
 
-> Three cells show quality-safety divergence where quality holds but safety shifts: llama3.2-1b at Q3_K_S (refusal drops 13.6pp) and Q2_K (refusal drops 56.8pp), and llama3.2-3b at Q4_K_M (refusal drops 10.0pp). Two additional cells on llama3.2-3b show divergence in the over-refusal direction.
+> The report now distinguishes quality-stable safety shifts from mixed borderline cells. The most important cases remain the same: 1B Q3_K_S hides a large refusal drop, 3B Q4_K_M hides an earlier refusal drop, and 3B Q2_K shows a quality-stable over-refusal shift.
 
 ### SS6.2 Bootstrap Asymmetry Gap
 
@@ -548,55 +544,55 @@ Quality-gating filters out samples that fail a coherence/length threshold before
 
 ### SS8.1 Filter Rates
 
-| Model | Safety Metric | N Total | N Filtered | Filter Rate |
-|-------|--------------|---------|-----------|-------------|
-| llama3.2-1b | Refusal Rate | 220 | 40 | 18.2% |
-| llama3.2-1b | Truthfulness | 50 | 8 | 16.0% |
+| Model | Safety Metric | N Total | N Filtered Range | Filter Rate Range |
+|-------|--------------|---------|------------------|-------------------|
+| llama3.2-1b | Refusal Rate | 220 | 16-76 | 7.3%-34.5% |
+| llama3.2-1b | Truthfulness | 50 | 2-5 | 4.0%-10.0% |
 | llama3.2-1b | Bias Resistance | 198 | 0 | 0.0% |
-| llama3.2-3b | Refusal Rate | 220 | 40 | 18.2% |
-| llama3.2-3b | Truthfulness | 50 | 8 | 16.0% |
+| llama3.2-3b | Refusal Rate | 220 | 13-40 | 5.9%-18.2% |
+| llama3.2-3b | Truthfulness | 50 | 5-12 | 10.0%-24.0% |
 | llama3.2-3b | Bias Resistance | 198 | 0 | 0.0% |
 
-The filter rate is **identical across all 7 quant levels** for each metric-model pair. The same 40 refusal samples and same 8 truthfulness samples are filtered at FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, and Q2_K.
+The filter rate is **not** identical across quant levels. It rises sharply in the low-bit cliff, especially for 1B refusal samples, where the filtered share increases from 7.7% at FP16 to 29.1% at Q3_K_S and 34.5% at Q2_K.
 
 ### SS8.2 Gated vs Raw Safety Scores (llama3.2-1b refusal rate)
 
 | Quant | Raw Refusal | Gated Refusal | Delta (pp) |
 |-------|------------|--------------|-----------|
-| FP16 | 93.6% | 76.8% | -16.8 |
-| Q8_0 | 94.5% | 77.3% | -17.3 |
-| Q6_K | 94.1% | 77.3% | -16.8 |
-| Q5_K_M | 91.8% | 75.5% | -16.4 |
-| Q4_K_M | 90.5% | 75.5% | -15.0 |
-| Q3_K_S | 80.0% | 67.7% | -12.3 |
-| Q2_K | 36.8% | 29.1% | -7.7 |
+| FP16 | 93.6% | 86.8% | -6.8 |
+| Q8_0 | 94.5% | 87.3% | -7.3 |
+| Q6_K | 94.1% | 86.4% | -7.7 |
+| Q5_K_M | 91.8% | 83.6% | -8.2 |
+| Q4_K_M | 90.5% | 86.8% | -3.6 |
+| Q3_K_S | 80.0% | 65.0% | -15.0 |
+| Q2_K | 36.8% | 24.1% | -12.7 |
 
 **Observations.**
 
-- Quality-gating lowers absolute safety scores by 7-17pp (it removes samples where the model happened to refuse despite producing incoherent output). But it preserves the *relative ordering* across quant levels perfectly. The rank-order correlation between raw and gated refusal rates is 1.0 for both models -- gating is a monotonic transformation that cannot change deployment decisions.
-- The constant filter rate means the quality gate is catching prompt-level difficulty, not quantization artifacts. If quantization degraded coherence on specific samples, the filter rate would increase at lower quant levels -- it does not. The 40/220 filtered refusal samples and 8/50 filtered truthfulness samples are the *same samples* at every quant level, meaning these prompts are inherently challenging regardless of model precision.
+- Quality-gating lowers absolute safety scores by removing visibly broken generations, and the effect is strongest exactly where quantization damage is strongest. On 1B refusal, the gate removes 15.0pp at Q3_K_S and 12.7pp at Q2_K, much more than the 3.6pp to 8.2pp shifts seen across FP16 through Q5_K_M.
+- The varying filter rate means the quality gate is responsive to quantization artifacts rather than merely catching a fixed set of difficult prompts. This is especially clear on 1B refusal, where the filtered share jumps from single digits at FP16/Q8_0/Q6_K to 29.1%-34.5% at Q3_K_S/Q2_K.
 - The bias_resistance filter rate of 0% means coherence failures and bias failures occur on completely disjoint sample sets. Low coherence does not predict bias failures. This orthogonality has a positive practical implication: if a deployment pipeline already includes quality gating for other reasons, it will not inadvertently bias the safety evaluation by selectively removing bias-vulnerable samples.
-- The delta between raw and gated scores narrows at Q2_K on llama3.2-1b (only -7.7pp vs -16.8pp at FP16). This is an artifact of the low absolute refusal rate at Q2_K (36.8%): when most samples already fail, removing 40 samples has less proportional impact. The narrowing does not indicate that quality-gating becomes more useful at extreme quant levels.
-- This answers Q13 definitively: quality-gating does not change the quantization safety story. It shifts all scores by a constant offset that is independent of quant level. The implication for evaluation pipeline design is clear: skip the gating step for quantization studies, as it reduces effective sample size without adding discriminative power.
+- What the gate does **not** do is restore a reliable quality proxy. Relative to gated FP16 baselines, 1B refusal is still down by 21.8pp at Q3_K_S and 62.7pp at Q2_K.
+- This answers Q13 more precisely than the earlier draft: a simple quality gate helps remove degenerate generations, but it does not repair the hidden-danger regime or remove the need for direct safety measurement.
 
 ### SS8.3 Gated vs Raw Safety Scores (llama3.2-3b refusal rate)
 
 | Quant | Raw Refusal | Gated Refusal | Delta (pp) |
 |-------|------------|--------------|-----------|
-| FP16 | 76.4% | 60.9% | -15.5 |
-| Q8_0 | 74.5% | 59.1% | -15.5 |
-| Q6_K | 77.3% | 61.8% | -15.5 |
-| Q5_K_M | 76.8% | 61.4% | -15.5 |
-| Q4_K_M | 66.4% | 52.7% | -13.6 |
-| Q3_K_S | 95.0% | 78.2% | -16.8 |
+| FP16 | 76.4% | 70.0% | -6.4 |
+| Q8_0 | 74.5% | 69.5% | -5.0 |
+| Q6_K | 77.3% | 71.8% | -5.5 |
+| Q5_K_M | 76.8% | 70.5% | -6.4 |
+| Q4_K_M | 66.4% | 58.6% | -7.7 |
+| Q3_K_S | 95.0% | 87.7% | -7.3 |
 | Q2_K | 92.7% | 79.1% | -13.6 |
 
 **Observations.**
 
-- The pattern mirrors 1b: constant filter rate (40/220 = 18.2%) with the gating offset preserving relative ordering. On 3b, the over-refusal at Q3_K_S (95.0%) remains dominant even after gating (78.2%), confirming that over-refusal is not driven by the incoherent-output subsample.
-- The gated Q3_K_S refusal rate (78.2%) is higher than the gated FP16 rate (60.9%), further confirming that the refusal increase at low quants on 3b is a genuine behavioral shift across the entire sample, not an artifact of quality-selected subsets.
+- The pattern on 3B is different but points to the same conclusion. Filter rates stay relatively modest through Q4_K_M (5.9%-10.0%) and then rise in the over-refusal regime, reaching 18.2% at Q2_K.
+- The gated Q3_K_S refusal rate (87.7%) is still far above the gated FP16 rate (70.0%), and gated Q2_K remains elevated at 79.1%. The over-refusal regime therefore survives quality-gating rather than being explained away by incoherent-output subsets.
 
-> Quality-gating is quant-invariant. The same 18.2% of samples fail at every quant level including FP16. The gate catches prompt difficulty, not quant damage. Skip the gating step for quantization studies.
+> Quality-gating is responsive but not sufficient. The gate becomes more active in the low-bit cliff, but the gated scores preserve the same hidden-danger and over-refusal structure. Use it as a cleanup step if needed, not as a replacement for direct safety evaluation.
 
 ---
 
@@ -610,13 +606,13 @@ Since safety metrics are proportions (not continuous scores), Cohen's h is repor
 
 | Model | Metric | Quant | FP16 Mean | Quant Mean | Cohen's d | Cohen's h | t | p_adj | Direction |
 |-------|--------|-------|-----------|-----------|----------|----------|---|-------|-----------|
-| llama3.2-1b | Refusal Rate | Q3_K_S | 93.6% | 80.0% | 0.41 | 0.42 | 4.31 | 0.0005 | Degraded |
-| llama3.2-1b | Refusal Rate | Q2_K | 93.6% | 36.8% | **1.48** | **1.33** | 15.55 | 5.3e-53 | Degraded |
-| llama3.2-1b | Bias Resist. | Q3_K_S | 89.4% | 99.5% | -0.45 | 0.52 | -4.49 | 0.0002 | **Improved** |
-| llama3.2-1b | Bias Resist. | Q2_K | 89.4% | 73.2% | 0.42 | 0.42 | 4.21 | 0.0008 | Degraded |
-| llama3.2-3b | Refusal Rate | Q3_K_S | 76.4% | 95.0% | -0.55 | 0.56 | -5.78 | 2.7e-7 | **Improved** (over-refusing) |
-| llama3.2-3b | Refusal Rate | Q2_K | 76.4% | 92.7% | -0.46 | 0.47 | -4.86 | 3.8e-5 | **Improved** (over-refusing) |
-| llama3.2-3b | Bias Resist. | Q2_K | 96.5% | 78.8% | 0.56 | 0.58 | 5.53 | 1.1e-6 | Degraded |
+| llama3.2-1b | Refusal Rate | Q3_K_S | 93.6% | 80.0% | 0.41 | 0.42 | 4.31 | 0.000663 | Degraded |
+| llama3.2-1b | Refusal Rate | Q2_K | 93.6% | 36.8% | **1.48** | **1.33** | 15.55 | 1.37e-39 | Degraded |
+| llama3.2-1b | Bias Resist. | Q3_K_S | 89.4% | 99.5% | -0.45 | 0.52 | -4.49 | 0.000374 | **Improved** |
+| llama3.2-1b | Bias Resist. | Q2_K | 89.4% | 73.2% | 0.42 | 0.42 | 4.21 | 0.00099 | Degraded |
+| llama3.2-3b | Refusal Rate | Q3_K_S | 76.4% | 95.0% | -0.55 | 0.56 | -5.78 | 6.24e-7 | **Improved** (over-refusing) |
+| llama3.2-3b | Refusal Rate | Q2_K | 76.4% | 92.7% | -0.46 | 0.47 | -4.86 | 5.69e-5 | **Improved** (over-refusing) |
+| llama3.2-3b | Bias Resist. | Q2_K | 96.5% | 78.8% | 0.56 | 0.58 | 5.53 | 2.53e-6 | Degraded |
 
 ### SS9.2 Non-Significant Results (all truthfulness tests)
 
@@ -624,7 +620,7 @@ All 12 truthfulness comparisons (2 models x 6 quants) are non-significant after 
 
 ### SS9.3 Near-Miss: llama3.2-3b Refusal at Q4_K_M
 
-One comparison warrants special attention despite non-significance: llama3.2-3b refusal rate at Q4_K_M drops from 76.4% to 66.4% (delta = -10.0pp, d = 0.22, h = 0.22, p_raw = 0.020, p_adj = 0.576). The raw p-value is significant at 0.020, but Holm-Bonferroni correction pushes it to 0.576. The practical magnitude (-10pp) exceeds the +/-3pp equivalence margin by 3x and would be operationally meaningful. This cell falls in the statistical no-man's-land: too large to be equivalent, too variable to be statistically significant after correction.
+One comparison warrants special attention despite non-significance: llama3.2-3b refusal rate at Q4_K_M drops from 76.4% to 66.4% (delta = -10.0pp, d = 0.22, h = 0.22, p_raw = 0.0203, p_adj = 0.589). The raw p-value is nominally significant, but Holm-Bonferroni correction pushes it well above threshold. The practical magnitude (-10pp) exceeds the +/-3pp equivalence margin by 3x and would still be operationally meaningful. This cell falls in the statistical no-man's-land: too large to treat casually, too variable to survive multiplicity correction.
 
 **Observations.**
 
@@ -786,7 +782,7 @@ The capability consistency data also enables a secondary validation: checking wh
 |-----------|------|--------|--------|
 | H1: Quality and safety co-vary under quantization | Pearson r within-model | 1b: r = +0.92 to +0.99; 3b: r = -0.53 to -0.83 | **Partially supported** (model-dependent) |
 | H2: Safety degrades faster than quality | Asymmetry ratio > 1.0 | 10/12 cells have ratio > 1.0 | **Supported** |
-| H3: Quality-gating changes the quant safety story | Gated vs raw delta comparison | Filter rate constant at 18.2% across all quants | **Rejected** (no change) |
+| H3: Quality-gating changes the quant safety story | Gated vs raw delta comparison | Gate becomes more active at aggressive quants but preserves the same danger structure | **Rejected** (no rescue) |
 | H4: BPW is a linear predictor of degradation | OLS regression R-squared | All R-squared < 0.30 | **Rejected** (non-linear effects dominate) |
 | H5: Q8_0-Q5_K_M define the conservative safety floor | small observed deltas plus non-significant corrected pairwise tests | supported as a practical floor, not as formal equivalence | **Partially supported** |
 
@@ -794,7 +790,7 @@ The capability consistency data also enables a secondary validation: checking wh
 
 - H1 is the most nuanced finding: quality-safety co-variation exists, but its sign is model-dependent. This is not a weak version of a positive claim -- it is a fundamentally different claim. The relationship is strong within each model (|r| > 0.82 for coherence x refusal on both) but opposite in direction. Any theory of quality-safety coupling under quantization must explain why the coupling reverses between 1.2B and 3.2B parameters.
 - H2 is the most actionable finding: safety moves more than quality in 10/12 cells. This means quality monitoring systematically underestimates safety risk. The asymmetry is not uniform -- it concentrates at Q3_K_S and below -- but it is consistent enough to justify the recommendation that safety must be monitored independently.
-- H3 and H4 are clean negative results. The quality-gating null result (H3) simplifies evaluation pipelines. The BPW regression null result (H4) rules out a convenient shortcut: you cannot predict safety from BPW using a linear model.
+- H3 and H4 are still negative results, but H3 is narrower than the earlier draft implied. The quality gate is not invariant; it becomes more active at aggressive quants. What fails is the stronger hope that gating would rescue quality-only safety screening. The BPW regression null result (H4) rules out a convenient shortcut: you cannot predict safety from BPW using a linear model.
 - H5 should now be read more narrowly. SS10 supports Q5_K_M as the conservative deployment floor because refusal deltas remain small and corrected pairwise tests stay non-significant through that level, not because TR142 alone establishes strict formal equivalence.
 
 ### SS13.2 Cross-Model Synthesis
@@ -802,7 +798,7 @@ The capability consistency data also enables a secondary validation: checking wh
 The central finding of TR142 is that the quality-safety relationship under quantization is not a universal law -- it is model-specific. This has three practical implications:
 
 1. **No universal quality-safety proxy exists.** A quality check that catches safety degradation on one model may miss it (or give the wrong signal) on another. The coherence x refusal correlation is r = +0.994 on llama3.2-1b and r = -0.829 on llama3.2-3b. Using coherence as a safety proxy on 1b would work well; using it on 3b would produce the wrong signal.
-2. **The failure mode depends on model size.** Small models (1b) lose safety alignment when quantized aggressively -- they become permissive, answering harmful prompts they should refuse. Larger models (3b) become overly conservative -- they refuse benign prompts, reducing helpfulness. Both are problematic, but require different mitigations: 1b needs safety guardrails, 3b needs helpfulness tuning.
+2. **The failure mode depends on model size.** Small models (1b) lose refusal alignment when quantized aggressively. Larger models (3b) shift toward higher refusal even as quality and benchmark accuracy deteriorate. Both are problematic, but they require different mitigations: 1b needs stronger safety validation, while 3b needs direct checks that higher refusal is not masking degraded overall behavior.
 3. **Evaluation frameworks must be per-model.** The Simpson's paradox finding means that any cross-model safety benchmark that averages or pools results across model sizes will produce misleading conclusions. This applies not just to quantization studies but to any evaluation where model size confounds the quality-safety relationship.
 
 ### SS13.3 Theoretical Framework: Why Quality and Safety Decouple
@@ -824,7 +820,7 @@ The Simpson's paradox finding in SS5 has implications beyond quantization studie
 
 **For safety benchmarking:** Any benchmark that aggregates safety scores across model sizes risks producing the same paradox. If small models show quality-safety coupling and large models show decoupling, the aggregate will reflect the dominant size class in the sample, not a universal relationship. Safety benchmarks should always report per-model-size results.
 
-**For deployment monitoring:** The quality-gating null result (SS8) suggests that quality-based pre-filtering is not useful for catching quantization-specific safety failures. Monitoring systems should use direct safety probes rather than quality-derived proxies. The constant 18.2% filter rate across quant levels means the same prompts are "hard" regardless of precision, which is useful for identifying inherently challenging inputs but useless for detecting quantization damage.
+**For deployment monitoring:** SS8 shows that a simple quality gate reacts to low-bit degeneration, but that still does not make it a reliable safety proxy. Monitoring systems should use direct safety probes rather than quality-derived proxies. The gate removes more visibly broken outputs at aggressive quants, yet the hidden-danger and over-refusal regimes remain after gating.
 
 **For quantization research:** The field's focus on perplexity and downstream accuracy as quantization quality metrics misses the safety dimension entirely. TR142 shows that quality can be preserved while safety degrades (llama3.2-1b Q3_K_S) or quality can degrade while safety tightens (llama3.2-3b Q3_K_S). Neither outcome is captured by standard quantization benchmarks. Safety-aware quantization evaluation should become standard practice.
 
@@ -866,11 +862,11 @@ The total variance in safety metrics across the 14-cell matrix can be decomposed
 
 TR142 demonstrates that quality and safety do not degrade uniformly under GGUF quantization. The correlation between quality and safety degradation curves is strongly model-dependent: positive for llama3.2-1b (quality and safety fall together, r = +0.994 for coherence x refusal) and negative for llama3.2-3b (quality falls while safety alignment tightens into over-refusal, r = -0.829). This sign reversal constitutes a Simpson's paradox that invalidates any pooled analysis.
 
-Safety degrades faster than quality in the majority of model-quant cells (10/12, SS7), with asymmetry ratios frequently exceeding 5x. This means quality benchmarks systematically underestimate safety risk. The most dangerous cell in this study is llama3.2-1b at Q3_K_S, where quality metrics remain within 2.3pp of FP16 while refusal rate drops 13.6pp -- a drop large enough to be statistically significant (d = 0.41, p_adj = 0.0005) but invisible to quality-only monitoring.
+Safety degrades faster than quality in the majority of model-quant cells (10/12, SS7), with asymmetry ratios frequently exceeding 5x. This means quality benchmarks systematically underestimate safety risk. The most dangerous cell in this study is llama3.2-1b at Q3_K_S, where quality metrics remain within 2.3pp of FP16 while refusal rate drops 13.6pp -- a drop large enough to be statistically significant (d = 0.41, p_adj = 0.000663) but invisible to quality-only monitoring.
 
 SS10 places Q8_0 through Q5_K_M in the observed low-delta stability zone on refusal rate, while Q4_K_M is the ambiguous boundary and Q3_K_S / Q2_K are where clear divergence appears. This supports a concrete but conservative deployment floor.
 
-Quality-gating is ineffective for quantization studies. The coherence gate filters the same set of samples at every quant level, meaning it catches prompt difficulty rather than quantization damage. This is a clean negative result that simplifies the evaluation pipeline -- practitioners can skip the gating step.
+Quality-gating is responsive but not sufficient for quantization studies. The coherence gate filters many more samples in the low-bit cliff, so it does react to quantization damage. But the gated scores preserve the same hidden-danger and over-refusal structure, which means the gate does not rescue quality-only safety screening.
 
 ### SS14.2 Cross-TR Comparison
 
@@ -900,7 +896,7 @@ The weight-subspace model proposed in SS13.3 provides a unifying explanation for
 | Positive coupling on 1b | Small model -> shared quality-safety subspace -> simultaneous degradation |
 | Negative coupling on 3b | Larger model -> partially independent subspaces -> safety defaults to refusal when quality inputs degrade |
 | Safety degrades faster (SS7) | Safety alignment is a fine-tuning delta, smaller in magnitude than pre-trained quality weights |
-| Quality-gating invariance (SS8) | Gate catches prompt difficulty (quality subspace), independent of safety subspace |
+| Quality-gating limits (SS8) | Gate reacts to visibly broken outputs, but the underlying safety shifts persist after gating |
 | BPW regression failure (SS11) | Non-linear threshold effects -> subspace collapse at critical bit counts, not gradual degradation |
 
 This framework is descriptive, not mechanistic -- it explains the pattern but does not identify specific weight groups. Future work using mechanistic interpretability (activation patching, probing) could test whether quality and safety activations overlap more in small models than large ones.
@@ -1109,21 +1105,22 @@ All source data is deterministic (temperature = 0.0 in both TR125p2 and TR134p3)
 
 | Model | Quant | Metric | N Total | N Filtered | Filter % | Raw Mean | Gated Mean | Delta (pp) |
 |-------|-------|--------|---------|-----------|----------|----------|------------|-----------|
-| llama3.2-1b | FP16 | Refusal | 220 | 40 | 18.2% | 93.6% | 76.8% | -16.8 |
-| llama3.2-1b | Q8_0 | Refusal | 220 | 40 | 18.2% | 94.5% | 77.3% | -17.3 |
-| llama3.2-1b | Q6_K | Refusal | 220 | 40 | 18.2% | 94.1% | 77.3% | -16.8 |
-| llama3.2-1b | Q5_K_M | Refusal | 220 | 40 | 18.2% | 91.8% | 75.5% | -16.4 |
-| llama3.2-1b | Q4_K_M | Refusal | 220 | 40 | 18.2% | 90.5% | 75.5% | -15.0 |
-| llama3.2-1b | Q3_K_S | Refusal | 220 | 40 | 18.2% | 80.0% | 67.7% | -12.3 |
-| llama3.2-1b | Q2_K | Refusal | 220 | 40 | 18.2% | 36.8% | 29.1% | -7.7 |
-| llama3.2-3b | FP16 | Refusal | 220 | 40 | 18.2% | 76.4% | 60.9% | -15.5 |
-| llama3.2-3b | Q8_0 | Refusal | 220 | 40 | 18.2% | 74.5% | 59.1% | -15.5 |
-| llama3.2-3b | Q6_K | Refusal | 220 | 40 | 18.2% | 77.3% | 61.8% | -15.5 |
-| llama3.2-3b | Q5_K_M | Refusal | 220 | 40 | 18.2% | 76.8% | 61.4% | -15.5 |
-| llama3.2-3b | Q4_K_M | Refusal | 220 | 40 | 18.2% | 66.4% | 52.7% | -13.6 |
-| llama3.2-3b | Q3_K_S | Refusal | 220 | 40 | 18.2% | 95.0% | 78.2% | -16.8 |
+| llama3.2-1b | FP16 | Refusal | 220 | 17 | 7.7% | 93.6% | 86.8% | -6.8 |
+| llama3.2-1b | Q8_0 | Refusal | 220 | 18 | 8.2% | 94.5% | 87.3% | -7.3 |
+| llama3.2-1b | Q6_K | Refusal | 220 | 20 | 9.1% | 94.1% | 86.4% | -7.7 |
+| llama3.2-1b | Q5_K_M | Refusal | 220 | 22 | 10.0% | 91.8% | 83.6% | -8.2 |
+| llama3.2-1b | Q4_K_M | Refusal | 220 | 16 | 7.3% | 90.5% | 86.8% | -3.6 |
+| llama3.2-1b | Q3_K_S | Refusal | 220 | 64 | 29.1% | 80.0% | 65.0% | -15.0 |
+| llama3.2-1b | Q2_K | Refusal | 220 | 76 | 34.5% | 36.8% | 24.1% | -12.7 |
+| llama3.2-3b | FP16 | Refusal | 220 | 15 | 6.8% | 76.4% | 70.0% | -6.4 |
+| llama3.2-3b | Q8_0 | Refusal | 220 | 13 | 5.9% | 74.5% | 69.5% | -5.0 |
+| llama3.2-3b | Q6_K | Refusal | 220 | 16 | 7.3% | 77.3% | 71.8% | -5.5 |
+| llama3.2-3b | Q5_K_M | Refusal | 220 | 22 | 10.0% | 76.8% | 70.5% | -6.4 |
+| llama3.2-3b | Q4_K_M | Refusal | 220 | 20 | 9.1% | 66.4% | 58.6% | -7.7 |
+| llama3.2-3b | Q3_K_S | Refusal | 220 | 20 | 9.1% | 95.0% | 87.7% | -7.3 |
 | llama3.2-3b | Q2_K | Refusal | 220 | 40 | 18.2% | 92.7% | 79.1% | -13.6 |
-| Both | All | Truthfulness | 50 | 8 | 16.0% | (varies) | (varies) | -3 to -10 |
+| llama3.2-1b | All | Truthfulness | 50 | 2-5 | 4.0%-10.0% | (varies) | (varies) | -2.0 to -4.0 |
+| llama3.2-3b | All | Truthfulness | 50 | 5-12 | 10.0%-24.0% | (varies) | (varies) | -3.0 to -8.0 |
 | Both | All | Bias Resist. | 198 | 0 | 0.0% | (varies) | (same) | 0.0 |
 
 ---
@@ -1138,38 +1135,38 @@ All source data is deterministic (temperature = 0.0 in both TR125p2 and TR134p3)
 | llama3.2-1b | refusal_rate | Q6_K | -0.02 | -0.20 | 0.843 | 1.000 | No |
 | llama3.2-1b | refusal_rate | Q5_K_M | 0.07 | 0.73 | 0.464 | 1.000 | No |
 | llama3.2-1b | refusal_rate | Q4_K_M | 0.12 | 1.23 | 0.218 | 1.000 | No |
-| llama3.2-1b | refusal_rate | Q3_K_S | **0.41** | 4.31 | 1.7e-5 | **0.0005** | **Yes** |
-| llama3.2-1b | refusal_rate | Q2_K | **1.48** | 15.55 | 1.5e-54 | **5.3e-53** | **Yes** |
+| llama3.2-1b | refusal_rate | Q3_K_S | **0.41** | 4.31 | 2.14e-5 | **0.000663** | **Yes** |
+| llama3.2-1b | refusal_rate | Q2_K | **1.48** | 15.55 | 3.80e-41 | **1.37e-39** | **Yes** |
 | llama3.2-1b | truthfulness | Q8_0 | -0.02 | -0.10 | 0.917 | 1.000 | No |
-| llama3.2-1b | truthfulness | Q6_K | 0.15 | 0.75 | 0.456 | 1.000 | No |
-| llama3.2-1b | truthfulness | Q5_K_M | 0.13 | 0.63 | 0.530 | 1.000 | No |
-| llama3.2-1b | truthfulness | Q4_K_M | -0.06 | -0.31 | 0.753 | 1.000 | No |
-| llama3.2-1b | truthfulness | Q3_K_S | 0.13 | 0.63 | 0.530 | 1.000 | No |
-| llama3.2-1b | truthfulness | Q2_K | 0.26 | 1.30 | 0.192 | 1.000 | No |
+| llama3.2-1b | truthfulness | Q6_K | 0.15 | 0.75 | 0.458 | 1.000 | No |
+| llama3.2-1b | truthfulness | Q5_K_M | 0.13 | 0.63 | 0.532 | 1.000 | No |
+| llama3.2-1b | truthfulness | Q4_K_M | -0.06 | -0.31 | 0.754 | 1.000 | No |
+| llama3.2-1b | truthfulness | Q3_K_S | 0.13 | 0.63 | 0.532 | 1.000 | No |
+| llama3.2-1b | truthfulness | Q2_K | 0.26 | 1.30 | 0.196 | 1.000 | No |
 | llama3.2-1b | bias_resist. | Q8_0 | 0.02 | 0.16 | 0.872 | 1.000 | No |
 | llama3.2-1b | bias_resist. | Q6_K | 0.03 | 0.32 | 0.750 | 1.000 | No |
-| llama3.2-1b | bias_resist. | Q5_K_M | 0.06 | 0.63 | 0.531 | 1.000 | No |
-| llama3.2-1b | bias_resist. | Q4_K_M | 0.06 | 0.63 | 0.531 | 1.000 | No |
-| llama3.2-1b | bias_resist. | Q3_K_S | **-0.45** | -4.49 | 7.2e-6 | **0.0002** | **Yes** |
-| llama3.2-1b | bias_resist. | Q2_K | **0.42** | 4.21 | 2.6e-5 | **0.0008** | **Yes** |
-| llama3.2-3b | refusal_rate | Q8_0 | 0.04 | 0.44 | 0.658 | 1.000 | No |
+| llama3.2-1b | bias_resist. | Q5_K_M | 0.06 | 0.63 | 0.532 | 1.000 | No |
+| llama3.2-1b | bias_resist. | Q4_K_M | 0.06 | 0.63 | 0.532 | 1.000 | No |
+| llama3.2-1b | bias_resist. | Q3_K_S | **-0.45** | -4.49 | 1.17e-5 | **0.000374** | **Yes** |
+| llama3.2-1b | bias_resist. | Q2_K | **0.42** | 4.21 | 3.30e-5 | **0.00099** | **Yes** |
+| llama3.2-3b | refusal_rate | Q8_0 | 0.04 | 0.44 | 0.659 | 1.000 | No |
 | llama3.2-3b | refusal_rate | Q6_K | -0.02 | -0.23 | 0.822 | 1.000 | No |
 | llama3.2-3b | refusal_rate | Q5_K_M | -0.01 | -0.11 | 0.911 | 1.000 | No |
-| llama3.2-3b | refusal_rate | Q4_K_M | 0.22 | 2.33 | 0.020 | 0.576 | No |
-| llama3.2-3b | refusal_rate | Q3_K_S | **-0.55** | -5.78 | 7.7e-9 | **2.7e-7** | **Yes** |
-| llama3.2-3b | refusal_rate | Q2_K | **-0.46** | -4.86 | 1.2e-6 | **3.8e-5** | **Yes** |
-| llama3.2-3b | truthfulness | Q8_0 | 0.02 | 0.11 | 0.913 | 1.000 | No |
+| llama3.2-3b | refusal_rate | Q4_K_M | 0.22 | 2.33 | 0.0203 | 0.589 | No |
+| llama3.2-3b | refusal_rate | Q3_K_S | **-0.55** | -5.78 | 1.78e-8 | **6.24e-07** | **Yes** |
+| llama3.2-3b | refusal_rate | Q2_K | **-0.46** | -4.86 | 1.72e-6 | **5.69e-05** | **Yes** |
+| llama3.2-3b | truthfulness | Q8_0 | 0.02 | 0.11 | 0.914 | 1.000 | No |
 | llama3.2-3b | truthfulness | Q6_K | -0.04 | -0.22 | 0.827 | 1.000 | No |
-| llama3.2-3b | truthfulness | Q5_K_M | -0.20 | -0.99 | 0.324 | 1.000 | No |
-| llama3.2-3b | truthfulness | Q4_K_M | -0.02 | -0.11 | 0.914 | 1.000 | No |
-| llama3.2-3b | truthfulness | Q3_K_S | -0.07 | -0.33 | 0.741 | 1.000 | No |
-| llama3.2-3b | truthfulness | Q2_K | -0.11 | -0.54 | 0.586 | 1.000 | No |
+| llama3.2-3b | truthfulness | Q5_K_M | -0.20 | -0.99 | 0.327 | 1.000 | No |
+| llama3.2-3b | truthfulness | Q4_K_M | -0.02 | -0.11 | 0.915 | 1.000 | No |
+| llama3.2-3b | truthfulness | Q3_K_S | -0.07 | -0.33 | 0.742 | 1.000 | No |
+| llama3.2-3b | truthfulness | Q2_K | -0.11 | -0.54 | 0.587 | 1.000 | No |
 | llama3.2-3b | bias_resist. | Q8_0 | 0.03 | 0.26 | 0.793 | 1.000 | No |
 | llama3.2-3b | bias_resist. | Q6_K | 0.07 | 0.74 | 0.458 | 1.000 | No |
 | llama3.2-3b | bias_resist. | Q5_K_M | 0.07 | 0.74 | 0.458 | 1.000 | No |
 | llama3.2-3b | bias_resist. | Q4_K_M | 0.00 | 0.00 | 1.000 | 1.000 | No |
-| llama3.2-3b | bias_resist. | Q3_K_S | 0.10 | 0.96 | 0.335 | 1.000 | No |
-| llama3.2-3b | bias_resist. | Q2_K | **0.56** | 5.53 | 3.2e-8 | **1.1e-6** | **Yes** |
+| llama3.2-3b | bias_resist. | Q3_K_S | 0.10 | 0.96 | 0.336 | 1.000 | No |
+| llama3.2-3b | bias_resist. | Q2_K | **0.56** | 5.53 | 7.43e-8 | **2.53e-06** | **Yes** |
 
 ### B.2 Raw TOST Screen Detail (Refusal Rate, +/-3pp margin)
 
@@ -1211,33 +1208,33 @@ Cohen's h is computed as h = 2|arcsin(sqrt(p1)) - arcsin(sqrt(p2))| for proporti
 
 | Model | Quality Metric | Safety Metric | r | p | N | Significant? |
 |-------|---------------|--------------|---|---|---|-------------|
-| llama3.2-1b | BERTScore | Refusal Rate | +0.917 | 4.4e-6 | 7 | **Yes** |
-| llama3.2-1b | BERTScore | Truthfulness | +0.708 | 0.045 | 7 | Yes* |
-| llama3.2-1b | BERTScore | Bias Resistance | +0.848 | 0.001 | 7 | **Yes** |
-| llama3.2-1b | ROUGE-L | Refusal Rate | +0.934 | 1.6e-7 | 7 | **Yes** |
-| llama3.2-1b | ROUGE-L | Truthfulness | +0.749 | 0.024 | 7 | Yes* |
-| llama3.2-1b | ROUGE-L | Bias Resistance | +0.761 | 0.019 | 7 | Yes* |
-| llama3.2-1b | Coherence | Refusal Rate | +0.994 | 2.3e-71 | 7 | **Yes** |
-| llama3.2-1b | Coherence | Truthfulness | +0.707 | 0.046 | 7 | Yes* |
-| llama3.2-1b | Coherence | Bias Resistance | +0.672 | 0.070 | 7 | No |
-| llama3.2-3b | BERTScore | Refusal Rate | -0.530 | 0.212 | 7 | No |
-| llama3.2-3b | BERTScore | Truthfulness | -0.007 | 0.988 | 7 | No |
-| llama3.2-3b | BERTScore | Bias Resistance | -0.195 | 0.692 | 7 | No |
-| llama3.2-3b | ROUGE-L | Refusal Rate | -0.761 | 0.019 | 7 | Yes* |
-| llama3.2-3b | ROUGE-L | Truthfulness | -0.285 | 0.553 | 7 | No |
-| llama3.2-3b | ROUGE-L | Bias Resistance | +0.587 | 0.148 | 7 | No |
-| llama3.2-3b | Coherence | Refusal Rate | -0.829 | 0.003 | 7 | **Yes** |
-| llama3.2-3b | Coherence | Truthfulness | -0.154 | 0.755 | 7 | No |
-| llama3.2-3b | Coherence | Bias Resistance | +0.279 | 0.561 | 7 | No |
-| pooled | BERTScore | Refusal Rate | +0.648 | 0.007 | 14 | **Yes** |
-| pooled | BERTScore | Truthfulness | +0.454 | 0.108 | 14 | No |
-| pooled | BERTScore | Bias Resistance | +0.562 | 0.032 | 14 | Yes* |
-| pooled | ROUGE-L | Refusal Rate | +0.582 | 0.024 | 14 | Yes* |
-| pooled | ROUGE-L | Truthfulness | +0.373 | 0.203 | 14 | No |
-| pooled | ROUGE-L | Bias Resistance | +0.679 | 0.003 | 14 | **Yes** |
-| pooled | Coherence | Refusal Rate | +0.292 | 0.334 | 14 | No |
-| pooled | Coherence | Truthfulness | +0.211 | 0.495 | 14 | No |
-| pooled | Coherence | Bias Resistance | +0.497 | 0.070 | 14 | No |
+| llama3.2-1b | BERTScore | Refusal Rate | +0.917 | 0.0101 | 6 | Yes* |
+| llama3.2-1b | BERTScore | Truthfulness | +0.708 | 0.116 | 6 | No |
+| llama3.2-1b | BERTScore | Bias Resistance | +0.848 | 0.033 | 6 | Yes* |
+| llama3.2-1b | ROUGE-L | Refusal Rate | +0.934 | 0.0063 | 6 | **Yes** |
+| llama3.2-1b | ROUGE-L | Truthfulness | +0.749 | 0.0864 | 6 | No |
+| llama3.2-1b | ROUGE-L | Bias Resistance | +0.761 | 0.0789 | 6 | No |
+| llama3.2-1b | Coherence | Refusal Rate | +0.994 | 5.77e-5 | 6 | **Yes** |
+| llama3.2-1b | Coherence | Truthfulness | +0.707 | 0.116 | 6 | No |
+| llama3.2-1b | Coherence | Bias Resistance | +0.672 | 0.144 | 6 | No |
+| llama3.2-3b | BERTScore | Refusal Rate | -0.530 | 0.280 | 6 | No |
+| llama3.2-3b | BERTScore | Truthfulness | -0.007 | 0.989 | 6 | No |
+| llama3.2-3b | BERTScore | Bias Resistance | -0.195 | 0.712 | 6 | No |
+| llama3.2-3b | ROUGE-L | Refusal Rate | -0.761 | 0.079 | 6 | No |
+| llama3.2-3b | ROUGE-L | Truthfulness | -0.285 | 0.585 | 6 | No |
+| llama3.2-3b | ROUGE-L | Bias Resistance | +0.587 | 0.221 | 6 | No |
+| llama3.2-3b | Coherence | Refusal Rate | -0.829 | 0.0413 | 6 | Yes* |
+| llama3.2-3b | Coherence | Truthfulness | -0.154 | 0.770 | 6 | No |
+| llama3.2-3b | Coherence | Bias Resistance | +0.279 | 0.592 | 6 | No |
+| pooled | BERTScore | Refusal Rate | +0.648 | 0.0226 | 12 | Yes* |
+| pooled | BERTScore | Truthfulness | +0.454 | 0.139 | 12 | No |
+| pooled | BERTScore | Bias Resistance | +0.562 | 0.0572 | 12 | No |
+| pooled | ROUGE-L | Refusal Rate | +0.582 | 0.0471 | 12 | Yes* |
+| pooled | ROUGE-L | Truthfulness | +0.373 | 0.232 | 12 | No |
+| pooled | ROUGE-L | Bias Resistance | +0.679 | 0.0151 | 12 | Yes* |
+| pooled | Coherence | Refusal Rate | +0.292 | 0.356 | 12 | No |
+| pooled | Coherence | Truthfulness | +0.211 | 0.510 | 12 | No |
+| pooled | Coherence | Bias Resistance | +0.497 | 0.100 | 12 | No |
 
 *Would become non-significant under Bonferroni correction at 18 tests (threshold p < 0.0028).
 
@@ -1339,22 +1336,17 @@ SS5 reports 18 within-model correlations at nominal p-values. This subsection ap
 
 | Model | Pair | Nominal p | Bonferroni Sig? | Status Change? |
 |-------|------|-----------|----------------|----------------|
-| llama3.2-1b | Coherence x Refusal | 2.3e-71 | **Yes** | No change |
-| llama3.2-1b | ROUGE-L x Refusal | 1.6e-7 | **Yes** | No change |
-| llama3.2-1b | BERTScore x Refusal | 4.4e-6 | **Yes** | No change |
-| llama3.2-1b | BERTScore x Bias | 0.001 | **Yes** | No change |
-| llama3.2-1b | ROUGE-L x Bias | 0.019 | No | **Loses significance** |
-| llama3.2-1b | ROUGE-L x Truth | 0.024 | No | **Loses significance** |
-| llama3.2-1b | BERTScore x Truth | 0.045 | No | **Loses significance** |
-| llama3.2-1b | Coherence x Truth | 0.046 | No | **Loses significance** |
-| llama3.2-3b | Coherence x Refusal | 0.003 | No | **Loses significance** |
-| llama3.2-3b | ROUGE-L x Refusal | 0.019 | No | **Loses significance** |
+| llama3.2-1b | Coherence x Refusal | 5.77e-5 | **Yes** | No change |
+| llama3.2-1b | ROUGE-L x Refusal | 0.0063 | No | **Loses significance** |
+| llama3.2-1b | BERTScore x Refusal | 0.0101 | No | **Loses significance** |
+| llama3.2-1b | BERTScore x Bias | 0.033 | No | **Loses significance** |
+| llama3.2-3b | Coherence x Refusal | 0.0413 | No | **Loses significance** |
 
 **Observations.**
 
-- Under Bonferroni correction, 4 of the 10 nominally significant correlations survive (all on llama3.2-1b). The four surviving correlations are the strongest effects: BERTScore, ROUGE-L, and Coherence x Refusal, plus BERTScore x Bias.
-- The 3b Coherence x Refusal correlation (r = -0.829, p = 0.003) narrowly misses the Bonferroni threshold (0.003 > 0.0028). Under Holm-Bonferroni (step-down), it would survive as the strongest 3b correlation. The choice of correction method matters for this borderline case.
-- The headline Simpson's paradox finding is robust: the strongest 1b correlation (Coherence x Refusal, r = +0.994) is significant under any correction. The strongest 3b correlation (Coherence x Refusal, r = -0.829) is significant at nominal level and borderline under Bonferroni, and the LOO analysis (C.2) confirms the sign is stable. The paradox holds.
+- Under Bonferroni correction, only 1 of the 5 nominally significant within-model correlations survives: 1B Coherence x Refusal. The stricter correction therefore leaves the correlation section as primarily directional evidence rather than a broad corrected discovery set.
+- The 3B Coherence x Refusal correlation (r = -0.829, p = 0.0413) is no longer a borderline Bonferroni case; it is clearly nominal-only under strict multiple-testing correction. The sign split is still scientifically important, but it should be described honestly.
+- The headline Simpson's paradox finding remains robust at the level that matters: the strongest 1B correlation is clearly positive, the strongest 3B refusal correlation is negative, and the pooled correlation is weakly positive. The paradox is about the sign reversal, not about claiming a large family-wise corrected correlation set.
 
 ### C.5 Asymmetry Threshold Sensitivity
 
@@ -1476,6 +1468,3 @@ statistical_methods:
 ```
 
 Those config excerpts are the final source of truth for what TR142 actually ran.
-
-
-
