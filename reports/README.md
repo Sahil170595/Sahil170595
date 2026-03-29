@@ -1,5 +1,5 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Safety Alignment — 555,648+ Data Points, 36 Technical Reports
+## LLM Inference Research & Safety Alignment — 593,134+ Primary Measurements, 39 Technical Reports
 
 This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, and safety alignment under inference optimizations — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM) and cloud GPUs (NVIDIA RTX PRO 6000 Blackwell, 98 GB VRAM via Google Colab).
 
@@ -17,8 +17,8 @@ Single-agent and multi-agent performance analysis, Rust vs Python cross-language
 
 KV-cache economics, quality baselines, quantization decision matrix, Linux/Triton compile validation, long-context characterization, production workload analysis, N-agent scaling laws, serving stack comparison, GPU kernel profiling (host + in-container), and a predictive capacity planner shipped as the `chimeraforge plan` CLI.
 
-### Phase 3: Safety Alignment (TR134-TR143)
-**10 technical reports. ~365,000+ data points.**
+### Phase 3: Safety Alignment (TR134-TR143) + v2 Expansion
+**10 technical reports + 3 v2 expansion reports. ~399,000+ data points.**
 
 Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 152,022 data points), quality-safety correlation, and cross-request safety leakage under continuous batching (TR143).
 
@@ -58,7 +58,7 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 |--------|-------|---------|--------|-------------|
 | **TR123** | KV-Cache Production Economics | 900 | Complete | Best cost $0.013/1M tokens; cached decode 2-8x cheaper |
 | **TR124** | Quality & Accuracy Baseline | 24,990 | Complete | Backend choice does not affect quality (0/7 ANOVA significant) |
-| **TR125** | Quantization Decision Matrix | 7,650 | Complete | Q4_K_M recommended default across tested models (-4.1pp max); Q2_K universally unacceptable |
+| **TR125** | Quantization Decision Matrix | 33,810 | Complete | Q4_K_M remains the quality default across 7 models; Q2_K is universally unacceptable |
 | **TR126** | Docker/Linux + Triton Validation | 25,400 | Complete | Compile paradox resolved: 24-60% prefill speedup on Linux; crashes decode |
 | **TR127** | Long-Context Characterization | 1,144 | Complete | VRAM spillover (25-105x cliffs), not quadratic attention, is the bottleneck |
 | **TR128** | Production Workloads | 3,172 | Complete | NUM_PARALLEL is a no-op (0/30 significant); M/D/1 deviates 20.4x |
@@ -72,7 +72,7 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 
 | Report | Title | Samples | Status | Key Finding |
 |--------|-------|---------|--------|-------------|
-| **TR134** | Alignment Robustness Under Quantization | 36,946 | Complete | Safety robust through Q3_K_S; catastrophic failure at Q2_K; backend > quantization for safety delta |
+| **TR134** | Alignment Robustness Under Quantization | 38,120 + 24,336 judge | Complete | Safety is broadly robust through Q3_K_S, qwen2.5-1.5b replicates the Q2_K cliff, and judge gaps are strongly model-dependent |
 | **TR135** | Safety Under Multi-Agent Concurrency | 20,316 | Complete | Null finding confirmed: concurrency has zero detectable effect on safety (I-squared = 0.0%) |
 | **TR136** | Cross-Backend Safety Consistency | 16,032 | Complete | Backend matters more than quant: Llama 1B shows 23pp safety drop Ollama→FP16; no TOST equivalence |
 | **TR137** | The Safety Tax of Inference Optimization | 74,254 | Complete | Quantization 57% of safety cost, backend 41%, concurrency 2%; worst config retains only 57.5% baseline safety |
@@ -81,8 +81,16 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 | **TR139** | Multi-Turn Jailbreak Under Quantization | 48,425 | Complete | All 8 strategy ANOVAs reject quant-independence (p < 1e-4); qwen2.5-1.5b/Q2_K/attention_shift reaches 100% ASR |
 | **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | 30,000 | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
 | **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 152,022 | Complete (v3.1) | 18 models, 10+ families; 0.94x safety/capability ratio (near parity); alignment type not predictive (p=0.942); output instability predicts fragility (r=0.91) |
-| **TR142** | Quality-Safety Correlation Under Quantization | 23,632 | Complete | Safety degrades 13.9x faster than quality at Q3_K_S; quality metrics alone are insufficient safety proxies |
+| **TR142** | Quality-Safety Correlation Under Quantization | 40 cells; 33,810 quality + 38,120 safety + 24,336 judge | Complete | Sign reversal persists across the expanded 6-model matrix; pooled quality metrics remain unreliable safety proxies |
 | **TR143** | Cross-Request Safety Leakage Under Continuous Batching | 14,250 | Complete (v2.0) | Aggregate composition effect not significant; directional asymmetry IS significant — 88-92% of flips trend unsafe (p=0.006) |
+
+### Expansion v2 Reports (TR142 Matrix Expansion)
+
+| Report | Title | Samples | Status | Key Finding |
+|--------|-------|---------|--------|-------------|
+| **TR125 v2** | Quality Evaluation — Expanded Matrix | 8,820 expansion + 24,990 original | Complete | 7 models across 4 families; Q4_K_M sweet spot confirmed cross-family; mistral-7b MMLU 58.9%→55.1% at Q2_K |
+| **TR134 v2** | Safety Alignment — Expanded Matrix | 13,342 expansion + 24,778 original; 12,168 gemma3 judge | Complete | 6 models across 4 families; Q2_K catastrophe replicates on qwen2.5-1.5b (-50pp); Mistral regex-judge gap up to 71pp; dual-judge (qwen2.5-7b + gemma3:12b) |
+| **TR142 v2** | Quality-Safety Correlation — 6-Model Synthesis | 40 cells from TR125+TR134 expanded | Complete | 34/36 sign reversals (Simpson's paradox at scale); 26/34 cells safety degrades faster; Q5_K_M floor holds all 6 models; per-model r from +0.997 to -0.829 |
 
 ### Conclusive Reports
 
@@ -309,11 +317,11 @@ Six shippable decisions backed by ~62,000 measurements:
 ### Phase 3
 
 #### TR134: Alignment Robustness Under Quantization
-**File:** `Technical_Report_134.md`
-- 4 models (1.2B-7.6B), 7 quant levels, 6 benchmarks, 3 phases
-- 35,260 evaluated samples, 12,168 judged samples, 26 model-quant variants (Phase 3)
-- Safety robust through Q3_K_S for Llama and Qwen; Mistral degrades earlier
-- Nationality bias is the most vulnerable demographic category (slope = -0.0096)
+**File:** `Technical_Report_134_v2.md`
+- 6 models across 4 families, 40 model-quant entries, 6 benchmarks
+- 38,120 evaluated safety samples plus 24,336 judge annotations across three source files
+- Safety is broadly robust through Q3_K_S for well-aligned models; qwen2.5-1.5b replicates the Q2_K cliff, while qwen2.5-7b and mistral-7b expose hidden-danger / near-hidden-danger regimes
+- Regex-vs-judge disagreement is strongly model-dependent: higher-fidelity Llama and Qwen rows are often low-gap, while Mistral underreports refusal by 64-71pp
 
 #### TR135: Safety Under Multi-Agent Concurrency
 **File:** `Technical_Report_135.md`
@@ -376,12 +384,12 @@ Six shippable decisions backed by ~62,000 measurements:
 - Net-safe directional bias: 159 compliance→refusal vs 81 refusal→compliance flips (p=1e-6)
 
 #### TR142: Quality-Safety Correlation Under Quantization
-**File:** `Technical_Report_142.md`
-- Analysis-only cross-reference of TR125 (10,290 quality samples) and TR134 (13,342 safety samples)
-- 2 models (llama3.2-1b, llama3.2-3b), 7 GGUF quant levels, 14 analysis passes
-- Simpson's paradox: llama3.2-1b shows r = +0.994 (coherence × refusal), llama3.2-3b shows r = -0.829
-- Safety degrades 13.9x faster than quality at Q3_K_S on llama3.2-1b
-- TOST confirms Q5_K_M as safe deployment floor; Q4_K_M enters ambiguous zone
+**File:** `Technical_Report_142_v2.md`
+- Merged analysis of 33,810 quality samples, 38,120 safety samples, and 24,336 judge annotations
+- 6 matched models across 3 families, 40 model-quant cells, 14 core analysis passes plus supporting diagnostics
+- Sign reversal persists in the expanded matrix: 34/36 quality-safety pairings split positive and negative across models
+- Safety degrades 13.9x faster than quality at llama3.2-1b Q3_K_S, while qwen2.5-7b Q2_K reproduces the hidden-danger pattern outside Llama
+- Q5_K_M remains the conservative floor; Q4_K_M is still model-dependent and ambiguous
 
 ### Phase 2
 
@@ -397,10 +405,10 @@ Six shippable decisions backed by ~62,000 measurements:
 - Backend choice does not affect quality: 0/7 ANOVA significant
 
 #### TR125: Quantization Decision Matrix
-**File:** `Technical_Report_125.md`
-- 5 models x 7 quantization levels (Q2_K through FP16)
-- Q4_K_M: recommended default across tested models (-4.1pp max accuracy loss)
-- Q2_K: universally unacceptable (>11pp loss all models; qwen2.5-1.5b -40.6pp)
+**File:** `Technical_Report_125_v2.md`
+- 33,810 quality samples across 7 models, 4 families, and 46 model-quant variants
+- Q4_K_M remains the quality default across all 7 models, with qwen2.5-7b and mistral-7b extending the result to 7B scale
+- Q2_K remains universally unacceptable, with the worst collapse on qwen2.5-1.5b (-35.1pp MMLU, -48.5pp ARC)
 
 #### TR126: Docker/Linux + Triton Validation
 **File:** `Technical_Report_126.md`
@@ -534,7 +542,7 @@ PublishReady/reports/
 ├── Phase 2: Deployment Framework (TR123-TR133)
 │   ├── Technical_Report_123.md
 │   ├── Technical_Report_124.md
-│   ├── Technical_Report_125.md
+│   ├── Technical_Report_125_v2.md
 │   ├── Technical_Report_126.md
 │   ├── Technical_Report_127.md
 │   ├── Technical_Report_128.md
@@ -544,8 +552,8 @@ PublishReady/reports/
 │   ├── Technical_Report_132.md
 │   └── Technical_Report_133.md
 │
-├── Phase 3: Safety Alignment (TR134-TR142)
-│   ├── Technical_Report_134.md
+├── Phase 3: Safety Alignment (TR134-TR143)
+│   ├── Technical_Report_134_v2.md
 │   ├── Technical_Report_135.md
 │   ├── Technical_Report_136.md
 │   ├── Technical_Report_137.md
@@ -554,7 +562,8 @@ PublishReady/reports/
 │   ├── Technical_Report_139.md
 │   ├── Technical_Report_140.md
 │   ├── Technical_Report_141.md  ← largest study (152,022 data points, 18 models)
-│   └── Technical_Report_142.md
+│   ├── Technical_Report_142_v2.md
+│   └── Technical_Report_143.md
 │
 ├── Conclusive Reports
 │   ├── Technical_Report_Conclusive_108-116.md
@@ -685,6 +694,6 @@ All measurements on a single fixed baseline:
 
 ---
 
-**Last Updated:** 2026-03-20
+**Last Updated:** 2026-03-28
 **Total Reports:** 63 files (36 completed TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + TR143)
-**Total Measurements:** 555,648+ across all reports
+**Total Measurements:** 558,804+ primary measurements across report sample columns; secondary judge annotations and synthesis-layer matrix cells are reported separately within the relevant reports
