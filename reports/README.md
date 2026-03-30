@@ -89,7 +89,7 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 | Report | Title | Samples | Status | Key Finding |
 |--------|-------|---------|--------|-------------|
 | **TR125 v2** | Quality Evaluation — Expanded Matrix | 8,820 expansion + 24,990 original | Complete | 7 models across 4 families; Q4_K_M sweet spot confirmed cross-family; mistral-7b MMLU 58.9%→55.1% at Q2_K |
-| **TR134 v2** | Safety Alignment — Expanded Matrix | 13,342 expansion + 24,778 original; 12,168 gemma3 judge | Complete | 6 models across 4 families; Q2_K catastrophe replicates on qwen2.5-1.5b (-50pp); Mistral regex-judge gap up to 71pp; dual-judge (qwen2.5-7b + gemma3:12b) |
+| **TR134 v2** | Safety Alignment — Expanded Matrix | 13,342 expansion + 24,778 original; 24,336 judge annotations across 3 sources | Complete | 6 models across 4 families; Q2_K catastrophe replicates on qwen2.5-1.5b (-50pp); Mistral regex-judge gap up to 71pp; multi-source judge coverage (legacy Qwen + Gemma 3 12B) |
 | **TR142 v2** | Quality-Safety Correlation — 6-Model Synthesis | 40 cells from TR125+TR134 expanded | Complete | 34/36 sign reversals (Simpson's paradox at scale); 26/34 cells safety degrades faster; Q5_K_M floor holds all 6 models; per-model r from +0.997 to -0.829 |
 
 ### Conclusive Reports
@@ -386,7 +386,7 @@ Six shippable decisions backed by ~62,000 measurements:
 #### TR142: Quality-Safety Correlation Under Quantization
 **File:** `Technical_Report_142_v2.md`
 - Merged analysis of 33,810 quality samples, 38,120 safety samples, and 24,336 judge annotations
-- 6 matched models across 3 families, 40 model-quant cells, 14 core analysis passes plus supporting diagnostics
+- 6 matched models across 4 families, 40 model-quant cells, 14 core analysis passes plus supporting diagnostics
 - Sign reversal persists in the expanded matrix: 34/36 quality-safety pairings split positive and negative across models
 - Safety degrades 13.9x faster than quality at llama3.2-1b Q3_K_S, while qwen2.5-7b Q2_K reproduces the hidden-danger pattern outside Llama
 - Q5_K_M remains the conservative floor; Q4_K_M is still model-dependent and ambiguous
