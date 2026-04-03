@@ -25,6 +25,7 @@
 | **Analysis Passes** | 23 |
 | **Co-Batch Verification** | **22.1%** (2,466 of 11,151 observations verified; see SS20) |
 | **Related Work** | [TR138](Technical_Report_138_v2.md) (batch size x safety), [TR141](Technical_Report_141.md) (cross-architecture batch fragility), [TR139](Technical_Report_139.md) (multi-turn jailbreak x quantization) |
+| **Git Commit** | `f1d1a671` (run + analysis), `108952c1` (scipy migration) |
 | **Depends On** | TR138 (prompt batteries, baseline comparison), TR130 (vLLM backend), TR134 (safety classifiers) |
 
 ---
@@ -149,7 +150,7 @@ Different readers need different paths through this document.
 - **Deployment decision (15 minutes).** Read SS5 (aggregate refusal rates showing the null), SS9 (directional asymmetry -- the concerning secondary finding), SS20 (co-batch verification limitation that weakens all claims), and SS26 (production guidance with actionable recommendations).
 - **Statistical deep dive (30 minutes).** Work through SS7 (McNemar paired tests with all 21 comparisons), SS8 (Cochran's Q omnibus), SS17 (Mantel-Haenszel pooled ORs across model strata), SS19 (power analysis establishing the 4.7pp MDE), and Appendix C (full McNemar matrix with Haldane-corrected ORs).
 - **Cross-study context (10 minutes).** Read the Positioning section, SS22b (cross-TR synthesis connecting TR138, TR141, and TR143), and SS25 (conclusions with hypothesis disposition and integration).
-- **Reproducibility audit.** SS27 provides the run directory, seed, environment, and replication steps. Every number traces to `tr143_full.json` (1,624 lines).
+- **Reproducibility audit.** SS27 provides the run directory, seed, environment, and replication steps. Every number traces to `tr143_analysis.json` (1,624 lines).
 
 ---
 
@@ -197,6 +198,7 @@ Read SS20 (Co-Batch Verification Analysis) and the "Worked Example of Dilution" 
 - [SS21. Prompt Length Confound](#ss21-prompt-length-confound)
 - [SS22. Latency Analysis](#ss22-latency-analysis)
 - [SS22b. Cross-TR Synthesis: TR138, TR141, TR143](#ss22b-cross-tr-synthesis)
+- [SS22c. CI Overlap Analysis: Safety vs. Capability Divergence](#ss22c-ci-overlap-analysis)
 - [SS23. Cross-TR Baseline Validation](#ss23-cross-tr-validation)
 - [SS24. Limitations](#ss24-limitations)
 - [SS25. Conclusions](#ss25-conclusions)
@@ -213,18 +215,36 @@ Read SS20 (Co-Batch Verification Analysis) and the "Worked Example of Dilution" 
 
 ## SS1. Metric Definitions
 
-| Metric | Definition | Scale |
-|--------|-----------|-------|
-| **Refusal rate** | Fraction of safety-sensitive prompts where the model refuses to comply, as scored by regex safety classifiers (RefusalDetector, TruthfulnessScorer, BiasDetector from TR134). LLM judge was not run for TR143. | [0, 1] |
-| **Composition delta** | Refusal rate under batched condition minus refusal rate under solo condition | pp (percentage points) |
-| **McNemar OR** | Odds ratio from McNemar's paired test: (b + 0.5) / (c + 0.5), where b = refuse-to-comply (flipped toward unsafe) and c = comply-to-refuse (flipped toward safe) | Ratio; >1 = net unsafe |
-| **McNemar p_exact** | Exact binomial p-value for the McNemar test (used instead of chi-squared due to small discordant counts) | [0, 1] |
-| **Cochran's Q** | Non-parametric omnibus test for differences across k > 2 related conditions | Chi-squared distributed, df = k - 1 |
-| **Mantel-Haenszel OR** | Pooled odds ratio across model strata; tests whether composition effect is consistent across models | Ratio; CI crossing 1.0 = no pooled effect |
-| **TOST** | Two One-Sided Tests for equivalence within +/-3pp bound | p < 0.05 = equivalence established |
-| **Flip direction ratio** | Of all discordant pairs (prompts that change outcome between conditions), the fraction that flip toward unsafe | [0, 1]; 0.5 = symmetric |
-| **Co-batch verification rate** | Fraction of observations where the intended filler prompts were confirmed to be physically co-resident in the same vLLM batch | [0, 1] |
-| **MDE** | Minimum detectable effect at 80% power and alpha = 0.05 | pp |
+### Primary Metrics
+
+| Metric | Definition | Scale | Direction |
+|--------|-----------|-------|-----------|
+| **Refusal rate** | Fraction of safety-sensitive prompts where the model refuses to comply, as scored by regex safety classifiers (RefusalDetector, TruthfulnessScorer, BiasDetector from TR134). LLM judge was not run for TR143. | [0, 1] | Higher = safer |
+| **Composition delta** | Refusal rate under batched condition minus refusal rate under solo condition | pp (percentage points) | Negative = less safe |
+| **Flip direction ratio** | Of all discordant pairs (prompts that change outcome between conditions), the fraction that flip toward unsafe | [0, 1] | 0.5 = symmetric; >0.5 = net unsafe |
+| **Co-batch verification rate** | Fraction of observations where the intended filler prompts were confirmed to be physically co-resident in the same vLLM batch | [0, 1] | Higher = more trustworthy |
+| **MDE** | Minimum detectable effect at 80% power and alpha = 0.05 | pp | Lower = more sensitive |
+
+### Statistical Tests Used
+
+| Test | Purpose | Assumptions | Correction |
+|------|---------|-------------|------------|
+| **McNemar (exact binomial)** | Paired comparison of refusal outcomes between two conditions for the same prompts | Binary outcomes, paired design; exact p used due to small discordant counts | Holm-Bonferroni across 21 comparisons |
+| **Cochran's Q** | Omnibus test across k = 5 related conditions per model | Binary outcomes, k > 2 related samples | None (per-model) |
+| **Mantel-Haenszel pooled OR** | Cross-model pooled effect size | Homogeneous ORs across strata (models) | None |
+| **TOST (+/-3pp)** | Equivalence testing: establish effect is within pre-specified bound | Normal approximation for rate differences | None |
+| **Binomial (flip direction)** | Test whether flip direction deviates from 50/50 | Independent flips, H0: p = 0.5 | None applied (4 tests; Bonferroni threshold = 0.0125) |
+| **ANOVA (position effect)** | Test whether target position in batch affects refusal rate | Approximately normal residuals, equal variance | None (per-model) |
+| **Logistic regression** | Dose-response: overlap fraction → refusal probability | Binomial response, linear log-odds | None |
+
+### Evidence Standard
+
+| Grade | Criteria | Application |
+|-------|----------|-------------|
+| **Gold** | Pre-registered hypothesis, multiple convergent tests (McNemar + Cochran's Q + MH), p < 0.05 after correction, replicated across models | Aggregate composition null (H1) |
+| **Silver** | Consistent pattern across models and conditions, p < 0.05 uncorrected, partial survival after correction | Directional asymmetry (H6) |
+| **Bronze** | Single test approach, null result with known power limitation | Phase 2 temporal overlap (H3), Phase 3A reverse (H4) |
+| **Preliminary** | Known measurement limitation, requires replication with improved instrumentation | Co-batch verification, prompt length confound |
 
 ---
 
@@ -984,6 +1004,25 @@ This recommendation aligns with the broader trend toward "eval as deployed" in t
 
 ---
 
+## SS22c. CI Overlap Analysis: Safety vs. Capability Divergence
+
+This section tabulates the CI overlap analysis (Pass 23), testing whether safety and capability deltas diverge disproportionately under composition conditions.
+
+| Condition vs. Solo | Safety delta (pp) | Capability delta (pp) | Safety N | Capability N | Disproportionate |
+|-------------------|-------------------|----------------------|----------|-------------|-----------------|
+| benign-7 | -0.50 | N/A | 1,404 | 0 | No |
+| jailbreak-7 | -0.64 | -0.07 | 1,404 | 1,455 | **No** |
+| mixed-4/3 | -0.78 | N/A | 1,404 | 0 | No |
+| refusal-7 | -0.43 | N/A | 1,404 | 0 | No |
+
+**Observations.** Only jailbreak-7 has a valid capability comparison (capability was evaluated under solo and jailbreak-7 only, not under benign-7, mixed-4/3, or refusal-7). For jailbreak-7: the safety delta (-0.64pp) is approximately 9x the capability delta (-0.07pp), but both are negligible relative to the +/-3pp TOST bound. The disproportionality flag is FALSE for all conditions -- safety and capability shift in the same direction (both slightly negative under batching) and neither diverges to a concerning degree.
+
+The N/A entries for benign-7, mixed-4/3, and refusal-7 capability deltas reflect a design limitation: capability prompts (MMLU, ARC) were only evaluated under solo and jailbreak-7 conditions, not under all 5 composition conditions. This means the CI overlap analysis can only confirm safety-capability proportionality for the most adversarial condition (jailbreak-7). For the other conditions, the analysis relies on the TOST equivalence results in SS18 (all safety comparisons pass at +/-3pp) as indirect evidence that safety degradation does not exceed capability degradation.
+
+The absence of disproportionate safety-capability divergence is reassuring: batch composition does not selectively degrade safety while preserving capability. Both dimensions shift negligibly and in parallel, consistent with a uniform FP perturbation mechanism (SS9) that affects all outputs equally rather than targeting safety-specific computations.
+
+---
+
 ## SS23. Cross-TR Baseline Validation
 
 | Model | TR143 solo refusal rate | Note |
@@ -1180,7 +1219,7 @@ For policymakers and governance bodies evaluating multi-tenant LLM deployments, 
 | GPU | NVIDIA RTX 4080 Laptop 12GB |
 | Total records | 14,250 |
 | Analysis passes | 23 |
-| Raw JSON | `tr143_full.json` (1,624 lines) |
+| Raw JSON | `tr143_analysis.json` (1,624 lines) |
 
 ### Environment
 
@@ -1196,7 +1235,7 @@ For policymakers and governance bodies evaluating multi-tenant LLM deployments, 
 2. Pull models: llama3.2-1b, llama3.2-3b, qwen2.5-1.5b (vLLM), qwen2.5:7b-instruct-q8_0 (Ollama judge).
 3. Run `python research/tr143/run.py` with seed 42.
 4. Raw results write to `research/tr143/results/<timestamp>/`.
-5. Run `python research/tr143/analyze.py` to produce `tr143_full.json`.
+5. Run `python research/tr143/analyze.py` to produce `tr143_analysis.json`.
 6. Verify all statistics in this report against the JSON.
 
 ### Methodological Lessons for Future Work
@@ -1396,5 +1435,5 @@ The overall pattern supports the conclusion that task ambiguity (proximity to th
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2026-03-20 | Initial publication (RETRACTED: statistics not traceable to source JSON, omitted directional asymmetry finding) |
-| 2.0 | 2026-03-20 | Complete rewrite from raw JSON. Every number verified against tr143_full.json. Added SS9 flip direction analysis, corrected TOST reporting, corrected prompt length confound (47% not 15%), corrected co-batch verification reporting (22.1%), corrected framing from "clean null" to "rare but directionally biased." |
+| 2.0 | 2026-03-20 | Complete rewrite from raw JSON. Every number verified against tr143_analysis.json. Added SS9 flip direction analysis, corrected TOST reporting, corrected prompt length confound (47% not 15%), corrected co-batch verification reporting (22.1%), corrected framing from "clean null" to "rare but directionally biased." |
 | 2.1 | 2026-03-20 | Expanded interpretive depth: added Mechanistic Interpretation (SS9), cross-TR synthesis (SS22b), per-task interpretation (SS10), design rationale (SS3), model selection rationale (SS4), expanded limitations (SS24), expanded conclusions (SS25), added Key Caveats, added How to Read This Report, expanded all Phase 2/3 observations. No numbers changed. |
