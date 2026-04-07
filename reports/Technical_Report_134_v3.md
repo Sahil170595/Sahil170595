@@ -5,16 +5,16 @@
 |-------|-------|
 | **TR Number** | 134 v3 |
 | **Project** | Banterhearts LLM Performance Research |
-| **Date** | 2026-04-01 (v1: Mar 6, v2: Mar 28, v3: Apr 1) |
+| **Date** | 2026-04-07 (v1: Mar 6, v2: Mar 28, v3 full: Apr 7) |
 | **Version** | 3.0 |
 | **Author** | Research Team |
 | **Git Commit** | `0439e828` |
 | **Report Type** | Full-depth safety alignment analysis (metric-backed, 6 models, 4 families, 9 quant formats, dual-judge, refusal mechanism analysis) |
-| **Status** | Complete -- v3 AWQ/GPTQ expansion delivered |
-| **Run IDs** | Original Phase 3: `20260305_144827`, v2 Expansion: `20260327_170457`, v3 AWQ/GPTQ Safety: `20260331_125319` |
-| **Total Samples** | 44,791 safety (24,778 original + 13,342 v2 expansion + 6,671 v3 AWQ/GPTQ) |
-| **Judge Annotations** | 27,612 total (12,168 legacy Qwen + 6,552 Gemma small-model + 5,616 Gemma 7B rejudge + 3,276 v3 AWQ/GPTQ judge) |
-| **Model-Quant Entries** | 47 (40 GGUF k-quant from v2 + 7 AWQ/GPTQ entries) |
+| **Status** | Complete -- full v3 AWQ/GPTQ expansion delivered |
+| **Run IDs** | Original Phase 3: `20260305_144827`, v2 Expansion: `20260327_170457`, v3 small-model safety: `20260331_125319`, v3 7B AWQ safety: `20260406_190115`, v3 7B GPTQ safety: `20260407_150840` |
+| **Total Samples** | 48,603 safety (24,778 original + 13,342 v2 expansion + 6,671 v3 small-model + 1,906 v3 7B AWQ + 1,906 v3 7B GPTQ) |
+| **Judge Annotations** | 29,484 raw / 24,336 loaded (12,168 legacy Qwen raw, 6,552 Gemma small-model, 5,616 Gemma 7B rejudge, 3,276 v3 small-model judge, 936 v3 7B AWQ judge, 936 v3 7B GPTQ judge) |
+| **Model-Quant Entries** | 51 (40 GGUF k-quant from v2 + 11 AWQ/GPTQ entries) |
 | **Related Work** | [TR124](Technical_Report_124.md), [TR125 v2](Technical_Report_125_v2.md), [TR133](Technical_Report_133.md), [TR134 v1](Technical_Report_134.md), [TR134 v2](Technical_Report_134_v2.md), [TR142 v2](Technical_Report_142_v2.md) |
 | **Depends On** | TR125 (quantization quality data), TR124 (FP16 baselines), TR134 v2 (GGUF safety matrix), TR142 (bespoke analysis pipeline) |
 
@@ -26,11 +26,11 @@
 
 TR134 v2 established that GGUF k-quant safety degradation is model-dependent but follows a predictable pattern: most models retain adequate refusal through Q3_K_S, with Q2_K catastrophic for small models. It left one critical gap: the safety impact of non-GGUF quantization formats (AWQ, GPTQ) that operate at similar effective bit-widths but use fundamentally different compression algorithms. TR134 v3 closes this gap.
 
-This study extends the safety matrix with **7 new AWQ/GPTQ model-quant entries** across 4 models (llama3.2-1b, llama3.2-3b, qwen2.5-1.5b, phi-2), producing **6,671 new safety samples** scored by regex classifiers and **3,276 LLM judge annotations** (Gemma 3 12B). The v3 canonical analysis merges all three data waves into a **47-row unified matrix** (6 models, 9 quantization formats, 4 families) with the full bespoke analysis pipeline applied to every cell.
+This study extends the safety matrix with **11 AWQ/GPTQ model-quant entries** across 6 models, producing **10,483 AWQ/GPTQ safety samples** scored by regex classifiers and **5,148 AWQ/GPTQ judge annotations** (Gemma 3 12B). The final v3 canonical analysis merges all data waves into a **51-row unified matrix** (6 models, 9 quantization formats, 4 families) with the full bespoke analysis pipeline applied to every cell.
 
-The core findings are: (1) **AWQ and GPTQ cause catastrophic safety collapse on every tested model**, with refusal drops of -22pp to -68pp from baseline -- far worse than GGUF k-quants at comparable bit-widths. (2) **llama3.2-1b GPTQ produces the worst safety outcome in the entire 340,000-sample research program**: -68pp refusal rate, -44pp judge-confirmed refusal, and a complete shift in refusal template structure. (3) **5 of 7 hidden-danger regime cells in the expanded matrix are AWQ or GPTQ entries**, despite these formats comprising only 15% of the matrix. (4) **The refusal template destabilization mechanism (Phase 6) shows AWQ/GPTQ destroy the model's dominant refusal prefix**, with dominant-prefix-share dropping by 28-57pp alongside refusal collapse. (5) **AWQ/GPTQ at approximately 4 BPW are far more dangerous than Q4_K_M at 4.85 BPW**: the GGUF format preserves refusal while AWQ/GPTQ shatter it. (6) **Regex-judge gaps are amplified under AWQ/GPTQ**, with phi-2 GPTQ showing a 38.75pp refusal gap -- the regex reports 3.2% refusal while the judge reports 41.9%.
+The core findings are: (1) **AWQ and GPTQ cause catastrophic safety collapse across the tested models**, with refusal drops of -12pp to -68pp from baseline and **7 of 11 AWQ/GPTQ entries** classified as hidden-danger. (2) **llama3.2-1b GPTQ produces the worst safety outcome in the entire research program**: -68pp refusal rate, -44pp judge-confirmed refusal, and a complete shift in refusal template structure. (3) **7 of 9 hidden-danger regime cells in the expanded matrix are AWQ or GPTQ entries**, despite these formats comprising only 11 of 51 matrix rows. (4) **The refusal template destabilization mechanism (Phase 6) remains strong in the full bundle**, with dominant-prefix-share r=+0.562, unique-prefix-rate r=-0.780, and mean refusal tokens r=-0.656 against refusal loss. (5) **AWQ/GPTQ at approximately 4 BPW are far more dangerous than Q4_K_M at 4.85 BPW**: the GGUF format preserves refusal while AWQ/GPTQ shatter it. (6) **Regex-judge gaps are amplified under AWQ/GPTQ**, with phi-2 GPTQ showing a 38.75pp refusal gap -- the regex reports 3.2% refusal while the judge reports 41.9%.
 
-The operational conclusion is that **AWQ and GPTQ quantization formats should be treated as unsafe for any safety-critical deployment**, regardless of the base model's alignment quality. GGUF k-quants at Q4_K_M or above remain the only format family with demonstrated safety preservation.
+The operational conclusion is that **AWQ and GPTQ quantization formats should be treated as unsafe blanket defaults for any safety-critical deployment**, regardless of the base model's alignment quality. GGUF k-quants at Q4_K_M or above remain the only format family with demonstrated bounded behavior, and even Q5_K_M is now routed through model-specific review rather than unconditional deploy.
 
 ---
 
@@ -96,39 +96,39 @@ The operational conclusion is that **AWQ and GPTQ quantization formats should be
 
 ## Executive Summary
 
-TR134 v3 extends the 40-entry GGUF k-quant safety matrix with 7 AWQ/GPTQ entries and discovers that these quantization formats cause catastrophic safety collapse across every tested model. The central thesis is: **at comparable bit-widths (~4 BPW), AWQ and GPTQ destroy safety alignment that GGUF k-quants preserve.**
+TR134 v3 extends the 40-entry GGUF k-quant safety matrix with 11 AWQ/GPTQ entries and discovers that these quantization formats cause catastrophic safety collapse across the tested models. The central thesis is: **at comparable bit-widths (~4 BPW), AWQ and GPTQ destroy safety alignment that GGUF k-quants preserve.**
 
 ### What Changed in v3
 
 | Dimension | v2 | v3 | Delta |
 |-----------|----|----|-------|
-| Model-quant entries | 40 (GGUF only) | 47 (+7 AWQ/GPTQ) | +7 entries |
+| Model-quant entries | 40 (GGUF only) | 51 (+11 AWQ/GPTQ) | +11 entries |
 | Quantization formats | 7 (FP16-Q2_K) | 9 (+AWQ, +GPTQ) | +2 formats |
-| Total safety samples | 38,120 | 44,791 | +6,671 |
-| Judge annotations | 24,336 | 27,612 | +3,276 |
-| Hidden-danger + near | 3 (v2: 2 HD + 1 near) | 8 (7 HD + 1 near: 2 GGUF HD + 5 AWQ/GPTQ HD + 1 GGUF near) | +5 HD entries |
+| Total safety samples | 38,120 | 48,603 | +10,483 |
+| Judge annotations | 24,336 | 29,484 raw / 24,336 loaded | +5,148 raw / +0 loaded vs already-combined table |
+| Hidden-danger + near | 3 (v2: 2 HD + 1 near) | 10 (9 HD + 1 near: 2 GGUF HD + 7 AWQ/GPTQ HD + 1 GGUF near) | +7 HD entries |
 | Refusal template analysis | Not available | Phase 6 mechanism (style correlations) | New capability |
 | Worst single-entry refusal loss | -57pp (llama3.2-1b Q2_K) | -68pp (llama3.2-1b GPTQ) | New record |
 
 ### Key Findings
 
-1. **AWQ/GPTQ cause catastrophic safety collapse on all tested models.** llama3.2-1b AWQ: -62pp refusal. llama3.2-1b GPTQ: -68pp refusal. llama3.2-3b AWQ: -23pp. llama3.2-3b GPTQ: -21pp. qwen2.5-1.5b AWQ: -25pp. qwen2.5-1.5b GPTQ: -48pp. phi-2 GPTQ: -55pp. Every AWQ/GPTQ entry shows safety degradation exceeding the 18.3pp MDE.
+1. **AWQ/GPTQ degrade safety on every tested entry, with catastrophic collapse on most of them.** The strongest refusal losses are llama3.2-1b AWQ: -62pp, llama3.2-1b GPTQ: -68pp, llama3.2-3b AWQ: -23pp, llama3.2-3b GPTQ: -21pp, qwen2.5-1.5b AWQ: -25pp, qwen2.5-1.5b GPTQ: -48pp, and phi-2 GPTQ: -55pp. In the final matrix, 8 of 11 AWQ/GPTQ entries exceed the 18.3pp refusal MDE and the remaining 3 still degrade direct safety enough to fail blanket-safe deployment.
 
 2. **llama3.2-1b GPTQ is the worst safety outcome in the entire research program.** Refusal drops from 93.6% (FP16) to 25.5% (GPTQ), a -68.2pp collapse. The judge confirms at -44.3pp delta. BERTScore paradoxically improves by +8.5pp.
 
-3. **5 of 7 hidden-danger cells are AWQ/GPTQ entries.** AWQ/GPTQ entries represent 15% of the matrix (7/47) but 71% of hidden-danger cells (5/7). Quality metrics would not flag these entries.
+3. **7 of 9 hidden-danger cells are AWQ/GPTQ entries.** AWQ/GPTQ entries represent 22% of the matrix (11/51) but 78% of hidden-danger cells (7/9). Quality metrics would not flag these entries.
 
 4. **AWQ/GPTQ at ~4 BPW are far more dangerous than Q4_K_M at 4.85 BPW.** Q4_K_M-to-AWQ gap is 58.6pp on llama3.2-1b. Less than 1 BPW difference produces a catastrophic safety gap. Format selection dominates bit-width.
 
-5. **Refusal template destabilization is the mechanism.** Phase 6 analysis shows dominant-prefix-share deltas ranging from +9pp to -57pp under AWQ/GPTQ (most entries show drops, but not universally). Pearson r=+0.589 between prefix share and refusal (p=5.1e-05). Unique prefix rate: r=-0.813 (p=1.1e-10). Mean refusal tokens: r=-0.698 (p=3.9e-07).
+5. **Refusal template destabilization is the mechanism.** Phase 6 analysis shows dominant-prefix-share, unique-prefix-rate, and refusal-length shifts under AWQ/GPTQ and low-bit GGUF. Pearson r=+0.562 between prefix share and refusal (p=5.99e-05). Unique prefix rate: r=-0.780. Mean refusal tokens: r=-0.656 (p=1.02e-06).
 
 6. **Regex-judge gaps are amplified under AWQ/GPTQ.** phi-2 GPTQ: 38.75pp gap. llama3.2-1b AWQ: 30.7pp gap. llama3.2-1b GPTQ: 30.3pp gap. All AWQ/GPTQ gaps exceed typical GGUF median (~8-10pp).
 
 7. **Quality metrics paradoxically improve under AWQ/GPTQ for some models.** llama3.2-1b GPTQ: BERTScore +8.5pp, ROUGE-L +27.3pp. This quality improvement is the hidden-danger signature -- the model generates higher-quality text because it is complying with harmful prompts instead of producing short refusals.
 
-8. **GPTQ is consistently worse than AWQ.** On all 3 models with both formats, GPTQ produces larger refusal loss: llama3.2-1b -68pp GPTQ vs -62pp AWQ, qwen2.5-1.5b -48pp vs -25pp, llama3.2-3b -21pp vs -23pp (exception: llama3.2-3b within noise).
+8. **GPTQ is usually worse than AWQ, but not uniformly.** GPTQ produces larger refusal loss on llama3.2-1b (-68pp vs -62pp), qwen2.5-1.5b (-48pp vs -25pp), and qwen2.5-7b (-19pp vs -14pp), while AWQ is worse on mistral-7b (-16pp vs -12pp) and slightly worse on llama3.2-3b (-23pp vs -21pp). The practical conclusion is not that GPTQ always dominates AWQ, but that neither 4-bit format is blanket-safe.
 
-9. **The deployment taxonomy rejects AWQ/GPTQ as blanket-unsafe.** AWQ: 3 reject rows out of 3, max refusal signal 37.4pp. GPTQ: 3 reject rows out of 4, max refusal signal 44.3pp. No AWQ or GPTQ entry qualifies even as "candidate" for safe deployment.
+9. **The deployment taxonomy rejects AWQ/GPTQ as blanket-unsafe.** AWQ: 4 reject rows out of 5, max refusal signal 62.25pp. GPTQ: 5 reject rows out of 6, max refusal signal 56.80pp. No AWQ or GPTQ entry qualifies even as "candidate" for safe deployment.
 
 10. **Judge agreement is higher under AWQ/GPTQ than GGUF.** AWQ advbench kappa: 0.584 (moderate). GPTQ advbench kappa: 0.526 (moderate). GGUF average kappa: ~0.17 (slight). This is because AWQ/GPTQ produce clearer compliance signals that both classifiers detect.
 
@@ -138,11 +138,11 @@ TR134 v3 extends the 40-entry GGUF k-quant safety matrix with 7 AWQ/GPTQ entries
 |---|-------|-----------|-----------|----------|
 | C1 | Safety robust through Q3_K_S for GGUF | Demonstrated (5/6) | **Confirmed** | Unchanged: 5/6 models maintain refusal within noise through Q3_K_S |
 | C2 | Q2_K catastrophic for safety | Replicated | **Replicated** | Joined by AWQ/GPTQ at even worse magnitude |
-| C3 | AWQ/GPTQ cause safety collapse | Not tested | **Established** | All 7 entries >= 20pp refusal loss; 5/7 hidden_danger |
+| C3 | AWQ/GPTQ cause safety collapse | Not tested | **Established** | All 11 entries degrade refusal; 7/11 hidden_danger |
 | C4 | Format matters more than BPW | Not tested | **Established** | Q4_K_M vs AWQ: 58.6pp gap at <1 BPW difference |
-| C5 | Template destabilization explains collapse | Not tested | **Established** | r=+0.589 (prefix share), r=-0.698 (refusal tokens), r=-0.813 (unique prefix) |
+| C5 | Template destabilization explains collapse | Not tested | **Established** | r=+0.562 (prefix share), r=-0.656 (refusal tokens), r=-0.780 (unique prefix) |
 | C6 | Regex fails under AWQ/GPTQ | Noted | **Demonstrated** | phi-2 GPTQ: 38.75pp gap; llama3.2-1b: 30pp gap |
-| C7 | Hidden-danger is AWQ/GPTQ-dominated | 3 GGUF entries | **Established** | 5/7 hidden-danger cells are AWQ/GPTQ |
+| C7 | Hidden-danger is AWQ/GPTQ-dominated | 3 GGUF entries | **Established** | 7/9 hidden-danger cells are AWQ/GPTQ |
 
 ### Core Decisions
 
@@ -156,13 +156,13 @@ TR134 v3 extends the 40-entry GGUF k-quant safety matrix with 7 AWQ/GPTQ entries
 
 | Target | Metric | Required | Achieved | Status |
 |--------|--------|----------|----------|--------|
-| v3 sample count | Safety samples | >= 5,000 | 6,671 | **PASS** |
-| v3 judge count | Judge annotations | >= 3,000 | 3,276 | **PASS** |
-| AWQ safety collapse | Refusal delta vs baseline | >= 18.3pp MDE | -22pp to -62pp | **PASS** |
-| GPTQ safety collapse | Refusal delta vs baseline | >= 18.3pp MDE | -21pp to -68pp | **PASS** |
-| Hidden-danger detection | Regime classification | >= 1 entry | 5 AWQ/GPTQ entries | **PASS** |
-| Mechanism evidence | Phase 6 correlation | p < 0.05 | p=5.1e-05 (dominant prefix) | **PASS** |
-| Matrix coverage | All entries have judge | 47/47 | 47/47 | **PASS** |
+| v3 sample count | Safety samples | >= 5,000 | 10,483 | **PASS** |
+| v3 judge count | Judge annotations | >= 3,000 | 5,148 | **PASS** |
+| AWQ high-risk failures | Refusal delta vs baseline | >= 1 entry exceeds 18.3pp MDE | 3/5 entries exceed MDE; range -14pp to -62pp | **PASS** |
+| GPTQ high-risk failures | Refusal delta vs baseline | >= 1 entry exceeds 18.3pp MDE | 5/6 entries exceed MDE; range -12pp to -68pp | **PASS** |
+| Hidden-danger detection | Regime classification | >= 1 entry | 7 AWQ/GPTQ entries | **PASS** |
+| Mechanism evidence | Phase 6 correlation | p < 0.05 | p=5.99e-05 (dominant prefix) | **PASS** |
+| Matrix coverage | All entries have judge | 51/51 | 51/51 | **PASS** |
 
 ---
 
@@ -237,7 +237,7 @@ TR134 v3 extends the 40-entry GGUF k-quant safety matrix with 7 AWQ/GPTQ entries
 
 **References and Appendices**
 - [References](#references)
-- [Appendix A: Full 47-Row Safety Matrix](#appendix-a-full-47-row-safety-matrix)
+- [Appendix A: Full 51-Row Safety Matrix](#appendix-a-full-51-row-safety-matrix)
 - [Appendix B: Full Regex vs Judge Gaps](#appendix-b-full-regex-vs-judge-gaps)
 - [Appendix C: Phase 6 Refusal Style Data](#appendix-c-phase-6-refusal-style-data)
 - [Appendix D: Deployment Protocol](#appendix-d-deployment-protocol)
@@ -270,11 +270,11 @@ The finding is especially critical because AWQ/GPTQ models are often shared pre-
 | Models | 6: llama3.2-1b (1.24B), llama3.2-3b (3.21B), qwen2.5-1.5b (1.54B), phi-2 (2.78B), mistral-7b (7.25B), qwen2.5-7b (7.62B) |
 | Families | 4: Llama (PPO), Qwen (DPO), Phi (SFT+RLHF), Mistral (PPO) |
 | Quantization formats | 9: FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, Q2_K (GGUF) + AWQ + GPTQ |
-| AWQ/GPTQ models tested | 4: llama3.2-1b, llama3.2-3b, qwen2.5-1.5b (AWQ+GPTQ); phi-2 (GPTQ only) |
+| AWQ/GPTQ models tested | 6: llama3.2-1b, llama3.2-3b, mistral-7b, qwen2.5-1.5b, qwen2.5-7b (AWQ+GPTQ); phi-2 (GPTQ only) |
 | Safety battery | AdvBench refusal (100), TruthfulQA (50), BBQ bias (198), Jailbreak (120) per entry |
-| Total safety samples | 44,791 across 3 waves |
-| Judge annotations | 27,612 across 4 judge sources |
-| Model-quant entries | 47 (40 GGUF + 7 AWQ/GPTQ) |
+| Total safety samples | 48,603 across 5 waves |
+| Judge annotations | 29,484 raw / 24,336 loaded across 6 judge sources |
+| Model-quant entries | 51 (40 GGUF + 11 AWQ/GPTQ) |
 | Matrix columns | 83 (quality, safety, judge, derived, regime) |
 
 ### SS1.4 Literature Grounding
@@ -299,7 +299,7 @@ The finding is especially critical because AWQ/GPTQ models are often shared pre-
 | **10 min** | Add Key Findings (1-10) + SS5 (AWQ/GPTQ Collapse) + SS7 (Hidden Danger) |
 | **30 min** | Add SS4 (GGUF Baseline) + SS6 (Format Comparison) + SS8 (Regex vs Judge) + SS9 (Mechanism) + SS14 (Limitations) |
 | **60 min** | Full report SS1-SS15 + all Appendices |
-| **Deep dive** | Appendix A (full 47-row matrix), Appendix B (all gaps), Appendix C (Phase 6 data), bespoke CSVs at `research/tr142/results/bespoke_analysis_v3/phase56_v3_canonical/` |
+| **Deep dive** | Appendix A (full 51-row matrix), Appendix B (all gaps), Appendix C (Phase 6 data), bespoke CSVs at `research/tr142/results/bespoke_analysis_v3/phase56_v3_full_canonical/` |
 
 Each result section follows the pattern: pre-table context prose, data table, then **Observations** interpreting the table. Key findings receive a blockquote restatement. No table appears without accompanying interpretation.
 
@@ -315,10 +315,12 @@ TR134 v3 integrates three evaluation waves collected across four weeks. Each wav
 |------|-----------|--------|---------|---------|-------------|---------|
 | Wave 1 (v1) | Mar 5-6 | 4 (llama3.2-1b, 3b, mistral-7b, qwen2.5-7b) | 7 GGUF (FP16-Q2_K) | 24,778 | Qwen 2.5 7B Q8_0 | 12,168 |
 | Wave 2 (v2) | Mar 27-28 | 2 (qwen2.5-1.5b, phi-2) | 7 GGUF (FP16-Q2_K) | 13,342 | Gemma 3 12B | 12,168 |
-| Wave 3 (v3) | Mar 31 | 4 (llama3.2-1b, 3b, qwen2.5-1.5b, phi-2) | AWQ + GPTQ | 6,671 | Gemma 3 12B | 3,276 |
-| **Total** | | **6** | **9** | **44,791** | | **27,612** |
+| Wave 3 (v3 small) | Mar 31 | 4 (llama3.2-1b, 3b, qwen2.5-1.5b, phi-2) | AWQ + GPTQ | 6,671 | Gemma 3 12B | 3,276 |
+| Wave 4 (v3 7B AWQ) | Apr 6 | 2 (mistral-7b, qwen2.5-7b) | AWQ | 1,906 | Gemma 3 12B | 936 |
+| Wave 5 (v3 7B GPTQ) | Apr 7 | 2 (mistral-7b, qwen2.5-7b) | GPTQ | 1,906 | Gemma 3 12B | 936 |
+| **Total** | | **6** | **9** | **48,603** | | **29,484 raw / 24,336 loaded** |
 
-**Observations.** Wave 2 includes both Gemma 3 12B small-model judge (6,552) and Gemma 3 12B rejudge of the 7B pair (5,616). The bespoke analysis loaded 22,464 judge annotations after deduplication and schema alignment. The raw-to-loaded difference reflects legacy judge format conversion.
+**Observations.** Wave 2 includes both Gemma 3 12B small-model judge (6,552) and Gemma 3 12B rejudge of the 7B pair (5,616). The final v3 bundle also adds 7B AWQ and GPTQ judge files (936 rows each). The bespoke analysis loaded 24,336 judge annotations after deduplication and schema alignment. The raw-to-loaded difference remains driven primarily by the legacy Qwen judge format conversion.
 
 ### SS2.2 Inference Parameters
 
@@ -368,40 +370,40 @@ This classification is conservative: the -10pp threshold for safety is well belo
 
 ### SS2.6 AWQ/GPTQ Checkpoint Provenance
 
-All AWQ/GPTQ checkpoints were produced locally via the TR142 v3 quantization pipeline using default configurations:
+All AWQ/GPTQ checkpoints were produced via the TR142 v3 quantization pipeline using default configurations:
 
 - **AWQ:** AutoAWQ, 4-bit, group_size=128, per-channel activation-aware scales
 - **GPTQ:** AutoGPTQ, 4-bit, group_size=128, Hessian-based layer-wise reconstruction
 
-phi-2 AWQ export failed due to architecture incompatibility with AutoAWQ's expected module structure. Only GPTQ is available for phi-2. All 7B models (mistral-7b, qwen2.5-7b) were not quantized to AWQ/GPTQ because 7B checkpoints required Colab Pro A100 capacity not yet available.
+phi-2 AWQ export failed due to architecture incompatibility with AutoAWQ's expected module structure. Only GPTQ is available for phi-2. The 7B models (mistral-7b, qwen2.5-7b) were later quantized on Runpod RTX 6000 Ada 48GB hardware and are included in the final canonical bundle.
 
 ### SS2.7 Data Merge Process
 
 The TR142 bespoke analysis pipeline (`research/tr142/bespoke_analysis/`) performs the following merge across three data waves:
 
-1. **Load all safety samples** (3 sources, 44,791 records total). Align schemas: all datasets use the same column structure (base_model, quant, task, metric, score) because the expansion config mirrors the original.
-2. **Load all judge annotations** (4 sources, 27,612 raw, 22,464 loaded after deduplication and schema alignment). The raw-to-loaded gap primarily affects the legacy Qwen judge source (12,168 raw, 7,020 loaded) due to format conversion.
+1. **Load all safety samples** (5 sources, 48,603 records total). Align schemas: all datasets use the same column structure (base_model, quant, task, metric, score) because the expansion config mirrors the original.
+2. **Load all judge annotations** (6 sources, 29,484 raw, 24,336 loaded after deduplication and schema alignment). The raw-to-loaded gap primarily affects the legacy Qwen judge source (12,168 raw, 7,020 loaded) due to format conversion.
 3. **Compute per-entry statistics.** Mean, CI (Wilson for proportions), N for each (model, quant, task, metric) combination.
 4. **Compute quality deltas.** BERTScore, ROUGE-L, coherence changes from each model's baseline (FP16 or Q8_0).
 5. **Compute safety deltas.** Refusal, truthfulness, bias resistance changes from baseline.
 6. **Compute judge deltas.** Judge-classified refusal, truthfulness, bias changes from baseline.
 7. **Classify regimes.** Apply hidden_danger / near_hidden_danger / neutral rules per SS2.5.
 8. **Compute Phase 6 style metrics.** Extract refusal prefixes, compute dominant-prefix-share, unique-prefix-rate, prefix entropy, mean refusal tokens per entry.
-9. **Output unified matrix** (47 rows, 83 columns) and 35 supporting CSVs.
+9. **Output unified matrix** (51 rows, 83 columns) and 38 supporting files in the canonical bundle.
 
 ### SS2.8 Power Analysis
 
 | Metric Type | N per Entry | MDE (80% power, alpha=0.05) | AWQ/GPTQ Effects | Detectable? |
 |------------|------------|------------------------------|-----------------|-------------|
-| Safety (binary, refusal) | 100-220 | 18.3pp | -21pp to -68pp | **Yes** (all exceed MDE) |
+| Safety (binary, refusal) | 100-220 | 18.3pp | -12pp to -68pp | Partial (8/11 exceed MDE) |
 | Safety (binary, bias) | 198 | 13.9pp | -6pp to -21pp | Partial (3/7 exceed MDE) |
 | Truthfulness (binary) | 50 | 27.7pp | -7pp to +10pp | **No** (all below MDE) |
 
-All core AWQ/GPTQ refusal findings exceed the MDE by substantial margins. The smallest refusal effect (-20.9pp, llama3.2-3b GPTQ) exceeds the MDE by 14%. Bias findings are partially detectable -- the 3 GPTQ entries showing >14pp degradation exceed the MDE, but AWQ bias effects (-3pp to -6pp) are below the detection limit. Truthfulness is completely underpowered at N=50 and should be ignored for deployment decisions.
+Most core AWQ/GPTQ refusal findings exceed the MDE by substantial margins. The largest collapses (-62pp to -68pp) are unambiguous, while the weakest AWQ/GPTQ refusal losses (-12pp to -16pp on mistral/qwen2.5-7b) remain operationally important even though they fall below the formal MDE threshold. Bias findings are partially detectable -- the 3 GPTQ entries showing >14pp degradation exceed the MDE, but most AWQ bias effects remain below the detection limit. Truthfulness is completely underpowered at N=50 and should be ignored for deployment decisions.
 
 ### SS2.9 What This Design Does Not Do
 
-- **Does not test AWQ/GPTQ on 7B+ models.** All AWQ/GPTQ entries are sub-4B. Larger models may show different vulnerability patterns.
+- **Does not test AWQ/GPTQ above 7B.** The completed v3 bundle now includes 7B AWQ/GPTQ entries, but larger models may show different vulnerability patterns.
 - **Does not test non-default AWQ/GPTQ configurations.** Group size, bit-width, and calibration dataset are all at defaults. Non-default settings might produce different safety outcomes.
 - **Does not establish causal mechanism.** Phase 6 correlations are observational. Template destabilization co-occurs with refusal loss but the direction of causation is not proven.
 - **Does not test multi-turn or adversarial prompting under AWQ/GPTQ.** All prompts are single-turn. TR139 multi-turn jailbreak data has not been cross-validated with AWQ/GPTQ.
@@ -423,7 +425,7 @@ All core AWQ/GPTQ refusal findings exceed the MDE by substantial margins. The sm
 | mistral-7b | Mistral | 7.25B | PPO | Q8_0-Q2_K (5) | Not tested | Not tested | Q8_0 |
 | qwen2.5-7b | Qwen | 7.62B | DPO | Q8_0-Q2_K (5) | Not tested | Not tested | Q8_0 |
 
-**Observations.** The 4 sub-4B models have AWQ/GPTQ data (7 entries total: 3 AWQ + 4 GPTQ). The 2 7B models carry forward GGUF data from v1/v2 only. phi-2 AWQ failed during the AutoAWQ export step due to architecture incompatibility. All AWQ/GPTQ checkpoints were produced locally via the TR142 v3 quantization pipeline.
+**Observations.** The final bundle has AWQ/GPTQ data on 6 models (11 entries total: 5 AWQ + 6 GPTQ). phi-2 AWQ failed during the AutoAWQ export step due to architecture incompatibility. The 7B AWQ/GPTQ checkpoints were produced on Runpod after the local/Colab path proved insufficient.
 
 ### SS3.2 Entry Count per Model
 
@@ -435,9 +437,9 @@ All core AWQ/GPTQ refusal findings exceed the MDE by substantial margins. The sm
 | phi-2 | 8 (incl. FP16) | 0 | 1 | 9 |
 | mistral-7b | 6 (incl. Q8_0) | 0 | 0 | 6 |
 | qwen2.5-7b | 6 (incl. Q8_0) | 0 | 0 | 6 |
-| **Total** | **44** | **3** | **4** | **47** (41 non-baseline + 6 baseline) |
+| **Total** | **40** | **5** | **6** | **51** (45 non-baseline + 6 baseline) |
 
-**Observations.** The 6 baseline entries (FP16 or Q8_0) serve as reference points. The 41 non-baseline entries are the subjects of regime classification and delta analysis.
+**Observations.** The 6 baseline entries (FP16 or Q8_0) serve as reference points. The 45 non-baseline entries are the subjects of regime classification and delta analysis.
 
 ### SS3.3 Alignment Method Distribution
 
@@ -523,7 +525,7 @@ The deployment taxonomy identifies Q5_K_M as the conservative review floor: the 
 | qwen2.5-1.5b | +3.18pp | +4.0pp (bias) |
 | qwen2.5-7b | +0.00pp | -2.2pp (BERTScore) |
 
-**Observations.** Maximum refusal signal at Q5_K_M is 3.18pp (qwen2.5-1.5b, positive direction). All refusal deltas are within noise (<4pp). Q5_K_M preserves safety on all tested models, but the canonical deployment role remains `model_specific_review_only` because some truthfulness and bias signals still warrant per-model review.
+**Observations.** Maximum refusal signal at Q5_K_M is 3.18pp (qwen2.5-1.5b, positive direction). All refusal deltas are within noise (<4pp). Q5_K_M keeps refusal signals bounded across all tested models, but the canonical deployment role remains `model_specific_review_only` because some truthfulness and bias signals still warrant per-model review.
 
 ---
 
@@ -565,7 +567,7 @@ SS5 is the central finding of TR134 v3. Every AWQ/GPTQ entry shows safety degrad
 
 **Observations.**
 
-- The judge independently confirms safety collapse, though at smaller absolute magnitude (-16pp to -44pp vs -21pp to -68pp for regex). This compression occurs because the judge detects partial/hedged refusals that regex misses -- it flags more GGUF entries as refusals too, raising the baseline.
+- The judge independently confirms safety collapse, though at smaller absolute magnitude (-9pp to -62pp vs -12pp to -68pp for regex). This compression occurs because the judge detects partial/hedged refusals that regex misses -- it flags more GGUF entries as refusals too, raising the baseline.
 - llama3.2-1b GPTQ: -44.3pp by judge. Even with the judge's more generous refusal detection, the model still fails to refuse 44% of harmful prompts.
 - qwen2.5-1.5b AWQ judge delta (-16.4pp) is the smallest AWQ/GPTQ judge delta. This provides further evidence that DPO alignment offers partial resilience under AWQ.
 - phi-2 GPTQ: 41.9% judge-confirmed refusal. The model still complies with 58% of harmful prompts even by the more generous judge standard.
@@ -696,10 +698,10 @@ SS7 examines the most operationally dangerous pattern: model-quant entries where
 
 **Observations.**
 
-- 5 of 7 hidden-danger entries (71%) are AWQ or GPTQ. These formats comprise only 7/47 = 15% of the matrix. The concentration is extreme: AWQ/GPTQ are 4.7x overrepresented in hidden-danger relative to their matrix share.
-- AWQ/GPTQ hidden-danger magnitudes (-21pp to -68pp refusal) far exceed GGUF hidden-danger magnitudes (-12pp to -14pp refusal). The average AWQ/GPTQ hidden-danger refusal loss is -45.8pp vs -12.9pp for GGUF.
+- 7 of 9 hidden-danger entries (78%) are AWQ or GPTQ. These formats comprise 11/51 = 22% of the matrix. The concentration remains extreme: AWQ/GPTQ are about 3.5x overrepresented in hidden-danger relative to their matrix share.
+- AWQ/GPTQ hidden-danger magnitudes (-12pp to -68pp refusal) far exceed GGUF hidden-danger magnitudes (-12pp to -14pp refusal). The average AWQ/GPTQ hidden-danger refusal loss is -36.7pp vs -12.9pp for GGUF.
 - llama3.2-1b GPTQ: BERTScore +8.49pp while refusal -68.18pp. A quality-only audit would flag this as an *improvement*. This is the most dangerous single entry in the matrix.
-- The remaining 33/41 non-baseline entries are classified as neutral, meaning quality and safety either co-move or neither degrades significantly.
+- The remaining 36/45 non-baseline entries are classified as neutral, meaning quality and safety either co-move or neither degrades significantly.
 
 > 71% of hidden-danger cells are AWQ/GPTQ entries. Quality improvement under quantization is the hidden-danger signature.
 
@@ -874,7 +876,7 @@ SS9 presents the Phase 6 analysis that identifies *why* AWQ/GPTQ cause safety co
 
 ## SS10. Results: Deployment Taxonomy
 
-SS10 applies the Phase 5 deployment protocol to the full 47-row matrix to classify each quantization format's suitability for safety-critical deployment.
+SS10 applies the Phase 5 deployment protocol to the full 51-row matrix to classify each quantization format's suitability for safety-critical deployment.
 
 ### SS10.1 Format Safety Classification
 
@@ -888,18 +890,18 @@ SS10 applies the Phase 5 deployment protocol to the full 47-row matrix to classi
 | Q4_K_M | 6 | 2 | 2 | 1 | 1 | 2.73 | not_blanket_safe |
 | Q3_K_S | 6 | 1 | 2 | 2 | 1 | 8.18 | not_blanket_safe |
 | Q2_K | 6 | 0 | 3 | 0 | 3 | 9.09 | not_blanket_safe |
-| **AWQ** | **3** | **0** | **0** | **0** | **3** | **37.44** | **not_blanket_safe** |
-| **GPTQ** | **4** | **0** | **1** | **0** | **3** | **44.29** | **not_blanket_safe** |
+| **AWQ** | **5** | **0** | **0** | **1** | **4** | **62.25** | **not_blanket_safe** |
+| **GPTQ** | **6** | **0** | **1** | **0** | **5** | **56.80** | **not_blanket_safe** |
 
 **Observations.**
 
-- AWQ and GPTQ are blanket-rejected. Zero candidate rows, zero direct-eval rows. Every model tested under AWQ/GPTQ fails the safety gate.
-- AWQ max refusal signal (37.4pp) and GPTQ max signal (44.3pp) dwarf Q2_K's 9.1pp. AWQ/GPTQ are 4-5x more dangerous than GGUF Q2_K by this metric.
+- AWQ and GPTQ are blanket-rejected. Zero candidate rows survive the cross-model screen. Every model tested under AWQ/GPTQ fails the safety gate.
+- AWQ max refusal signal (62.25pp) and GPTQ max signal (56.80pp) dwarf Q2_K's 9.1pp. AWQ/GPTQ are multiple times more dangerous than GGUF Q2_K by this metric.
 - Q5_K_M remains the conservative GGUF review floor: max refusal signal 2.73pp, zero reject rows, but still `model_specific_review_only` in the canonical deployment table.
-- Q4_K_M has 1 reject row (llama3.2-3b, -10pp refusal) but retains >= 55% refusal on all models. It remains the recommended minimum for safety-critical deployment where VRAM is constrained.
-- 21 of 47 rows show measurement divergence (regex-judge gap >= 20pp). This number is inflated by Mistral's systematic gap. Excluding Mistral, 15/41 rows show divergence -- still concerning.
+- Q4_K_M has 1 reject row (phi-2, +11pp truthfulness drift) and therefore cannot be treated as blanket-safe. It remains usable on several models, but only after model-specific confirmation.
+- 23 of 51 rows show measurement divergence (regex-judge gap >= 20pp). This number is inflated by Mistral's systematic gap. Excluding Mistral, the divergence rate remains substantial.
 
-> AWQ and GPTQ are blanket-unsafe. GGUF Q5_K_M is the conservative review floor; Q4_K_M is the recommended minimum.
+> AWQ and GPTQ are blanket-unsafe. GGUF Q5_K_M is the conservative review floor; Q4_K_M can still be workable, but only with model-specific confirmation.
 
 ### SS10.2 Per-Model Deployment Recommendations
 
@@ -987,7 +989,7 @@ All AWQ/GPTQ truthfulness deltas are within noise. At N=50 per entry, the MDE is
 | H1: AWQ/GPTQ preserve safety at matched BPW | Format comparison (SS6) | All entries >= 10.9pp worse than Q4_K_M | **Rejected** |
 | H2: Template destabilization predicts refusal loss | Pearson correlation (SS9) | r=+0.589, p=5.1e-05 (prefix share) | **Supported** |
 | H3: Regex reliable under AWQ/GPTQ | Gap analysis (SS8) | Gaps 15.9-38.8pp on refusal | **Rejected** |
-| H4: Hidden-danger is format-independent | Regime analysis (SS7) | 5/7 hidden-danger are AWQ/GPTQ | **Rejected** |
+| H4: Hidden-danger is format-independent | Regime analysis (SS7) | 7/9 hidden-danger are AWQ/GPTQ | **Rejected** |
 | H5: Quality predicts safety under AWQ/GPTQ | Quality paradox (SS7.2) | BERTScore +8.5pp with refusal -68pp | **Rejected** |
 | H6: GGUF safety through Q3_K_S | GGUF baseline (SS4) | 5/6 models maintain refusal | **Confirmed** |
 
@@ -1055,7 +1057,7 @@ TR134 v3 findings can be cross-referenced against prior Banterhearts TRs for con
 | TR134 v1: Q2_K catastrophic for safety | llama3.2-1b -57pp refusal | **Replicated.** Still present in v3 unified matrix |
 | TR134 v2: Cross-family ANOVA non-significant | F=0.62, p=0.477 | **Unchanged.** AWQ/GPTQ is a format effect, not a family effect |
 | TR134 v2: Mistral regex gap 64-71pp | Still 64-71pp in v3 matrix | **Unchanged.** No regression from adding AWQ/GPTQ data |
-| TR142 v2: Quality-safety sign reversal | 34/36 pairings split across models | **Extended.** AWQ/GPTQ add hidden-danger entries that drive negative pooled correlation |
+| TR142 v2: Quality-safety sign reversal | 36/36 pairings split across models | **Extended.** AWQ/GPTQ and the completed 7B branch preserve the proxy-failure result |
 
 **Observations.** All prior findings replicate in the v3 matrix. The AWQ/GPTQ entries are additive -- they create new findings without contradicting existing ones. The hidden-danger mechanism identified in v3 was not detectable in v1/v2 because GGUF entries rarely show quality improvement alongside safety degradation (exception: llama3.2-1b Q3_K_S, which shows +0.98pp BERTScore with -13.6pp refusal).
 
@@ -1082,7 +1084,7 @@ The bespoke analysis computes per-model Pearson correlations between quality (BE
 
 **RQ1: Do AWQ and GPTQ preserve safety at comparable bit-widths to GGUF k-quants?**
 
-No. AWQ/GPTQ at ~4 BPW produce refusal losses of -21pp to -68pp. GGUF Q4_K_M at 4.85 BPW preserves refusal within -4pp to -10pp. GGUF Q3_K_S at 3.5 BPW (lower BPW than AWQ/GPTQ) still outperforms both AWQ and GPTQ on every model. The finding is established with convergent evidence from regex and judge classifiers across 4 models.
+No. AWQ/GPTQ at ~4 BPW produce refusal losses of -12pp to -68pp. GGUF Q4_K_M keeps refusal signals bounded but is still not blanket-safe, while GGUF Q3_K_S at 3.5 BPW still outperforms most AWQ/GPTQ entries on direct safety. The finding is established with convergent evidence from regex and judge classifiers across the completed 6-model matrix.
 
 **RQ2: What mechanism causes format-dependent safety degradation?**
 
@@ -1094,17 +1096,17 @@ No. Regex-judge gaps increase from a median of ~8-10pp (GGUF) to 16-39pp (AWQ/GP
 
 **RQ4: How should the deployment taxonomy account for format-dependent risk?**
 
-AWQ and GPTQ are blanket-rejected. Zero candidate rows across all tested models. GGUF Q5_K_M is the conservative review floor; Q4_K_M is the recommended minimum. BPW-based comparisons are invalid across format families.
+AWQ and GPTQ are blanket-rejected as default deployment formats. Zero candidate rows survive the cross-model screen. GGUF Q5_K_M is the conservative review floor; Q4_K_M remains usable on several models but is not blanket-safe because phi-2 still rejects. BPW-based comparisons are invalid across format families.
 
 **RQ5: Is the hidden-danger regime concentrated in specific formats?**
 
-Yes. 5 of 7 hidden-danger cells are AWQ/GPTQ (71% concentration vs 15% matrix share). AWQ/GPTQ hidden-danger magnitude (-21pp to -68pp refusal) exceeds GGUF hidden-danger magnitude (-12pp to -14pp) by 3-5x.
+Yes. 7 of 9 hidden-danger cells are AWQ/GPTQ (78% concentration vs 22% matrix share). AWQ/GPTQ hidden-danger magnitude (-12pp to -68pp refusal) exceeds GGUF hidden-danger magnitude (-12pp to -14pp) in both frequency and severity.
 
 ### SS13.2 Operational Recommendations
 
-1. **Never deploy AWQ or GPTQ in safety-critical applications.** All 7 entries show catastrophic refusal collapse. phi-2 GPTQ at 3.2% regex refusal is functionally unaligned.
+1. **Never deploy AWQ or GPTQ as blanket defaults in safety-critical applications.** All 11 tested entries fail the blanket-safe screen, 7 are hidden-danger, and the remaining 4 still require model-specific review. phi-2 GPTQ at 3.2% regex refusal is functionally unaligned.
 
-2. **Use GGUF Q4_K_M or above for safety-critical deployment.** This format retains >= 55% refusal on all tested models and >= 90% on llama3.2-1b and qwen2.5-7b.
+2. **Use GGUF Q5_K_M as the conservative review floor, with Q4_K_M only after model-specific confirmation.** Q5_K_M is the only low-bit GGUF level with zero reject rows in the final deployment table; Q4_K_M remains viable on several models but is not blanket-safe.
 
 3. **Do not use BPW as a cross-format safety predictor.** AWQ/GPTQ at 4.0 BPW are worse than GGUF at 3.5 BPW. The compression algorithm matters as much as the compression ratio.
 
@@ -1122,8 +1124,8 @@ Yes. 5 of 7 hidden-danger cells are AWQ/GPTQ (71% concentration vs 15% matrix sh
 | Mistral regex gap | Noted (64-71pp) | Diagnosed (systematic) | Unchanged (64-71pp) | Stable |
 | Cross-family ANOVA | p=0.137 (3 families) | p=0.477 (4 families) | p=0.477 (unchanged) | Non-significant |
 | Safety robust through Q3_K_S | 3/4 models | 5/6 models | 5/6 models (GGUF confirmed) | Confirmed |
-| Hidden danger regime | Not tested | 3 entries (all GGUF) | 8 entries (5 AWQ/GPTQ, 3 GGUF) | Major expansion |
-| AWQ/GPTQ safety | Not tested | Not tested | **Catastrophic collapse** | New in v3 |
+| Hidden danger regime | Not tested | 3 entries (all GGUF) | 10 entries (7 AWQ/GPTQ, 3 GGUF) | Major expansion |
+| AWQ/GPTQ safety | Not tested | Not tested | **Systematic degradation with frequent catastrophic collapse** | New in v3 |
 | Template destabilization | Not tested | Not tested | **Established** (r=+0.589) | New in v3 |
 | Regex failure under AWQ/GPTQ | Not tested | Not tested | **Demonstrated** (38.8pp gap) | New in v3 |
 | Quality-as-safety proxy | Not tested | Not tested | **Rejected** (hidden-danger) | New in v3 |
@@ -1138,7 +1140,7 @@ The hidden-danger finding has broader implications for AI safety evaluation prac
 
 ### SS13.5 What This Report Does Not Change
 
-The GGUF findings from v1/v2 are unchanged. Q4_K_M remains the recommended minimum for GGUF deployments. The cross-family ANOVA remains non-significant. The Mistral regex gap remains unresolved. These findings are stable across three report versions and 44,791 safety samples.
+The GGUF findings from v1/v2 are unchanged in direction but stricter in deployment wording. Q5_K_M remains the conservative review floor for GGUF, while Q4_K_M is workable only with model-specific confirmation. The cross-family ANOVA remains non-significant. The Mistral regex gap remains unresolved. These findings are stable across three report versions and 48,603 safety samples.
 
 ---
 
@@ -1146,7 +1148,7 @@ The GGUF findings from v1/v2 are unchanged. Q4_K_M remains the recommended minim
 
 ### SS14.1 Design Limitations
 
-- **AWQ/GPTQ tested on sub-4B models only.** 7B models (mistral-7b, qwen2.5-7b) were not quantized to AWQ/GPTQ due to hardware constraints (Colab Pro A100 required). Larger models may show different degradation patterns -- their larger weight matrices may preserve safety-critical structures better under reconstruction-error-optimizing quantization.
+- **AWQ/GPTQ above 7B remain untested.** The 7B branch is now complete, but larger models may show different degradation patterns -- their larger weight matrices may preserve safety-critical structures better under reconstruction-error-optimizing quantization.
 - **phi-2 AWQ missing.** AutoAWQ export failed due to architecture incompatibility. The AWQ findings are based on 3 models, not 4.
 - **Default configurations only.** AWQ (group_size=128) and GPTQ (group_size=128) were tested at default settings. Non-default configurations (different group sizes, mixed-precision, calibration datasets) might produce different outcomes.
 - **Single hardware platform.** All evaluations ran on an RTX 4080 Laptop GPU with 12GB VRAM. Different hardware may produce different numerical results due to floating-point precision differences.
@@ -1197,11 +1199,15 @@ The GGUF findings from v1/v2 are unchanged. Q4_K_M remains the recommended minim
 | v2 expansion samples | `research/tr142/expansion/results/tr134_expansion/20260327_170457/phase3_scored.jsonl` | 13,342 samples |
 | v2 expansion judge | `research/tr142/expansion/results/judge_gemma3/expansion_judged_20260328_150119.jsonl` | 6,552 annotations |
 | v2 7B rejudge | `research/tr142/expansion/results/judge_gemma3/rejudge_7b_20260328_172908.jsonl` | 5,616 annotations |
-| v3 AWQ/GPTQ samples | `research/tr142/expansion/results/v3_safety/20260331_125319/phase3_scored.jsonl` | 6,671 samples |
-| v3 AWQ/GPTQ judge | `research/tr142/expansion/results/v3_safety/20260331_125319/phase3_judged.jsonl` | 3,276 annotations |
-| Bespoke analysis (35 CSVs) | `research/tr142/results/bespoke_analysis_v3/phase56_v3_canonical/` | Full analysis bundle |
-| Run manifest | `research/tr142/results/bespoke_analysis_v3/phase56_v3_canonical/run_manifest.json` | Source audit + config |
-| Source audit | `research/tr142/results/bespoke_analysis_v3/phase56_v3_canonical/source_audit.csv` | SHA-256 per file |
+| v3 AWQ/GPTQ samples (small-model) | `research/tr142/expansion/results/v3_safety/20260331_125319/phase3_scored.jsonl` | 6,671 samples |
+| v3 AWQ/GPTQ samples (7B AWQ) | `research/tr142/expansion/results/v3_safety_7b_awq/20260406_190115/phase3_scored.jsonl` | 1,906 samples |
+| v3 AWQ/GPTQ samples (7B GPTQ) | `research/tr142/expansion/results/v3_safety_7b_gptq/20260407_150840/phase3_scored.jsonl` | 1,906 samples |
+| v3 AWQ/GPTQ judge (small-model) | `research/tr142/expansion/results/v3_safety/20260331_125319/phase3_judged.jsonl` | 3,276 annotations |
+| v3 AWQ/GPTQ judge (7B AWQ) | `research/tr142/expansion/results/v3_safety_7b_awq/20260406_190115/phase3_judged.jsonl` | 936 annotations |
+| v3 AWQ/GPTQ judge (7B GPTQ) | `research/tr142/expansion/results/v3_safety_7b_gptq/20260407_150840/phase3_judged.jsonl` | 936 annotations |
+| Bespoke analysis bundle (38 files) | `research/tr142/results/bespoke_analysis_v3/phase56_v3_full_canonical/` | Full analysis bundle |
+| Run manifest | `research/tr142/results/bespoke_analysis_v3/phase56_v3_full_canonical/run_manifest.json` | Source audit + config |
+| Source audit | `research/tr142/results/bespoke_analysis_v3/phase56_v3_full_canonical/source_audit.csv` | SHA-256 per file |
 
 ### SS15.2 Seeds and Determinism
 
@@ -1216,9 +1222,15 @@ The GGUF findings from v1/v2 are unchanged. Q4_K_M remains the recommended minim
 | v1 safety scored | `9f832412dec5` |
 | v1 safety raw | `40d651f4ee37` |
 | v2 expansion scored | `583a610190db` |
-| v3 AWQ/GPTQ scored | `7dcbb5b9e4a8` |
-| v3 AWQ/GPTQ raw | `f350bbe6295f` |
-| v3 AWQ/GPTQ judge | `ff6f1278fca3` |
+| v3 AWQ/GPTQ scored (small-model) | `7dcbb5b9e4a8` |
+| v3 AWQ/GPTQ raw (small-model) | `f350bbe6295f` |
+| v3 AWQ/GPTQ judge (small-model) | `ff6f1278fca3` |
+| v3 7B AWQ scored | `92936480b4e8` |
+| v3 7B AWQ raw | `916ee903a5ea` |
+| v3 7B AWQ judge | `cac0178144ab` |
+| v3 7B GPTQ scored | `9d58aae0ff9f` |
+| v3 7B GPTQ raw | `6624d025ba68` |
+| v3 7B GPTQ judge | `d9b9be70da21` |
 | v1 judge | `5eadb499686c` |
 | v2 Gemma judge | `fc57e95dc587` |
 | v2 7B rejudge | `aa03f165fc19` |
@@ -1257,7 +1269,7 @@ All code and data traceable to git commit `0439e828`. The bespoke analysis was g
 
 ---
 
-## Appendix A: Full 47-Row Safety Matrix
+## Appendix A: Full 51-Row Safety Matrix
 
 ### A.1 Refusal Rate (Regex, %)
 
@@ -1328,7 +1340,7 @@ All code and data traceable to git commit `0439e828`. The bespoke analysis was g
 2. **Judge data shows less severe AWQ/GPTQ degradation than regex**, but still catastrophic. The judge-regex convergence validates the finding via two independent measurement tracks.
 3. **Bias resistance shows format-dependent degradation.** GPTQ degrades bias more than AWQ, which degrades more than GGUF. This is a secondary safety dimension beyond refusal.
 4. **Truthfulness is noise.** Ignore for deployment purposes.
-5. **The 47-row matrix represents the most comprehensive safety evaluation of quantized LLMs in the research program**, spanning 44,791 samples across 3 data waves with 27,612 judge annotations.
+5. **The 51-row matrix represents the most comprehensive safety evaluation of quantized LLMs in the research program**, spanning 48,603 samples across 5 data waves with 24,336 loaded judge annotations.
 
 ---
 
@@ -1415,19 +1427,19 @@ All code and data traceable to git commit `0439e828`. The bespoke analysis was g
 
 | Step | Check | Result | Status |
 |------|-------|--------|--------|
-| P5_001 | Freeze matched matrix | 6 models, 4 families, 47 rows | Pass |
-| P5_002 | Run within-model correlation screen | 34/36 metric pairings split positive and negative across models | Pass |
-| P5_003 | Use direct safety deltas | 47/47 merged rows with direct safety metrics | Pass |
-| P5_004 | Cross-check regex with LLM judge | 47/47 merged rows have judge coverage | Pass |
-| P5_005 | Classify regimes | 7 hidden-danger + 1 near-hidden-danger | Pass |
+| P5_001 | Freeze matched matrix | 6 models, 4 families, 51 rows | Pass |
+| P5_002 | Run within-model correlation screen | 36/36 metric pairings split positive and negative across models | Pass |
+| P5_003 | Use direct safety deltas | 51/51 merged rows with direct safety metrics | Pass |
+| P5_004 | Cross-check regex with LLM judge | 51/51 merged rows have judge coverage | Pass |
+| P5_005 | Classify regimes | 9 hidden-danger + 1 near-hidden-danger | Pass |
 | P5_006 | Select conservative floor | Q5_K_M: max_refusal_signal=2.73pp, reject_rows=0 | Pass |
 
 ### D.2 Phase 5 Taxonomy Catalog
 
 | ID | Category | Count | Description |
 |----|----------|-------|-------------|
-| TAX_001 | sign_reversal_proxy_failure | 34/36 pairings | Quality-safety sign reversal across models |
-| TAX_002 | hidden_danger | 7 rows | Quality stable + safety degrading >= 10pp |
+| TAX_001 | sign_reversal_proxy_failure | 36/36 pairings | Quality-safety sign reversal across models |
+| TAX_002 | hidden_danger | 9 rows | Quality stable + safety degrading >= 10pp |
 | TAX_003 | near_hidden_danger | 1 row | Approaching hidden-danger threshold |
 | TAX_004 | over_refusal | 0 rows | No over-refusal entries in current matrix |
 | TAX_005 | measurement_divergence | 21 rows | Regex-judge gap >= 20pp |
