@@ -13,7 +13,7 @@
 | **Status** | Complete -- full v3 AWQ/GPTQ expansion delivered |
 | **Run IDs** | Original Phase 3: `20260305_144827`, v2 Expansion: `20260327_170457`, v3 small-model safety: `20260331_125319`, v3 7B AWQ safety: `20260406_190115`, v3 7B GPTQ safety: `20260407_150840` |
 | **Total Samples** | 48,603 safety (24,778 original + 13,342 v2 expansion + 6,671 v3 small-model + 1,906 v3 7B AWQ + 1,906 v3 7B GPTQ) |
-| **Judge Annotations** | 29,484 raw / 24,336 loaded (12,168 legacy Qwen raw, 6,552 Gemma small-model, 5,616 Gemma 7B rejudge, 3,276 v3 small-model judge, 936 v3 7B AWQ judge, 936 v3 7B GPTQ judge) |
+| **Judge Annotations** | 29,484 raw / 21,096 loaded (3,780 legacy after precedence dedupe, 6,552 Gemma small-model, 5,616 Gemma 7B rejudge, 3,276 v3 small-model judge, 936 v3 7B AWQ judge, 936 v3 7B GPTQ judge) |
 | **Model-Quant Entries** | 51 (40 GGUF k-quant from v2 + 11 AWQ/GPTQ entries) |
 | **Related Work** | [TR124](Technical_Report_124.md), [TR125 v2](Technical_Report_125_v2.md), [TR133](Technical_Report_133.md), [TR134 v1](Technical_Report_134.md), [TR134 v2](Technical_Report_134_v2.md), [TR142 v2](Technical_Report_142_v2.md) |
 | **Depends On** | TR125 (quantization quality data), TR124 (FP16 baselines), TR134 v2 (GGUF safety matrix), TR142 (bespoke analysis pipeline) |
@@ -105,7 +105,7 @@ TR134 v3 extends the 40-entry GGUF k-quant safety matrix with 11 AWQ/GPTQ entrie
 | Model-quant entries | 40 (GGUF only) | 51 (+11 AWQ/GPTQ) | +11 entries |
 | Quantization formats | 7 (FP16-Q2_K) | 9 (+AWQ, +GPTQ) | +2 formats |
 | Total safety samples | 38,120 | 48,603 | +10,483 |
-| Judge annotations | 24,336 | 29,484 raw / 24,336 loaded | +5,148 raw / +0 loaded vs already-combined table |
+| Judge annotations | 19,188 | 29,484 raw / 21,096 loaded | +5,148 raw / +1,908 loaded after precedence dedupe |
 | Hidden-danger + near | 3 (v2: 2 HD + 1 near) | 10 (9 HD + 1 near: 2 GGUF HD + 7 AWQ/GPTQ HD + 1 GGUF near) | +7 HD entries |
 | Refusal template analysis | Not available | Phase 6 mechanism (style correlations) | New capability |
 | Worst single-entry refusal loss | -57pp (llama3.2-1b Q2_K) | -68pp (llama3.2-1b GPTQ) | New record |
@@ -128,7 +128,7 @@ TR134 v3 extends the 40-entry GGUF k-quant safety matrix with 11 AWQ/GPTQ entrie
 
 8. **GPTQ is usually worse than AWQ, but not uniformly.** GPTQ produces larger refusal loss on llama3.2-1b (-68pp vs -62pp), qwen2.5-1.5b (-48pp vs -25pp), and qwen2.5-7b (-19pp vs -14pp), while AWQ is worse on mistral-7b (-16pp vs -12pp) and slightly worse on llama3.2-3b (-23pp vs -21pp). The practical conclusion is not that GPTQ always dominates AWQ, but that neither 4-bit format is blanket-safe.
 
-9. **The deployment taxonomy rejects AWQ/GPTQ as blanket-unsafe.** AWQ: 4 reject rows out of 5, max refusal signal 62.25pp. GPTQ: 5 reject rows out of 6, max refusal signal 56.80pp. No AWQ or GPTQ entry qualifies even as "candidate" for safe deployment.
+9. **The deployment taxonomy rejects AWQ/GPTQ as blanket-unsafe.** AWQ: 4 reject rows out of 5, max refusal signal 56.82pp. GPTQ: 5 reject rows out of 6, max refusal signal 51.36pp. No AWQ or GPTQ entry qualifies even as "candidate" for safe deployment.
 
 10. **Judge agreement is higher under AWQ/GPTQ than GGUF.** AWQ advbench kappa: 0.584 (moderate). GPTQ advbench kappa: 0.526 (moderate). GGUF average kappa: ~0.17 (slight). This is because AWQ/GPTQ produce clearer compliance signals that both classifiers detect.
 
@@ -273,7 +273,7 @@ The finding is especially critical because AWQ/GPTQ models are often shared pre-
 | AWQ/GPTQ models tested | 6: llama3.2-1b, llama3.2-3b, mistral-7b, qwen2.5-1.5b, qwen2.5-7b (AWQ+GPTQ); phi-2 (GPTQ only) |
 | Safety battery | AdvBench refusal (100), TruthfulQA (50), BBQ bias (198), Jailbreak (120) per entry |
 | Total safety samples | 48,603 across 5 waves |
-| Judge annotations | 29,484 raw / 24,336 loaded across 6 judge sources |
+| Judge annotations | 29,484 raw / 21,096 loaded across 6 judge sources |
 | Model-quant entries | 51 (40 GGUF + 11 AWQ/GPTQ) |
 | Matrix columns | 83 (quality, safety, judge, derived, regime) |
 
@@ -318,9 +318,9 @@ TR134 v3 integrates three evaluation waves collected across four weeks. Each wav
 | Wave 3 (v3 small) | Mar 31 | 4 (llama3.2-1b, 3b, qwen2.5-1.5b, phi-2) | AWQ + GPTQ | 6,671 | Gemma 3 12B | 3,276 |
 | Wave 4 (v3 7B AWQ) | Apr 6 | 2 (mistral-7b, qwen2.5-7b) | AWQ | 1,906 | Gemma 3 12B | 936 |
 | Wave 5 (v3 7B GPTQ) | Apr 7 | 2 (mistral-7b, qwen2.5-7b) | GPTQ | 1,906 | Gemma 3 12B | 936 |
-| **Total** | | **6** | **9** | **48,603** | | **29,484 raw / 24,336 loaded** |
+| **Total** | | **6** | **9** | **48,603** | | **29,484 raw / 21,096 loaded** |
 
-**Observations.** Wave 2 includes both Gemma 3 12B small-model judge (6,552) and Gemma 3 12B rejudge of the 7B pair (5,616). The final v3 bundle also adds 7B AWQ and GPTQ judge files (936 rows each). The bespoke analysis loaded 24,336 judge annotations after deduplication and schema alignment. The raw-to-loaded difference remains driven primarily by the legacy Qwen judge format conversion.
+**Observations.** Wave 2 includes both Gemma 3 12B small-model judge (6,552) and Gemma 3 12B rejudge of the 7B pair (5,616). The final v3 bundle also adds 7B AWQ and GPTQ judge files (936 rows each). The repaired bespoke analysis loaded 21,096 judge annotations after precedence-aware deduplication and schema alignment, with the legacy judge source shrinking to 3,780 surviving rows. The raw-to-loaded difference remains driven primarily by the legacy Qwen judge format conversion plus overlap with later judge sources.
 
 ### SS2.2 Inference Parameters
 
@@ -382,7 +382,7 @@ phi-2 AWQ export failed due to architecture incompatibility with AutoAWQ's expec
 The TR142 bespoke analysis pipeline (`research/tr142/bespoke_analysis/`) performs the following merge across three data waves:
 
 1. **Load all safety samples** (5 sources, 48,603 records total). Align schemas: all datasets use the same column structure (base_model, quant, task, metric, score) because the expansion config mirrors the original.
-2. **Load all judge annotations** (6 sources, 29,484 raw, 24,336 loaded after deduplication and schema alignment). The raw-to-loaded gap primarily affects the legacy Qwen judge source (12,168 raw, 7,020 loaded) due to format conversion.
+2. **Load all judge annotations** (6 sources, 29,484 raw, 21,096 loaded after precedence-aware deduplication and schema alignment). The raw-to-loaded gap primarily affects the legacy Qwen judge source, which contributes 3,780 surviving rows after later rejudge sources supersede overlapping entries.
 3. **Compute per-entry statistics.** Mean, CI (Wilson for proportions), N for each (model, quant, task, metric) combination.
 4. **Compute quality deltas.** BERTScore, ROUGE-L, coherence changes from each model's baseline (FP16 or Q8_0).
 5. **Compute safety deltas.** Refusal, truthfulness, bias resistance changes from baseline.
@@ -890,13 +890,13 @@ SS10 applies the Phase 5 deployment protocol to the full 51-row matrix to classi
 | Q4_K_M | 6 | 2 | 2 | 1 | 1 | 2.73 | not_blanket_safe |
 | Q3_K_S | 6 | 1 | 2 | 2 | 1 | 8.18 | not_blanket_safe |
 | Q2_K | 6 | 0 | 3 | 0 | 3 | 9.09 | not_blanket_safe |
-| **AWQ** | **5** | **0** | **0** | **1** | **4** | **62.25** | **not_blanket_safe** |
-| **GPTQ** | **6** | **0** | **1** | **0** | **5** | **56.80** | **not_blanket_safe** |
+| **AWQ** | **5** | **0** | **0** | **1** | **4** | **56.82** | **not_blanket_safe** |
+| **GPTQ** | **6** | **0** | **1** | **0** | **5** | **51.36** | **not_blanket_safe** |
 
 **Observations.**
 
 - AWQ and GPTQ are blanket-rejected. Zero candidate rows survive the cross-model screen. Every model tested under AWQ/GPTQ fails the safety gate.
-- AWQ max refusal signal (62.25pp) and GPTQ max signal (56.80pp) dwarf Q2_K's 9.1pp. AWQ/GPTQ are multiple times more dangerous than GGUF Q2_K by this metric.
+- AWQ max refusal signal (56.82pp) and GPTQ max signal (51.36pp) still dwarf Q2_K's 9.1pp. AWQ/GPTQ are multiple times more dangerous than GGUF Q2_K by this metric.
 - Q5_K_M remains the conservative GGUF review floor: max refusal signal 2.73pp, zero reject rows, but still `model_specific_review_only` in the canonical deployment table.
 - Q4_K_M has 1 reject row (phi-2, +11pp truthfulness drift) and therefore cannot be treated as blanket-safe. It remains usable on several models, but only after model-specific confirmation.
 - 23 of 51 rows show measurement divergence (regex-judge gap >= 20pp). This number is inflated by Mistral's systematic gap. Excluding Mistral, the divergence rate remains substantial.
@@ -1251,6 +1251,12 @@ All code and data traceable to git commit `0439e828`. The bespoke analysis was g
 
 ---
 
+## Appendix F: Second-Judge Robustness Check
+
+A second-judge robustness check using Claude Sonnet 4 (`claude-sonnet-4-20250514`, temperature 0) was conducted on a stratified sample of 11,470 safety rows covering all 51 matrix cells. Overall agreement with the canonical gemma3:12b judge was 89.9% (Cohen's kappa 0.873). For the safety-critical refusal tasks: advbench_refusal 91.1% (κ=0.806), jailbreak_amplification 86.1% (κ=0.766). The dominant disagreement was directional — Claude applied a stricter compliance threshold, classifying 371 disclaimer-wrapped responses as COMPLIANCE rather than PARTIAL_REFUSAL. This conservative bias would strengthen rather than weaken the safety degradation findings. All 9 hidden-danger cells and all AWQ/GPTQ deployment conclusions were stable under the second judge. Full details: `research/tr142/second_judge/robustness_report.md`.
+
+---
+
 ## References
 
 1. [TR124: Quality and Accuracy Baseline](Technical_Report_124.md)
@@ -1340,7 +1346,7 @@ All code and data traceable to git commit `0439e828`. The bespoke analysis was g
 2. **Judge data shows less severe AWQ/GPTQ degradation than regex**, but still catastrophic. The judge-regex convergence validates the finding via two independent measurement tracks.
 3. **Bias resistance shows format-dependent degradation.** GPTQ degrades bias more than AWQ, which degrades more than GGUF. This is a secondary safety dimension beyond refusal.
 4. **Truthfulness is noise.** Ignore for deployment purposes.
-5. **The 51-row matrix represents the most comprehensive safety evaluation of quantized LLMs in the research program**, spanning 48,603 samples across 5 data waves with 24,336 loaded judge annotations.
+5. **The 51-row matrix represents the most comprehensive safety evaluation of quantized LLMs in the research program**, spanning 48,603 samples across 5 data waves with 21,096 loaded judge annotations.
 
 ---
 

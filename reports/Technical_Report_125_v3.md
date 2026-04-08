@@ -15,7 +15,7 @@
 | **Total Model-Quant Variants** | 51 (40 GGUF + 11 AWQ/GPTQ in v3) |
 | **Sample Counts** | v1: 24,990; v2: 8,820; v3 small-model: 5,145; v3 7B: 2,940; Quality Total: 41,895 (37,485 loaded) |
 | **Safety Samples** | 48,603 (loaded) across five sources |
-| **Judge Annotations** | 24,336 (loaded) across six sources |
+| **Judge Annotations** | 21,096 (loaded) across six sources |
 | **Hardware** | RTX 4080 Laptop 12GB (v1), Colab T4 16GB (v2), RTX 4080 Laptop 12GB + Docker (small-model v3), Runpod RTX 6000 Ada 48GB (7B v3) |
 | **Status** | Complete |
 | **Depends On** | TR125 v1, TR125 v2, TR142 (bespoke analysis v3), TR124 (baselines), TR134 (safety) |
@@ -32,7 +32,7 @@ The core findings are: (1) AWQ and GPTQ produce **format-dependent quality disto
 
 The operational conclusion is: **AWQ and GPTQ are not safe substitutes for GGUF Q4_K_M**. All tested AWQ/GPTQ variants fail the blanket safety screen, and the quality metrics they produce are unreliable proxies for actual model capability. The Q4_K_M recommendation from v1/v2 is reinforced, while the stricter deployment rule now treats Q5_K_M as the conservative review floor rather than a blanket auto-deploy setting. The final v3 canonical analysis bundle covers **51 model-quant rows** across **9 quantization formats** with a unified matrix of **83 columns** spanning quality, safety, judge, and mechanism metrics.
 
-**Total evidence base: 41,895 raw quality samples (37,485 loaded), 48,603 safety samples, 24,336 judge annotations.**
+**Total evidence base: 41,895 raw quality samples (37,485 loaded), 48,603 safety samples, 21,096 judge annotations.**
 
 ---
 
@@ -48,7 +48,7 @@ TR125 v3 answers: **are AWQ and GPTQ viable alternatives to GGUF quantization fo
 4. **phi-2 GPTQ remains the clearest hidden-danger benchmark trap.** It achieves the best AWQ/GPTQ benchmark scores in the matrix (MMLU 54.4%, ARC 71.0%) while simultaneously suffering -55.5pp refusal rate loss. A quality-only deployment screen would approve this variant; only the safety evaluation catches the degradation.
 5. **phi-2 AWQ failed due to architecture incompatibility.** phi-2 uses a parallel attention+MLP block layout that AutoAWQ does not support. This checkpoint was never produced and is excluded from the matrix.
 6. **The 7B AWQ/GPTQ branch is now complete.** mistral-7b AWQ and GPTQ are both hidden-danger entries, while qwen2.5-7b AWQ and GPTQ are neutral on regime but still routed to not_blanket_safe in the deployment table.
-7. **The deployment protocol classifies AWQ as not_blanket_safe (max refusal signal +62.25pp) and GPTQ as not_blanket_safe (max refusal signal +56.80pp).** AWQ has 4 reject rows and GPTQ has 5 reject rows. No AWQ or GPTQ variant passes the blanket safety screen.
+7. **The deployment protocol classifies AWQ as not_blanket_safe (max refusal signal +56.82pp) and GPTQ as not_blanket_safe (max refusal signal +51.36pp).** AWQ has 4 reject rows and GPTQ has 5 reject rows. No AWQ or GPTQ variant passes the blanket safety screen.
 8. **Q5_K_M is the lowest-bit GGUF format that passes the conservative floor test.** Max refusal signal +3.18pp regex-based (+2.73pp judge-based) across all 6 models, zero reject rows. Q4_K_M has 1 reject row (phi-2, elevated safety signal), downgrading it from blanket-safe to model-specific review. The v1/v2 Q4_K_M recommendation remains valid for the 5 non-phi-2 models.
 9. **BPW regressions remain non-significant for quality metrics.** The median R-squared for quality metrics across models remains below 0.20, consistent with the v1/v2 finding that quantization effects are better described as step functions than linear gradients. AWQ and GPTQ points (nominally ~4 BPW) do not fit the GGUF regression line.
 
@@ -70,10 +70,10 @@ TR125 v3 answers: **are AWQ and GPTQ viable alternatives to GGUF quantization fo
 | Matrix width | Columns | >= 50 | 83 | **PASS** |
 | Quality samples | Total loaded | >= 30,000 | 37,485 | **PASS** |
 | Safety samples | Total loaded | >= 40,000 | 48,603 | **PASS** |
-| Judge annotations | Total loaded | >= 20,000 | 24,336 | **PASS** |
+| Judge annotations | Total loaded | >= 20,000 | 21,096 | **PASS** |
 | P5 protocol | All 6 steps | All pass | 6/6 pass | **PASS** |
-| AWQ blanket safety | Max refusal signal | < 5pp | 62.25pp | **FAIL** |
-| GPTQ blanket safety | Max refusal signal | < 5pp | 56.80pp | **FAIL** |
+| AWQ blanket safety | Max refusal signal | < 5pp | 56.82pp | **FAIL** |
+| GPTQ blanket safety | Max refusal signal | < 5pp | 51.36pp | **FAIL** |
 | Q5_K_M refusal bound | Max refusal signal | < 5pp | 3.18pp | **PASS** |
 
 ### Claim Validation
@@ -220,7 +220,7 @@ The v1/v2 finding that Q4_K_M is safe for GGUF is only useful if practitioners c
 | Models (full matrix) | Same 6 models merged with legacy GGUF waves |
 | Quant formats | FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, Q2_K, AWQ, GPTQ |
 | v3 new samples | 8,085 quality + 10,483 safety + 5,148 judge |
-| Total samples | 41,895 raw quality + 48,603 safety + 24,336 judge |
+| Total samples | 41,895 raw quality + 48,603 safety + 21,096 judge |
 | Tasks | 7 (MMLU, ARC-Challenge, summarization, QA, code_gen, creative_writing, classification) |
 | Backends | Ollama (GGUF), Transformers (AWQ/GPTQ) |
 | Temperature | 0.0 |
@@ -393,7 +393,7 @@ This section documents every addition relative to TR125 v2 to maintain a full au
 | Model-quant rows | 40 (matched matrix) | +11 = 51 |
 | Quality samples | 33,810 raw (v1+v2) | +8,085 = 41,895 raw |
 | Safety samples | 38,120 loaded (v1+v2) | +10,483 = 48,603 loaded |
-| Judge annotations | 19,188 loaded (v1+v2) | +5,148 = 24,336 loaded |
+| Judge annotations | 15,948 loaded (v1+v2 after precedence dedupe) | +5,148 = 21,096 loaded |
 | Matrix columns | 83 | Unchanged (same schema) |
 
 ### SS4.2 New Analysis
@@ -723,8 +723,8 @@ The Phase 5 deployment protocol classifies each quant format based on its cross-
 | Q4_K_M | 6 | 2.73 | 1 | not_blanket_safe |
 | Q3_K_S | 6 | 8.18 | 1 | not_blanket_safe |
 | Q2_K | 6 | 9.09 | 3 | not_blanket_safe |
-| **AWQ** | **5** | **62.25** | **4** | **not_blanket_safe** |
-| **GPTQ** | **6** | **56.80** | **5** | **not_blanket_safe** |
+| **AWQ** | **5** | **56.82** | **4** | **not_blanket_safe** |
+| **GPTQ** | **6** | **51.36** | **5** | **not_blanket_safe** |
 
 **Observations.**
 
@@ -1004,7 +1004,7 @@ GGUF Q4_K_M is categorically safer than both AWQ and GPTQ at comparable bit-widt
 
 ### SS13.4 Program Impact
 
-The final v3 canonical matrix brings the total TR125 evidence base to 41,895 raw quality samples (37,485 loaded), 48,603 safety samples, and 24,336 judge annotations across 51 model-quant variants. This is the largest quantization evaluation in the Banterhearts research program and provides the empirical foundation for the quality-safety correlation paper.
+The final v3 canonical matrix brings the total TR125 evidence base to 41,895 raw quality samples (37,485 loaded), 48,603 safety samples, and 21,096 judge annotations across 51 model-quant variants. This is the largest quantization evaluation in the Banterhearts research program and provides the empirical foundation for the quality-safety correlation paper.
 
 The key contribution of v3 to the broader research program is the demonstration that quantization format choice is a first-order safety decision, not merely a performance optimization. Prior to v3, the program's guidance was precision-centric ("use Q4_K_M or higher"). After v3, the guidance is format-and-precision-centric ("use GGUF Q4_K_M or higher; do not substitute AWQ or GPTQ without model-specific safety evaluation"). This distinction matters for deployment teams choosing between quantization ecosystems.
 
@@ -1135,6 +1135,12 @@ python research/tr142/expansion/run_v3_safety.py
 # Bespoke analysis (v3 canonical bundle)
 python research/tr142/bespoke_analysis/build_matrix.py --bundle phase56_v3_full_canonical
 ```
+
+---
+
+## Appendix F: Second-Judge Robustness Check
+
+A second-judge robustness check using Claude Sonnet 4 (`claude-sonnet-4-20250514`, temperature 0) was conducted on a stratified sample of 11,470 safety rows covering all 51 matrix cells. Overall agreement with the canonical gemma3:12b judge was 89.9% (Cohen's kappa 0.873). For bbq_bias: 98.0% (κ=0.954). For refusal tasks: 91.1% advbench (κ=0.806), 86.1% jailbreak (κ=0.766). For truthfulqa: 73.8% (κ=0.624). The dominant disagreement was directional — Claude applied a stricter compliance threshold, which would amplify rather than attenuate the reported safety degradation under AWQ/GPTQ. All hidden-danger cells and deployment conclusions were stable. Full details: `research/tr142/second_judge/robustness_report.md`.
 
 ---
 
@@ -1484,14 +1490,14 @@ Every headline number in the Executive Summary is traceable to a specific data s
 | phi-2 GPTQ MMLU | 54.4% | SS5.2 Table 6 | capability_quality_agg.csv |
 | phi-2 GPTQ ARC | 71.0% | SS5.2 Table 6 | capability_quality_agg.csv |
 | phi-2 GPTQ refusal delta | -55.45pp | SS6.1 Table 8 | regimes.csv row 31 |
-| AWQ max refusal signal | +62.25pp | SS9 Table 14 | phase5_quant_deployment.csv |
-| GPTQ max refusal signal | +56.80pp | SS9 Table 14 | phase5_quant_deployment.csv |
+| AWQ max refusal signal | +56.82pp | SS9 Table 14 | phase5_quant_deployment.csv |
+| GPTQ max refusal signal | +51.36pp | SS9 Table 14 | phase5_quant_deployment.csv |
 | Q5_K_M max refusal signal | +3.18pp (regex) / +2.73pp (judge) | SS9 Table 14, q5_floor.csv | phase5_quant_deployment.csv uses judge-based 2.73pp |
 | Safety degrades faster fraction | 37/45 (82.2%) | SS7.1 Table 10 | asymmetry.csv |
 | Sign reversal pairings | 36/36 | SS7.2 | sign_reversal_summary.csv |
 | Total quality samples | 41,895 raw / 37,485 loaded | Metadata | run_manifest.json |
 | Total safety samples | 48,603 loaded | Metadata | run_manifest.json |
-| Total judge annotations | 24,336 loaded | Metadata | run_manifest.json |
+| Total judge annotations | 21,096 loaded | Metadata | run_manifest.json |
 | Matrix dimensions | 51 rows x 83 columns | Metadata | matrix.csv |
 | Hidden-danger rows | 9 | SS10 Table 16 | regimes.csv |
 | ROUGE-L mixed-effects p-value | 0.017 | SS12.2 Table 20 | mixed_models.csv |

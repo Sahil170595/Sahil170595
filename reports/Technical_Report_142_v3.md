@@ -13,7 +13,7 @@
 | **Run Directory** | `research/tr142/results/bespoke_analysis_v3/phase56_v3_full_canonical/` |
 | **Quality Source** | TR125 Phase 2 legacy (24,990 raw / 20,580 loaded), TR125 expansion 7B (8,820), v3 small-model AWQ/GPTQ quality (5,145), v3 7B AWQ quality (1,470), v3 7B GPTQ quality (1,470); 37,485 loaded |
 | **Safety Source** | TR134 Phase 3 legacy (24,778), TR134 expansion (13,342), v3 small-model AWQ/GPTQ safety (6,671), v3 7B AWQ safety (1,906), v3 7B GPTQ safety (1,906); 48,603 loaded |
-| **Judge Source** | TR134 legacy judge (7,020 loaded), expansion Gemma-3 judge (6,552), rejudge 7B Gemma-3 (5,616), v3 small-model AWQ/GPTQ judge (3,276), v3 7B AWQ judge (936), v3 7B GPTQ judge (936); 24,336 loaded |
+| **Judge Source** | TR134 legacy judge (3,780 loaded after precedence dedupe), expansion Gemma-3 judge (6,552), rejudge 7B Gemma-3 (5,616), v3 small-model AWQ/GPTQ judge (3,276), v3 7B AWQ judge (936), v3 7B GPTQ judge (936); 21,096 loaded |
 | **Models** | llama3.2-1b, llama3.2-3b, mistral-7b, phi-2, qwen2.5-1.5b, qwen2.5-7b |
 | **Families** | Llama (2 models), Mistral (1), Phi (1), Qwen (2) |
 | **Quant Levels (GGUF)** | FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, Q2_K |
@@ -30,7 +30,7 @@
 
 ## Abstract
 
-TR142 v3 extends the quality-safety correlation study from 40 GGUF-only cells to **51 cells** spanning **3 quantization formats** (GGUF, AWQ, GPTQ) across **6 models** and **4 architecture families**. The expansion now includes **11 AWQ/GPTQ cells**: AWQ on 5 models (llama3.2-1b, llama3.2-3b, qwen2.5-1.5b, mistral-7b, qwen2.5-7b) and GPTQ on 6 models (llama3.2-1b, llama3.2-3b, phi-2, qwen2.5-1.5b, mistral-7b, qwen2.5-7b). The underlying evidence base comprises **37,485 loaded quality samples**, **48,603 loaded safety samples**, and **24,336 loaded judge annotations**.
+TR142 v3 extends the quality-safety correlation study from 40 GGUF-only cells to **51 cells** spanning **3 quantization formats** (GGUF, AWQ, GPTQ) across **6 models** and **4 architecture families**. The expansion now includes **11 AWQ/GPTQ cells**: AWQ on 5 models (llama3.2-1b, llama3.2-3b, qwen2.5-1.5b, mistral-7b, qwen2.5-7b) and GPTQ on 6 models (llama3.2-1b, llama3.2-3b, phi-2, qwen2.5-1.5b, mistral-7b, qwen2.5-7b). The underlying evidence base comprises **37,485 loaded quality samples**, **48,603 loaded safety samples**, and **21,096 loaded judge annotations**.
 
 The core findings are: (1) **7 of the 11 AWQ/GPTQ cells are hidden-danger**, exhibiting quality stability or improvement alongside refusal collapses of 12-68pp, making non-GGUF 4-bit formats dramatically more dangerous than their GGUF equivalent (Q4_K_M). (2) The total hidden-danger count rises from 2 (v2) to **9**, with 7 of 9 hidden-danger cells now from AWQ/GPTQ. (3) **Sign reversal is now universal** across the tracked matrix metrics: 36 of 36 quality-safety metric pairs split sign across models. (4) Phase 6 mechanism analysis demonstrates that refusal loss co-occurs with refusal-template destabilization (Pearson r = +0.562 on dominant-prefix share) and verbosity shift (r = -0.656 on mean refusal tokens), providing a mechanistic fingerprint for safety collapse.
 
@@ -191,7 +191,7 @@ The operational conclusion: **AWQ and GPTQ at 4-bit are not safe deployment defa
 | Mechanism analysis | None | **Refusal-template destabilization fingerprint** |
 | Quality samples loaded | 29,400 | **37,485** (+8,085 AWQ/GPTQ quality) |
 | Safety samples loaded | 38,120 | **48,603** (+10,483 AWQ/GPTQ safety) |
-| Judge annotations loaded | 19,188 | **24,336** (+5,148 AWQ/GPTQ judge) |
+| Judge annotations loaded | 19,188 | **21,096** (+1,908 net after repaired dedupe; 5,148 AWQ/GPTQ judge rows in scope) |
 | Deployment taxonomy | Informal | **6 formal failure modes** (sign_reversal_proxy_failure, hidden_danger, near_hidden_danger, over_refusal, measurement_divergence, conservative_floor_candidate) |
 | Deployment rule | Informal Q5_K_M recommendation | **Per-quant deployment action** (8 quant levels, 4 action categories) |
 
@@ -318,7 +318,7 @@ This report is an analysis-only synthesis. It does not replace:
 
 TR142 v3 is a post-hoc cross-referencing analysis extending v2. The pipeline:
 
-1. **Load sources.** Quality data from TR125 Phase 2 and the v3 expansions (5 source files, 37,485 loaded). Safety data from TR134 Phase 3 and the v3 expansions (5 source files, 48,603 loaded). Judge annotations from 6 source files (24,336 loaded).
+1. **Load sources.** Quality data from TR125 Phase 2 and the v3 expansions (5 source files, 37,485 loaded). Safety data from TR134 Phase 3 and the v3 expansions (5 source files, 48,603 loaded). Judge annotations from 6 source files (21,096 loaded after precedence-aware deduplication).
 2. **Normalize and merge.** Quality and safety are aggregated by (model, quant) to produce cell-level means. AWQ and GPTQ cells use the same model's FP16 as baseline, except for mistral-7b and qwen2.5-7b which use Q8_0.
 3. **Build the 51-row matrix.** 40 GGUF cells from v2 + 11 AWQ/GPTQ cells. Each row has 83 columns spanning quality, safety (regex), safety (judge), and mechanism metrics.
 4. **Phase 5: Deployment protocol.** Six steps: freeze matrix, run correlation screen, compute direct safety deltas, cross-check with judge, classify regimes, select conservative floor.
@@ -449,11 +449,11 @@ None of the three formats includes safety-relevant prompts in their calibration 
 |-----------|-------|
 | Models in merged matrix | 6 |
 | Families in merged matrix | 4 |
-| Model-quant rows | 47 |
+| Model-quant rows | 51 |
 | Matrix width | 83 columns |
 | Loaded quality samples | 37,485 |
 | Loaded safety samples | 48,603 |
-| Loaded judge annotations | 24,336 |
+| Loaded judge annotations | 21,096 |
 | Judge-populated matrix rows | 51/51 (100%) |
 
 > Every cell in the 51-row matrix has both regex-based and judge-based safety coverage.
@@ -761,13 +761,13 @@ This section examines each of the 9 hidden-danger cells in detail.
 | Q4_K_M | 6 | 2.73 | 1 | not_blanket_safe |
 | Q3_K_S | 6 | 8.18 | 1 | not_blanket_safe |
 | Q2_K | 6 | 9.09 | 3 | not_blanket_safe |
-| AWQ | 5 | 62.25 | 4 | not_blanket_safe |
-| GPTQ | 6 | 56.80 | 5 | not_blanket_safe |
+| AWQ | 5 | 56.82 | 4 | not_blanket_safe |
+| GPTQ | 6 | 51.36 | 5 | not_blanket_safe |
 
 **Observations.**
 
 - Only three quant levels achieve `model_specific_review_only` status: Q8_0, Q6_K, and Q5_K_M. All others have at least one reject row or excessive refusal signal.
-- AWQ and GPTQ have the highest max refusal signals (62.25pp and 56.80pp respectively), driven by the llama3.2-1b and mistral-7b cells.
+- AWQ and GPTQ have the highest max refusal signals (56.82pp and 51.36pp respectively), driven by the llama3.2-1b and mistral-7b cells.
 - Q4_K_M crosses from "review-only" to "not blanket safe" because phi-2 shows a +11.00pp truthfulness drift, not because of systematic failure across the matrix. This distinction matters for deployment: Q4_K_M may be acceptable with per-model validation, while AWQ/GPTQ are problematic on most tested models.
 
 ---
@@ -1358,8 +1358,8 @@ The complete 51-row regime classification. Baseline cells are included for refer
 |------|-------------|-------------|
 | Quality | 41,895 | 37,485 |
 | Safety | 48,603 | 48,603 |
-| Judge | 29,484 | 24,336 |
-| **Combined** | **119,982** | **110,424** |
+| Judge | 29,484 | 21,096 |
+| **Combined** | **119,982** | **107,184** |
 
 ---
 
@@ -1490,6 +1490,20 @@ python research/tr142/bespoke_analysis/run_v3.py \
 ```
 
 All source files must be present at their recorded paths. SHA256 hashes in `source_audit.csv` can be verified to confirm data integrity.
+
+---
+
+## Appendix F: Second-Judge Robustness Check
+
+A second-judge robustness check was conducted using Claude Sonnet 4 (`claude-sonnet-4-20250514`, temperature 0) on a stratified sample of 11,470 rows drawn from the same safety generations underlying this report. The sample provided full coverage of all 9 hidden-danger cells, 1 near-hidden-danger cell, and 10 baseline cells, with 100 rows per normal cell.
+
+**Overall agreement: 89.9% (Cohen's kappa 0.873).** Per-task agreement: bbq_bias 98.0% (κ=0.954), advbench_refusal 91.1% (κ=0.806), jailbreak_amplification 86.1% (κ=0.766), truthfulqa 73.8% (κ=0.624).
+
+The dominant disagreement axis was refusal calibration: the second judge classified 371 rows as COMPLIANCE that the primary judge (gemma3:12b) labeled PARTIAL_REFUSAL. This reflects a stricter compliance threshold for disclaimer-wrapped harmful content — a directional bias that would amplify rather than attenuate the reported safety degradation.
+
+All 9 hidden-danger cells remained hidden-danger under the second judge (refusal deltas ranged from -0.9pp to -14.1pp, all negative — confirming or amplifying the danger classification). The AWQ/GPTQ "not blanket safe" deployment conclusion was stable (refusal gap vs baseline: -34.4pp under Claude vs -34.5pp under gemma3). No regime taxonomy changes were warranted.
+
+Full second-judge artifacts: `research/tr142/second_judge/robustness_report.md`, `combined_second_judge.jsonl` (11,470 rows), `agreement_summary.json`.
 
 ---
 
