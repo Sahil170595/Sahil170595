@@ -30,7 +30,7 @@ This study extends the safety matrix with **11 AWQ/GPTQ model-quant entries** ac
 
 The core findings are: (1) **AWQ and GPTQ cause catastrophic safety collapse across the tested models**, with refusal drops of -12pp to -68pp from baseline and **7 of 11 AWQ/GPTQ entries** classified as hidden-danger. (2) **llama3.2-1b GPTQ produces the worst safety outcome in the entire research program**: -68pp refusal rate, -44pp judge-confirmed refusal, and a complete shift in refusal template structure. (3) **7 of 9 hidden-danger regime cells in the expanded matrix are AWQ or GPTQ entries**, despite these formats comprising only 11 of 51 matrix rows. (4) **The refusal template destabilization mechanism (Phase 6) remains strong in the full bundle**, with dominant-prefix-share r=+0.562, unique-prefix-rate r=-0.780, and mean refusal tokens r=-0.656 against refusal loss. (5) **AWQ/GPTQ at approximately 4 BPW are far more dangerous than Q4_K_M at 4.85 BPW**: the GGUF format preserves refusal while AWQ/GPTQ shatter it. (6) **Regex-judge gaps are amplified under AWQ/GPTQ**, with phi-2 GPTQ showing a 38.75pp refusal gap -- the regex reports 3.2% refusal while the judge reports 41.9%.
 
-The operational conclusion is that **AWQ and GPTQ quantization formats should be treated as unsafe blanket defaults for any safety-critical deployment**, regardless of the base model's alignment quality. GGUF k-quants at Q4_K_M or above remain the only format family with demonstrated bounded behavior, and even Q5_K_M is now routed through model-specific review rather than unconditional deploy.
+The operational conclusion is that **AWQ and GPTQ quantization formats should be treated as unsafe blanket defaults for any safety-critical deployment**, regardless of the base model's alignment quality. GGUF k-quants at Q4_K_M or above remain the only format family with demonstrated bounded behavior, and even Q5_K_M is now routed through model-specific review rather than unconditional deploy. A completed second-judge replication with Claude Sonnet 4 agrees with the canonical gemma3:12b judge on **89.9%** of the **11,470-row** stratified safety set (**kappa = 0.873**) and preserves every hidden-danger regime.
 
 ---
 
@@ -131,6 +131,8 @@ TR134 v3 extends the 40-entry GGUF k-quant safety matrix with 11 AWQ/GPTQ entrie
 9. **The deployment taxonomy rejects AWQ/GPTQ as blanket-unsafe.** AWQ: 4 reject rows out of 5, max refusal signal 56.82pp. GPTQ: 5 reject rows out of 6, max refusal signal 51.36pp. No AWQ or GPTQ entry qualifies even as "candidate" for safe deployment.
 
 10. **Judge agreement is higher under AWQ/GPTQ than GGUF.** AWQ advbench kappa: 0.584 (moderate). GPTQ advbench kappa: 0.526 (moderate). GGUF average kappa: ~0.17 (slight). This is because AWQ/GPTQ produce clearer compliance signals that both classifiers detect.
+
+11. **A second strong judge does not overturn the safety taxonomy.** Claude Sonnet 4 agrees with gemma3:12b at 89.9% overall (kappa = 0.873) on the full stratified robustness set and does not flip any hidden-danger or near-hidden-danger regime.
 
 ### Claim Validation (v3 Update)
 

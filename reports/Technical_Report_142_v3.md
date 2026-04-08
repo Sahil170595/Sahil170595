@@ -9,7 +9,7 @@
 | **Version** | 3.0 |
 | **Author** | Research Team |
 | **Status** | FINAL |
-| **Report Type** | Analysis-only (no new experiments) |
+| **Report Type** | Full synthesis over retained + v3 expansion artifacts, with second-judge robustness |
 | **Run Directory** | `research/tr142/results/bespoke_analysis_v3/phase56_v3_full_canonical/` |
 | **Quality Source** | TR125 Phase 2 legacy (24,990 raw / 20,580 loaded), TR125 expansion 7B (8,820), v3 small-model AWQ/GPTQ quality (5,145), v3 7B AWQ quality (1,470), v3 7B GPTQ quality (1,470); 37,485 loaded |
 | **Safety Source** | TR134 Phase 3 legacy (24,778), TR134 expansion (13,342), v3 small-model AWQ/GPTQ safety (6,671), v3 7B AWQ safety (1,906), v3 7B GPTQ safety (1,906); 48,603 loaded |
@@ -34,7 +34,7 @@ TR142 v3 extends the quality-safety correlation study from 40 GGUF-only cells to
 
 The core findings are: (1) **7 of the 11 AWQ/GPTQ cells are hidden-danger**, exhibiting quality stability or improvement alongside refusal collapses of 12-68pp, making non-GGUF 4-bit formats dramatically more dangerous than their GGUF equivalent (Q4_K_M). (2) The total hidden-danger count rises from 2 (v2) to **9**, with 7 of 9 hidden-danger cells now from AWQ/GPTQ. (3) **Sign reversal is now universal** across the tracked matrix metrics: 36 of 36 quality-safety metric pairs split sign across models. (4) Phase 6 mechanism analysis demonstrates that refusal loss co-occurs with refusal-template destabilization (Pearson r = +0.562 on dominant-prefix share) and verbosity shift (r = -0.656 on mean refusal tokens), providing a mechanistic fingerprint for safety collapse.
 
-The operational conclusion: **AWQ and GPTQ at 4-bit are not safe deployment defaults without per-model safety evaluation, and they are categorically more dangerous than GGUF Q4_K_M on the models tested.** The Q5_K_M GGUF conservative floor remains bounded across all 6 models but is routed through `model_specific_review_only` rather than unconditional deploy.
+The operational conclusion: **AWQ and GPTQ at 4-bit are not safe deployment defaults without per-model safety evaluation, and they are categorically more dangerous than GGUF Q4_K_M on the models tested.** The Q5_K_M GGUF conservative floor remains bounded across all 6 models but is routed through `model_specific_review_only` rather than unconditional deploy. A full Claude Sonnet 4 second-judge pass agrees with the canonical gemma3:12b judge on **89.9%** of a **11,470-row** stratified set (**kappa = 0.873**) and does not flip any hidden-danger regime.
 
 ---
 
@@ -55,6 +55,7 @@ The operational conclusion: **AWQ and GPTQ at 4-bit are not safe deployment defa
 6. **Phase 6 mechanism analysis identifies refusal-template destabilization fingerprint.** Dominant-prefix share: r = +0.562, p = 5.99e-05. Unique-prefix rate: r = -0.780. Mean refusal tokens: r = -0.656, p = 1.02e-06. Hard-refusal rate: r = +0.998.
 
 7. **Measurement divergence is systematic.** 23/51 rows exceed 20pp regex-vs-judge gap. Mistral: 64-71pp at every GGUF level, with large gaps persisting into AWQ/GPTQ.
+8. **The judge-dependent conclusion survives an independent second judge.** Claude Sonnet 4 reproduces the hidden-danger taxonomy on the full stratified set with 89.9% agreement and no hidden-danger flips.
 
 ### Validation Summary
 
