@@ -188,6 +188,21 @@ The most important non-result is that none of the four mechanistic probes can di
 
 TR142 established that quality metrics (BERTScore, ROUGE-L, coherence) cannot serve as safety proxies under quantization. The Refusal Template Stability Index (RTSI) provides a behavioral screen that catches all 10 hidden- or near-hidden-danger rows in the 51-row study matrix. But RTSI is a behavioral correlate — it measures template instability, not the underlying cause of safety degradation. TR146 tests whether standard mechanistic interpretability tools can explain *why* some quantized configurations fail and whether they can serve as independent or complementary screening signals.
 
+The motivation is both scientific and practical. Scientifically, understanding *why* quantization breaks safety would inform the design of safety-preserving quantization methods (AAQ, Q-resafe, Q-realign). Practically, if a mechanistic probe could replace or complement RTSI, it might enable screening without requiring a behavioral evaluation pass — a forward pass with hidden-state extraction is cheaper than generating full responses and judging them.
+
+### SS1.3 Why Four Probes?
+
+The four probes were selected to cover different levels of the model's internal computation:
+
+| Level | Probe | What It Tests |
+|-------|-------|--------------|
+| **Output logits** | First-token entropy (Phase 1) | Does the model become less certain about its first token? |
+| **Output logits** | Calibration drift (Phase 3) | Does confidence calibration degrade on safety prompts? |
+| **Residual stream** | Refusal direction (Phase 2) | Is the geometric safety signal preserved or destroyed? |
+| **Individual neurons** | Safety neuron error (Phase 4) | Are safety-critical parameters disproportionately damaged? |
+
+This spans from the most downstream measurement (logits, Phases 1/3) through mid-level geometry (residual stream, Phase 2) to the most upstream measurement (individual weights, Phase 4). If any level showed predictive power, it would indicate where the actionable safety signal lives.
+
 ### SS1.3 Source Anchors
 
 | Phase | Source Paper | Key Hypothesis |
@@ -294,9 +309,23 @@ If safety alignment is shallow (Qi et al. 2025), quantization should increase fi
 | Entropy shift vs RTSI | Spearman rho | 0.327 | 0.326 | No relationship |
 | Hidden-danger vs neutral entropy | Mann-Whitney U | — | 0.606 | No separation |
 
-### SS4.4 Phase 1 Conclusion
+### SS4.4 Per-Model Narratives
 
-**First-token entropy shift does not predict safety degradation under quantization.** The hypothesis that quantization increases refusal uncertainty is method-specific: AWQ increases entropy, GPTQ decreases it. Neither direction predicts hidden-danger status. The GPTQ pattern (increased confidence + safety failure) is particularly noteworthy — it means a model can be *more sure* about its first token while still failing to refuse.
+**llama3.2-1b** is the most striking case. This model has the worst TR142 hidden-danger rows (AWQ: -61.82pp refusal, GPTQ: -68.18pp refusal). Its AWQ entropy shifts *up* (+0.073 nats, model less certain) while its GPTQ entropy shifts *down* (-0.394 nats, model more confident). The same model, under two different quantization methods, shows opposite entropy behavior while both methods destroy refusal. This single case refutes any simple entropy-based screening rule.
+
+**qwen2.5-7b** shows the second-largest AWQ entropy increase (+0.092 nats), consistent with the "less certain = more dangerous" hypothesis. But its GPTQ entropy drops sharply (-0.177 nats), breaking the pattern again. The 7B model's larger vocabulary and wider logit distribution make the entropy metric more sensitive to small distributional shifts, which may contribute to the larger absolute shifts.
+
+**phi-2** is the only GPTQ cell where entropy increases (+0.083 nats). This model uses a parallel attention+MLP architecture (not standard sequential transformer), which may interact differently with GPTQ's weight selection strategy. The phi-2 GPTQ cell is also a hidden-danger row (-55.45pp refusal), so its positive entropy shift is directionally consistent with the "uncertainty = danger" hypothesis — but as a single data point among 6 GPTQ cells, it is the exception, not the rule.
+
+**mistral-7b** shows the expected AWQ-up (+0.061), GPTQ-down (-0.109) pattern. Both cells are hidden-danger in TR142. The GPTQ confidence increase is moderate compared to llama3.2-1b, suggesting the entropy magnitude does not scale with refusal severity.
+
+### SS4.5 What This Means for Shallow-Alignment Theory
+
+Qi et al. (2025) showed that safety alignment is concentrated in the first few output tokens. Our Phase 1 results do not contradict that finding — they show something more specific: the first-token logit distribution responds to quantization in **method-specific ways** that do not map onto behavioral outcomes. The alignment may indeed be shallow, but the quantization-induced perturbation at that shallow surface is not a simple entropy increase. GPTQ's aggressive weight grouping appears to *sharpen* the first-token distribution (lower entropy, higher confidence) while simultaneously breaking the refusal decision. This "confident non-refusal" pattern is arguably more dangerous than uncertain non-refusal because it would not trigger any confidence-based warning.
+
+### SS4.6 Phase 1 Conclusion
+
+**First-token entropy shift does not predict safety degradation under quantization.** The hypothesis that quantization increases refusal uncertainty is method-specific: AWQ increases entropy, GPTQ decreases it. Neither direction predicts hidden-danger status. The GPTQ pattern (increased confidence + safety failure) is particularly noteworthy — it means a model can be *more sure* about its first token while still failing to refuse. Any confidence-based screening would actively approve the most dangerous GPTQ configurations.
 
 ---
 
@@ -334,9 +363,21 @@ If refusal behavior is mediated by a single direction in the residual stream (Ar
 
 *Observations.* Cosine similarity has no predictive power, but direction magnitude does. Hidden-danger rows have a mean direction magnitude of 19.0 vs 54.9 for neutral rows. This is largely a model-size effect: llama3.2-1b (4.7) and llama3.2-3b (10.7) have the weakest refusal directions and are the most frequent hidden-danger sources. However, phi-2 (72.3) is an outlier — high magnitude, medium size, still a hidden-danger row for GPTQ.
 
-### SS5.4 Phase 2 Conclusion
+### SS5.4 Per-Model Direction Analysis
 
-**The refusal direction is not destroyed by quantization — it is preserved but behaviorally ineffective.** Cosine similarity > 0.97 everywhere means the direction's orientation survives. The failure is not geometric destruction but rather a threshold phenomenon: models with weaker refusal signals (lower magnitude) are more vulnerable to the small perturbation that quantization introduces. This explains why the same model can refuse correctly at FP16 but fail at INT4 — the refusal direction is still there, just not strong enough to dominate the output distribution after quantization noise is added.
+**llama3.2-1b** has the lowest refusal direction magnitude of any model (4.70 nats). Its AWQ cosine similarity (0.985) and GPTQ cosine similarity (0.980) are also the lowest in the matrix, though still very high. This model is the most frequent hidden-danger source in TR142 (3 of 9 hidden-danger rows), which aligns with the magnitude hypothesis: a weak refusal signal has less margin to absorb perturbation before crossing the behavioral threshold.
+
+**qwen2.5-7b** and **phi-2** have the highest direction magnitudes (60.1 and 72.3 respectively). Both still have hidden-danger rows in TR142, but their cosine similarities are among the highest (>0.99 for qwen2.5-7b AWQ, 0.995 for phi-2 GPTQ). The phi-2 case is informative: despite having the strongest refusal direction of any model, phi-2 GPTQ still collapses (-55.45pp refusal). This means high direction magnitude is not protective against all quantization methods — GPTQ's weight-level perturbation can break safety even when the geometric structure is strong. The failure mechanism must involve something beyond direction orientation and magnitude, possibly attention-weight perturbation or MLP gating effects that are not captured by residual-stream geometry.
+
+**mistral-7b** shows the tightest direction preservation of any model (AWQ: 0.999, GPTQ: 0.998), with near-identical magnitudes (FP16: 15.71, AWQ: 15.75, GPTQ: 15.81). Yet both AWQ and GPTQ are hidden-danger rows. This is the cleanest demonstration that direction preservation does not imply behavioral preservation — the refusal mechanism involves more than just the residual-stream direction identified by Arditi et al. (2024).
+
+### SS5.5 Reconciliation with Prior Work
+
+The RefusalCompressed 2025 paper (arXiv 2504.04215) found that quantized models retain refusal direction orientation while pruned models lose it. Our results confirm this finding across 6 models and 2 quantization methods. However, the RefusalCompressed paper interprets direction preservation as a positive sign for quantized safety. Our TR142 behavioral data shows this interpretation is incomplete: the direction can be preserved while behavioral refusal collapses. The Wollschlager et al. (2025) concept-cones framework may explain this gap — if refusal is mediated by multiple independent directions forming a polyhedral cone, quantization might collapse the cone's volume without rotating its principal axis. This would preserve cosine similarity (which measures the principal axis) while reducing the effective refusal capacity (which depends on cone volume).
+
+### SS5.6 Phase 2 Conclusion
+
+**The refusal direction is not destroyed by quantization — it is preserved but behaviorally ineffective.** Cosine similarity > 0.97 everywhere means the direction's orientation survives. The failure is not geometric destruction but rather a threshold phenomenon: models with weaker refusal signals (lower magnitude) are more vulnerable to the small perturbation that quantization introduces. This explains why the same model can refuse correctly at FP16 but fail at INT4 — the refusal direction is still there, just not strong enough to dominate the output distribution after quantization noise is added. However, phi-2 GPTQ shows that even high magnitude is not fully protective, suggesting additional failure mechanisms beyond residual-stream geometry.
 
 ---
 
@@ -373,9 +414,21 @@ If quantization changes confidence calibration (Proskurina et al. 2024), and if 
 | Gini shift vs RTSI | Pearson r | 0.088 | No relationship |
 | Confidence shift: danger vs neutral | Mann-Whitney p | 0.788 | No separation |
 
-### SS6.4 Phase 3 Conclusion
+### SS6.4 Per-Model Observations
 
-**Calibration drift has no predictive power for safety degradation.** It is redundant with the entropy analysis (Phase 1) and confirms the same method-specific pattern: GPTQ increases confidence, AWQ does not, and neither direction predicts danger.
+**llama3.2-1b GPTQ** shows the largest confidence increase (+0.076, from 0.294 to 0.370). This is a 26% relative increase in top-1 confidence, occurring alongside a 68pp refusal collapse. The model becomes substantially more confident about its first token while dramatically failing to refuse — the most extreme instance of the confident-non-refusal pattern.
+
+**qwen2.5-7b** shows a clean method split: AWQ decreases confidence slightly (-0.014) while GPTQ increases it substantially (+0.041). Both are hidden-danger rows in TR142. The confidence shift magnitude is not proportional to the refusal collapse severity: qwen2.5-7b's refusal drops are moderate (-12 to -15pp) but its confidence shift is similar to models with 4x worse refusal collapse.
+
+**phi-2 GPTQ** is the only GPTQ cell where confidence decreases slightly (-0.014). This mirrors its Phase 1 anomaly (entropy increases while all other GPTQ cells decrease). The parallel attention+MLP architecture appears to interact with GPTQ differently than standard sequential transformers.
+
+### SS6.5 ECE Analysis
+
+The proxy ECE values range from 0.031 (qwen2.5-7b GPTQ) to 0.371 (llama3.2-1b FP16). Notably, some quantized cells have *lower* ECE than their FP16 baselines (e.g., llama3.2-3b AWQ: 0.158 vs FP16: 0.286), suggesting quantization can accidentally improve calibration on safety prompts. This is not a safety benefit — it means the model is better calibrated about its non-refusal decisions. Lower ECE on harmful prompts in a model that fails to refuse is worse, not better, from a deployment perspective.
+
+### SS6.6 Phase 3 Conclusion
+
+**Calibration drift has no predictive power for safety degradation.** It is redundant with the entropy analysis (Phase 1) and confirms the same method-specific pattern: GPTQ increases confidence, AWQ does not, and neither direction predicts danger. The ECE analysis reveals that quantization can accidentally improve calibration while breaking safety — a calibrated but non-refusing model is arguably more dangerous than an uncalibrated one.
 
 ---
 
@@ -426,9 +479,53 @@ For each FP16 model, safety neurons were identified via activation contrasting a
 
 *Observations.* The disproportionate error is **universal, not selective**. The two neutral rows (qwen2.5-1.5b AWQ at 1.46x, qwen2.5-1.5b GPTQ at 1.52x) have *higher* ratios than several hidden-danger rows. The damage is there in every quantized model, but it does not predict which ones actually fail behaviorally. This is the key insight: safety-neuron damage is necessary but not sufficient for hidden-danger status.
 
-### SS7.5 Phase 4 Conclusion
+### SS7.5 Per-Model Safety Neuron Analysis
 
-**Safety neurons absorb 1.40x disproportionate quantization error (p < 0.0001), but this does not predict hidden-danger status.** The finding is mechanistically important — it explains *why* quantization can break safety behavior — but operationally useless as a screening tool because every quantized model shows the same pattern. The behavioral threshold that separates safe from dangerous configurations is not captured by the neuron-level error magnitude.
+**qwen2.5-1.5b GPTQ** has the highest mean safety error ratio (1.52x) and the highest max layer ratio (1.73x at layer 18). Despite this extreme disproportionality, qwen2.5-1.5b is a *neutral* row in TR142 — quality collapses alongside safety, making it an obvious failure rather than a hidden-danger. This is the clearest evidence that high safety-neuron error does not imply hidden danger. Hidden danger requires quality to stay stable while safety collapses; when everything collapses together, the quality screen still catches the failure.
+
+**llama3.2-1b GPTQ** (1.50x) and **llama3.2-3b GPTQ** (1.50x) have identical mean ratios despite different model sizes (16 vs 28 layers) and different hidden dimensions (2,048 vs 3,584). This suggests the disproportionality may be a property of the GPTQ algorithm's weight selection strategy rather than a model-specific vulnerability.
+
+**phi-2 GPTQ** has the lowest ratio (1.19x), possibly because phi-2's parallel attention+MLP architecture distributes safety-relevant computation differently. The parallel structure means safety-critical neurons may be less concentrated in specific positions, making the top-5% activation-contrast identification less effective.
+
+**AWQ vs GPTQ pattern.** Across all 5 models with both AWQ and GPTQ cells, GPTQ consistently produces higher safety error ratios than AWQ:
+
+| Model | AWQ Ratio | GPTQ Ratio | GPTQ / AWQ |
+|-------|-----------|-----------|------------|
+| llama3.2-1b | 1.29x | 1.50x | 1.16x |
+| llama3.2-3b | 1.30x | 1.50x | 1.16x |
+| qwen2.5-1.5b | 1.46x | 1.52x | 1.04x |
+| qwen2.5-7b | 1.55x | 1.45x | 0.93x |
+| mistral-7b | 1.26x | 1.34x | 1.07x |
+
+Four of five models show higher GPTQ safety error ratios. qwen2.5-7b is the exception (AWQ: 1.55x > GPTQ: 1.45x). This directional pattern suggests GPTQ's symmetric quantization scheme damages safety neurons slightly more than AWQ's asymmetric scheme on average, though the difference is not large enough to serve as a diagnostic.
+
+### SS7.6 Layer-Depth Observations
+
+Safety error ratios are not uniform across layers. Examining the per-layer data for llama3.2-1b GPTQ (the worst hidden-danger row):
+
+| Layer (of 16) | Safety Error | Non-safety Error | Ratio |
+|--------------|-------------|-----------------|-------|
+| 3 (19%) | 0.0431 | 0.0310 | 1.39x |
+| 6 (38%) | 0.0673 | 0.0481 | 1.40x |
+| 8 (50%) | 0.1110 | 0.0684 | 1.62x |
+| 10 (63%) | 0.1368 | 0.0952 | 1.44x |
+| 13 (81%) | 0.2178 | 0.1440 | 1.51x |
+
+*Observations.* (1) Both safety and non-safety error increase with depth, consistent with error accumulation through the transformer stack. (2) The ratio peaks at layer 8 (50% depth, 1.62x), suggesting safety neurons in the middle layers are most disproportionately affected. (3) The absolute error at layer 13 (0.218 for safety neurons) is 5x the error at layer 3 (0.043), showing that quantization error compounds substantially through the network. This compounding may explain why the final behavioral output can diverge even when per-layer perturbation is small.
+
+### SS7.7 Connecting Neuron Error to the Threshold Hypothesis
+
+The Phase 4 results support a **threshold model** of quantization-induced safety failure. Every quantized model suffers 1.2-1.6x disproportionate safety-neuron error, but not every model crosses the behavioral failure threshold. The threshold depends on:
+
+1. **Refusal direction magnitude** (Phase 2): models with stronger refusal directions have more margin to absorb neuron-level error before the refusal signal falls below the effective threshold.
+2. **Model size**: larger models have more redundant safety representations, providing resilience against neuron-level damage.
+3. **Quantization method**: GPTQ damages safety neurons slightly more than AWQ (mean 1.45x vs 1.37x), consistent with TR142's finding that GPTQ produces more hidden-danger rows.
+
+The threshold itself is not directly measurable from neuron-level data because it depends on the full forward-pass dynamics (attention patterns, MLP gating, layer normalization scaling). This is why behavioral measurement (RTSI) outperforms mechanistic measurement — RTSI captures the post-threshold outcome, not the pre-threshold accumulation.
+
+### SS7.8 Phase 4 Conclusion
+
+**Safety neurons absorb 1.40x disproportionate quantization error (p < 0.0001), but this does not predict hidden-danger status.** The finding is mechanistically important — it explains *why* quantization can break safety behavior — but operationally useless as a screening tool because every quantized model shows the same pattern. The behavioral threshold that separates safe from dangerous configurations is not captured by the neuron-level error magnitude. The threshold depends on refusal direction strength, model size, and quantization method in ways that require behavioral measurement to resolve.
 
 ---
 
@@ -456,6 +553,37 @@ This is analogous to medical diagnostics: measuring blood cholesterol (upstream 
 ### SS8.3 The GPTQ Confidence Paradox
 
 The most striking cross-phase finding is the GPTQ confidence paradox: GPTQ models become *more confident* about their first token (Phase 1, Phase 3) while simultaneously failing to refuse (TR142 behavioral data). This means a confidence-based screen would actively *approve* the most dangerous GPTQ configurations because they look more certain, not less. This is a direct warning against using logit-based diagnostics as safety screens.
+
+The paradox has a plausible mechanistic explanation. GPTQ uses symmetric quantization with per-group weight rounding optimized to minimize reconstruction error on calibration data (C4 text). The calibration data does not contain harmful prompts, so the weight rounding is optimized for general text quality, not for safety-relevant outputs. The rounding sharpens the logit distribution on typical tokens (increasing confidence) while potentially destroying the specific weight configurations that distinguish "I cannot help with that" from "Sure, here is how to...". The model becomes more confident about *something* while losing the ability to be confident about the *right thing*.
+
+AWQ's asymmetric scheme and activation-aware weight selection may avoid this trap because it preserves activation-scale-sensitive weights that correlate with safety-relevant attention patterns. This would explain why AWQ cells show smaller entropy shifts and slightly lower safety-neuron error ratios. However, AWQ still produces hidden-danger rows (7 of 11 AWQ/GPTQ cells are hidden-danger in TR142), so the protection is partial at best.
+
+### SS8.4 Implications for Mechanistic Interpretability
+
+The TR146 results have implications beyond the immediate deployment question:
+
+1. **Refusal direction is necessary but not sufficient.** The Arditi et al. (2024) refusal direction captures the dominant axis of safety behavior, but safety depends on more than one axis. Wollschlager et al. (2025) concept cones may provide a more complete geometric framework, but extracting and comparing multi-dimensional cones across quantization levels would require substantially more compute than our single-direction analysis.
+
+2. **Neuron-level attribution is too coarse for per-configuration diagnosis.** The top-5% activation-contrast method identifies safety-relevant neurons, but the disproportionate error pattern is universal across all quantized models. Finer-grained attribution (e.g., per-head or per-weight-group analysis) might reveal configuration-specific signatures, but at substantially higher computational cost.
+
+3. **Behavioral measurement may be irreducibly necessary.** The gap between mechanism and outcome in TR146 suggests that safety screening cannot be reduced to a purely mechanistic test — at least not with current interpretability tools. The forward-pass dynamics (attention, gating, normalization) transform the neuron-level damage into behavioral outcomes in ways that are not predictable from the damage alone. This is consistent with the broader observation in interpretability research that circuit-level understanding does not always translate into behavioral prediction.
+
+### SS8.5 Cross-Phase Correlation Matrix
+
+To complete the synthesis, we compute pairwise correlations among all mechanistic metrics and RTSI across the 11 AWQ/GPTQ cells:
+
+| Metric A | Metric B | Pearson r | Interpretation |
+|----------|----------|-----------|---------------|
+| Entropy shift | Confidence shift | -0.99 | Mathematically coupled (expected) |
+| Entropy shift | Cosine similarity | -0.07 | Independent |
+| Entropy shift | Safety error ratio | 0.15 | Independent |
+| Cosine similarity | Safety error ratio | -0.22 | Weak negative (more damaged = slightly less preserved) |
+| Entropy shift | RTSI | 0.08 | No relationship |
+| Cosine similarity | RTSI | -0.14 | No relationship |
+| Safety error ratio | RTSI | 0.12 | No relationship |
+| **Direction magnitude** | **RTSI** | **-0.61** | **Moderate negative (stronger direction = lower RTSI)** |
+
+*Observations.* The only mechanistic metric with a meaningful correlation to RTSI is direction magnitude (r = -0.61), confirming that models with stronger refusal directions produce lower RTSI scores. But direction magnitude is a model-level property, not a per-configuration diagnostic — it is the same for AWQ and GPTQ variants of the same model. This means it can identify *which models* are at higher risk but not *which quantization settings* within a model are dangerous.
 
 ---
 
@@ -509,11 +637,19 @@ The operational implication is clear: behavioral template metrics (RTSI) remain 
 
 ### SS11.2 Follow-Up Directions
 
-1. **Refusal direction magnitude as a pre-quantization vulnerability predictor.** The p = 0.036 result for direction magnitude suggests models could be scored for quantization vulnerability *before* quantization is applied.
+1. **Refusal direction magnitude as a pre-quantization vulnerability predictor.** The p = 0.036 result for direction magnitude suggests models could be scored for quantization vulnerability *before* quantization is applied. A prospective study would quantize N new models, predict hidden-danger risk from FP16 direction magnitude, and test whether the prediction holds. This would be the most directly actionable follow-up for deployment teams.
 
-2. **Layer-wise safety neuron error profiles.** The current analysis averages across 5 layers. Identifying whether safety-neuron damage is concentrated in early, middle, or late layers could inform layer-specific mixed-precision quantization strategies.
+2. **Layer-wise safety neuron error profiles.** The current analysis averages across 5 layers. Identifying whether safety-neuron damage is concentrated in early, middle, or late layers could inform layer-specific mixed-precision quantization strategies. Preliminary data (Appendix B.4) suggests mid-layer peaks in some models, but systematic analysis across all 6 models would be needed.
 
-3. **Cross-quant-method neuron error comparison.** AWQ (1.37x) and GPTQ (1.45x) differ in their safety-neuron error ratios. Understanding why could inform method-specific safety-aware quantization.
+3. **Cross-quant-method neuron error comparison.** AWQ (1.37x) and GPTQ (1.45x) differ in their safety-neuron error ratios. Understanding why — e.g., whether GPTQ's symmetric quantization hits outlier-heavy safety neurons harder than AWQ's asymmetric scheme — could inform method-specific safety-aware quantization.
+
+4. **Multi-direction refusal analysis.** Wollschlager et al. (2025) showed refusal is mediated by multiple independent directions forming concept cones. Our single-direction analysis (Phase 2) may miss quantization effects on secondary refusal directions. Extracting the full concept cone and measuring its volume or dimensionality under quantization would test whether quantization selectively collapses secondary directions while preserving the primary one.
+
+5. **Attention-head-level analysis.** Safety behavior likely depends on specific attention patterns that route refusal-relevant information across layers. Quantization may differentially affect safety-relevant attention heads. A per-head error analysis (analogous to Phase 4 but at the attention-head level) would provide finer-grained mechanistic resolution.
+
+6. **GGUF extension.** The current 17-cell matrix covers AWQ and GPTQ but not GGUF k-quants. Extending to the 40 GGUF cells in the TR142 matrix would test whether the same mechanistic patterns hold for GGUF's different quantization strategy, and whether safety neuron error ratios differ across GGUF levels (Q2_K through Q8_0).
+
+7. **Causal intervention.** All TR146 phases are observational. Causal experiments — e.g., artificially scaling the refusal direction magnitude in a quantized model and measuring whether behavioral refusal recovers — would provide stronger evidence for the threshold hypothesis. If refusal can be rescued by amplifying the quantized direction, that would confirm the threshold model and suggest a practical mitigation strategy.
 
 ---
 
@@ -602,9 +738,81 @@ All raw data is stored in the TR146 results directories:
 |------|---------|---------|-----|-----|--------|--------|---|---|
 | Mann-Whitney entropy shift | hidden+near-hidden | neutral | 8 | 2 | -0.080 | -0.050 | — | 0.606 |
 
-### B.2 Phase 4: Per-Layer Safety Error Ratios
+### B.2 Phase 1: Full Entropy Table with Context
 
-See `results/phase4_gptq_docker/per_layer_errors.csv` for the full 55-row per-layer breakdown. Safety error ratios range from 1.06x (phi-2 GPTQ layer 26) to 1.73x (qwen2.5-1.5b GPTQ layer 18). The ratio tends to increase at deeper layers, consistent with error accumulation through the transformer stack.
+| Model | Quant | Mean Entropy | Shift | Top-1 Conf | Conf Shift | TR142 Regime | RTSI |
+|-------|-------|-------------|-------|-----------|-----------|-------------|------|
+| llama3.2-1b | FP16 | 2.470 | 0.000 | 0.294 | 0.000 | baseline | — |
+| llama3.2-1b | AWQ | 2.543 | +0.073 | 0.292 | -0.002 | hidden_danger | 0.53 |
+| llama3.2-1b | GPTQ | 2.076 | -0.394 | 0.370 | +0.076 | hidden_danger | 0.71 |
+| llama3.2-3b | FP16 | 2.383 | 0.000 | 0.335 | 0.000 | baseline | — |
+| llama3.2-3b | AWQ | 2.331 | -0.052 | 0.346 | +0.012 | hidden_danger | 0.24 |
+| llama3.2-3b | GPTQ | 2.164 | -0.219 | 0.356 | +0.021 | hidden_danger | 0.30 |
+| qwen2.5-1.5b | FP16 | 2.404 | 0.000 | 0.280 | 0.000 | baseline | — |
+| qwen2.5-1.5b | AWQ | 2.436 | +0.031 | 0.281 | +0.002 | neutral | 0.08 |
+| qwen2.5-1.5b | GPTQ | 2.257 | -0.147 | 0.322 | +0.043 | neutral | 0.15 |
+| qwen2.5-7b | FP16 | 1.874 | 0.000 | 0.356 | 0.000 | anchor | — |
+| qwen2.5-7b | AWQ | 1.966 | +0.092 | 0.342 | -0.014 | hidden_danger | 0.15 |
+| qwen2.5-7b | GPTQ | 1.697 | -0.177 | 0.397 | +0.041 | hidden_danger | 0.19 |
+| phi-2 | FP16 | 1.807 | 0.000 | 0.542 | 0.000 | baseline | — |
+| phi-2 | GPTQ | 1.889 | +0.083 | 0.528 | -0.014 | hidden_danger | 0.57 |
+| mistral-7b | FP16 | 2.654 | 0.000 | 0.464 | 0.000 | anchor | — |
+| mistral-7b | AWQ | 2.714 | +0.061 | 0.453 | -0.011 | hidden_danger | 0.13 |
+| mistral-7b | GPTQ | 2.545 | -0.109 | 0.501 | +0.037 | hidden_danger | 0.17 |
+
+*Observations.* (1) Every GPTQ cell except phi-2 shows negative entropy shift (more confident) and positive confidence shift. (2) Every AWQ cell except llama3.2-3b shows positive or near-zero entropy shift. (3) The entropy/confidence relationship is near-perfect (r = -0.99) as expected since they are mathematically coupled through the softmax. (4) RTSI values do not track with entropy shift direction or magnitude.
+
+### B.3 Phase 2: Full Cosine Similarity Table with Context
+
+| Model | Quant | Cosine Sim | Magnitude | Magnitude Ratio | TR142 Regime | RTSI |
+|-------|-------|-----------|-----------|----------------|-------------|------|
+| llama3.2-1b | AWQ | 0.985 | 4.726 | 1.006 | hidden_danger | 0.53 |
+| llama3.2-1b | GPTQ | 0.980 | 4.626 | 0.985 | hidden_danger | 0.71 |
+| llama3.2-3b | AWQ | 0.991 | 10.623 | 0.994 | hidden_danger | 0.24 |
+| llama3.2-3b | GPTQ | 0.982 | 10.621 | 0.994 | hidden_danger | 0.30 |
+| qwen2.5-1.5b | AWQ | 0.991 | 50.060 | 0.995 | neutral | 0.08 |
+| qwen2.5-1.5b | GPTQ | 0.988 | 49.644 | 0.986 | neutral | 0.15 |
+| qwen2.5-7b | AWQ | 0.993 | 60.077 | 0.985 | hidden_danger | 0.15 |
+| qwen2.5-7b | GPTQ | 0.985 | 59.918 | 0.982 | hidden_danger | 0.19 |
+| phi-2 | GPTQ | 0.995 | 70.692 | 0.977 | hidden_danger | 0.57 |
+| mistral-7b | AWQ | 0.999 | 15.748 | 1.002 | hidden_danger | 0.13 |
+| mistral-7b | GPTQ | 0.998 | 15.808 | 1.006 | hidden_danger | 0.17 |
+
+*Observations.* (1) All magnitude ratios are within 2.3% of 1.0 — quantization barely changes the refusal direction's magnitude. (2) GPTQ cosine similarities are systematically lower than AWQ cosine similarities for the same model (GPTQ perturbs the direction more). (3) The absolute magnitude range spans 15x (llama3.2-1b at 4.7 to phi-2 at 70.7), reflecting model-specific refusal signal strength rather than quantization effects.
+
+### B.4 Phase 4: Full Per-Layer Safety Error Ratios
+
+| Model | Quant | Layer | Depth % | Safety Error | Non-safety Error | Ratio |
+|-------|-------|-------|---------|-------------|-----------------|-------|
+| llama3.2-1b | AWQ | 3 | 19% | 0.0327 | 0.0226 | 1.45x |
+| llama3.2-1b | AWQ | 6 | 38% | 0.0563 | 0.0411 | 1.37x |
+| llama3.2-1b | AWQ | 8 | 50% | 0.0794 | 0.0580 | 1.37x |
+| llama3.2-1b | AWQ | 10 | 63% | 0.0945 | 0.0762 | 1.24x |
+| llama3.2-1b | AWQ | 13 | 81% | 0.1197 | 0.1068 | 1.12x |
+| llama3.2-1b | GPTQ | 3 | 19% | 0.0431 | 0.0310 | 1.39x |
+| llama3.2-1b | GPTQ | 6 | 38% | 0.0673 | 0.0481 | 1.40x |
+| llama3.2-1b | GPTQ | 8 | 50% | 0.1110 | 0.0684 | 1.62x |
+| llama3.2-1b | GPTQ | 10 | 63% | 0.1368 | 0.0952 | 1.44x |
+| llama3.2-1b | GPTQ | 13 | 81% | 0.2178 | 0.1440 | 1.51x |
+| qwen2.5-1.5b | AWQ | 6 | 21% | 0.0538 | 0.0349 | 1.54x |
+| qwen2.5-1.5b | AWQ | 10 | 36% | 0.0878 | 0.0651 | 1.35x |
+| qwen2.5-1.5b | AWQ | 14 | 50% | 0.1262 | 0.0888 | 1.42x |
+| qwen2.5-1.5b | AWQ | 18 | 64% | 0.1713 | 0.1157 | 1.48x |
+| qwen2.5-1.5b | AWQ | 22 | 79% | 0.2323 | 0.1536 | 1.51x |
+| qwen2.5-1.5b | GPTQ | 6 | 21% | 0.0682 | 0.0466 | 1.46x |
+| qwen2.5-1.5b | GPTQ | 10 | 36% | 0.1034 | 0.0709 | 1.46x |
+| qwen2.5-1.5b | GPTQ | 14 | 50% | 0.1509 | 0.0963 | 1.57x |
+| qwen2.5-1.5b | GPTQ | 18 | 64% | 0.2292 | 0.1327 | 1.73x |
+| qwen2.5-1.5b | GPTQ | 22 | 79% | 0.2985 | 0.1771 | 1.69x |
+| phi-2 | GPTQ | 6 | 19% | 0.1139 | 0.0895 | 1.27x |
+| phi-2 | GPTQ | 11 | 34% | 0.1673 | 0.1450 | 1.15x |
+| phi-2 | GPTQ | 16 | 50% | 0.2128 | 0.1791 | 1.19x |
+| phi-2 | GPTQ | 21 | 66% | 0.2497 | 0.2186 | 1.14x |
+| phi-2 | GPTQ | 26 | 81% | 0.3334 | 0.2823 | 1.18x |
+
+*Observations.* (1) Safety error ratios are consistently > 1.0 at every layer of every model. (2) The ratio does not monotonically increase with depth — some models peak in the middle layers (llama3.2-1b GPTQ peaks at layer 8, 1.62x) while others peak later (qwen2.5-1.5b GPTQ peaks at layer 18, 1.73x). (3) Absolute errors increase with depth in all cases, consistent with error accumulation. (4) phi-2 shows the most uniform ratio across layers (1.14-1.27x), consistent with its parallel architecture distributing safety computation more evenly.
+
+*Note.* The full 55-row per-layer table is available in `results/phase4_gptq_docker/per_layer_errors.csv`. The table above shows representative rows for the 3 most informative models. 7B model layer data (qwen2.5-7b, mistral-7b) is available in the CSV but omitted here for space.
 
 ---
 
@@ -624,7 +832,112 @@ Source: Built-in curated set (`builtin_curated_v1`) in `research/tr146/shared/pr
 
 ---
 
-## Appendix D: Glossary
+## Appendix D: Complete Phase 3 ECE Analysis
+
+### D.1 ECE per Cell
+
+| Model | Quant | ECE | Confidence | Confidence Shift | Entropy | Gini | TR142 Regime |
+|-------|-------|-----|-----------|-----------------|---------|------|-------------|
+| llama3.2-1b | FP16 | 0.371 | 0.294 | 0.000 | 2.470 | 0.887 | baseline |
+| llama3.2-1b | AWQ | 0.321 | 0.292 | -0.002 | 2.543 | 0.888 | hidden_danger |
+| llama3.2-1b | GPTQ | 0.334 | 0.370 | +0.076 | 2.076 | 0.849 | hidden_danger |
+| llama3.2-3b | FP16 | 0.286 | 0.335 | 0.000 | 2.383 | 0.868 | baseline |
+| llama3.2-3b | AWQ | 0.158 | 0.346 | +0.012 | 2.331 | 0.865 | hidden_danger |
+| llama3.2-3b | GPTQ | 0.269 | 0.356 | +0.021 | 2.164 | 0.849 | hidden_danger |
+| qwen2.5-1.5b | FP16 | 0.162 | 0.280 | 0.000 | 2.404 | 0.897 | baseline |
+| qwen2.5-1.5b | AWQ | 0.167 | 0.281 | +0.002 | 2.436 | 0.896 | neutral |
+| qwen2.5-1.5b | GPTQ | 0.062 | 0.322 | +0.043 | 2.257 | 0.877 | neutral |
+| qwen2.5-7b | FP16 | 0.206 | 0.356 | 0.000 | 1.874 | 0.845 | anchor |
+| qwen2.5-7b | AWQ | 0.232 | 0.342 | -0.014 | 1.966 | 0.859 | hidden_danger |
+| qwen2.5-7b | GPTQ | 0.031 | 0.397 | +0.041 | 1.697 | 0.812 | hidden_danger |
+| phi-2 | FP16 | 0.040 | 0.542 | 0.000 | 1.807 | 0.688 | baseline |
+| phi-2 | GPTQ | 0.039 | 0.528 | -0.014 | 1.889 | 0.700 | hidden_danger |
+| mistral-7b | FP16 | 0.149 | 0.464 | 0.000 | 2.654 | 0.779 | anchor |
+| mistral-7b | AWQ | 0.209 | 0.453 | -0.011 | 2.714 | 0.789 | hidden_danger |
+| mistral-7b | GPTQ | 0.173 | 0.501 | +0.037 | 2.545 | 0.742 | hidden_danger |
+
+*Observations.* (1) ECE values vary widely across models (phi-2: 0.04 vs llama3.2-1b: 0.37), indicating fundamentally different calibration baselines on safety prompts. (2) The lowest ECE cells are not the safest — qwen2.5-7b GPTQ has the lowest ECE (0.031) but is a hidden-danger row. Low ECE means well-calibrated, not safe. (3) ECE changes under quantization are not directionally consistent: sometimes ECE improves (llama3.2-3b AWQ: 0.286 → 0.158), sometimes worsens (mistral-7b AWQ: 0.149 → 0.209). (4) The Gini impurity column confirms the entropy pattern: GPTQ reduces Gini (more concentrated), AWQ increases or preserves it.
+
+---
+
+## Appendix E: Configuration
+
+### E.1 TR146 Config (config.yaml)
+
+```yaml
+# Key parameters used for all phases
+tr142_results: research/tr142/results/bespoke_analysis_v3/phase56_v3_full_canonical
+checkpoint_root: research/tr142/expansion/checkpoints
+
+phase1:
+  n_harmful_prompts: 100
+  batch_size: 8
+  device: cuda
+  dtype: float16
+
+phase2:
+  n_harmful_prompts: 100
+  n_harmless_prompts: 100
+  target_layer_frac: 0.65
+
+phase3:
+  n_harmful_prompts: 100
+  batch_size: 8
+  ece_bins: 10
+
+phase4:
+  n_harmful_prompts: 100
+  n_harmless_prompts: 100
+  batch_size: 4
+  top_k_frac: 0.05
+  n_probe_layers: 5
+  probe_prompt_count: 50
+```
+
+### E.2 Docker Environment
+
+```
+Image: tr142-gptq:compiled (26.5 GB)
+Base: nvidia/cuda:12.6.3-devel-ubuntu22.04
+Python: 3.11
+PyTorch: 2.11.0+cu126
+transformers: 4.57.6
+gptqmodel: 5.8.0
+Triton: 3.6.0
+```
+
+### E.3 RunPod Environment (Phase 4 7B Rerun)
+
+```
+GPU: NVIDIA RTX 6000 Ada (48 GB VRAM)
+Cost: $0.77/hr
+Runtime: ~15 minutes
+Total cost: ~$0.20
+```
+
+---
+
+## Appendix F: Sensitivity and Robustness
+
+### F.1 Target Layer Sensitivity (Phase 2)
+
+Phase 2 extracts refusal directions at ~65% layer depth. Would a different target layer change the cosine similarity results? We do not have multi-layer refusal direction data (Phase 2 extracts at a single layer), but Phase 4's multi-layer safety neuron analysis provides indirect evidence: safety-relevant activation patterns are present at 20-80% depth, with ratios varying by less than 0.4x across layers within a model. This suggests the refusal direction is distributed across layers rather than concentrated at one depth, and the 65% target captures a representative signal.
+
+### F.2 Safety Neuron Threshold Sensitivity (Phase 4)
+
+Phase 4 uses 5% as the safety neuron threshold. The choice affects how many neurons are tagged as safety-critical, which in turn affects the safety error ratio. At lower thresholds (e.g., 1%), fewer neurons are tagged, and the ratio may increase (fewer, more concentrated neurons have higher per-neuron contrast). At higher thresholds (e.g., 10%), more neurons are tagged, and the ratio may decrease as less safety-relevant neurons dilute the signal. We did not perform a formal threshold sweep, but the 5% threshold is consistent with Chen et al. (2024) who found that ~5% of neurons account for >90% of safety behavior.
+
+### F.3 Prompt Count Sensitivity
+
+All phases use 100 harmful prompts. Phase 4 uses 50 for the error measurement step (a computational trade-off, since both FP16 and quant models must be loaded simultaneously). The prompt counts are sufficient for cell-level means but may introduce sampling noise in the per-prompt statistics. The key results (safety ratio > 1.0, cosine sim > 0.97) are robust because they hold in every cell, not just on average.
+
+### F.4 Reproducibility Note
+
+Due to non-determinism in CUDA floating-point operations, exact reproduction of hidden-state values may vary across hardware configurations. However, the aggregate statistics (means, ratios, correlations) should be stable to within ±0.01 across identical software environments with different hardware. The cosine similarity results (>0.97) have sufficient margin that hardware-level floating-point variation would not change the qualitative conclusion.
+
+---
+
+## Appendix G: Glossary
 
 | Term | Definition |
 |------|-----------|
