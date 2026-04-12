@@ -1,7 +1,7 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Safety Alignment — 593,134+ Primary Measurements, 39 Technical Reports
+## LLM Inference Research & Safety Alignment — 634,000+ Primary Measurements, 40 Technical Reports
 
-This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, and safety alignment under inference optimizations — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM) and cloud GPUs (NVIDIA RTX PRO 6000 Blackwell, 98 GB VRAM via Google Colab).
+This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, safety alignment under inference optimizations, and mechanistic safety probing — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM), cloud GPUs (Colab T4 16 GB, RunPod RTX 6000 Ada 48 GB), and Docker-based quantization pipelines (AWQ, GPTQ).
 
 ---
 
@@ -17,10 +17,12 @@ Single-agent and multi-agent performance analysis, Rust vs Python cross-language
 
 KV-cache economics, quality baselines, quantization decision matrix, Linux/Triton compile validation, long-context characterization, production workload analysis, N-agent scaling laws, serving stack comparison, GPU kernel profiling (host + in-container), and a predictive capacity planner shipped as the `chimeraforge plan` CLI.
 
-### Phase 3: Safety Alignment (TR134-TR143) + v2 Expansion
-**10 technical reports + 3 v2 expansion reports. ~399,000+ data points.**
+### Phase 3: Safety Alignment (TR134-TR143, TR146) + v2/v3 Expansions
+**11 technical reports + 3 v2 expansion reports + 3 v3 AWQ/GPTQ cross-method reports. ~440,000+ data points.**
 
-Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 152,022 data points), quality-safety correlation, and cross-request safety leakage under continuous batching (TR143).
+Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 152,022 data points), quality-safety correlation, cross-request safety leakage under continuous batching (TR143), and mechanistic safety probing under quantization (TR146: safety neurons absorb 1.39x disproportionate quantization error).
+
+The v3 expansion (TR125 v3, TR134 v3, TR142 v3) extends the evaluation matrix from GGUF k-quants to include AWQ and GPTQ 4-bit formats across 6 models, adding 11 new model-quant cells, 18,568 AWQ/GPTQ primary samples, and 5,148 AWQ/GPTQ judge annotations. A second-judge robustness check (Claude Sonnet 4, 11,470 rows) validates consistency across the full matrix.
 
 ### Conclusive Reports
 **12 synthesis documents spanning all phases.**
@@ -58,7 +60,7 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 |--------|-------|---------|--------|-------------|
 | **TR123** | KV-Cache Production Economics | 900 | Complete | Best cost $0.013/1M tokens; cached decode 2-8x cheaper |
 | **TR124** | Quality & Accuracy Baseline | 24,990 | Complete | Backend choice does not affect quality (0/7 ANOVA significant) |
-| **TR125** | Quantization Decision Matrix | 33,810 | Complete | Q4_K_M remains the quality default across 7 models; Q2_K is universally unacceptable |
+| **TR125** | Quantization Decision Matrix | 41,895 quality across 51 model-quant variants (v3: 9 formats incl. AWQ/GPTQ) | Complete (v3) | Q4_K_M remains GGUF default; AWQ matches on 4/5 models, GPTQ on 5/6; Q2_K universally unacceptable |
 | **TR126** | Docker/Linux + Triton Validation | 25,400 | Complete | Compile paradox resolved: 24-60% prefill speedup on Linux; crashes decode |
 | **TR127** | Long-Context Characterization | 1,144 | Complete | VRAM spillover (25-105x cliffs), not quadratic attention, is the bottleneck |
 | **TR128** | Production Workloads | 3,172 | Complete | NUM_PARALLEL is a no-op (0/30 significant); M/D/1 deviates 20.4x |
@@ -72,7 +74,7 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 
 | Report | Title | Samples | Status | Key Finding |
 |--------|-------|---------|--------|-------------|
-| **TR134** | Alignment Robustness Under Quantization | 38,120 + 24,336 judge | Complete | Safety is broadly robust through Q3_K_S, qwen2.5-1.5b replicates the Q2_K cliff, and judge gaps are strongly model-dependent |
+| **TR134** | Alignment Robustness Under Quantization | 48,603 safety + 21,096 judge (v3: 51 cells, 9 formats) | Complete (v3) | Safety broadly robust through Q3_K_S; Q2_K catastrophic; AWQ/GPTQ introduce format-specific hidden-danger regimes; refusal template destabilization mechanism identified |
 | **TR135** | Safety Under Multi-Agent Concurrency | 20,316 | Complete | Null finding confirmed: concurrency has zero detectable effect on safety (I-squared = 0.0%) |
 | **TR136** | Cross-Backend Safety Consistency | 16,032 | Complete | Backend matters more than quant: Llama 1B shows 23pp safety drop Ollama→FP16; no TOST equivalence |
 | **TR137** | The Safety Tax of Inference Optimization | 74,254 | Complete | Quantization 57% of safety cost, backend 41%, concurrency 2%; worst config retains only 57.5% baseline safety |
@@ -81,8 +83,9 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 | **TR139** | Multi-Turn Jailbreak Under Quantization | 48,425 | Complete | All 8 strategy ANOVAs reject quant-independence (p < 1e-4); qwen2.5-1.5b/Q2_K/attention_shift reaches 100% ASR |
 | **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | 30,000 | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
 | **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 152,022 | Complete (v3.1) | 18 models, 10+ families; 0.94x safety/capability ratio (near parity); alignment type not predictive (p=0.942); output instability predicts fragility (r=0.91) |
-| **TR142** | Quality-Safety Correlation Under Quantization | 40 cells; 33,810 quality + 38,120 safety + 24,336 judge | Complete | Sign reversal persists across the expanded 6-model matrix; pooled quality metrics remain unreliable safety proxies |
+| **TR142** | Quality-Safety Correlation Under Quantization | 51 cells; 41,895 quality + 48,603 safety + 21,096 judge (v3: GGUF+AWQ+GPTQ) | Complete (v3) | Simpson's paradox extends to AWQ/GPTQ; RTSI mitigator calibrated with LOOCV (recall=1.0) across all 51 cells; behavioral screen is the only viable pre-deployment check |
 | **TR143** | Cross-Request Safety Leakage Under Continuous Batching | 14,250 | Complete (v2.0) | Aggregate composition effect not significant; directional asymmetry IS significant — 88-92% of flips trend unsafe (p=0.006) |
+| **TR146** | Mechanistic Safety Probing Under Quantization | 5,100 forward passes | Complete | Safety neurons absorb 1.40x disproportionate quant error (p<0.0001), but none of 4 mechanistic probes distinguish safe from dangerous configs; behavioral screens (RTSI) remain the only viable pre-deployment check |
 
 ### Expansion v2 Reports (TR142 Matrix Expansion)
 
@@ -91,6 +94,14 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 | **TR125 v2** | Quality Evaluation — Expanded Matrix | 8,820 expansion + 24,990 original | Complete | 7 models across 4 families; Q4_K_M sweet spot confirmed cross-family; mistral-7b MMLU 58.9%→55.1% at Q2_K |
 | **TR134 v2** | Safety Alignment — Expanded Matrix | 13,342 expansion + 24,778 original; 24,336 judge annotations across 3 sources | Complete | 6 models across 4 families; Q2_K catastrophe replicates on qwen2.5-1.5b (-50pp); Mistral regex-judge gap up to 71pp; multi-source judge coverage (legacy Qwen + Gemma 3 12B) |
 | **TR142 v2** | Quality-Safety Correlation — 6-Model Synthesis | 40 cells from TR125+TR134 expanded | Complete | 34/36 sign reversals (Simpson's paradox at scale); 26/34 cells safety degrades faster; Q5_K_M floor holds all 6 models; per-model r from +0.997 to -0.829 |
+
+### Expansion v3 Reports (AWQ/GPTQ Cross-Method)
+
+| Report | Title | Samples | Status | Key Finding |
+|--------|-------|---------|--------|-------------|
+| **TR125 v3** | Quality Evaluation — AWQ/GPTQ Expansion | 41,895 quality total (37,485 loaded); 51 model-quant variants across 9 formats | Complete | AWQ matches Q4_K_M quality on 4/5 models; GPTQ matches on 5/6; phi-2 AWQ excluded (architecture incompatibility); mistral-7b GPTQ retains 97.8% quality |
+| **TR134 v3** | Safety Alignment — AWQ/GPTQ Collapse | 48,603 safety + 21,096 judge across 51 cells | Complete | AWQ/GPTQ safety varies by model: llama3.2-1b GPTQ safe, qwen2.5-7b GPTQ hidden-danger; refusal template destabilization mechanism identified |
+| **TR142 v3** | Quality-Safety Correlation — Multi-Format Synthesis | 51 cells (40 GGUF + 11 AWQ/GPTQ), 83-column matrix | Complete | Simpson's paradox extends to non-GGUF formats; AWQ and GPTQ introduce new hidden-danger rows not predicted by GGUF thresholds; RTSI mitigator calibrated across all formats |
 
 ### Conclusive Reports
 
@@ -218,6 +229,10 @@ Six shippable decisions backed by ~62,000 measurements:
 - **Quality metrics alone are insufficient safety proxies.** Safety degrades up to 13.9x faster than quality at Q3_K_S on llama3.2-1b. The quality-safety correlation reverses sign between architectures (r = +0.994 on 1b, r = -0.829 on 3b) — pooled analysis is misleading (TR142).
 
 - **Q2_K is the universal vulnerability threshold for many-shot attacks.** Llama models are immune above Q3_K_M; at Q2_K every tested model shows significantly elevated attack success rates. Message array format is dramatically more effective than faux dialogue at the same quantization level (TR140).
+
+- **AWQ and GPTQ introduce safety risks not predicted by GGUF thresholds.** At matched effective bit-widths (~4-bit), AWQ and GPTQ produce different safety profiles than GGUF Q4_K_M. Some models (llama3.2-1b) are safe under GPTQ; others (qwen2.5-7b) enter hidden-danger regimes. Format-specific safety evaluation is required (TR134 v3, TR142 v3).
+
+- **Mechanistic probes cannot predict quantization-induced safety failure.** First-token entropy, refusal direction cosine similarity, calibration drift, and safety-neuron error magnitude are all insufficient to distinguish safe from dangerous quantized configurations. Safety neurons absorb 1.40x disproportionate error (p < 0.0001), but this is universal across all quantized cells, not specific to hidden-danger rows. Behavioral screens (RTSI) remain the only viable pre-deployment check (TR146).
 
 ---
 
@@ -391,6 +406,39 @@ Six shippable decisions backed by ~62,000 measurements:
 - Safety degrades 13.9x faster than quality at llama3.2-1b Q3_K_S, while qwen2.5-7b Q2_K reproduces the hidden-danger pattern outside Llama
 - Q5_K_M remains the conservative floor; Q4_K_M is still model-dependent and ambiguous
 
+#### TR146: Mechanistic Safety Probing Under Quantization
+**File:** `Technical_Report_146.md`
+- 6 models, 3 quant methods (FP16, AWQ INT4, GPTQ INT4), 17 model-quant cells per phase
+- 5,100 forward passes with hidden-state extraction across 4 phases
+- Phase 1 (first-token entropy): AWQ increases, GPTQ decreases uncertainty — no predictive power (r=0.08)
+- Phase 2 (refusal direction): cosine similarity >0.97 in every cell, yet behaviorally ineffective in hidden-danger rows
+- Phase 3 (calibration drift): negative drift — quantization doesn't degrade calibration, no predictive power
+- Phase 4 (safety neuron error): 1.40x disproportionate error (p<0.0001), but universal, not danger-specific (regime p=0.98)
+- Key conclusion: all four mechanistic probes fail to distinguish safe from dangerous configs; RTSI remains the only viable screen
+
+### v3 AWQ/GPTQ Cross-Method Reports
+
+#### TR125 v3: Quantization Decision Matrix (AWQ/GPTQ Expansion)
+**File:** `Technical_Report_125_v3.md`
+- 6 models, 4 families, 51 model-quant variants across 9 formats (7 GGUF + AWQ + GPTQ)
+- 41,895 total quality samples (37,485 loaded) across v1 + v2 + v3 waves
+- Hardware: RTX 4080 Laptop (small models), RunPod RTX 6000 Ada 48GB (7B models)
+- AWQ matches Q4_K_M quality on 4/5 models; GPTQ matches on 5/6; phi-2 AWQ excluded (parallel attention incompatibility)
+
+#### TR134 v3: Alignment Robustness Under Quantization (AWQ/GPTQ Safety)
+**File:** `Technical_Report_134_v3.md`
+- 48,603 total safety samples + 21,096 judge annotations across 51 cells
+- 11 AWQ/GPTQ entries add 10,483 safety samples and 5,148 judge annotations
+- Refusal template destabilization mechanism identified: AWQ/GPTQ disrupt refusal surface differently from GGUF
+- Second-judge robustness check (Claude Sonnet 4, 11,470 rows) validates consistency
+
+#### TR142 v3: Quality-Safety Correlation — Multi-Format Synthesis
+**File:** `Technical_Report_142_v3.md`
+- 51-row × 83-column unified matrix (40 GGUF + 11 AWQ/GPTQ)
+- Simpson's paradox extends to non-GGUF: AWQ and GPTQ introduce hidden-danger rows not predicted by GGUF thresholds
+- RTSI mitigator calibrated with LOOCV (recall=1.0) across all 51 cells
+- Supersedes TR142 v2 (40-cell GGUF-only analysis)
+
 ### Phase 2
 
 #### TR123: KV-Cache Production Economics
@@ -552,7 +600,7 @@ PublishReady/reports/
 │   ├── Technical_Report_132.md
 │   └── Technical_Report_133.md
 │
-├── Phase 3: Safety Alignment (TR134-TR143)
+├── Phase 3: Safety Alignment (TR134-TR143, TR146)
 │   ├── Technical_Report_134_v2.md
 │   ├── Technical_Report_135.md
 │   ├── Technical_Report_136.md
@@ -563,7 +611,18 @@ PublishReady/reports/
 │   ├── Technical_Report_140.md
 │   ├── Technical_Report_141.md  ← largest study (152,022 data points, 18 models)
 │   ├── Technical_Report_142_v2.md
-│   └── Technical_Report_143.md
+│   ├── Technical_Report_143.md
+│   └── Technical_Report_146.md  ← mechanistic safety probing (5,100 forward passes)
+│
+├── v2 Expansion Reports
+│   ├── Technical_Report_125_v2.md
+│   ├── Technical_Report_134_v2.md
+│   └── Technical_Report_142_v2.md
+│
+├── v3 AWQ/GPTQ Cross-Method Reports
+│   ├── Technical_Report_125_v3.md
+│   ├── Technical_Report_134_v3.md
+│   └── Technical_Report_142_v3.md
 │
 ├── Conclusive Reports
 │   ├── Technical_Report_Conclusive_108-116.md
@@ -577,7 +636,10 @@ PublishReady/reports/
 │   ├── Technical_Report_Conclusive_123-133_Whitepaper.md
 │   ├── Technical_Report_Conclusive_134-137.md
 │   ├── Technical_Report_Conclusive_134-137_Extended_Appendices.md
-│   └── Technical_Report_Conclusive_134-137_Whitepaper.md
+│   ├── Technical_Report_Conclusive_134-137_Whitepaper.md
+│   ├── Technical_Report_Conclusive_138-143.md
+│   ├── Technical_Report_Conclusive_138-143_Extended_Appendices.md
+│   └── Technical_Report_Conclusive_138-143_Whitepaper.md
 │
 ├── Historical (Superseded)
 │   ├── Technical_Report_111.md
@@ -665,6 +727,12 @@ All measurements on a single fixed baseline:
 16. **Are quality benchmarks sufficient to monitor safety?**
     No — quality and safety degradation paths are uncorrelated and direction-reversed across architectures (TR142)
 
+17. **Do AWQ and GPTQ preserve the same safety guarantees as GGUF k-quants?**
+    Not reliably — at matched ~4-bit precision, AWQ and GPTQ introduce model-specific hidden-danger regimes not predicted by GGUF thresholds. Format-specific safety evaluation is required (TR134 v3, TR142 v3)
+
+18. **Can mechanistic interpretability probes predict quantization-induced safety failure?**
+    No — first-token entropy, refusal direction preservation, calibration drift, and safety-neuron error magnitude all fail to distinguish safe from dangerous configs. Safety neurons absorb 1.40x disproportionate error universally; the damage is necessary but not sufficient for behavioral failure (TR146)
+
 ---
 
 ## Reading Guide
@@ -681,9 +749,10 @@ All measurements on a single fixed baseline:
 2. **Multi-agent deployment:** TR129 (scaling laws) + TR130 (serving stacks)
 3. **Capacity planning:** TR133 + `chimeraforge plan` CLI
 4. **Compilation:** TR126 (what works, what crashes)
-5. **Safety-critical deployment:** TR137 (safety tax synthesis) + TR141 (batch safety, cross-architecture)
+5. **Safety-critical deployment:** TR137 (safety tax synthesis) + TR141 (batch safety, cross-architecture) + TR146 (mechanistic probing)
 6. **Backend safety validation:** TR136 (backend safety consistency)
 7. **Jailbreak risk assessment:** TR139 (multi-turn) + TR140 (many-shot)
+8. **AWQ/GPTQ safety:** TR134 v3 + TR142 v3 (format-specific safety evaluation)
 
 ### For Decision Makers
 1. **Rust vs Python Decision:** `Technical_Report_Conclusive_108-116_Whitepaper.md` (language, architecture, runtime, model)
@@ -694,6 +763,9 @@ All measurements on a single fixed baseline:
 
 ---
 
-**Last Updated:** 2026-03-28
-**Total Reports:** 63 files (36 completed TRs + 12 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + TR143)
-**Total Measurements:** 558,804+ primary measurements across report sample columns; secondary judge annotations and synthesis-layer matrix cells are reported separately within the relevant reports
+**Last Updated:** 2026-04-11
+**Total Reports:** 75 files (40 completed TR versions + 3 v2 expansions + 3 v3 AWQ/GPTQ expansions + 15 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + model benchmarks)
+**Total Measurements:** 634,000+ primary measurements across report sample columns; secondary judge annotations (21,096 loaded + 11,470 second-judge robustness) and synthesis-layer matrix cells are reported separately within the relevant reports
+**Quantization Formats Evaluated:** GGUF (FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, Q2_K), AWQ INT4, GPTQ INT4
+**Models Evaluated:** 18+ unique models across 10+ architecture families (360M to 14.8B parameters)
+**Hardware:** NVIDIA RTX 4080 Laptop 12GB (primary), Colab T4 16GB (v2 expansion), RunPod RTX 6000 Ada 48GB (7B quantization), Docker (AWQ/GPTQ pipelines)
