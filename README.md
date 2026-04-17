@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** .[The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. 30 technical reports. 126,000+ empirical measurements. Everything measured, everything reproducible.
+I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. 40 technical reports. 634,000+ empirical measurements. Everything measured, everything reproducible.
 
 ---
 
@@ -21,22 +21,25 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-3. **Empirical safety research** —30 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, and scale concurrency. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned.
+3. **Empirical safety research** — 40 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, and scale concurrency. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned.
 
 ---
 
 ## The Chimera Ecosystem
 
-**6 repositories. 15+ services. 5 languages. One obsession: make AI systems that are fast, safe, and honest.**
+**9 repositories. 15+ services. 5 languages. One obsession: make AI systems that are fast, safe, and honest.**
 
 ```mermaid
 graph TD
     BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 95%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
-    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>30 reports · 126K+ measurements"]
+    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>40 reports · 634K+ measurements"]
     CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>6 predictive models · 292 tests<br/>Python + Rust harnesses"]
     MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
     CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
-    BB["<b>Banterblogs</b><br/>Next.js 15 · Vercel<br/>266 episodes · 30+ reports"]
+    BB["<b>Banterblogs</b><br/>Next.js 15 · Vercel<br/>266 episodes · 40+ reports"]
+    EC["<b>Echo</b><br/>Channel adapters for Chimera<br/>Slack · Discord · Telegram · WhatsApp · Email<br/>5 adapters · 68 tests"]
+    JC["<b>JARVIS Console</b><br/>Next.js 15 operator UI<br/>React 19 · Radix · Framer Motion<br/>Chat · approvals · session telemetry"]
+    WY["<b>ProjectWyvern</b><br/>Constitutional aerial autonomy<br/>MAVSDK · MAVLink · ROS 2 · PX4/ArduPilot<br/>Mission validation · cryptographic replay"]
 
     BP -->|optimized backends| BH
     BH -->|findings| CF
@@ -44,6 +47,9 @@ graph TD
     MP -->|episodes| BB
     BP -->|streaming + voice| CD
     BH -->|GPU configs| BP
+    BP -->|JARVIS gateway| EC
+    BP -->|operator surface| JC
+    BP -->|policy + approvals| WY
 
     style BP fill:#1a1a2e,stroke:#e94560,color:#fff
     style BH fill:#1a1a2e,stroke:#0f3460,color:#fff
@@ -51,6 +57,9 @@ graph TD
     style MP fill:#1a1a2e,stroke:#533483,color:#fff
     style CD fill:#1a1a2e,stroke:#e94560,color:#fff
     style BB fill:#1a1a2e,stroke:#0f3460,color:#fff
+    style EC fill:#1a1a2e,stroke:#16213e,color:#fff
+    style JC fill:#1a1a2e,stroke:#533483,color:#fff
+    style WY fill:#1a1a2e,stroke:#e94560,color:#fff
 ```
 
 ---
@@ -93,7 +102,7 @@ Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chim
 - 6 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required)
 - Dual-language benchmarking harnesses (Python + Rust)
 - 292 tests
-- Operationalizes findings from 30 technical reports into deployment decisions
+- Operationalizes findings from 40 technical reports into deployment decisions
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
@@ -109,9 +118,29 @@ Unity/C# JARVIS client for Android and Android XR. WebSocket streaming, voice in
 
 ---
 
+## Echo — Channel Adapters
+
+The messaging bridge between external platforms and the JARVIS gateway. **5 adapters** (Slack Socket Mode, Discord Gateway, Telegram long-poll, WhatsApp Cloud API webhooks, SMTP/IMAP email) and **68 tests**. Each adapter is a thin HTTP relay — no intelligence, just platform-specific formatting. All cognition lives in JARVIS.
+
+---
+
+## JARVIS Console — Operator UI
+
+Next.js 15 + React 19 operator surface for JARVIS. Radix primitives, Framer Motion, Tailwind. Chat, tool-approval workflows, session telemetry, and live agent state.
+
+---
+
+## ProjectWyvern — Constitutional Aerial Autonomy
+
+The autonomy plane in the Chimera ecosystem. Sits between the Chimera control plane (identity, policy, operator approvals) and the flight controller (PX4/ArduPilot via MAVSDK/MAVLink/ROS 2). Owns mission validation, command arbitration, telemetry normalization, and cryptographically replayable mission archives.
+
+> *AI assists planning. It never bypasses deterministic safety or operator authority.*
+
+---
+
 ## Research Program
 
-**30 technical reports (TR 108--137). 126,000+ empirical measurements. 3 hypotheses overturned.**
+**40 technical reports (TR 108--147). 634,000+ empirical measurements. 3 hypotheses overturned.**
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
@@ -161,7 +190,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 - Reduced **deepfake phishing simulation** latency from **40s to 100--450ms** (80--400x improvement)
 - Input guardrails across all APIs and agents with adversarial attempt logging
 - **5 specialized PR-review agents** distilled from ~2,500 comments across ~1,000 PRs
-- 5000+ tests across ~10 services
+- 5000+ tests across ~20 services
 
 ### Attunica AI — Co-Founder & Chief Architect
 
@@ -178,6 +207,7 @@ Four-service AI platform for psychotherapy training.
 | Project | Description |
 |:--------|:------------|
 | [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI. 6 predictive models, 292 tests. |
+| [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 15 published models — 11 quantized AWQ/GPTQ checkpoints (Llama 3.2, Qwen 2.5) and 4 custom GPT-2 scaling-law training runs. |
 | [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | Triaged upstream PR — torch.compile autoregressive decode failure with growing KV-cache tensors. Traced into cudagraph_trees deallocation. |
 
 ---
