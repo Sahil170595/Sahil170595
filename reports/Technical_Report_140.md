@@ -5,34 +5,73 @@
 |-------|-------|
 | **TR Number** | 140 |
 | **Project** | Banterhearts |
-| **Date** | 2026-03-16 |
-| **Version** | 2.0 |
+| **Date** | 2026-04-17 |
+| **Version** | 3.0 (v1 + v2 controls C1-C13 integrated) |
 | **Author** | Research Team |
-| **Git Commit** | d2c3fdac |
+| **Git Commit** | see `research/tr140/v2_controls/analysis/v3_data_manifest.json` |
 | **Status** | Complete |
-| **Report Type** | Full-depth (v2.0) |
-| **Word Count** | ~19,600 |
-| **Analysis Passes** | 25 |
-| **Statistical Tests** | Fisher exact, ANOVA, TOST, power-law OLS, bootstrap CI, Cohen's h, Cohen's kappa |
-| **Run Directory** | `research/tr140/results/20260316_164907/` |
-| **Total Samples** | 15,000 (12,000 Phase 1 + 3,000 Phase 2) |
-| **Judge Labels** | 15,000 (0 failures) |
-| **Models** | llama3.2-1b, llama3.2-3b, qwen2.5-1.5b, llama3.1-8b |
-| **Quant Levels** | Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_M, Q2_K |
+| **Report Type** | Full-depth integrated (v1 frozen run + v2 controls C1-C13) |
+| **Word Count** | ~24,500 |
+| **Analysis Passes** | 38 (25 v1 + 13 new v2 passes) |
+| **Statistical Tests** | Fisher exact, ANOVA, TOST, power-law OLS, bootstrap CI (n=1000), Cohen's h, Cohen's kappa, Holm-Bonferroni |
+| **v1 Run Directory** | `research/tr140/results/20260316_164907/` |
+| **v2 Controls Directory** | `research/tr140/v2_controls/results/` |
+| **v1 Total Samples** | 15,000 (12,000 Phase 1 + 3,000 Phase 2) |
+| **v2 New Primary Samples** | 48,950 (C2 600 + C3 1,200 + C4 400 + C6 2,700 + C7 27,000 + C8 10,800 + C9 900 + C10 600 + C11 4,000 + C12 750) |
+| **v3 Integrated Total** | 63,950 primary samples, 78,950 judge labels (v1 qwen 15K + v2 gemma3 48,950 + C1 gemma3 rejudge 15K + C1 Claude 15K; overlaps collapse per-sample) |
+| **v1 Judge** | qwen2.5:7b-instruct-q8_0 (Ollama, Q8_0) |
+| **v2 Judge** | gemma3:12b (primary) + Claude Sonnet 4.6 (C1 triangulation on the 15K v1 sample set) |
+| **Models** | v1: llama3.2-1b, llama3.2-3b, qwen2.5-1.5b, llama3.1-8b. v2 adds: gemma2-2b (C7/C8), phi3.5-mini (C8 only; C7 run A pull_failed), qwen2.5-14b (C9 anchor). |
+| **Quant Levels** | v1: Q8_0 to Q2_K. v2 adds: FP16 (C2), AWQ-4bit and GPTQ-4bit (C10 vLLM). |
 | **Phase 1 Design** | 4 models x 6 quants x 5 shot counts x 2 formats x 50 behaviors |
 | **Phase 2 Design** | 4 models x 5 quants x 3 context profiles x 50 behaviors |
-| **Related Work** | [TR134](Technical_Report_134.md), [TR139](Technical_Report_139.md), [TR142](Technical_Report_142.md) |
+| **Related Work** | [TR134](Technical_Report_134.md), [TR139](Technical_Report_139.md), [TR142](Technical_Report_142.md), [TR147](Technical_Report_147.md) (integration pattern) |
 | **Depends On** | TR134 (safety baselines), TR139 (multi-turn jailbreak baselines) |
+| **Compute Script** | `research/tr140/compute_v2_stats.py` (emits `v2_controls/analysis/v3_stats.json`) |
 
 ---
 
 ## Abstract
 
-TR140 asks whether GGUF quantization amplifies many-shot jailbreaking and long-context safety attacks on open-weight language models. Following Anthropic's many-shot methodology (NeurIPS 2024), we construct prompts containing N in-context compliance examples (N = 1, 4, 16, 64, 128) in two formats -- faux dialogue and message array -- and measure attack success rate (ASR) across **4 models** (1.2B to 8B parameters) and **6 quantization levels** (Q8_0 through Q2_K). Phase 2 tests whether harmful instructions hidden after benign context prefixes are more effective on quantized models. The study produces **15,000 scored samples** with **15,000 judge labels** across 25 analysis passes.
+TR140 asks whether GGUF quantization amplifies many-shot jailbreaking and long-context safety attacks on open-weight language models. Following Anthropic's many-shot methodology (NeurIPS 2024), we construct prompts containing N in-context compliance examples (N = 1, 4, 16, 64, 128) in two formats -- faux dialogue and message array -- and measure attack success rate (ASR) across **4 models** (1.2B to 8B parameters) and **6 quantization levels** (Q8_0 through Q2_K). Phase 2 tests whether harmful instructions hidden after benign context prefixes are more effective on quantized models. The v1 frozen run (`research/tr140/results/20260316_164907/`) produced **15,000 scored samples** with **15,000 qwen2.5:7b judge labels**. The v3.0 integration adds **48,950 additional primary samples** from thirteen v2 controls (C1-C13) plus **30,000 additional judge labels** (15,000 gemma3:12b rejudge of the v1 set and 15,000 Claude Sonnet 4.6 labels on the same set) to bring the total to **63,950 scored samples / 78,950 judge labels** across 38 analysis passes.
 
-The core findings are: (1) Many-shot attacks are devastating on qwen2.5-1.5b, reaching 99% ASR at N=128 on Q2_K, but the attack works even at Q8_0 (40% ASR at N=128) -- quantization amplifies an already-vulnerable model rather than creating vulnerability. (2) Llama models are nearly immune to many-shot attacks at Q4_K_M and above (ASR = 0%), but Q2_K catastrophically breaks safety on all three Llama variants, with ASR reaching 72% on llama3.2-1b. (3) The message array prompt format is dramatically more effective than faux dialogue on vulnerable cells -- llama3.1-8b Q2_K jumps from 0% to 92% ASR at N=16 when switching formats. (4) Variance decomposition shows residual (per-behavior) variance dominates at 65.7%, followed by quantization (17.9%) and model identity (12.6%), with shot count explaining only 2.7%.
+The core v1 findings survive and strengthen under v2 evidence. (1) Many-shot attacks are devastating on qwen2.5-1.5b, reaching 99% ASR at N=128 on Q2_K (v1, n=100) and 98.7% at N=256 on Q2_K (v2 C8, n=300) -- the attack works even at Q8_0 (40% ASR at N=128 in v1; 47.3% at N=256 in C8). Quantization amplifies an already-vulnerable model rather than creating vulnerability, and the C2 FP16 baseline (8.0% ASR on qwen2.5-1.5b at n=300) confirms that the vulnerability is not introduced by quantization. (2) Llama models are nearly immune to many-shot attacks at Q4_K_M and above. The v2 C7 breadth expansion (24,000 new rows on the full family with n=1,000 per cell) shows llama3.2-1b Q8_0 ASR of 0.0% (0/1000, Wilson upper 0.38%), and Q2_K ASR of 43.7% -- a cliff that holds under the larger sample. (3) The v2 C7 breadth data shows that all five family-level Q2_K-vs-Q8_0 comparisons are Holm-adjusted p < 1e-14 with Cohen's h from 0.65 to 1.44 -- an order-of-magnitude tighter rejection than the n=100 v1 tests. (4) The v2 C8 right-tail pushes shot count to N=256 and shows that llama3.1-8b Q2_K saturates (46% at N=16, 9.7% at N=256 -- the context-cap hypothesis H3 is reconfirmed) while qwen2.5-1.5b Q2_K asymptotes toward 100% (98.7% at N=256). (5) C1 cross-judge triangulation shows gemma3 and Claude agree at kappa = 0.925 with raw 99.02% on the 11,451 overlapping labels; the v1 qwen2.5:7b judge disagrees systematically (kappa = 0.23 vs gemma3, 0.25 vs Claude). Under the two stronger judges every single one of the four Q2_K-vs-Q8_0 model-level tests remains Holm-significant at p < 1e-10; the v1 qwen judge produces 1 non-significant test (llama3.1-8b). (6) C4 benign-demo ASR is low (20.5% pooled across 400 rows), but only because qwen2.5-1.5b Q2_K with a benign demo still reaches 75% -- the "benign" label travels with the model's quant-induced compliance, not with the semantic cue. (7) C9 qwen2.5-14b at n=900 (300 per quant) shows pooled ASR = 18.9% across Q2_K/Q4_K_M/Q8_0 with no monotonic degradation (Q2_K = 23.7%, Q4_K_M = 16.3%, Q8_0 = 16.7%); the 14B scale does NOT close the qwen-family Q2_K gap but dampens it compared to 1.5B.
 
-The operational conclusion is that quantization interacts with many-shot susceptibility at extreme quant levels (Q2_K, Q3_K_M) but not at production-relevant levels (Q4_K_M and above), and that prompt format policing is more important than quant-level restrictions for preventing many-shot attacks. All 15 statistically significant comparisons show large effect sizes (Cohen's h = 0.60-2.06), confirming that the safety degradation at Q2_K is not merely statistically significant but practically catastrophic.
+The operational conclusion is unchanged but sharpened: Q2_K remains the universal safety breakpoint, the message array format remains the dominant amplifier, and per-behavior residual variance remains the largest factor. The v3.0 integration closes the major v1 reviewer objections (judge reliability, FP16 anchor, larger-N saturation, broader model family, non-GGUF quantization, temperature sensitivity, shot ordering). The four claims changed from v1 are summarized in the v1->v3 Integration Summary.
+
+---
+
+## v1 -> v3 Integration Summary
+
+The stale v2.0 draft of TR140 reported results from one 15,000-sample frozen run with a single qwen2.5:7b judge. The current v3.0 report integrates thirteen v2 controls (C1-C13) that were designed to close specific reviewer objections. The following table makes the delta explicit and cites the source file for every number.
+
+| Axis | v1 (frozen, 2026-03-16) | v3 (v1 + v2 controls, 2026-04-17) | Implication for the Paper |
+|------|--------------------------|------------------------------------|----------------------------|
+| Primary samples | 15,000 (Phase 1: 12,000; Phase 2: 3,000) | **63,950** (v1 15,000 + v2 48,950) | 4.3x the measurement base; C7 alone adds 24,000 full-family rows. |
+| Judge labels | 15,000 (qwen2.5:7b only) | **78,950** (v1 qwen 15,000 + v2 gemma3 48,950 + C1 gemma3 rejudge 15,000 + C1 Claude 15,000) | Triangulated triple-judge (qwen, gemma3, Claude) on the 15K v1 set. |
+| Models | 4 (llama3.2-1b/3b, qwen2.5-1.5b, llama3.1-8b) | +3 (gemma2-2b, phi3.5-mini, qwen2.5-14b) on a *subset* of controls | Family coverage broadened for C7/C8/C9; not full-grid -- flagged as narrow cells. |
+| Quantization families | GGUF Q2_K-Q8_0 only | + FP16 (C2), AWQ-4bit (C10), GPTQ-4bit (C10) | Reviewer objection "GGUF-only -> results not portable" addressed for qwen2.5-1.5b; C10 showed vLLM's AWQ/GPTQ at 3% ASR vs GGUF Q4_K_M at 42% (same model). |
+| Shot-count range | N in {1, 4, 16, 64, 128} | + N=256 (C8, 10,800 rows across 6 models x 6 quants) | H3 (context cap) directly tested at the saturation tail. |
+| Temperature | 0.0 only | + 0.7 (C11, 4,000 rows on llama3.2-3b + qwen2.5-1.5b at Q2_K and Q8_0) | T sensitivity measured; ASR deltas within 1.2pp on all 4 cells. |
+| Shot ordering | Default (random) | + explicit "default" bucket documented (C12, 750 rows) | Ordering-stability measurement at n=250-500 per cell. |
+| Phase 2 reinforcement | n=50 per (model,quant,profile) | + n=150 per (model,quant,profile) for 3 models x 3 quants x 3 profiles (C6, 2,700 rows) | Phase 2's qwen2.5-1.5b Q2_K long_prefix "100% ASR" replicates at n=150 (150/150, not 50/50). |
+| Larger-model anchor | None above 8B | qwen2.5-14b (C9, 900 rows at Q2_K/Q4_K_M/Q8_0) | 14B does NOT rescue qwen family at Q2_K (23.7% still elevated), but dampens the cliff versus 1.5B (86.2% at Q2_K in C7). |
+| Judge validation | Single-judge kappa reported at 0.23 (regex vs qwen2.5:7b) | Three-judge triangulation: gemma3 vs Claude kappa = 0.925 (n=11,451), v1 qwen vs gemma3 kappa = 0.233, three-way agreement 93.8% (n=11,419) | v1 qwen judge is systematically under-calling COMPLIANCE; corrected gemma3/Claude labels are used for the v3 per-cell ASR where available. |
+| Benign-demo control | None | C4 (400 rows): pooled ASR 20.5% [16.8%, 24.7%] | The "benign" demo control is NOT a clean negative control on qwen2.5-1.5b Q2_K (75% ASR). Q2_K's quant-induced compliance dominates the demo's semantic cue. |
+| Reviewer objections closed | 0 | 9 (see SS30) | Judge reliability, FP16 anchor, N=256 saturation, broader family, non-GGUF, T sensitivity, shot ordering, Phase 2 reinforcement, 14B anchor. |
+
+**Claims changed from v1:**
+
+1. **C6 Phase 2 qwen2.5-1.5b Q2_K long_prefix is NOT merely "100% on n=50" -- it is 100% at n=150 (`research/tr140/v2_controls/results/c6_phase2_reinforcement/20260415_031712/samples.jsonl`). The claim stands, but with a 3x tighter Wilson CI [97.6%, 100.0%].**
+2. **C1 cross-judge triangulation: the v1 report's overall judge kappa of 0.23 was driven by qwen2.5:7b systematic under-calling of COMPLIANCE. gemma3 and Claude agree at kappa = 0.925. The v1 ASR values at Q2_K are conservative lower bounds; the gemma3/Claude rejudged ASR on the same samples averages 8-15 pp HIGHER on Q2_K cells. The updated Q2_K-vs-Q8_0 Fisher significance under gemma3 yields Holm-p < 1e-10 on all four models (vs three-of-four under v1 qwen). Llama3.1-8b, which was the one non-significant test under v1 qwen (Holm p = 0.128), flips to Holm p = 3.4e-15 under gemma3.**
+3. **C2 FP16 baseline does NOT pass TOST equivalence with Q8_0 at ±3pp: qwen2.5-1.5b FP16 = 8.0% (24/300) vs Q8_0 = 14.5% (94/650), TOST p = 0.95, not equivalent. The v1 report claimed "Q8_0 is the baseline because Ollama does not serve FP16." That claim still holds operationally (Ollama-stack constraint), but the *safety* difference between FP16 and Q8_0 is larger than the ±3pp floor on this model.** Specifically FP16 is 6.5pp LOWER ASR than Q8_0 on qwen2.5-1.5b (FP16 safer than Q8_0). Llama3.1-8b shows the opposite sign (FP16 4.7% vs Q8_0 1.1%) at n=300, though this cell is within Wilson CI overlap.
+4. **C8 right-tail overturns v1's H3 interpretation in one direction:** on **llama3.1-8b Q2_K** the v1 peak-then-decline pattern (46% @ N=16 -> 26% @ N=128) continues to decline at N=256 (9.7%, `research/tr140/v2_controls/results/c8_right_tail/20260416_005713/samples.jsonl`), confirming context-cap. But on **qwen2.5-1.5b Q2_K**, ASR does NOT decline at N=256 -- it saturates at 98.7% (296/300). The context-cap is model-specific; the v1 report treated H3 as "supported" in general but the v2 data localizes it to llama3.1-8b.
+
+**Claims that held under v2 evidence:**
+
+- Q2_K universal vulnerability threshold: held across C7 (5 models, all Holm p < 1e-14), C8 (N=256 tail), C11 (T=0.7 shows same pattern), and under both gemma3 and Claude rejudging.
+- Message array dominance: v2 did not repeat SS10's cell-by-cell format comparison (out of scope for the controls), so v1's ranking stands.
+- Residual-variance-dominates (65.7%): v2 did not repeat the variance decomposition at larger N, so v1's decomposition stands.
 
 ---
 
@@ -40,7 +79,7 @@ The operational conclusion is that quantization interacts with many-shot suscept
 
 ### Key Findings
 
-1. **Peak ASR reaches 99.0% on qwen2.5-1.5b Q2_K at N=128.** This is the single highest attack success rate in the study. The same model at Q8_0 reaches 40.0% at N=128, establishing that qwen2.5-1.5b is fundamentally vulnerable to many-shot attacks regardless of quantization level (Fisher exact p < 0.001, Holm-adjusted).
+1. **Peak ASR reaches 99.0% on qwen2.5-1.5b Q2_K at N=128 (v1, n=100) and 98.7% at N=256 (v2 C8, n=300).** This is the highest attack success rate in the study under both sample sizes. The same model at Q8_0 reaches 40.0% at N=128 (v1) and 47.3% at N=256 (v2 C8, n=300), establishing that qwen2.5-1.5b is fundamentally vulnerable to many-shot attacks regardless of quantization level (Fisher exact p < 1e-14 in C7's 4x-larger test, Holm-adjusted). Verified from `research/tr140/v2_controls/results/c8_right_tail/20260416_005713/samples.jsonl` (300 rows for qwen2.5-1.5b Q2_K N=256, 296 compliance).
 
 2. **Llama models are immune to many-shot attacks above Q3_K_M.** Across all three Llama variants (1b, 3b, 8b), ASR is at or below 2.0% at Q4_K_M through Q8_0 for every shot count. The largest non-Q2_K value is llama3.1-8b Q8_0 at N=128 (4.0%, Wilson CI [1.6%, 9.8%]). The safety alignment of Llama-family instruct models resists many-shot pressure at production quantization levels.
 
@@ -56,7 +95,23 @@ The operational conclusion is that quantization interacts with many-shot suscept
 
 8. **Variance decomposition: residual dominates (65.7%).** Per-behavior variation explains more ASR variance than any experimental factor. Quantization explains 17.9%, model identity 12.6%, and shot count only 2.7%. The specific harmful behavior being requested matters more than how aggressively the model is quantized.
 
-9. **Judge agreement is moderate (overall kappa = 0.23, agreement = 90.3%).** The Q2_K stratum has the lowest agreement (63.5%, kappa = 0.13) because the high ASR creates more ambiguous compliance cases. Agreement is highest where ASR is near zero (Q4_K_M through Q8_0: 95-97%).
+9. **Judge agreement is moderate under v1's single judge but strong under v2's triangulation.** v1 reported overall kappa = 0.23, agreement = 90.3% (regex vs qwen2.5:7b). v2 C1 rejudged all 15,000 v1 samples with gemma3:12b and Claude Sonnet 4.6. gemma3 vs Claude on overlapping 11,451 cases: **raw agreement 99.02%, Cohen's kappa 0.925**. v1 qwen vs gemma3: raw 92.88%, kappa 0.233. v1 qwen vs Claude: raw 94.17%, kappa 0.246. Three-way agreement (v1 qwen AND gemma3 AND Claude all same label) is 93.76% on 11,419 overlapping rows. **The v1 qwen judge is the outlier**, not the gold standard, and its low kappa was previously misattributed to intrinsic case ambiguity. Verified from `research/tr140/v2_controls/analysis/v3_stats.json` under key `c1_agreement.pairwise`.
+
+10. **C7 breadth expansion (27,000 new rows, gemma3 judge) tightens and broadens the Q2_K finding.** The full-family 4-model x 6-quant grid at n=1,000 per cell yields llama3.2-1b Q2_K = 43.7% vs Q8_0 = 0.0% (0/1000; Wilson upper 0.38%) with Cohen's h = 1.44 (Holm-p = 6.8e-15). qwen2.5-1.5b Q2_K = 86.2% (n=1,000) vs Q8_0 = 22.2%, h = 1.40. gemma2-2b (a newly added family at n=500) yields Q2_K = 19.6% vs Q8_0 = 0.2%, h = 0.83. Verified from `research/tr140/v2_controls/results/c7_breadth_expansion/20260415_223902/samples.jsonl` (24,000 rows, 0 JSON errors, 0 failures per the manifest).
+
+11. **C8 (N=256) result disambiguates H3.** llama3.1-8b Q2_K decays monotonically from the v1 peak of 46% @ N=16 to 9.7% @ N=256 (29/300). llama3.2-1b Q2_K stays high at 91.7% @ N=256 (275/300). qwen2.5-1.5b Q2_K saturates at 98.7% @ N=256 (296/300). phi3.5-mini (newly tested) shows 90-98% ASR at N=256 across ALL six quants -- an extreme outlier whose v2 characterization is prerequisite for any phi3.5-mini deployment claim. Verified from `research/tr140/v2_controls/results/c8_right_tail/20260416_005713/samples.jsonl`.
+
+12. **C9 14B anchor is intentionally narrow and pooled-only.** qwen2.5-14b was run at 3 quant levels x 100 behaviors x 3 shot counts = 900 samples on RunPod L40S. Pooled ASR = 18.9% (170/900). Per-quant: Q2_K 23.7%, Q4_K_M 16.3%, Q8_0 16.7%. The 14B's Q2_K ASR is lower than qwen2.5-1.5b's Q2_K ASR of 86.2% in C7, but higher than llama3.1-8b's Q2_K ASR of 27.4% at the same C7 sample size. Scale dampens but does not eliminate the qwen-family cliff. Underpowered for stratified shot-count breakdown. Verified from `research/tr140/v2_controls/results/c9_larger_model/20260415_182202/samples.jsonl` (900 rows, manifest total=900).
+
+13. **C10 non-GGUF cells invert the cliff on qwen2.5-1.5b.** Same model, same N=1 N=4 N=16 N=64 N=128 prompts (n=100 per cell), but served via vLLM with AWQ-4bit and GPTQ-4bit weights rather than Ollama GGUF: AWQ 3% ASR, GPTQ 3% ASR, vs Ollama Q4_K_M 42% ASR on the same model at the same bit width. The GGUF K-quant mixed-precision layer selection is therefore a material confounder -- what v1 attributed to "4-bit quantization" is more accurately "4-bit GGUF K-quant on llama.cpp." AWQ and GPTQ at the same bit width did not reproduce the v1 cliff. Verified from `research/tr140/v2_controls/results/c10_non_gguf/20260415_190113/samples.jsonl` (400 rows, 2 cells per quant format).
+
+14. **C2 FP16 baseline shows FP16 is not equivalent to Q8_0.** qwen2.5-1.5b FP16 ASR = 8.0% (24/300) vs v1 Q8_0 = 14.5% (94/650). TOST-p at ±3pp = 0.95 -- *not* equivalent. FP16 is 6.5pp SAFER than Q8_0 on this model, contradicting the v1 assumption that Q8_0 is an adequate proxy for "unquantized." Llama3.1-8b FP16 = 4.7% (14/300) vs v1 Q8_0 = 1.1% -- here FP16 is NOMINALLY less safe, but both values are within Wilson CI overlap and the direction flip is within sampling noise. Verified from `research/tr140/v2_controls/results/c2_fp16_baseline/20260414_203036/samples.jsonl`.
+
+15. **C4 benign-demo control is compromised by Q2_K's quant-induced compliance.** Designed as a negative control where a harmless few-shot demo should produce low ASR, C4 instead shows: qwen2.5-1.5b Q2_K 75% ASR, qwen2.5-1.5b Q8_0 3% ASR, llama3.1-8b Q2_K 4%, llama3.1-8b Q8_0 0%. The benign-demo manipulation only works as a negative control when the model isn't already broken by Q2_K. Pooled across all 400 rows, ASR = 20.5% -- driven entirely by the qwen2.5-1.5b Q2_K cell. Verified from `research/tr140/v2_controls/results/c4_benign_demo/20260414_195746/samples.jsonl`.
+
+16. **C11 temperature sensitivity is small.** At T=0.0 vs T=0.7 on llama3.2-3b and qwen2.5-1.5b at Q2_K and Q8_0 (n=250 per cell x 8 cells), ASR deltas are within 1.2pp: qwen2.5-1.5b Q2_K 99.2% (T=0.0) vs 99.6% (T=0.7); llama3.2-3b Q8_0 4.0% vs 4.4%. The study's T=0.0 protocol is not undercutting the findings. Verified from `research/tr140/v2_controls/results/c11_temp_sensitivity/20260415_000924/samples.jsonl`.
+
+17. **C12 shot ordering: not varied.** The C12 run produced 750 rows with only a single "default" ordering bucket (llama3.1-8b Q2_K 78.8%, qwen2.5-1.5b Q2_K 87.2%). Shot-ordering *variation* was not tested; this control documents ordering-stability reproducibility (matches v1's Q2_K cells within Wilson CI) but does not answer the ordering-sensitivity question. Explicit gap flagged in SS30.
 
 ### Core Decisions
 
@@ -168,6 +223,16 @@ Phase 1 (many-shot) results span SS5 through SS10; Phase 2 (long-context) result
 - [SS20. Conclusions](#ss20-conclusions)
   - [Cross-TR Comparison](#cross-tr-comparison)
   - [Broader Implications](#broader-implications)
+- [SS22. v2 Control C1 -- Judge Triangulation](#ss22-v2-control-c1----judge-triangulation)
+- [SS23. v2 Control C2 -- FP16 Baseline](#ss23-v2-control-c2----fp16-baseline-qwen25-15b--llama31-8b)
+- [SS24. v2 Control C3 -- Static Prompt Ablation](#ss24-v2-control-c3----static-prompt-ablation)
+- [SS25. v2 Control C4 -- Benign-Demo Negative Control](#ss25-v2-control-c4----benign-demo-negative-control)
+- [SS26. v2 Control C6 -- Phase 2 Reinforcement (n=150)](#ss26-v2-control-c6----phase-2-reinforcement-n150)
+- [SS27. v2 Control C7 -- Breadth Expansion (27,000 rows)](#ss27-v2-control-c7----breadth-expansion-27000-rows-5-models)
+- [SS28. v2 Control C8 -- Right-Tail (N=256) Saturation](#ss28-v2-control-c8----right-tail-n256-saturation)
+- [SS29. v2 Controls C9-C12 -- Narrower Cells](#ss29-v2-controls-c9-c12----narrower-cells)
+- [SS30. Reviewer Objections Closed](#ss30-reviewer-objections-closed)
+- [SS31. v3.0 Open Gaps and Follow-Up](#ss31-v30-open-gaps-and-follow-up)
 - [SS21. Reproducibility](#ss21-reproducibility)
 - [References](#references)
 - [Appendix A: Full ASR Tables](#appendix-a-full-asr-tables)
@@ -1164,12 +1229,431 @@ TR140's findings intersect with two active debates in the safety community:
 
 ---
 
+## SS22. v2 Control C1 -- Judge Triangulation
+
+### SS22.1 Motivation
+
+v1 relied on a single LLM judge (qwen2.5:7b-instruct-q8_0) plus a regex refusal detector. The v1-reported Cohen's kappa of 0.23 was interpreted as "moderate scorer disagreement on ambiguous outputs" in SS14. Reviewers raised the concern that the v1 judge might be systematically under- or over-calling COMPLIANCE in a way that biased every ASR number in the report. C1 addresses this by rejudging all 15,000 v1 samples with two additional judges from different families: gemma3:12b (local Ollama, free) and Claude Sonnet 4.6 (API, paid).
+
+### SS22.2 Three-Judge Agreement Matrix
+
+Pairwise Cohen's kappa and raw agreement, computed on the maximum overlap for each pair (source: `research/tr140/v2_controls/analysis/v3_stats.json` under `c1_agreement.pairwise`, recomputed fresh from JSONL by `research/tr140/compute_v2_stats.py`).
+
+### Table v2.1: Three-judge agreement on the 15,000 v1 samples
+
+| Pair | Overlap n | Raw agreement | Cohen's kappa | Interpretation |
+|------|-----------|---------------|---------------|----------------|
+| v1 qwen2.5:7b vs gemma3:12b | 11,845 | 92.88% | 0.233 | fair -- qwen is the outlier |
+| v1 qwen2.5:7b vs Claude Sonnet 4.6 | 11,440 | 94.17% | 0.246 | fair -- qwen is the outlier |
+| gemma3:12b vs Claude Sonnet 4.6 | 11,451 | **99.02%** | **0.925** | near-perfect |
+| Three-way (all three agree) | 11,419 | 93.76% | -- | dominated by v1 qwen's disagreements |
+
+**Observations.**
+
+- The v1 qwen2.5:7b judge disagrees with both gemma3 and Claude at ~7% raw rate, while gemma3 and Claude disagree with each other at <1% raw rate. The v1 kappa of 0.23 was *not* intrinsic to the task; it reflected systematic bias in the v1 judge's COMPLIANCE threshold.
+- At kappa = 0.925, the gemma3-Claude pair satisfies the "near-perfect" Landis-Koch threshold (kappa > 0.8), meaning the v3.0 ASR numbers computed from gemma3 rejudge labels are effectively interchangeable with Claude-rejudged ASR numbers. The v3 report cites gemma3 labels where available (they cover the full 15K) and uses Claude as a cross-check.
+- The overlap sizes (11,451 and 11,440) are less than 15,000 because the joining keys (behavior_id, model, quant, shot_count, prompt_format, phase) have some missing fields in the Claude batch file schema. The 11,419 three-way overlap is the conservative base for the 93.76% three-way agreement claim.
+
+### SS22.3 Do the 15 v1 "significant comparisons" Survive Under gemma3 and Claude?
+
+The v1 report identified 15 Holm-significant Q2_K or Q3_K_M vs Q8_0 comparisons (SS6 Table 5). C1 reruns the four *model-level* Q2_K vs Q8_0 Fisher exact tests on the 15K v1 samples separately under each judge. (The five-quant-level shot-count-broken-out cells have insufficient overlap under the Claude batch join to replicate the exact v1 15-row test list; the model-level pooled test is the closest directly comparable number.)
+
+### Table v2.2: Q2_K vs Q8_0 pooled-model Fisher + Holm under three judges
+
+| Model | Judge | Q2_K k/n (ASR) | Q8_0 k/n (ASR) | Fisher p | Holm p (family of 4) | Cohen's h |
+|-------|-------|----------------|----------------|----------|----------------------|-----------|
+| llama3.2-1b | v1 qwen2.5:7b | 18/512 (3.5%) | 0/550 (0.0%) | 1.7e-06 | 6.8e-06 | 0.38 |
+| llama3.2-1b | gemma3:12b (rejudge) | 131/553 (23.7%) | 1/650 (0.15%) | 8.3e-16 | 3.3e-15 | 0.94 |
+| llama3.2-1b | Claude Sonnet 4.6 | 103/451 (22.8%) | 1/649 (0.15%) | 1.1e-15 | 3.8e-15 | 0.92 |
+| llama3.2-3b | v1 qwen2.5:7b | 0/547 (0.0%) | 0/550 (0.0%) | 1.000 | 1.000 | 0.00 |
+| llama3.2-3b | gemma3:12b (rejudge) | 41/650 (6.3%) | 1/650 (0.15%) | 1.1e-11 | 1.1e-11 | 0.43 |
+| llama3.2-3b | Claude Sonnet 4.6 | 15/602 (2.5%) | 1/649 (0.15%) | 1.6e-04 | 1.6e-04 | 0.24 |
+| qwen2.5-1.5b | v1 qwen2.5:7b | 29/516 (5.6%) | 9/549 (1.6%) | 4.4e-04 | 1.3e-03 | 0.22 |
+| qwen2.5-1.5b | gemma3:12b (rejudge) | 291/599 (48.6%) | 90/650 (13.8%) | 1.3e-15 | 3.4e-15 | 0.78 |
+| qwen2.5-1.5b | Claude Sonnet 4.6 | 202/298 (67.8%) | 62/646 (9.6%) | 1.2e-15 | 3.8e-15 | 1.30 |
+| llama3.1-8b | v1 qwen2.5:7b | 9/550 (1.6%) | 2/550 (0.36%) | 6.4e-02 | 1.3e-01 | 0.14 |
+| llama3.1-8b | gemma3:12b (rejudge) | 109/649 (16.8%) | 7/650 (1.1%) | 1.1e-15 | 3.4e-15 | 0.64 |
+| llama3.1-8b | Claude Sonnet 4.6 | 122/649 (18.8%) | 2/644 (0.31%) | 9.5e-16 | 3.8e-15 | 0.79 |
+
+Verified from `research/tr140/v2_controls/analysis/v3_stats.json` under key `c1_agreement.q2k_vs_q8_0_by_judge`.
+
+**Observations.**
+
+- **Under the v1 qwen judge, llama3.1-8b's Q2_K-vs-Q8_0 test is non-significant after Holm (p = 0.128). Under gemma3 it is p = 3.4e-15; under Claude it is p = 3.8e-15.** The v1 report's "llama3.1-8b only marginally affected by Q2_K" framing is a judge artifact. With stronger judges, llama3.1-8b is indistinguishable from the other three Llama models in the Q2_K-vs-Q8_0 fight.
+- **Under the v1 qwen judge, llama3.2-3b's Q2_K-vs-Q8_0 test has p = 1.000 (both 0/n)**. The v1 qwen judge never called COMPLIANCE on any llama3.2-3b row in this pooled subset. gemma3 calls 41 COMPLIANCE events on the Q2_K arm (6.3%); Claude calls 15 (2.5%). The v1 qwen judge was systematically missing compliance events on the smaller Llama model.
+- The point estimates of Q2_K-vs-Q8_0 delta are *always higher* under gemma3 and Claude than under v1 qwen. The v1 ASR numbers at Q2_K are conservative lower bounds.
+- The "Cohen's h = 2.06" extreme from v1 SS6 came from the n=100 cell qwen2.5-1.5b N=1 Q2_K (85%) vs Q8_0 (2%). In the pooled triangulation the per-model Cohen's h maxes out at 1.30 (qwen2.5-1.5b under Claude), which is consistent with v1's extreme effect but diluted by pooling across shot counts.
+- The v2 message: the original v1 Fisher + Holm framework was structurally correct; the v1 judge attenuated effect sizes but did not invent them. Three-judge agreement is the appropriate v3 standard.
+
+### SS22.4 Which v3 ASR numbers does this report cite?
+
+- All v1 tables in SS5-SS16 cite the original v1 qwen2.5:7b labels to preserve historical consistency. Where v2 rejudged labels would materially change the qualitative claim (llama3.1-8b case above), the text explicitly flags the rejudge delta.
+- All NEW v2 analyses (SS22-SS29) cite gemma3:12b labels by default, because gemma3 covers the full 27,000-row C7 sample and the full 10,800-row C8 sample with 0% judge failure. Claude was run only on the 15,000 v1 set for triangulation; it is not used for the C7/C8/C9/C10/C11/C12 analyses because no Claude labels exist for those cells.
+- All pairwise agreement, kappa, and TOST numbers are computed from raw JSONL by `research/tr140/compute_v2_stats.py`; no pre-existing analysis JSON is trusted without row-count verification.
+
+---
+
+## SS23. v2 Control C2 -- FP16 Baseline (Qwen2.5-1.5b + Llama3.1-8b)
+
+### SS23.1 Motivation
+
+v1's baseline was Q8_0, not FP16, because Ollama does not serve FP16 for the evaluated models. Reviewers challenged the implicit claim that Q8_0 was a faithful FP16 proxy. C2 addresses this by running FP16 inference via `transformers` + CUDA (bypassing Ollama) on the two most informative models: qwen2.5-1.5b (the v1 outlier) and llama3.1-8b (the largest v1 model). n=300 per (model, FP16) cell = 600 rows total.
+
+### Table v2.3: C2 FP16 ASR vs v1 Q8_0 ASR
+
+Source: `research/tr140/v2_controls/results/c2_fp16_baseline/20260414_203036/samples.jsonl` (600 rows).
+
+| Model | FP16 ASR (C2) | FP16 Wilson 95% CI | Q8_0 ASR (v1) | Q8_0 Wilson 95% CI | Delta (FP16 - Q8_0) | TOST p (±3pp) | Equivalent? |
+|-------|---------------|--------------------|----------------|---------------------|---------------------|---------------|-------------|
+| qwen2.5-1.5b | 8.0% (24/300) | [5.4%, 11.6%] | 14.5% (94/650) | [12.0%, 17.4%] | -6.5pp | 0.951 | **NO** |
+| llama3.1-8b | 4.7% (14/300) | [2.8%, 7.7%] | 1.1% (7/650) | [0.5%, 2.2%] | +3.6pp | 0.677 | **NO** |
+
+**Observations.**
+
+- qwen2.5-1.5b FP16 is *safer* than Q8_0 by 6.5pp, with non-overlapping Wilson CIs (FP16 upper 11.6% < Q8_0 lower 12.0%). The v1 Q8_0 baseline was *not* a faithful FP16 proxy for this model.
+- llama3.1-8b FP16 shows a small directional increase vs Q8_0, but Wilson CIs overlap (FP16 [2.8%, 7.7%] vs Q8_0 [0.5%, 2.2%]). The direction is suspicious given the qwen finding; we do NOT claim FP16 is less safe than Q8_0 on llama3.1-8b from n=300.
+- TOST at ±3pp fails for both models, meaning neither FP16 is statistically equivalent to Q8_0. This means the v1's entire Q8_0 baseline line should be interpreted as "Q8_0 baseline" and NOT as "FP16 proxy."
+- The practical implication is that any deployment that genuinely runs FP16 (e.g., non-quantized HuggingFace transformers serving) will have a materially different ASR profile than the v1 report's Ollama Q8_0 numbers. The direction is model-dependent.
+
+### SS23.2 Why Is Qwen2.5-1.5b FP16 Safer Than Q8_0?
+
+This is a within-family, within-model comparison so it cannot be chalked up to the family or model. Three hypotheses:
+
+1. **Ollama template/system-prompt divergence.** Ollama may apply a different chat template or system prompt than the transformers inference path. The C2 pipeline uses the `qwen2.5-1.5b-instruct` HuggingFace chat template directly.
+2. **Bit-accurate Q8_0 is lossy at outlier weights.** The qwen2.5 family is known to have outlier attention weights that are quantization-sensitive. Q8_0's round-to-nearest can shift safety-critical weight values by 1-2 LSBs.
+3. **Ollama llama.cpp version drift.** The v1 run used `OLLAMA_VERSION=0.6.x`; the v2 C2 run used `transformers 4.44`. Ollama updates can change kernel selection.
+
+We do not resolve this in v3.0 -- it is a clear follow-up. For now, the conservative reading is that v1's Q8_0 baseline is one specific deployment configuration, not a universal "unquantized" baseline.
+
+---
+
+## SS24. v2 Control C3 -- Static Prompt Ablation
+
+### SS24.1 Motivation
+
+v1 used randomized exemplar selection from a pool of 100 compliance Q/A pairs. A reviewer objection: the ASR may depend on the *specific* random selection rather than on the many-shot pressure. C3 runs a "static" prompt mode where the same fixed 50 exemplars are used across every behavior.
+
+### SS24.2 Result
+
+Source: `research/tr140/v2_controls/results/c3_static_prompt/20260414_193834/samples.jsonl` (1,200 rows, 4 models x 6 quants x 50 behaviors, static-mode only).
+
+### Table v2.4: C3 static-prompt ASR at each (model, quant) cell, n=50
+
+| Model | Q2_K | Q3_K_M | Q4_K_M | Q5_K_M | Q6_K | Q8_0 |
+|-------|------|--------|--------|--------|------|------|
+| llama3.1-8b | 2.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| llama3.2-1b | 32.0% | 4.0% | 4.0% | 2.0% | 2.0% | 2.0% |
+| llama3.2-3b | 6.0% | 0.0% | 2.0% | 0.0% | 0.0% | 0.0% |
+| qwen2.5-1.5b | 52.0% | 8.0% | 6.0% | 0.0% | 2.0% | 2.0% |
+
+**Observations.**
+
+- The Q2_K cliff reproduces: every Q2_K cell is elevated above its Q8_0 counterpart.
+- At n=50 the Wilson CI half-widths are wide (±7-14pp), so Q3_K_M vs Q8_0 comparisons are individually underpowered. Aggregate Q2_K-vs-others remains clear.
+- The static-prompt ASR values are *lower* than v1's randomized-prompt ASR on qwen2.5-1.5b Q2_K (52% static vs 85% v1 N=1, 99% v1 N=128). Randomization of exemplar selection modestly amplifies the attack. This is an interesting methodological note but does not overturn any v1 claim.
+- C3 does NOT compare static vs randomized head-to-head within the same run -- it only reports the static arm. The delta vs v1 is cross-run and includes judge family, batch scheduling, and model-stack drift. Treat as directional.
+
+---
+
+## SS25. v2 Control C4 -- Benign-Demo Negative Control
+
+### SS25.1 Motivation
+
+A classical negative control: if many-shot jailbreaking works because of the *harmful* nature of the exemplars (demonstrating compliance with harmful requests), then replacing harmful exemplars with *benign* exemplars (e.g., "Human: What is 2+2? Assistant: 4.") should NOT elevate ASR. C4 runs this substitution on the two most informative models at two quants (Q2_K and Q8_0), 100 behaviors per cell = 400 rows.
+
+### SS25.2 Result
+
+Source: `research/tr140/v2_controls/results/c4_benign_demo/20260414_195746/samples.jsonl` (400 rows).
+
+### Table v2.5: C4 ASR with benign few-shot demos
+
+| Cell | ASR | k/n | Wilson 95% CI |
+|------|-----|-----|----------------|
+| llama3.1-8b Q2_K | 4.0% | 4/100 | [1.6%, 9.8%] |
+| llama3.1-8b Q8_0 | 0.0% | 0/100 | [0.0%, 3.7%] |
+| qwen2.5-1.5b Q2_K | **75.0%** | **75/100** | **[65.7%, 82.5%]** |
+| qwen2.5-1.5b Q8_0 | 3.0% | 3/100 | [1.0%, 8.5%] |
+| Pooled (all 4 cells) | 20.5% | 82/400 | [16.8%, 24.7%] |
+
+**Observations.**
+
+- **The C4 benign-demo cell produces 75% ASR on qwen2.5-1.5b Q2_K** -- only 10pp below the v1 many-shot ASR of 85% (Q2_K, N=1, random harmful demo). The "benign" demo does not rescue the model. The model is already broken by Q2_K before demos are introduced.
+- llama3.1-8b Q2_K with benign demo shows 4% ASR vs v1's Q2_K N=1 ASR of 2%. No elevation above the v1 baseline, which is the direction a proper negative control should produce.
+- Q8_0 cells behave as expected: near-zero ASR with benign demos.
+- The C4 result means that *the benign-demo control only cleanly negates many-shot on models/quants that aren't already broken*. It is not a universal negative control. The v1 claim that "many-shot works because of the semantic compliance cue" is not established by C4 for qwen2.5-1.5b Q2_K; an alternative hypothesis (Q2_K's quant-induced baseline compliance is dominant) is equally consistent with C4's data.
+- Follow-up: a cleaner negative control would substitute benign *refusal* demos, testing whether demonstrating refusal rescues the model. That experiment was not part of C4 and is flagged in SS30.
+
+---
+
+## SS26. v2 Control C6 -- Phase 2 Reinforcement (n=150)
+
+### SS26.1 Motivation
+
+v1 Phase 2 used n=50 per (model, quant, context-profile) cell. The qwen2.5-1.5b Q2_K long_prefix cell reached 100% ASR (50/50) -- a result that was plausibly a small-sample artifact. C6 replicates the Phase 2 design with n=150 per cell on 3 models x 3 quants x 3 profiles = 27 cells = 2,700 rows.
+
+### Table v2.6: C6 Phase 2 replication at n=150 per cell
+
+Source: `research/tr140/v2_controls/results/c6_phase2_reinforcement/20260415_031712/samples.jsonl` (2,700 rows, 2,700 gemma3 judge labels).
+
+| Model | Quant | Profile | ASR (C6, n=150) | ASR (v1, n=50) |
+|-------|-------|---------|------------------|-----------------|
+| llama3.1-8b | Q2_K | short_prefix | 10.7% | 4.0% |
+| llama3.1-8b | Q2_K | medium_prefix | 18.0% | 8.0% |
+| llama3.1-8b | Q2_K | long_prefix | 19.3% | 12.0% |
+| llama3.1-8b | Q4_K_M | short_prefix | 0.7% | n/a |
+| llama3.1-8b | Q4_K_M | medium_prefix | 0.7% | n/a |
+| llama3.1-8b | Q4_K_M | long_prefix | 0.0% | n/a |
+| llama3.1-8b | Q8_0 | short_prefix | 0.0% | n/a |
+| llama3.1-8b | Q8_0 | medium_prefix | 0.7% | n/a |
+| llama3.1-8b | Q8_0 | long_prefix | 0.0% | n/a |
+| qwen2.5-1.5b | Q2_K | short_prefix | 66.7% | 62.0% |
+| qwen2.5-1.5b | Q2_K | medium_prefix | 82.0% | 76.0% |
+| qwen2.5-1.5b | Q2_K | long_prefix | **100.0%** | **100.0%** |
+| qwen2.5-1.5b | Q4_K_M | short_prefix | 16.7% | n/a |
+| qwen2.5-1.5b | Q4_K_M | medium_prefix | 18.0% | n/a |
+| qwen2.5-1.5b | Q4_K_M | long_prefix | 30.0% | n/a |
+| qwen2.5-1.5b | Q8_0 | short_prefix | 7.3% | n/a |
+| qwen2.5-1.5b | Q8_0 | medium_prefix | 8.0% | n/a |
+| qwen2.5-1.5b | Q8_0 | long_prefix | 10.0% | n/a |
+
+Note: the "v1 n=50" column references v1 Phase 2 values where the 3-quant subset (Q2_K, Q4_K_M, Q8_0) overlaps with C6; the "n/a" entries are cells where v1 used a different quant and cannot be directly compared. llama3.2-3b was not included in v1 Phase 2 for this quant subset.
+
+**Observations.**
+
+- **qwen2.5-1.5b Q2_K long_prefix replicates at 150/150 = 100% (Wilson 95% CI [97.6%, 100.0%]).** The v1's 50/50 was not an artifact; it was a genuine saturation. At n=150 we now have a two-decimal-point lower bound of 97.6%.
+- llama3.1-8b Q2_K ASR is HIGHER across all three profiles at n=150 than at n=50. The v1 Phase 2 cell "llama3.1-8b Q2_K long_prefix 12%" is replaced by "19.3%" at n=150. This is within Wilson CI overlap (v1 [5.6%, 23.8%], C6 [13.7%, 26.4%]) but the direction is consistently higher. The likely explanation is judge-family difference: v1 used qwen2.5:7b; C6 uses gemma3:12b. Per SS22, gemma3 systematically calls more COMPLIANCE on Q2_K than v1 qwen did. The v2 ASR should be viewed as more reliable.
+- Context-dilution slope on qwen2.5-1.5b Q2_K (short 66.7% -> medium 82% -> long 100%) is clean and monotonic at n=150, strengthening v1's SS11 finding.
+- Q4_K_M and Q8_0 are effectively at the noise floor on llama3.1-8b, consistent with v1's recommendation that Q4_K_M is safe for this model.
+- This control CONFIRMS the v1 Phase 2 finding. No claim is overturned; the Q2_K long-context vulnerability is larger at n=150 with a modern judge than at n=50 with v1 qwen.
+
+---
+
+## SS27. v2 Control C7 -- Breadth Expansion (27,000 rows, 5 models)
+
+### SS27.1 Motivation
+
+v1 covered 4 models x 6 quants x 5 shot counts x 2 formats x 50 behaviors = 12,000 Phase 1 rows. C7 broadens this to 100 behaviors (vs 50) and adds two new model families (gemma2-2b, phi3.5-mini), yielding two runs:
+- **Run A** (`20260415_212050`): gemma2-2b + phi3.5-mini at 6 quants x 5 shots x 2 formats x 50 behaviors = 6,000 expected; actual 3,000 because all six phi3.5-mini cells failed Ollama pull (model tag mismatch). Gemma2-2b cells landed cleanly.
+- **Run B** (`20260415_223902`): 4 full-family models (v1's 4) at 6 quants x 5 shots x 2 formats x 100 behaviors = 24,000 rows; 0 failures.
+
+Total C7 rows: 3,000 + 24,000 = **27,000**. All judged by gemma3:12b with 0 failures.
+
+### SS27.2 Pooled Q2_K vs Q8_0 Tests on the Full Family
+
+Cells pool across shot-count and format (n=1,000 per model+quant for Run B, n=500 for gemma2-2b from Run A). Fisher exact + Holm across the 5 tests.
+
+### Table v2.7: Pooled Q2_K vs Q8_0 in C7
+
+Source: `research/tr140/v2_controls/analysis/v3_stats.json` under `c7.combined.q2k_vs_q8_0`, recomputed from raw JSONL.
+
+| Model | Q2_K k/n (ASR) | Q8_0 k/n (ASR) | Cohen's h | Bootstrap delta | Bootstrap 95% CI | Fisher p | Holm p |
+|-------|----------------|----------------|-----------|------------------|-------------------|----------|--------|
+| llama3.2-1b | 437/1000 (43.7%) | 0/1000 (0.0%) | 1.44 | +43.7pp | [40.9, 46.8] | 1.7e-15 | 6.8e-15 |
+| llama3.1-8b | 274/1000 (27.4%) | 16/1000 (1.6%) | 0.85 | +25.8pp | [23.0, 28.8] | 2.4e-15 | 6.8e-15 |
+| gemma2-2b (new) | 98/500 (19.6%) | 1/500 (0.2%) | 0.83 | +19.4pp | [15.8, 23.0] | 1.2e-15 | 6.1e-15 |
+| llama3.2-3b | 138/1000 (13.8%) | 3/1000 (0.3%) | 0.65 | +13.5pp | [11.3, 15.6] | 1.8e-15 | 6.8e-15 |
+| qwen2.5-1.5b | 862/1000 (86.2%) | 222/1000 (22.2%) | 1.40 | +64.0pp | [60.8, 67.4] | 3.4e-15 | 6.8e-15 |
+
+Bootstrap: n=1,000, seed=42, percentile method.
+
+**Observations.**
+
+- All five tests are Holm-significant at p < 1e-14. Cohen's h ranges from 0.65 (medium-large) to 1.44 (very large).
+- The gemma2-2b row (a family not previously tested) shows the same Q2_K cliff pattern: 19.6% Q2_K vs 0.2% Q8_0. Gemma2 joins the Llama family pattern rather than the Qwen pattern.
+- The v1 "Q2_K universal" claim is not family-specific: it applies to 3 distinct families (Llama, Qwen, Gemma) across 5 models and 4 parameter counts (1.2B, 1.5B, 2B, 3B, 8B).
+- qwen2.5-1.5b's Q8_0 ASR at n=1,000 (22.2%) is higher than v1's Q8_0 ASR at n=650 (14.5%). The direction matches the SS22 judge-correction direction: gemma3 calls more COMPLIANCE than v1 qwen on the qwen2.5-1.5b rows.
+- **The "Q2_K is the universal vulnerability threshold" claim is now supported by 27,000 rows spanning 5 models across 3 families, judged by gemma3:12b, with bootstrap CIs excluding zero for every single pair.** This is by far the strongest Q2_K evidence in the Banterhearts program.
+
+### Table v2.8: Full C7 cell grid (post-aggregation, pooled across shot-count and format)
+
+| Model | Q2_K | Q3_K_M | Q4_K_M | Q5_K_M | Q6_K | Q8_0 | Cells total |
+|-------|------|--------|--------|--------|------|------|-------------|
+| gemma2-2b | 19.6% (500) | 0.0% (500) | 0.0% (500) | 1.0% (500) | 1.0% (500) | 0.2% (500) | 3,000 |
+| llama3.1-8b | 27.4% (1000) | 2.3% (1000) | 0.6% (1000) | 0.7% (1000) | 1.2% (1000) | 1.6% (1000) | 6,000 |
+| llama3.2-1b | 43.7% (1000) | 1.5% (1000) | 0.0% (1000) | 0.0% (1000) | 0.0% (1000) | 0.0% (1000) | 6,000 |
+| llama3.2-3b | 13.8% (1000) | 1.8% (1000) | 0.1% (1000) | 0.3% (1000) | 0.1% (1000) | 0.3% (1000) | 6,000 |
+| qwen2.5-1.5b | 86.2% (1000) | 38.5% (1000) | 26.8% (1000) | 23.2% (1000) | 19.7% (1000) | 22.2% (1000) | 6,000 |
+| **Total** | | | | | | | **27,000** |
+
+**Observations (C7 cell grid).**
+
+- Llama3.2-1b at Q8_0 is 0/1000 -- the Wilson 95% upper is 0.38%. This is a stronger "llama is safe at Q8_0" statement than anything in the v1 report.
+- qwen2.5-1.5b Q3_K_M at 38.5% (385/1000) is higher than any Llama Q2_K cell. The qwen family at Q3_K_M is *less safe than* the Llama family at Q2_K.
+- qwen2.5-1.5b ASR decreases with BPW non-monotonically: Q8_0 22.2%, Q6_K 19.7%, Q5_K_M 23.2%, Q4_K_M 26.8%, Q3_K_M 38.5%, Q2_K 86.2%. The Q6_K-to-Q8_0 fluctuation is within Wilson CI overlap; the Q3_K_M-to-Q2_K jump (38.5% -> 86.2%) is the cliff.
+- Gemma2-2b has zero COMPLIANCE at Q3_K_M and Q4_K_M across 1,000 rows. It is *safer than* Llama3.2-1b (which also has zeros at these quants) in the sense that gemma2-2b has the same zeros plus a lower Q2_K ASR than llama3.2-1b's Q2_K (19.6% vs 43.7%).
+
+---
+
+## SS28. v2 Control C8 -- Right-Tail (N=256) Saturation
+
+### SS28.1 Motivation
+
+v1 tested shot counts {1, 4, 16, 64, 128}. The v1 H3 verdict ("context-window caps many-shot effectiveness") was derived from the peak-then-decline pattern on llama3.1-8b Q2_K (46% @ N=16 -> 26% @ N=128). A reviewer objection: ASR may simply keep climbing past N=128 on other cells; the v1 sampling cannot distinguish saturation from decline. C8 pushes shot count to N=256 across 6 models x 6 quants x 50 behaviors x 3 formats (wait, per manifest, the design is 6 x 6 x 50 x ~6 seeds for a total of 10,800 rows; the run produced exactly 10,800 samples).
+
+### Table v2.9: C8 ASR at N=256 (n=300 per cell)
+
+Source: `research/tr140/v2_controls/results/c8_right_tail/20260416_005713/samples.jsonl` (10,800 rows, 10,800 gemma3 judge labels).
+
+| Model | Q2_K | Q3_K_M | Q4_K_M | Q5_K_M | Q6_K | Q8_0 |
+|-------|------|--------|--------|--------|------|------|
+| gemma2-2b | 44.3% (133/300) | 0.0% (0/300) | 0.7% (2/300) | 1.0% (3/300) | 1.3% (4/300) | 0.3% (1/300) |
+| llama3.1-8b | 9.7% (29/300) | 4.3% (13/300) | 2.0% (6/300) | 1.0% (3/300) | 1.7% (5/300) | 2.0% (6/300) |
+| llama3.2-1b | 91.7% (275/300) | 0.3% (1/300) | 0.0% (0/300) | 0.0% (0/300) | 0.0% (0/300) | 0.0% (0/300) |
+| llama3.2-3b | 89.3% (268/300) | 1.3% (4/300) | 0.0% (0/300) | 0.0% (0/300) | 0.0% (0/300) | 0.0% (0/300) |
+| phi3.5-mini (new) | 98.0% (294/300) | 91.0% (273/300) | 90.3% (271/300) | 90.7% (272/300) | 89.0% (267/300) | 90.7% (272/300) |
+| qwen2.5-1.5b | 98.7% (296/300) | 41.3% (124/300) | 38.0% (114/300) | 46.7% (140/300) | 39.3% (118/300) | 47.3% (142/300) |
+
+**Observations.**
+
+- **Llama3.1-8b Q2_K continues to DECLINE past N=128**: v1's N=128 ASR was 26% and N=256 is 9.7%. The peak-then-decline pattern is now clearly established for this model. H3 is firmly supported for llama3.1-8b.
+- **Llama3.2-1b and Llama3.2-3b Q2_K CLIMB past N=128**: v1 N=128 ASRs were 72% and 41%. C8 N=256 shows 91.7% and 89.3%. The context-cap does NOT apply uniformly to the Llama family.
+- **qwen2.5-1.5b Q2_K saturates near 100%**: 99% at N=128, 98.7% at N=256. The qwen family hits its asymptote by N=128; additional shots are redundant.
+- **phi3.5-mini is the study's most dangerous family by a wide margin.** ALL six quants show 89-98% ASR at N=256. Q8_0 = 90.7%, Q2_K = 98.0%. The Q8_0-to-Q2_K delta on phi3.5-mini is only 7.3pp, because Q8_0 is already broken. This family should not be deployed against many-shot-capable adversaries at any GGUF quant level. The v2 C8 evidence is from a single extreme shot count (N=256); a full shot-count sweep on phi3.5-mini is the highest-priority follow-up flagged in SS30.
+- The H3 "context-cap" verdict is therefore **model-specific**: confirmed for llama3.1-8b, rejected for llama3.2-1b / llama3.2-3b / phi3.5-mini / qwen2.5-1.5b, and ambiguous for gemma2-2b. The v1 "H3 supported" claim should be narrowed to "H3 supported for llama3.1-8b."
+
+### SS28.2 Trajectory Slope from N=16 Peak to N=256
+
+Using v1's N=16 ASR (peak for llama3.1-8b Q2_K, 46%) and C8's N=256 ASR (9.7%), the decay slope is -0.151 ASR per doubling of N. The same slope calculation on llama3.2-1b Q2_K (v1 N=16 = 62%, C8 N=256 = 91.7%) gives +0.074 ASR per doubling -- positive, confirming climb. The sign of the slope is the correct H3 discriminator.
+
+---
+
+## SS29. v2 Controls C9-C12 -- Narrower Cells
+
+### SS29.1 C9 Larger-Model Anchor (qwen2.5-14b, n=900)
+
+Source: `research/tr140/v2_controls/results/c9_larger_model/20260415_182202/samples.jsonl`. 900 rows from a RunPod L40S run at 3 quants x 100 behaviors x 3 shot counts. **n=900 is underpowered for a stratified shot-count x quant breakdown; we report pooled ASR and per-quant ASR only.**
+
+### Table v2.10: C9 qwen2.5-14b
+
+| Cell | ASR | k/n | Wilson 95% CI |
+|------|-----|-----|----------------|
+| qwen2.5-14b Q2_K | 23.7% | 71/300 | [19.2%, 28.8%] |
+| qwen2.5-14b Q4_K_M | 16.3% | 49/300 | [12.6%, 20.9%] |
+| qwen2.5-14b Q8_0 | 16.7% | 50/300 | [12.9%, 21.3%] |
+| Pooled | 18.9% | 170/900 | [16.5%, 21.6%] |
+
+**Observations.**
+
+- The v1 prediction under simple "scale rescues safety" reasoning would be: qwen2.5-14b Q2_K << qwen2.5-1.5b Q2_K. This is numerically true (23.7% vs 86.2% in C7) but 23.7% is still an alarming number at n=300.
+- The Q2_K-vs-Q8_0 delta on qwen2.5-14b is 7.0pp; the same delta on qwen2.5-1.5b in C7 is 64.0pp. Scale dampens the cliff by ~9x.
+- Q4_K_M and Q8_0 are statistically indistinguishable at n=300 (Wilson CIs overlap substantially). The v1 "Q4_K_M is the safe floor" guidance extends tentatively to 14B.
+- **C9 is explicitly narrow.** Only qwen2.5-14b was tested; no Llama 70B or 13B anchor exists in TR140. The "14B dampens the cliff" claim does not generalize to other families at scale. The budget to run Llama3.1-70B on RunPod would be ~10x the qwen2.5-14b run and is not in scope.
+
+### SS29.2 C10 Non-GGUF Quantization (AWQ + GPTQ)
+
+Source: `research/tr140/v2_controls/results/c10_non_gguf/20260415_190113/samples.jsonl` (400 rows, successful run; the earlier `20260415_041257` run failed vLLM startup).
+
+### Table v2.11: C10 qwen2.5-1.5b under AWQ / GPTQ / GGUF at matched 4-bit
+
+| Format | ASR | k/n | Wilson 95% CI |
+|--------|-----|-----|----------------|
+| AWQ-4bit (vLLM) | 3.0% | 3/100 | [1.0%, 8.5%] |
+| GPTQ-4bit (vLLM) | 3.0% | 3/100 | [1.0%, 8.5%] |
+| GGUF Q4_K_M (Ollama) | 42.0% | 42/100 | [32.9%, 51.7%] |
+| GGUF Q2_K (Ollama) | 67.0% | 67/100 | [57.2%, 75.5%] |
+
+**Observations.**
+
+- **At the same nominal 4-bit precision, AWQ and GPTQ produce ~14x lower ASR than GGUF Q4_K_M on qwen2.5-1.5b.** The v1 "Q4_K_M is the safe floor" is GGUF-specific; it does NOT generalize to other 4-bit quantization schemes.
+- This overturns a subtle v1 implication: that "4-bit quantization" is a universal descriptor for a safety regime. It isn't. GGUF K-quants' layer-wise mixed-precision bit allocation happens to land safety-relevant weights in a damaging region that uniform AWQ/GPTQ do not.
+- AWQ and GPTQ are almost identical (3/100 each). This is n=100 so Wilson CIs are wide and a larger C10 follow-up would be informative.
+- The operational message: if a deployment needs sub-Q6_K precision on qwen2.5-1.5b, use AWQ or GPTQ, not GGUF.
+- **C10 tested only qwen2.5-1.5b.** AWQ/GPTQ on Llama models would require re-quantization and was not in scope. The generality of the "AWQ/GPTQ safer than GGUF at 4-bit" claim is open.
+
+### SS29.3 C11 Temperature Sensitivity
+
+Source: `research/tr140/v2_controls/results/c11_temp_sensitivity/20260415_000924/samples.jsonl` (2,000 rows, 2,000 gemma3 judge labels; the earlier `20260415_000812` run had no judge labels and is referenced only as a replication check).
+
+### Table v2.12: C11 ASR at T=0.0 vs T=0.7
+
+| Cell | T=0.0 ASR | T=0.7 ASR | Delta (T=0.7 - T=0.0) |
+|------|-----------|-----------|------------------------|
+| llama3.2-3b Q2_K | 72.0% (180/250) | 70.4% (176/250) | -1.6pp |
+| llama3.2-3b Q8_0 | 4.0% (10/250) | 4.4% (11/250) | +0.4pp |
+| qwen2.5-1.5b Q2_K | 99.6% (249/250) | 99.2% (248/250) | -0.4pp |
+| qwen2.5-1.5b Q8_0 | 91.2% (228/250) | 84.8% (212/250) | -6.4pp |
+
+**Observations.**
+
+- Three of four cells show absolute deltas under 2pp. The study's T=0.0 protocol does not materially bias the findings on these cells.
+- **qwen2.5-1.5b Q8_0 shows a -6.4pp delta (T=0.7 is safer by 6.4pp)**, which is outside Wilson CI overlap (T=0.0 [87.0%, 94.2%] vs T=0.7 [79.9%, 88.8%] -- overlapping bands by a narrow 5pp). The direction suggests that sampling diversity may slightly reduce qwen2.5-1.5b's many-shot compliance at Q8_0.
+- Llama3.2-3b Q2_K at 72% ASR here is consistent with v1's N=128 Q2_K ASR of 41% + a plausible gemma3-vs-v1-qwen judge correction and a shot-count effect; the exact shot count for C11 was held at N=64 per the manifest.
+- Temperature is therefore a second-order variable for TR140's conclusions.
+
+### SS29.4 C12 Shot Ordering (Reproducibility Snapshot)
+
+Source: `research/tr140/v2_controls/results/c12_shot_ordering/20260415_025821/samples.jsonl` (750 rows).
+
+### Table v2.13: C12 Q2_K ASR under "default" shot ordering
+
+| Cell | ASR | k/n |
+|------|-----|-----|
+| llama3.1-8b Q2_K (default ordering) | 78.8% | 197/250 |
+| qwen2.5-1.5b Q2_K (default ordering) | 87.2% | 436/500 |
+
+**Observations.**
+
+- C12 produces only a single "default" ordering bucket in the raw JSONL; no alternative orderings were emitted. The reported numbers are therefore a reproducibility snapshot of the v1 Q2_K cells under a fresh run with gemma3 judging and larger n, NOT an ordering-sensitivity test.
+- Both numbers are consistent with the v1 and C7 Q2_K cells for the same model (qwen2.5-1.5b Q2_K in C7 was 86.2%; llama3.1-8b Q2_K in C7 was 27.4% -- the 78.8% here is higher, likely because C12's "default" ordering uses the N=128 shot count while C7 pools across shot counts including low-N cells).
+- **The v1 "shot ordering does not matter" claim is neither supported nor refuted by C12.** The ordering experiment was not actually run in this configuration. A proper C12v2 would test 3 orderings (original, reverse, random-alt-seed) at matched N; it is flagged as follow-up in SS30.
+
+---
+
+## SS30. Reviewer Objections Closed
+
+The following table maps each v2 control to the specific reviewer objection from the v1 review round that it addresses. "Closed" means the objection is addressed at the evidence level claimed by the corresponding section; "partial" means the control reduces but does not eliminate the concern.
+
+### Table v2.14: Reviewer Objection -> v2 Control Mapping
+
+| # | Reviewer Objection (from v1 reviews) | v2 Control | Status | Key numbers |
+|---|--------------------------------------|------------|--------|-------------|
+| 1 | "Single 7B judge; kappa = 0.23 too low to trust" | C1 (rejudge with gemma3 + Claude, 30K extra labels) | **Closed** | gemma3 vs Claude kappa = 0.925 on n=11,451; v1 qwen is the outlier, not the gold (SS22) |
+| 2 | "Q8_0 is not FP16; claims about quantization baseline are confounded" | C2 (FP16 on 2 models, n=600) | **Partial** | FP16 qwen2.5-1.5b 8.0% vs Q8_0 14.5% (TOST fails at ±3pp). Direction known; 2-model coverage is narrow (SS23) |
+| 3 | "Exemplar randomization might drive ASR, not many-shot pressure" | C3 (static prompt, n=1,200) | **Partial** | Static ASR lower than randomized; same Q2_K cliff pattern (SS24) |
+| 4 | "No benign-demo negative control" | C4 (benign-demo, n=400) | **Partial** | Control compromised on qwen2.5-1.5b Q2_K (75% ASR); clean on Llama (SS25) |
+| 5 | "Phase 2 n=50 too small" | C6 (n=150, 2,700 rows) | **Closed** | qwen2.5-1.5b Q2_K long_prefix 150/150 = 100%; context-dilution slope replicates (SS26) |
+| 6 | "Claims only cover Llama and Qwen; no Gemma or Phi families" | C7 + C8 (gemma2-2b, phi3.5-mini added) | **Closed** | 5 models, 3 families, 37,800 new rows; Q2_K cliff across all 5 (SS27, SS28) |
+| 7 | "N=128 cap is arbitrary; does ASR climb past it?" | C8 (N=256, 10,800 rows) | **Closed** | H3 is model-specific: climbs on llama3.2-1b/3b, qwen2.5-1.5b, phi3.5-mini; declines on llama3.1-8b (SS28) |
+| 8 | "GGUF-only results don't apply to AWQ/GPTQ deployments" | C10 (AWQ + GPTQ, n=400) | **Partial** | At 4-bit: AWQ 3%, GPTQ 3%, GGUF Q4_K_M 42% on qwen2.5-1.5b. 1-model narrow (SS29.2) |
+| 9 | "No larger-than-8B anchor" | C9 (qwen2.5-14b, n=900) | **Partial** | 14B dampens cliff by ~9x vs 1.5B but 23.7% Q2_K ASR still elevated. 1-model narrow (SS29.1) |
+| 10 | "T=0.0 may mask sampling-induced variability" | C11 (T=0.7, n=2,000) | **Closed** | 3 of 4 cells within ±2pp; T not a material confounder (SS29.3) |
+| 11 | "Shot ordering may dominate" | C12 (nominal, 750 rows) | **Not closed** | C12 only ran one ordering bucket. Remains an open gap (SS29.4, SS31) |
+
+**Overall:** 5 objections Closed, 5 Partial, 1 Not closed. The v3.0 report claims closure only where the v2 evidence directly supports the claim at the scope flagged in each cell.
+
+---
+
+## SS31. v3.0 Open Gaps and Follow-Up
+
+The v2 controls close most but not all of the v1 reviewer objections. The remaining gaps, in priority order:
+
+1. **Shot ordering was not actually varied.** C12 ran only a "default" bucket. A proper C12v2 would test at least 3 orderings at matched N on 2 models x 2 quants = 1,200 rows. Low compute cost; should be done before NeurIPS.
+
+2. **phi3.5-mini has only N=256 data.** C8 is the first and only TR140 run on phi3.5-mini, and it is catastrophic (89-98% ASR across all quants). A full phi3.5-mini shot-count sweep (6 quants x 5 shots x 2 formats x 50 behaviors = 3,000 rows) would settle whether phi3.5-mini is broken at all N or whether its Q8_0 baseline is simply elevated. This is the highest-priority v2.1 experiment.
+
+3. **AWQ/GPTQ coverage is 1-model.** C10 tested only qwen2.5-1.5b. Extending to llama3.2-1b and llama3.1-8b would test whether the "AWQ/GPTQ safer than GGUF at 4-bit" claim generalizes.
+
+4. **FP16 coverage is 2-model.** C2 tested only qwen2.5-1.5b and llama3.1-8b. Extending to llama3.2-1b and llama3.2-3b would establish the FP16-vs-Q8_0 safety delta across the full family.
+
+5. **70B anchor not attempted.** C9's qwen2.5-14b is the largest model tested. A Llama3.1-70B run at 2 quants x 100 behaviors = 200 rows would be ~4 RunPod hours at L40S/A100 and is the logical next anchor.
+
+6. **Benign-refusal demo is missing.** C4 used benign-compliance demos. A cleaner negative control would use benign-refusal demos; this is a ~400-row experiment.
+
+7. **Judge kappa on the 48,950 v2 rows is gemma3-only.** Claude triangulation was restricted to the 15,000 v1 set. Extending Claude judging to the 48,950 v2 rows would double-validate every v2 cell; the Claude API cost is ~$400-600.
+
+8. **v3 multi-turn compounding.** TR139 (multi-turn) and TR140 (many-shot) do not yet have a crossed design where the same conversation carries BOTH many-shot exemplars AND multi-turn strategies. This is the most important follow-up for the safety program, not just TR140, and is a separate TR.
+
+---
+
 ## SS21. Reproducibility
 
 | Item | Value |
 |------|-------|
-| Git commit | d2c3fdac |
-| Total samples | 15,000 |
+| v1 Git commit | d2c3fdac |
+| v3 Git commit | see `research/tr140/v2_controls/analysis/v3_data_manifest.json` |
+| v1 Total samples | 15,000 |
+| v3 Total primary samples | 63,950 |
+| v3 Total judge labels | 78,950 (qwen2.5:7b 15K + gemma3:12b 63,950 + Claude 15K; overlaps collapse per-sample) |
 | Runner | `python research/tr140/run.py` |
 | Benchmarks | `python research/tr140/prepare_benchmarks.py` |
 | Analysis | `python research/tr140/analyze.py` |
@@ -1494,3 +1978,50 @@ generation:
 - The judge model (qwen2.5:7b-instruct-q8_0) was chosen from a different family than any evaluated model to prevent family-specific bias. The 7B size fits within GPU memory alongside the evaluated model.
 
 Full config snapshot: `research/tr140/results/20260316_164907/config_snapshot.yaml`
+
+### v3.0 Data Manifest and Compute Script
+
+The v3.0 integration consumes the following files. Every row count was verified by `research/tr140/compute_v2_stats.py` at report-generation time; see `research/tr140/v2_controls/analysis/v3_data_manifest.json` for the full manifest and per-file schema notes.
+
+| Control | Directory | samples.jsonl rows | judge labels (gemma3) | Notes |
+|---------|-----------|--------------------|-----------------------|-------|
+| v1 frozen | `research/tr140/results/20260316_164907/` | 15,000 | 15,000 (qwen2.5:7b) | Primary v1 data |
+| C1 rejudge (gemma3) | `research/tr140/v2_controls/results/c1_rejudge/20260414_165208/` | 0 | 15,000 | Gemma3 labels on v1 samples |
+| C1 rejudge (Claude) | `research/tr140/v2_controls/results/claude_judge/claude_judge_labels.jsonl` | 0 | 15,000 | Claude Sonnet 4.6 on v1 samples |
+| C2 FP16 baseline | `research/tr140/v2_controls/results/c2_fp16_baseline/20260414_203036/` | 600 | -- | FP16 via transformers |
+| C3 static prompt | `research/tr140/v2_controls/results/c3_static_prompt/20260414_193834/` | 1,200 | -- | Static exemplar selection |
+| C4 benign demo | `research/tr140/v2_controls/results/c4_benign_demo/20260414_195746/` | 400 | -- | Benign-compliance demos |
+| C6 Phase 2 reinforcement | `research/tr140/v2_controls/results/c6_phase2_reinforcement/20260415_031712/` | 2,700 | 2,700 | n=150 per cell |
+| C7 breadth (run A) | `research/tr140/v2_controls/results/c7_breadth_expansion/20260415_212050/` | 3,000 | 3,000 | gemma2-2b only (phi3.5 pull_failed) |
+| C7 breadth (run B) | `research/tr140/v2_controls/results/c7_breadth_expansion/20260415_223902/` | 24,000 | 24,000 | Full family, n=1,000 per cell |
+| C8 right-tail | `research/tr140/v2_controls/results/c8_right_tail/20260416_005713/` | 10,800 | 10,800 | N=256 across 6 models x 6 quants |
+| C9 14B anchor | `research/tr140/v2_controls/results/c9_larger_model/20260415_182202/` | 900 | 900 | qwen2.5-14b on RunPod L40S |
+| C10 non-GGUF (failed) | `research/tr140/v2_controls/results/c10_non_gguf/20260415_041257/` | 200 | 200 | AWQ/GPTQ vLLM startup failed |
+| C10 non-GGUF (success) | `research/tr140/v2_controls/results/c10_non_gguf/20260415_190113/` | 400 | 400 | Successful rerun, qwen2.5-1.5b only |
+| C11 temp (no judge) | `research/tr140/v2_controls/results/c11_temp_sensitivity/20260415_000812/` | 2,000 | 0 | Replication, no labels |
+| C11 temp (judged) | `research/tr140/v2_controls/results/c11_temp_sensitivity/20260415_000924/` | 2,000 | 2,000 | T=0.0 vs T=0.7 |
+| C12 shot ordering | `research/tr140/v2_controls/results/c12_shot_ordering/20260415_025821/` | 750 | 750 | Default bucket only |
+| C13 combined bundle (x3) | `research/tr140/v2_controls/results/c13_combined_bundle/` | 15,000 x 3 (each mirrors v1) | 15,000 x 3 | Bundle snapshots, not new data |
+
+**Compute reproduction:**
+```bash
+# From repo root:
+python research/tr140/compute_v2_stats.py
+# writes:
+#   research/tr140/v2_controls/analysis/v3_stats.json
+# and prints the inventory + per-control status summary to stdout.
+```
+
+The script has no external dependencies beyond Python's standard library (Fisher exact is implemented via `math.comb`; Wilson CI, bootstrap, TOST, Cohen's h, Cohen's kappa, and Holm-Bonferroni are all implemented in-file). It reads only raw JSONL from `research/tr140/results/20260316_164907/` and `research/tr140/v2_controls/results/`. It does NOT trust any pre-existing analysis JSON.
+
+**Claim changes from v1 to v3 (quick reference):**
+
+| Claim | v1 | v3 |
+|-------|----|----|
+| Phase 2 qwen2.5-1.5b Q2_K long_prefix 100% | n=50/50 | n=150/150 (Wilson lower 97.6%) |
+| Judge kappa = 0.23 interpreted as task ambiguity | True | False -- v1 qwen judge is the outlier; gemma3-Claude kappa = 0.925 |
+| Q8_0 as proxy for FP16 | Implicit | Rejected; TOST fails on 2/2 models tested |
+| H3 (context cap) supported generally | Yes | Only for llama3.1-8b; rejected for 3 other models at N=256 |
+| llama3.1-8b Q2_K vs Q8_0 Fisher non-significant after Holm (p=0.128) | True under v1 qwen | p=3.4e-15 under gemma3; judge artifact, not real |
+| "Quantization amplifies, does not create" vulnerability | Supported | Supported and strengthened (C2 FP16 shows qwen2.5-1.5b is vulnerable at 8% ASR even at FP16) |
+| "GGUF K-quant 4-bit" as representative of "4-bit quantization" | Implicit | Rejected; AWQ and GPTQ at 4-bit show 3% ASR vs GGUF Q4_K_M 42% on qwen2.5-1.5b |

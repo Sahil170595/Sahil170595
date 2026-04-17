@@ -1121,12 +1121,12 @@ The 3-model matched mean (0.63%) is identical to TR141's overall 7-model mean (0
 | S/C ratio | ~4x | 1.3x |
 | Directional bias | Concern: unsafe | Confirmed: net safe (p=3.8e-5) |
 | N models | 3 | 7 |
-| GPU | A100 40GB | RTX PRO 6000 98GB |
+| GPU | A100 80GB | RTX PRO 6000 98GB |
 
 **Observations.** The most notable discrepancy between TR138 and TR141 is the safety-to-capability ratio: TR138's approximately 4x ratio versus TR141's 1.3x. Several factors may explain this difference:
 
 1. **Model selection:** TR138 used 3 RLHF models (all Llama/Qwen), while TR141 includes 7 models across 4 alignment types. The inclusion of DPO and distilled models (which show equal safety and capability flip rates) mechanically lowers the aggregate ratio.
-2. **GPU architecture:** TR138 ran on an A100 40GB while TR141 ran on an RTX PRO 6000 Blackwell 98GB. Different GPU architectures have different floating-point accumulation behaviors, which could affect the magnitude and direction of batch perturbation.
+2. **GPU architecture:** TR138 ran on an A100 80GB while TR141 ran on an RTX PRO 6000 Blackwell 98GB. Different GPU architectures have different floating-point accumulation behaviors, which could affect the magnitude and direction of batch perturbation.
 3. **Seed:** TR138 used seed=42, TR141 used seed=137. Different seeds produce different draws of the floating-point perturbation landscape.
 4. **Prompt set:** The two studies use overlapping but not identical prompt sets.
 

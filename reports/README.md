@@ -1,7 +1,29 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Safety Alignment — 634,000+ Primary Measurements, 40 Technical Reports
+## LLM Inference Research & Safety Alignment — ~728,000 Primary Measurements, 41+ Technical Reports
 
-This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, safety alignment under inference optimizations, and mechanistic safety probing — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM), cloud GPUs (Colab T4 16 GB, RunPod RTX 6000 Ada 48 GB), and Docker-based quantization pipelines (AWQ, GPTQ).
+This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, safety alignment under inference optimizations, mechanistic safety probing, and **benchmarking-integrity reproducibility** — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM), cloud GPUs (Colab T4 16 GB, RunPod RTX 6000 Ada 48 GB, A100 80 GB, L40S 48 GB), Docker-based quantization pipelines (AWQ, GPTQ), and cross-version software-stack ablations (Triton 3.3.1 / 3.4.0 / 3.6.0).
+
+---
+
+## Featured Finding — TR147 Triton Stack Attribution (the "Kill-Shot")
+
+A `torch.compile` benchmark on the *same GPU*, *same model*, and *same Python code* produces **opposite conclusions** depending on which Triton minor version is installed. This is documented in TR147 v4 with 10,800 rows of direct ablation (Triton 3.3.1 → 3.4.0 → 3.6.0 on RTX 6000 Ada, Qwen 2.5 1.5B FP16):
+
+| Triton | Prefill Δ vs eager (reduce-overhead) | Decode crash rate |
+|---|---|---|
+| **3.3.1** | **−77.2%** (fast) | **80%** (unstable) |
+| 3.4.0 | +0.5% (neutral) | 0% (stable) |
+| 3.6.0 | −1.6% (neutral) | 0% (stable) |
+
+Cross-version Cohen's d on the compile-vs-eager prefill contrast: **15 to 49** (|d|>10 indicates no distributional overlap). The eager arm is flat across versions (spread ≤2%, |d|≤0.15), confirming the variance lives entirely on the compiled path — not on the harness.
+
+**Attribution (decoupled):**
+- **Decode crash fix** → `pytorch/pytorch` PR #175562 / Issue #175557 (assertion relaxation in `dealloc_current_path_weakrefs()`, drafted during this research program). Stability fix; does not alter codegen.
+- **Prefill speedup loss** → `triton-lang/triton` v3.4.0 codegen regression, documented in PR #7138 (LLVM + PTXAS register-spilling interaction) and compounded by PRs #6877 / #6694 / #6407 (warp-specialization register reallocation) and #6982 (generic swizzling rewrite for `convert_layout`). Codegen regression; does not touch stability.
+
+These are **two independent upstream changes** by different authors that happen to land at the same software-stack boundary. The resulting phenomenon invalidates any published `torch.compile` benchmark number that does not report its Triton minor version as part of the benchmark identity — which, at the time of writing, includes virtually all of them. TR147 proposes a five-gate protocol for reporting compiled-path benchmarks: GPU sm_N, Triton minor version, PyTorch build, cache type (Dynamic/Static), and compile mode must all be explicit for a claim to be reproducible.
+
+Full detail: [Technical_Report_147.md](Technical_Report_147.md), SS8.1–SS8.7.
 
 ---
 
@@ -23,6 +45,11 @@ KV-cache economics, quality baselines, quantization decision matrix, Linux/Trito
 Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 152,022 data points), quality-safety correlation, cross-request safety leakage under continuous batching (TR143), and mechanistic safety probing under quantization (TR146: safety neurons absorb 1.39x disproportionate quantization error).
 
 The v3 expansion (TR125 v3, TR134 v3, TR142 v3) extends the evaluation matrix from GGUF k-quants to include AWQ and GPTQ 4-bit formats across 6 models, adding 11 new model-quant cells, 18,568 AWQ/GPTQ primary samples, and 5,148 AWQ/GPTQ judge annotations. A second-judge robustness check (Claude Sonnet 4, 11,470 rows) validates consistency across the full matrix.
+
+### Phase 4: Benchmarking Integrity (TR147)
+**1 technical report, 4 sub-versions. 62,280 measurements.**
+
+Cross-GPU, cross-cache, cross-compile-mode, cross-Triton-version reproducibility ablation on `torch.compile`. V1 established the portability regression on RTX 6000 Ada; V2 hardened it with phase separation and StaticCache; V3 extended to A100 80 GB (where compiled decode crashes 100% at every token length tested); V4 closed the reviewer kill-shot with a 10,800-row same-GPU Triton-version ablation that flips the qualitative conclusion purely from a Triton 3.3.1 → 3.4.0 upgrade, and a 7B AWQ probe showing the only compile path that survives `reduce-overhead` decode on Ada.
 
 ### Conclusive Reports
 **12 synthesis documents spanning all phases.**
@@ -86,6 +113,15 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 | **TR142** | Quality-Safety Correlation Under Quantization | 51 cells; 41,895 quality + 48,603 safety + 21,096 judge (v3: GGUF+AWQ+GPTQ) | Complete (v3) | Simpson's paradox extends to AWQ/GPTQ; RTSI mitigator calibrated with LOOCV (recall=1.0) across all 51 cells; behavioral screen is the only viable pre-deployment check |
 | **TR143** | Cross-Request Safety Leakage Under Continuous Batching | 14,250 | Complete (v2.0) | Aggregate composition effect not significant; directional asymmetry IS significant — 88-92% of flips trend unsafe (p=0.006) |
 | **TR146** | Mechanistic Safety Probing Under Quantization | 5,100 forward passes | Complete | Safety neurons absorb 1.40x disproportionate quant error (p<0.0001), but none of 4 mechanistic probes distinguish safe from dangerous configs; behavioral screens (RTSI) remain the only viable pre-deployment check |
+
+### Phase 4: Benchmarking Integrity (TR147)
+
+| Report | Title | Samples | Status | Key Finding |
+|--------|-------|---------|--------|-------------|
+| **TR147 v1** | Cross-Regime Portability (Ada 48 GB) | 18,600 | Complete | Compiled decode crash reproduced on a second GPU family; phase-separation protocol holds |
+| **TR147 v2** | Five-Experiment Ada Deep-Dive (E1–E5) | 6,840 | Complete | StaticCache rescues decode correctness at ~5.8x latency tax; DynamicCache + `reduce-overhead` decode unsafe |
+| **TR147 v3** | A100 80 GB Ampere Second-Regime | 1,440 | Complete | Ampere amplifies, does not rescue: 100% decode crash at every token length tested on A100 |
+| **TR147 v4** | StaticCache Retest + 7B AWQ + Triton Ablation (Ada + A100) | 35,400 | Complete | **Triton kill-shot**: same GPU + same code + Triton 3.3.1 → 3.4.0 flips prefill gain 62–77% → 0–3% and decode crash 80% → 0%, |d|>10; 7B AWQ is the only `reduce-overhead` decode path with 0% crash |
 
 ### Expansion v2 Reports (TR142 Matrix Expansion)
 
@@ -233,6 +269,22 @@ Six shippable decisions backed by ~62,000 measurements:
 - **AWQ and GPTQ introduce safety risks not predicted by GGUF thresholds.** At matched effective bit-widths (~4-bit), AWQ and GPTQ produce different safety profiles than GGUF Q4_K_M. Some models (llama3.2-1b) are safe under GPTQ; others (qwen2.5-7b) enter hidden-danger regimes. Format-specific safety evaluation is required (TR134 v3, TR142 v3).
 
 - **Mechanistic probes cannot predict quantization-induced safety failure.** First-token entropy, refusal direction cosine similarity, calibration drift, and safety-neuron error magnitude are all insufficient to distinguish safe from dangerous quantized configurations. Safety neurons absorb 1.40x disproportionate error (p < 0.0001), but this is universal across all quantized cells, not specific to hidden-danger rows. Behavioral screens (RTSI) remain the only viable pre-deployment check (TR146).
+
+---
+
+## Phase 4 Key Findings — Benchmarking Integrity
+
+- **`torch.compile` benchmark identity is a 5-tuple, not a single number.** The combination (GPU sm_N, Triton minor version, PyTorch build, cache implementation, compile mode) determines the result. Changing any one axis with all others held constant can flip the qualitative conclusion. A published benchmark missing any of these five axes is point-in-time evidence, not a reproducible claim (TR147).
+
+- **Triton minor version alone can flip the conclusion on the same GPU.** Triton 3.3.1 → 3.4.0 on the same RTX 6000 Ada with the same Qwen 2.5 1.5B FP16 model and same Python code: prefill compile gain collapses from −77% to 0–3%, and decode crash rate collapses from 80% to 0%. Cross-version Cohen's d on compile-vs-eager contrasts: 15–49. The eager arm is flat across versions (|d|≤0.15), so the variance lives on the compiled path only (TR147 v4 A1–A3).
+
+- **The stability win and the speedup loss are independent upstream changes.** Decode stability comes from `pytorch/pytorch` PR #175562 (assertion relaxation, drafted during this research program). Prefill speedup loss comes from `triton-lang/triton` PR #7138 (LLVM + PTXAS register-spilling regression) plus register-allocator rewrites in the same Triton release. They are two separate changes by different authors that coincidentally landed at the same software-line boundary. The correctness fix is free; the speedup loss is a separable, remediable Triton regression — partial recovery is already visible in Triton 3.6.0 (TR147 v4 SS8.7).
+
+- **Ampere (A100 sm_80) amplifies the compiled-decode failure rather than rescuing it.** Compiled decode crashes 100% at every tested token length on A100 (128, 256, 512), worse than Ada's 3.6% floor under the same harness. The "maybe a bigger GPU fixes it" objection is rejected (TR147 v3).
+
+- **StaticCache restores compiled-decode correctness at a measurable latency cost.** Swapping DynamicCache → StaticCache gives 0% decode crash under `mode="default"` on both Ada and A100, at the cost of compiled decode being 1.6–3.5% *slower* than eager. TOST rejects any decode speedup claim. Compiled prefill retains 54–63% gains across the stable cells (TR147 v4 B1–B2).
+
+- **AWQ-4bit 7B is the only compile path with zero `reduce-overhead` decode crash.** Across every (GPU, model, cache, compile mode, Triton) combination TR147 evaluated, the single cell that survives `reduce-overhead` decode with 0% crash is Ada + qwen2.5-7b-AWQ-4bit + StaticCache. Large dense FP16 7B and 8B models still show the phase split (50–57% prefill gain, 80% decode crash). Quantization via AWQ accidentally stabilizes compilation in a way that dense FP16 at the same parameter count does not (TR147 v4 SS7).
 
 ---
 
@@ -733,6 +785,20 @@ All measurements on a single fixed baseline:
 18. **Can mechanistic interpretability probes predict quantization-induced safety failure?**
     No — first-token entropy, refusal direction preservation, calibration drift, and safety-neuron error magnitude all fail to distinguish safe from dangerous configs. Safety neurons absorb 1.40x disproportionate error universally; the damage is necessary but not sufficient for behavioral failure (TR146)
 
+### Phase 4
+
+19. **Is a `torch.compile` benchmark number reproducible across software-stack bumps?**
+    Not without pinning Triton minor version. On the same RTX 6000 Ada with the same model and code, a Triton 3.3.1 → 3.4.0 upgrade flips compiled prefill from −77% (fast) to 0% (neutral) and compiled decode from 80% crash to 0% crash, with Cohen's d of 15–49 on compile-vs-eager prefill contrasts. The eager arm is flat (|d|≤0.15) across versions, ruling out harness drift. Any `torch.compile` benchmark that does not report its Triton minor version is an unfalsifiable claim (TR147 v4 SS8).
+
+20. **Are the decode-stability and prefill-speedup-loss effects coupled or independent?**
+    Independent. The decode stability win is a PyTorch-side assertion fix (PR #175562); the prefill speedup loss is a Triton-side codegen regression (PR #7138 + register-allocator rewrites). They landed at the same software-line boundary by coincidence, not causation. The stability fix is free; the speedup loss is a separable Triton regression already partially remediated in 3.6.0 (TR147 v4 SS8.7).
+
+21. **Does a bigger GPU rescue the compiled-decode failure?**
+    No. A100 80 GB (sm_80 Ampere) amplifies the failure — 100% decode crash at every tested token length, worse than Ada's 3.6% floor. Hardware class alone is not the variable (TR147 v3).
+
+22. **What combination of cache and compile mode delivers both speed and stability?**
+    On dense FP16: none of the tested cells. StaticCache + default is stable but ~2% slower than eager on decode. DynamicCache + reduce-overhead is fast on prefill but crashes 80% on decode. The only 0%-crash `reduce-overhead` decode cell in the entire TR147 matrix is Ada + qwen2.5-7b-AWQ-4bit + StaticCache — 4-bit quantization accidentally stabilizes compilation (TR147 v4 SS7, SS9.0).
+
 ---
 
 ## Reading Guide
@@ -763,9 +829,10 @@ All measurements on a single fixed baseline:
 
 ---
 
-**Last Updated:** 2026-04-11
-**Total Reports:** 75 files (40 completed TR versions + 3 v2 expansions + 3 v3 AWQ/GPTQ expansions + 15 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + model benchmarks)
-**Total Measurements:** 634,000+ primary measurements across report sample columns; secondary judge annotations (21,096 loaded + 11,470 second-judge robustness) and synthesis-layer matrix cells are reported separately within the relevant reports
+**Last Updated:** 2026-04-17
+**Total Reports:** 79 files (41+ completed TR versions including TR147 four-subversion benchmarking-integrity track + 3 v2 expansions + 3 v3 AWQ/GPTQ expansions + 15 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + model benchmarks)
+**Total Measurements:** ~728,000 primary measurements (see `BANTERHEARTS_MEASUREMENT_COUNT.md` for canonical reconciliation); secondary judge annotations (~80,000) and replication / second-judge rows (~70,000) are reported separately within the relevant reports
 **Quantization Formats Evaluated:** GGUF (FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, Q2_K), AWQ INT4, GPTQ INT4
 **Models Evaluated:** 18+ unique models across 10+ architecture families (360M to 14.8B parameters)
-**Hardware:** NVIDIA RTX 4080 Laptop 12GB (primary), Colab T4 16GB (v2 expansion), RunPod RTX 6000 Ada 48GB (7B quantization), Docker (AWQ/GPTQ pipelines)
+**Software Stacks Evaluated:** PyTorch 2.8 / 2.10 / nightly; Triton 3.3.1 / 3.4.0 / 3.6.0; vLLM 0.19.x; Ollama via native runner; Docker for AWQ/GPTQ pipelines
+**Hardware:** NVIDIA RTX 4080 Laptop 12GB (primary), Colab T4 16GB (v2 expansion), RunPod RTX 6000 Ada 48GB (7B quantization + TR147 v1-v2-v4 Ada), RunPod A100-SXM4-80GB (TR147 v3 + v4 B1-B2 + TR144 expansion E1-E5), RunPod L40S 48GB (TR140 v2 controls), Docker (AWQ/GPTQ pipelines)
