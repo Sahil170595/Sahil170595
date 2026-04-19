@@ -1,36 +1,38 @@
 # Technical Report 147: Final Portability Validation for Benchmarking Integrity
-## Full v1–v4 integration using TR126 as the reference standard
+## Full v1–v4 integration plus external case study, using TR126 as the reference standard
 
 | Field | Value |
 |-------|-------|
 | **TR Number** | 147 |
 | **Project** | Banterhearts |
-| **Date** | 2026-04-17 |
-| **Version** | 4.0 (full-depth) |
+| **Date** | 2026-04-18 |
+| **Version** | 4.1 (full-depth + external case study) |
 | **Author** | Research Team |
 | **Status** | Final |
-| **Report Type** | Integrated portability validation (v1 + v2 + v3 + v4) |
+| **Report Type** | Integrated portability validation (v1 + v2 + v3 + v4 + external case study) |
 | **Reference Standard** | [TR126](Technical_Report_126.md) |
-| **Primary Run Directories** | `research/tr147/results/20260412_195222/`, `research/tr147/v2/20260413_054740/`, `research/tr147/v3/20260414_190849/`, `research/tr147/v4/results/` |
-| **Total Measurements** | **62,280 rows** across three GPU classes and three Triton minor versions |
-| **Breakdown** | v1 Ada: 18,600; v2 Ada: 6,840; v3 A100: 1,440; v4 StaticCache Ada/A100: 5,400 + 5,400; v4 Large-Model Ada/A100: 3,600 + 3,600; v4 Triton 3.3.1 / 3.4.0 / 3.6.0 on Ada: 3,600 × 3 |
-| **GPUs Covered** | RTX 6000 Ada (48 GB), A100-SXM4 (40 GB SXM4 in v3; 80 GB SXM4 in v4 lane), and the TR126 reference regime on RTX 4080 Laptop |
-| **Software Axes Covered** | PyTorch `DynamicCache` vs `StaticCache`; `mode="eager"` vs `mode="default"` vs `mode="reduce-overhead"`; Triton 3.3.1 / 3.4.0 / 3.6.0 |
+| **Primary Run Directories** | `research/tr147/results/20260412_195222/`, `research/tr147/v2/20260413_054740/`, `research/tr147/v3/20260414_190849/`, `research/tr147/v4/results/`, `research/tr147/v4/results/gpt_fast_probe/` |
+| **Total Measurements** | **52,410 primary rows** across four GPU deployment regimes and three Triton minor versions |
+| **Breakdown** | v1 Ada: 15,240; v2 Ada: 6,840; v3 A100-SXM4: 1,440; v4 StaticCache Ada/A100: 5,400 + 5,400; v4 Large-Model Ada/A100: 3,600 + 3,600; v4 Triton 3.3.1 / 3.4.0 / 3.6.0 on Ada: 3,600 × 3; external `gpt-fast` case study on A100-PCIe: 30 × 3 primary rows (+3 preflight smoke rows not counted in the primary total) |
+| **GPUs Covered** | RTX 6000 Ada (48 GB), A100-SXM4 (40 GB SXM4 in v3; 80 GB SXM4 in v4 lane), A100-PCIe-80GB (external case study), and the TR126 reference regime on RTX 4080 Laptop |
+| **Software Axes Covered** | PyTorch `DynamicCache` vs `StaticCache`; `mode="eager"` vs `mode="default"` vs `mode="reduce-overhead"`; Triton 3.3.1 / 3.4.0 / 3.6.0; pinned `pytorch-labs/gpt-fast` commit `d2c5d8223fd00ab5ce469d8fdd93a7de78fb8b4a` |
 | **Related Work** | [TR126](Technical_Report_126.md), [TR120](Technical_Report_120.md), [TR117](Technical_Report_117.md) |
 | **Depends On** | TR126 as the reference regime and reporting standard |
-| **Supersedes** | `PublishReady/reports/Technical_Report_147.md` v3.0 (2026-04-17 draft with Ada-only scope) |
+| **Supersedes** | `PublishReady/reports/Technical_Report_147.md` v4.0 (2026-04-17 full-depth internal draft without the external case study) |
 
 ---
 
 ## Abstract
 
-TR147 began as a narrow second-regime portability check for the five-gate benchmarking-integrity protocol established in TR126. The original question was: if we rerun the compiler benchmark prospectively on a materially larger RTX 6000 Ada GPU, does the conclusion hold? The final integrated answer, drawn from **62,280 measurements** across four stages of work, is more important than that initial question.
+TR147 began as a narrow second-regime portability check for the five-gate benchmarking-integrity protocol established in TR126. The original question was: if we rerun the compiler benchmark prospectively on a materially larger RTX 6000 Ada GPU, does the conclusion hold? The final integrated answer, drawn from **52,410 primary measurements** across five stages of work, is more important than that initial question.
 
 The early Ada runs (v1–v2) cleanly reproduced TR126's strongest finding: compiled prefill was again substantially faster than eager, while compiled decode under `DynamicCache` + `mode="reduce-overhead"` was unstable or outright crashing. A v2 measurement bug fix removed false-success decode rows and confirmed that phase-separated reporting was mandatory. The stale v2 publish-ready draft stopped there and labelled the overall verdict "WEAKENED."
 
-The late-stage v3 and v4 evidence changed the deeper interpretation in three decisive ways. First, the A100 80 GB v3 slice shows that compiled decode on Ampere is *worse*, not better, than on Ada: **100% crash at every tested token length (64, 128, 256) for both qwen2.5-1.5b and qwen2.5-3b**, versus Ada's 3.6% decode crash floor under the same harness (`research/tr147/v3/20260414_190849/e3/metrics.csv`, 1,440 rows). Compiled prefill on A100 succeeds only at the shortest token length (64) and crashes at 128 and 256. Second, a StaticCache retest on 5,400 rows per GPU (Ada and A100-SXM4-80GB, `research/tr147/v4/results/static_cache_*_v2/`) establishes that **`StaticCache` + `mode="default"` rescues decode *correctness* on both GPUs (0% crash, n=300 per cell) but not decode *speed***: compiled decode is 1.6%–3.5% *slower* than eager in every (model, GPU) pair tested, while compiled prefill retains 54%–63% gains. Third — and this is the reviewer kill-shot closure — a Triton-version ablation on the same Ada GPU with the same qwen2.5-1.5b model (10,800 rows across Triton 3.3.1, 3.4.0, 3.6.0) shows the conclusion *flips* purely by bumping the software stack: **Triton 3.3.1 produces a 62–77% prefill gain plus 80% decode crash rate under `reduce-overhead`; Triton 3.4.0 and 3.6.0 produce near-zero prefill gain (≤3.4% in either direction) plus 0% decode crash.** Large dense 7B/8B models (3,600 rows per GPU) preserve the phase split on A100 (50%–57% prefill gains, 80% `reduce-overhead` decode crash), while the Ada AWQ-4bit companion path for qwen2.5-7b is neutral and stable.
+The late-stage v3 and v4 evidence changed the deeper interpretation in three decisive ways. First, the A100 80 GB v3 slice shows that compiled decode on Ampere is *worse*, not better, than on Ada: **100% crash at every tested token length (64, 128, 256) for both qwen2.5-1.5b and qwen2.5-3b**, versus Ada's lower but still real decode crash floor under the same harness (`research/tr147/v3/20260414_190849/e3/metrics.csv`, 1,440 rows). Compiled prefill on A100 succeeds only at the shortest token length (64) and crashes at 128 and 256. Second, a StaticCache retest on 5,400 rows per GPU (Ada and A100-SXM4-80GB, `research/tr147/v4/results/static_cache_*_v2/`) establishes that **`StaticCache` + `mode="default"` rescues decode *correctness* on both GPUs (0% crash, n=300 per cell) but not decode *speed***: compiled decode is 1.6%–3.5% *slower* than eager in every (model, GPU) pair tested, while compiled prefill retains 54%–63% gains. Third — and this is the reviewer kill-shot closure on the internal benchmark chain — a Triton-version ablation on the same Ada GPU with the same qwen2.5-1.5b model (10,800 rows across Triton 3.3.1, 3.4.0, 3.6.0) shows the conclusion *flips* purely by bumping the software stack: **Triton 3.3.1 produces a 62–77% prefill gain plus 80% decode crash rate under `reduce-overhead`; Triton 3.4.0 and 3.6.0 produce near-zero prefill gain (≤3.4% in either direction) plus 0% decode crash.** Large dense 7B/8B models (3,600 rows per GPU) preserve the phase split on A100 (50%–57% prefill gains, 80% `reduce-overhead` decode crash), while the Ada AWQ-4bit companion path for qwen2.5-7b is neutral and stable.
 
-The final portability verdict: TR147 validates TR126's methodological core — phase separation, environment attribution, and explicit surfacing of cache implementation and compiler mode — in a stricter form than the stale draft. Benchmark conclusions about `torch.compile` are **not portable across hardware, software stack, cache implementation, compiler mode, or model-family/quantization path unless those axes are held explicit.** Hardware alone is insufficient to explain the boundary; Triton minor-version drift on the same Ada GPU suffices to flip the qualitative interpretation.
+The new external-validity case study extends that conclusion to a public benchmark object rather than our internal harness. TR147 runs two complementary external probes. The first (SS11.1–SS11.5) pins `pytorch-labs/gpt-fast` to benchmark-era commit `d2c5d8223fd00ab5ce469d8fdd93a7de78fb8b4a`, uses the gated `meta-llama/Llama-2-7b-chat-hf` model on A100-PCIe-80GB, and varies Triton 3.3.1 / 3.4.0 / 3.6.0 while holding the rest of the stack fixed (`torch==2.7.1`). Eager is stable at **33.83–35.29 tok/s**; compiled has **0/15 successful repetitions** across all three Triton versions. The second probe (SS11.6–SS11.10) inverts the design to isolate the opposite axis: it holds the stack constant at a single known-good point (A100-SXM4-80GB, `torch==2.11.0+cu130`, Triton 3.6.0, CUDA 13.0) and sweeps only the `gpt-fast` commit SHA. The Dec-2023 pinned code produces **0/5 compiled invocations** (all `returncode=1`, terminal frame `torch/_inductor/output_code.py:656`), while the current HEAD commit `6ecad9b5b6b987d17ac4303965545873d0192086` produces a stable compiled median of **106.74 tok/s** (n=20, CV 0.0066), above the 104.9 tok/s README target and classified as `strong_match`. The dual-variant probe is the sharper finding: the published claim is reproducible on HEAD code but not on the pinned code that originally produced it, so the benchmark-identity tuple must be extended from five elements (GPU, Triton, PyTorch, cache, compile mode) to six, with code SHA as the new axis.
+
+The final portability verdict: TR147 validates TR126's methodological core — phase separation, environment attribution, and explicit surfacing of cache implementation and compiler mode — in a stricter form than the stale draft. Benchmark conclusions about `torch.compile` are **not portable across hardware, software stack, cache implementation, compiler mode, model-family/quantization path, or even public benchmark object unless those axes are held explicit.** Hardware alone is insufficient to explain the boundary. Triton minor-version drift on the same Ada GPU suffices to flip the qualitative interpretation inside our harness, while the public `gpt-fast` case study shows that a pinned benchmark-era claim can simply fail to reproduce on a modern compile stack even after Triton is swept explicitly.
 
 ---
 
@@ -49,8 +51,9 @@ The final portability verdict: TR147 validates TR126's methodological core — p
 | Scale-ceiling closure | ≥ 1 × 7B and 1 × 8B | 3,600 rows per GPU | qwen2.5-7b, llama3.1-8b on Ada and A100 | Pass |
 | Bootstrap CIs on key means | 1,000 iterations, seed 42 | Yes | `research/tr147/compute_v4_stats.py` | Pass |
 | Effect sizes reported | Cohen's d on all compile-vs-eager contrasts | ≥ 1 per cell | 96 cells × 2 compile modes | Pass |
+| External case-study execution | ≥ 1 public benchmark target with pinned commit and stack lock | end-to-end artifact bundle | `gpt-fast` on A100-PCIe across Triton 3.3.1 / 3.4.0 / 3.6.0 | Pass |
 
-**Observations.** Every row of the validation table is now a pass, which is a non-trivial statement because the stale v2 publish-ready draft could only claim four of the nine targets. The three targets that the stale draft explicitly left open — Ampere portability, software-stack isolation, and scale-ceiling closure — are the three targets an external reviewer was most likely to treat as disqualifying. Their closure is what makes TR147 publishable alongside the benchmarking-integrity paper rather than merely "a follow-up report."
+**Observations.** Every row of the validation table is now a pass, which is a non-trivial statement because the stale v2 publish-ready draft could only claim four of the nine internal targets and none of the external-validity surface. The three targets that the stale draft explicitly left open — Ampere portability, software-stack isolation, and scale-ceiling closure — are the three targets an external reviewer was most likely to treat as disqualifying. The new case-study row matters for a different reason: it shows TR147 can carry the protocol outside our own benchmark harness and still produce a clean, reviewable verdict.
 
 ### Claim Validation
 
@@ -63,19 +66,22 @@ The final portability verdict: TR147 validates TR126's methodological core — p
 | `reduce-overhead` + `StaticCache` is still unsafe at token_len > 1 | 80% crash on both Ada and A100 across all three v4 StaticCache models | High |
 | Large dense FP16 models preserve the phase split | A100 qwen2.5-7b and llama3.1-8b: 50–57% prefill gain, 80% `reduce-overhead` decode crash | High |
 | Same hardware can flip conclusion via software stack | Ada Triton 3.3.1 vs 3.4.0/3.6.0: prefill gain disappears, decode crash disappears | High |
+| Public benchmark baselines can fail cleanly under a modern pinned stack | `gpt-fast` A100-PCIe case study: eager stable at 33.83–35.29 tok/s; compiled 0/15 successful reps across Triton 3.3.1 / 3.4.0 / 3.6.0 | High |
 | Hardware alone explains the boundary | REJECTED by Triton ablation | — |
 | A100 improves on Ada's compiled-decode story | REJECTED by v3 (A100 worse) and v4 (equal failure pattern) | — |
 | All large-model paths behave alike | REJECTED by Ada qwen2.5-7b AWQ companion (stable, neutral) | — |
+| Triton minor-version drift alone rescues every benchmark-era compiled baseline | REJECTED by `gpt-fast` case study (compiled decode fails on all three Triton versions) | — |
 
-**Observations.** The claim-validation table reveals that the most rhetorically convenient framings of the compiler-portability story all fail against the full dataset. Hardware-determinism ("A100 just handles it better") fails by 100% decode crash. Software-determinism ("pin the Triton version and you are safe") fails because the *safe* Triton versions also lose the prefill benefit. Model-size-determinism ("large models crash more") fails because the Ada AWQ 7B companion is stable. What remains is the boring but correct statement: the benchmark object is multi-dimensional, and no single-axis conclusion is transferable.
+**Observations.** The claim-validation table reveals that the most rhetorically convenient framings of the compiler-portability story all fail against the full dataset. Hardware-determinism ("A100 just handles it better") fails by 100% decode crash. Software-determinism ("pin the Triton version and you are safe") fails twice: the *safe* Triton versions on Ada lose the prefill benefit, and the public `gpt-fast` compiled path still fails on all three Triton versions under the tested modern stack. Model-size-determinism ("large models crash more") fails because the Ada AWQ 7B companion is stable. What remains is the boring but correct statement: the benchmark object is multi-dimensional, and no single-axis conclusion is transferable.
 
-### Five Practitioner Decisions
+### Six Practitioner Decisions
 
 1. **Do not benchmark `torch.compile` without phase-separated reporting.** Aggregating prefill and decode into one latency number hides a 60-point swing in every regime TR147 has measured.
 2. **Pin the Triton minor version in any benchmarking artifact.** The same Ada GPU changes from "fast but unstable" (Triton 3.3.1) to "stable but neutral" (Triton 3.4.0/3.6.0) without other changes. A paper that does not report Triton version is a paper that cannot be reproduced.
 3. **Treat `DynamicCache` + `reduce-overhead` decode as a known bug, not a slow path.** Across v2/v3/v4 it crashes on 80–100% of rows past the single-token boundary on every GPU tested.
 4. **If decode stability is required, use `StaticCache` + `mode="default"` and budget for a ~2–3% slowdown.** Do not claim a decode speedup; you will not get one in the tested regimes.
 5. **Do not extrapolate from dense FP16 to AWQ-4bit or vice versa.** The Ada qwen2.5-7b AWQ companion path is neutral and stable; the A100 qwen2.5-7b dense FP16 path retains the phase split. They are different benchmark objects.
+6. **Do not cite public compile benchmark tables without pinning repo commit, model source, and compile stack.** The benchmark-era `gpt-fast` A100 headline of 104.9 tok/s collapsed to ~34–35 tok/s eager with 0/15 successful compiled repetitions on the tested modern stack, even after Triton was swept explicitly.
 
 ### When to Use This Report
 
@@ -86,6 +92,7 @@ Use TR147 when:
 - You need evidence about whether `torch.compile` benefits transfer across GPUs, cache implementations, software stacks, or quantization paths.
 - You need to justify a new benchmark-integrity requirement (e.g., "pin Triton version") against reviewer pushback.
 - You need a stable reference for what "phase separation" means in compiler reporting.
+- You need one public benchmark-object case study showing how a pinned external claim behaves under a modern controlled stack.
 
 Do not use TR147 when:
 
@@ -96,7 +103,7 @@ Do not use TR147 when:
 
 ### How to Read This Report
 
-The report follows SS-numbered sections with pre-table context and post-table Observations. A reader who needs only the decision-grade conclusion should read this Executive Summary plus Section SS9 (Cross-Phase Synthesis) and Section SS10 (Paper Implications); total ~15 minutes. A reader doing the full veracity audit should additionally read Sections SS3–SS8 with the raw JSONL paths listed in Section SS12 open for cross-check; ~90 minutes. Appendices A–E contain the per-cell tables, pairwise effect sizes, TOST results, and full configuration snapshots.
+The report follows SS-numbered sections with pre-table context and post-table Observations. A reader who needs only the decision-grade conclusion should read this Executive Summary plus Section SS9 (Cross-Phase Synthesis), Section SS10 (Paper Implications), and Section SS11 (External Case Study); total ~25 minutes. A reader doing the full veracity audit should additionally read Sections SS3–SS11 with the raw JSONL paths listed in Section SS13 open for cross-check; ~110 minutes. Appendices A–E contain the per-cell tables, pairwise effect sizes, TOST results, and full configuration snapshots.
 
 ---
 
@@ -112,14 +119,15 @@ The report follows SS-numbered sections with pre-table context and post-table Ob
 8. SS8 — V4C: Triton Ablation on the Same Ada GPU
 9. SS9 — Cross-Phase Synthesis and Final Claim Status
 10. SS10 — Implications for the Benchmarking Integrity Paper
-11. SS11 — Limitations and Remaining Open Work
-12. SS12 — Reproducibility and Source of Truth
-13. SS13 — References
-14. Appendix A — Raw Per-Cell Tables
-15. Appendix B — Extended Statistical Tables (Cohen's d, TOST, Bootstrap CIs)
-16. Appendix C — Sensitivity and Robustness Checks
-17. Appendix D — Glossary
-18. Appendix E — Configs and Commands
+11. SS11 — External Validity Case Study: `gpt-fast` on A100-PCIe
+12. SS12 — Limitations and Remaining Open Work
+13. SS13 — Reproducibility and Source of Truth
+14. SS14 — References
+15. Appendix A — Raw Per-Cell Tables
+16. Appendix B — Extended Statistical Tables (Cohen's d, TOST, Bootstrap CIs)
+17. Appendix C — Sensitivity and Robustness Checks
+18. Appendix D — Glossary
+19. Appendix E — Configs and Commands
 
 ---
 
@@ -130,6 +138,9 @@ The report follows SS-numbered sections with pre-table context and post-table Ob
 | Prefill latency (`latency_ms`, `wall_ms`) | End-to-end wall-clock time for the forward pass over the prompt, measured with CUDA synchronization barriers (`torch.cuda.synchronize()` pre- and post-call) | ≥ 0 ms | Lower is better |
 | KV decode latency | Wall-clock time for autoregressive decode after prefill has already happened; excludes prefill | ≥ 0 ms | Lower is better |
 | E2E KV latency | Prefill + KV decode measured as a single call | ≥ 0 ms | Lower is better |
+| Throughput (`tokps`) | Decoded tokens per second over the timed generation interval in the external `gpt-fast` case study | ≥ 0 tok/s | Higher is better |
+| Time-to-first-token (`ttft_ms`) | Latency from invocation start to the first generated token in the external `gpt-fast` case study | ≥ 0 ms | Lower is better |
+| Effective bandwidth (`bandwidth_gbps`) | Parser-derived token pipeline throughput converted into an effective memory-bandwidth proxy for the `gpt-fast` probe | ≥ 0 GB/s | Higher is better; used comparatively, not as a hardware-peak claim |
 | Crash rate | `n_err / n`, where `n_err` = rows with `status != "ok"` | 0–1 | 0 = production-safe; anything > 0 requires investigation |
 | Prefill gain (%) | `100 × (eager_mean − compiled_mean) / eager_mean`; positive means compiled is faster | −∞ to 100 | > 50% = strong win; 0 ± 3% = neutral; < 0 = regression |
 | Decode overhead (%) | `100 × (compiled_mean − eager_mean) / eager_mean`; positive means compiled is slower | ≥ −100 | 0 ± 3% = neutral; > 3% = measurable regression |
@@ -164,7 +175,7 @@ The stale v2 draft of TR147 reported an "Ada-only, WEAKENED" verdict. The curren
 | Cache implementation axis | `DynamicCache` only | + `StaticCache` on 10,800 rows | Decode-rescue path isolated and quantified |
 | Compiler-mode axis | `eager` vs `reduce-overhead` only | + `mode="default"` on all v4 cells | "Compile is broken" refined to "Dynamic+reduce-overhead is broken" |
 | Scale ceiling | ≤ 3B | + qwen2.5-7b (FP16 on A100, AWQ-4bit on Ada), + llama3.1-8b (FP16 on both) | Scale objection closed with a model-path caveat |
-| Total row count | 25,440 | 62,280 | +145% measurement budget |
+| Total row count | 22,080 | 52,410 primary rows | +137% primary measurement budget |
 | Verdict label | WEAKENED | Phase-separated, stack-attributed, cache-qualified | Matches TR126's original framing |
 | Statistical depth | Per-cell means only | + Bootstrap CIs, Cohen's d, TOST, MDE | Meets Banterhearts full-depth standard |
 
@@ -197,7 +208,7 @@ TR147 was designed to test whether that logic survives outside the original RTX 
 
 | Stage | Run Path | Purpose | Rows | Source File |
 |-------|----------|---------|------|-------------|
-| v1 | `research/tr147/results/20260412_195222/` | Prospective second-regime replication on RTX 6000 Ada across 7 models | 18,600 | `tr147_report.md`, `tr147_analysis.json` |
+| v1 | `research/tr147/results/20260412_195222/` | Prospective second-regime replication on RTX 6000 Ada across 7 models | 15,240 | phase2 + phase3 `metrics.csv` files |
 | v2 | `research/tr147/v2/20260413_054740/` | Bug fix (decode false-success), token sweep, third-family extension, statistics | 6,840 | `v2_validation_summary.json` |
 | v3 | `research/tr147/v3/20260414_190849/` | A100-SXM4-80GB portability slice (E3), qwen2.5-1.5b and qwen2.5-3b | 1,440 | `e3/metrics.csv` |
 | v4 StaticCache Ada | `research/tr147/v4/results/static_cache_ada_v2/` | Decode-rescue test on Ada | 5,400 | `static_cache_retest.jsonl` |
@@ -207,8 +218,9 @@ TR147 was designed to test whether that logic survives outside the original RTX 
 | v4 Triton 3.3.1 | `research/tr147/v4/results/triton_ablation_ada_3.3.1/` | Same-hardware Triton ablation, qwen2.5-1.5b | 3,600 | `triton_ablation.jsonl` |
 | v4 Triton 3.4.0 | `research/tr147/v4/results/triton_ablation_ada_3.4.0/` | Same-hardware Triton ablation, qwen2.5-1.5b | 3,600 | `triton_ablation.jsonl` |
 | v4 Triton 3.6.0 | `research/tr147/v4/results/triton_ablation_ada_3.6.0/` | Same-hardware Triton ablation, qwen2.5-1.5b | 3,600 | `triton_ablation.jsonl` |
+| External case study | `research/tr147/v4/results/gpt_fast_probe/` | Pinned `gpt-fast` A100-PCIe benchmark reproduction across Triton 3.3.1 / 3.4.0 / 3.6.0 | 90 primary rows (+3 smoke) | `gptfast_cri.json`, per-version `summary.json` |
 
-**Observations.** The inventory spans 62,280 primary measurements. The heaviest-weighted probes are the two StaticCache sweeps (10,800 rows, the cleanest cross-GPU closure) and the three Triton versions (10,800 rows, the kill-shot ablation). The narrowest is the v3 A100 slice (1,440 rows across two models and three token lengths) — which nonetheless returns the most dramatic single-axis finding in TR147, namely that compiled decode on A100 is *strictly worse* than on Ada.
+**Observations.** The inventory spans 52,410 primary measurements plus three preflight smoke rows for the external case study. The heaviest-weighted probes are the two StaticCache sweeps (10,800 rows, the cleanest cross-GPU closure) and the three Triton versions on Ada (10,800 rows, the internal kill-shot ablation). The narrowest internal slice is the v3 A100 portability probe (1,440 rows across two models and three token lengths) — which nonetheless returns the most dramatic internal single-axis finding in TR147, namely that compiled decode on A100 is *strictly worse* than on Ada. The external `gpt-fast` lane is intentionally small because its job is not power; its job is to answer whether a pinned public benchmark claim survives a controlled modern stack.
 
 ### SS2.2 What Changed Across Stages
 
@@ -218,8 +230,9 @@ TR147 was designed to test whether that logic survives outside the original RTX 
 | v2 | Fixed false-success decode rows (`research/tr147/v2/measure.py`); added token sweep and Llama family depth |
 | v3 | Added A100 cross-regime coverage on qwen2.5-1.5b and qwen2.5-3b |
 | v4 | Tested (a) StaticCache rescue, (b) large dense models, (c) Triton-version sensitivity on the same Ada GPU |
+| external case study | Applied the same control logic to a pinned public `gpt-fast` benchmark claim on A100-PCIe |
 
-**Observations.** Each stage closed a specific reviewer objection. v1 closed "we only ran on mobile RTX." v2 closed "the decode crash might be a measurement bug." v3 closed "A100 is probably fine." v4 closed the three remaining objections: "what about StaticCache?", "what about large models?", and "what about software-stack drift?" Each of those three objections is individually sufficient to block publication of the benchmarking-integrity paper if left open; v4 closes all three.
+**Observations.** Each stage closed a specific reviewer objection. v1 closed "we only ran on mobile RTX." v2 closed "the decode crash might be a measurement bug." v3 closed "A100 is probably fine." v4 closed the three remaining objections on the internal benchmark chain: "what about StaticCache?", "what about large models?", and "what about software-stack drift?" The external case study closes a different objection: "this is all still your own benchmark family." It does not make the public-claim question disappear, but it moves that question from speculation to artifact-backed evidence.
 
 One structural observation about the staging: TR147 is a rare example of a research line that *strengthened* its methodological claim as it gathered more data. A more typical pattern is that additional evidence complicates or weakens the initial claim, which is what the v1 auto-label ("WEAKENED") reflected. The v4 evidence reversed that trajectory by showing that the original TR126 protocol was *under*-restrictive: TR126 required phase separation and environment attribution, but did not require explicit Triton-version pinning or cache-implementation attribution. The v4 Triton ablation shows these latter two axes are non-optional.
 
@@ -316,7 +329,7 @@ V2 E2 extended the result to the Llama 3.2 family (1B and 3B Instruct). This rem
 
 ### SS4.4 V2 Statistical Snapshot
 
-The v2 corrected bundle (`research/tr147/v2/20260413_054740/`) contains four experiments: E1 (token sweep, 3,240 rows), E2 (Llama family, 1,440 rows), E4 (statistical roll-up, no additional raw rows), and E5 (canary cell, 720 rows). The canary cell summary from `v2_validation_summary.json` shows the key post-fix pattern cleanly: `transformers-gpu` = 360 ok / 0 error; `transformers-gpu-compile` = 60 ok / 300 error (= 83.3% crash rate, same direction as the later v4 results). Applying the v2 fix retroactively to v1 would eliminate ≈ 720 false-success decode rows from the 18,600-row corpus; those rows are now explicitly excluded from the v4 combined-bundle inputs.
+The v2 corrected bundle (`research/tr147/v2/20260413_054740/`) contains four experiments: E1 (token sweep, 3,240 rows), E2 (Llama family, 2,880 rows), E4 (statistical roll-up, no additional raw rows), and E5 (canary cell, 720 rows). The canary cell summary from `v2_validation_summary.json` shows the key post-fix pattern cleanly: `transformers-gpu` = 360 ok / 0 error; `transformers-gpu-compile` = 60 ok / 300 error (= 83.3% crash rate, same direction as the later v4 results). Applying the v2 fix retroactively to v1 reclassifies a non-trivial slice of the old decode corpus from false success to explicit failure; those rows are excluded from the v4 combined-bundle inputs, which is why this report uses the corrected raw-file total (15,240 rows) rather than the stale draft's larger v1 count.
 
 ### SS4.5 What V2 Really Proved — and Did Not
 
@@ -378,7 +391,7 @@ The combined-bundle verdict file `research/tr147/v4/combined_bundle/20260416_181
 
 Of 16 conditions with full cross-GPU coverage, 8 are `portable_latency_shift`, 7 are `confirmed_crash_both`, and 1 is `portable_similar_latency`.
 
-**Observations.** The dominant verdict among fully-covered conditions is "portable latency shift" — i.e., the qualitative result (ok vs crash) carries, but the absolute number does not. Seven of sixteen are "confirmed crash on both." That second group is the single most valuable portability closure in TR147: it shows that the compiled `reduce-overhead` decode failure is not an Ada-only artifact. The objection "maybe it just doesn't happen on server-class GPUs" is now impossible. The 70 `missing_a100` cells are a real coverage gap and are the largest remaining limitation (see Section SS11).
+**Observations.** The dominant verdict among fully-covered conditions is "portable latency shift" — i.e., the qualitative result (ok vs crash) carries, but the absolute number does not. Seven of sixteen are "confirmed crash on both." That second group is the single most valuable portability closure in TR147: it shows that the compiled `reduce-overhead` decode failure is not an Ada-only artifact. The objection "maybe it just doesn't happen on server-class GPUs" is now impossible. The 70 `missing_a100` cells are a real coverage gap and are the largest remaining limitation on the internal matrix (see Section SS12).
 
 ### SS5.3 Eager-to-Eager Cross-GPU Sanity
 
@@ -574,8 +587,11 @@ The following matrix is the single-screen summary of the entire TR147 evidence b
 | A100 v3 (token_len 64) | — | 81.7% / crash at token_len ≥ 64 | — | — |
 | A100 v3 (token_len ≥ 128) | — | prefill crash / decode crash | — | — |
 | A100 v4 StaticCache | 69.8% / 0.800 | 82.4% / 0.800 | 79.5% / 0.800 | 54.4% / 0.800 (llama3.1-8b and qwen2.5-7b dense) |
+| External `gpt-fast` A100-PCIe (pinned code, Triton 3.3.1/3.4.0/3.6.0) | — | — | — | eager 33.83–35.29 tok/s stable; compiled 0/15 across all Triton versions |
+| External `gpt-fast` A100-SXM (pinned code, Triton 3.6.0) | — | — | — | eager 27.67 tok/s; compiled **0/5 (returncode=1)** |
+| External `gpt-fast` A100-SXM (HEAD code, Triton 3.6.0) | — | — | — | eager 10.53 tok/s; compiled **106.74 tok/s (strong_match vs 104.9 target)** |
 
-**Observations.** The headline matrix shows that a reader has to specify five axes (GPU, Triton version, cache type, compile mode, model path) to get a single unambiguous cell. There is no column in this matrix for which a single number summarises the entry. The rows where the crash rate drops to 0.000 are exactly the rows where the compiled-prefill gain also drops to near-zero (Ada Triton 3.4.0/3.6.0) *or* where the entire path is AWQ-4bit (Ada qwen AWQ). The safe-and-fast cell does not exist anywhere in this matrix under `reduce-overhead` decode; the closest thing is "Ada Triton 3.3.1 `reduce-overhead` prefill" (77% faster) paired with a different cache-and-mode triple for decode.
+**Observations.** The headline matrix shows that a reader has to specify six axes (GPU, Triton version, cache type, compile mode, model path, and — per the external dual-variant probe — repository commit) to get a single unambiguous cell. There is no column in this matrix for which a single number summarises the entry. The rows where the crash rate drops to 0.000 are exactly the rows where the compiled-prefill gain also drops to near-zero (Ada Triton 3.4.0/3.6.0) *or* where the entire path is AWQ-4bit (Ada qwen AWQ). The safe-and-fast cell does not exist anywhere in this matrix under `reduce-overhead` decode; the closest thing is "Ada Triton 3.3.1 `reduce-overhead` prefill" (77% faster) paired with a different cache-and-mode triple for decode. The three external-probe rows show that stack axis and code axis both carry load: on pinned code the compiled path is dead on every tested A100 × Triton combination, while on HEAD code the same stack reproduces the public 104.9 tok/s claim at 106.74 tok/s.
 
 ### SS9.1 What TR147 Now Demonstrates
 
@@ -591,6 +607,8 @@ The following matrix is the single-screen summary of the entire TR147 evidence b
 | A100 resolves the compiled-decode failure | **Rejected** | v3 A100 (100% crash all token_len), v4 A100 large-model (80% crash) |
 | Software stack can flip benchmark conclusions | **Demonstrated** | v4 Triton ablation, |d| > 10 on compile-vs-eager contrast across versions |
 | The five-gate protocol works prospectively | **Demonstrated** | TR147 as a whole; see SS10 for paper-level implications |
+| External validity established on a public benchmark object | **Demonstrated** | Dual-variant `gpt-fast` probe (SS11.6–SS11.10): HEAD code on A100-SXM + torch 2.11.0+cu130 + Triton 3.6.0 reproduces the 104.9 tok/s README claim at 106.74 tok/s (`strong_match`); the Dec-2023 pinned code that originally produced the claim crashes 5/5 on the same stack |
+| Code SHA is a load-bearing sixth axis alongside the existing five-tuple | **Demonstrated** | Dual-variant probe: identical stack, 104.9-class survival on HEAD vs 0/5 survival on pinned code |
 
 ### SS9.2 Combined Verdict Recomputation vs v1 WEAKENED Label
 
@@ -605,7 +623,7 @@ The v1 auto-report label ("compiler boundary: WEAKENED; phase separation: NOT_RE
 
 ### SS9.3 Final One-Sentence Verdict
 
-**TR147 validates the benchmarking-integrity thesis by showing that benchmark conclusions about `torch.compile` can change materially across phase, cache implementation, compiler mode, model-family/quantization path, and even Triton minor version on the same physical GPU, while the five-gate protocol is what keeps those shifts from being misreported as stable truths.**
+**TR147 validates the benchmarking-integrity thesis by showing that benchmark conclusions about `torch.compile` can change materially across phase, cache implementation, compiler mode, model-family/quantization path, Triton minor version on the same physical GPU, *and* `gpt-fast` repository commit on the same stack, while the five-gate protocol extended to a six-tuple benchmark identity (GPU, Triton, PyTorch, cache, compile mode, code SHA) is what keeps those shifts from being misreported as stable truths.**
 
 ### SS9.4 Cross-TR Consistency Check
 
@@ -642,12 +660,14 @@ The paper should not be written around the stale v2 headline anymore. The final 
 - The real portability hazard is environment drift (hardware + Triton + cache + mode), not merely "another GPU."
 - Stable compiled decode is possible under `StaticCache` + `mode="default"`, but the stable path does not produce a decode speedup in the tested regimes.
 - The same physical GPU can produce opposite qualitative conclusions under two Triton minor versions that differ by one patch-level upgrade.
+- A public benchmark headline can fail cleanly under a modern pinned stack even when authentication, checkpoint conversion, and artifact capture all succeed.
 
 ### SS10.2 Claims the Paper Should Stop Making
 
 - "The decode boundary is simply more severe on larger GPUs." — Partially right, partially wrong. A100 v3 is more severe (100% vs 80%); Ada large-model v4 is the same as small-model Ada v2 (80%). The severity is bounded by the (Cache × Mode × Stack) triple, not by GPU size.
 - "Compiled decode categorically fails on all future stacks." — False. Triton 3.4.0 and 3.6.0 don't fail on decode; they just also don't win on prefill.
 - "Hardware portability is the main remaining objection." — False. The Triton ablation shows software-stack portability is the *bigger* open objection and now the better-evidenced finding.
+- "A public benchmark table is evidence enough on its own." — False. The `gpt-fast` case study needed commit pinning, model-source pinning, stack lock, CRI, and raw row artifacts before it became interpretable at all.
 
 ### SS10.3 Five-Gate Protocol — Final Mapping
 
@@ -655,7 +675,7 @@ TR126's five gates, reviewed against TR147's final evidence:
 
 1. **Gate 1 — Phase separation reporting.** TR147 enforces per-phase reporting in every SS section; every table splits prefill and decode. *Status: operational.*
 2. **Gate 2 — Environment attribution.** TR147 pins GPU class (sm_80 vs sm_89), VRAM (12/40/48/80 GB), OS (Linux), PyTorch build, Triton version, and driver level in each run manifest. *Status: operational, now including Triton minor version as a first-class axis.*
-3. **Gate 3 — Artifact evidence.** Every cell has a raw JSONL or CSV row-for-row under a dated run directory; SS12 lists them. *Status: operational.*
+3. **Gate 3 — Artifact evidence.** Every cell has a raw JSONL or CSV row-for-row under a dated run directory; SS13 lists them. *Status: operational.*
 4. **Gate 4 — Cache and mode surfacing.** TR147 makes Dynamic vs Static cache, and eager/default/reduce-overhead mode, explicit axes in all v4 tables. *Status: operational, refined by v4A and v4C.*
 5. **Gate 5 — Cross-regime reproducibility.** Tested by v3 (cross-GPU), v4C (cross-Triton), and v4A (cross-cache). *Status: operational; the reproducibility target is "same qualitative outcome with same [Cache × Mode × Stack] triple."*
 
@@ -672,39 +692,211 @@ Per `papers/benchmarking_integrity/REVIEW_LIMITATIONS_REGISTER.md`:
 | "You only have one cache type" | Open | **Closed** via v4 StaticCache on both GPUs (SS6) |
 | "You only have one compile mode" | Open | **Closed** via `default` × `reduce-overhead` on every v4 cell |
 | "You only have small models" | Open | **Closed** via v4 large-model (7B/8B on both GPUs) — with the AWQ caveat noted |
-| "Maybe it's a measurement bug" | Partially closed (v2 fix) | **Fully closed** via bootstrap CIs, Cohen's d, TOST across 62,280 rows |
-| "How do I reproduce this?" | Partially addressed | **Closed** via SS12 source-of-truth list + `compute_v4_stats.py` |
+| "Maybe it's a measurement bug" | Partially closed (v2 fix) | **Fully closed** via bootstrap CIs, Cohen's d, TOST across 52,320 internal rows |
+| "How do I reproduce this?" | Partially addressed | **Closed** via SS13 source-of-truth list + `compute_v4_stats.py` |
+| "This is still only your own benchmark family" | Open | **Partially closed** via SS11 external `gpt-fast` case study on A100-PCIe |
 
 ---
 
-## SS11. Limitations and Remaining Open Work
+## SS11. External Validity Case Study: `gpt-fast` Probes
+
+The final reviewer hole was not about another internal matrix cell. It was whether the five-gate protocol survives contact with a public benchmark object that was not designed inside the Banterhearts reporting chain. For that purpose TR147 carries two tightly scoped external probes of the benchmark-era `pytorch-labs/gpt-fast` README baseline (Llama-2-7B Base, reported at 104.9 tok/s on A100-80GB). The first probe (SS11.1–SS11.5) sweeps Triton 3.3.1/3.4.0/3.6.0 on A100-PCIe holding the pinned `gpt-fast` commit fixed; the compiled path never completes a single invocation on any tested Triton version, leaving the reproduction question open on the code axis. The second probe (SS11.6–SS11.10) inverts the design: it holds the stack fixed at a single known-good point (A100-SXM4-80GB, torch 2.11.0+cu130, Triton 3.6.0) and sweeps the `gpt-fast` commit SHA between the Dec-2023 pinned benchmark-era code and current HEAD. The dual-variant probe produces the sharper external-validity headline and is the load-bearing external finding for the downstream paper.
+
+### SS11.1 Target Claim and Stack Lock
+
+The target claim is the README benchmark-table row pinned by `research/tr147/v4/gpt_fast_probe.py`: **"Llama-2-7B Base = 104.9 tok/s on A100-80GB."** The probe does *not* claim a full historical replay of the original 2023 wheel stack. It asks a narrower and more relevant portability question: if we pin the benchmark object itself and hold a modern stack fixed, does the public headline survive Triton drift?
+
+The lock file for the case study is `research/tr147/v4/results/gpt_fast_probe/stack_lock.json`:
+
+- `gpt_fast_sha = d2c5d8223fd00ab5ce469d8fdd93a7de78fb8b4a`
+- `torch_version = 2.7.1`
+- `triton_versions = [3.3.1, 3.4.0, 3.6.0]`
+- `gpu_tag = a100_pcie`
+- `resolved_model = meta-llama/Llama-2-7b-chat-hf`
+
+Experimental design:
+
+- GPU: A100-PCIe-80GB
+- Cells per Triton version: `eager`, `compiled`
+- Repetitions: 5 per cell
+- Samples per repetition: 5
+- Primary analyzed rows: 30 per Triton version, 90 total
+- Preflight smoke rows: 3 additional rows, retained for audit but excluded from the primary total
+
+### SS11.2 Case-Study Results
+
+| Triton | Eager median tok/s | Eager median TTFT (ms) | Eager decode ms/tok | Eager bandwidth (GB/s) | Compiled ok reps | Compiled crash rate | Median wall time to compiled failure (s) | Verdict |
+|--------|--------------------|------------------------|---------------------|------------------------|------------------|---------------------|------------------------------------------|---------|
+| 3.3.1 | 34.86 | 24.50 | 28.72 | 469.57 | 0 / 5 | 1.000 | 61.50 | no valid compiled regime |
+| 3.4.0 | 35.29 | 24.37 | 28.46 | 474.05 | 0 / 5 | 1.000 | 84.11 | no valid compiled regime |
+| 3.6.0 | 33.83 | 25.01 | 29.59 | 455.86 | 0 / 5 | 1.000 | 57.75 | no valid compiled regime |
+
+The eager path is stable and boring in exactly the way a good control should be. Across the three Triton versions the eager medians differ by only about 4.3%, TTFT stays near 24–25 ms after warm-up, peak VRAM stays at about 13.6 GB, and the throughput lands at roughly one third of the public 104.9 tok/s headline. The compiled path never produces a single valid timed repetition on any Triton version.
+
+This is why the external CRI file at `research/tr147/v4/results/gpt_fast_probe/gptfast_cri.json` returns:
+
+- `classification = "invalid"`
+- `reason = "need >= 2 stack points, got 0"`
+
+The CRI is not "negative" or "weakened." It is invalid because there are zero compiled stack points to compare.
+
+### SS11.3 What Failed, Exactly
+
+The case study is useful because it fails at the right boundary.
+
+What did *not* fail:
+
+- HF authentication
+- gated model access
+- checkpoint download
+- checkpoint conversion
+- eager generation
+- artifact writing and pullback
+
+What *did* fail:
+
+- compiled decode on every Triton slice
+
+Representative failure signatures from the per-version JSONL stderr tails:
+
+| Triton | Failure signature |
+|--------|-------------------|
+| 3.3.1 | crash after `generate.py:decode_one_token` through `torch._dynamo` into `torch._functorch.aot_autograd` runtime wrappers |
+| 3.4.0 | explicit `InductorError` from `torch/_inductor/compile_fx.py` during codegen / module load |
+| 3.6.0 | failure deeper in `aot_autograd` / `torch._inductor.compile_fx` dispatch and compile path |
+
+The key point is that Triton changes the *shape* of the failure, but not the outcome. Unlike SS8, where newer Triton versions stabilized decode and erased the prefill win on the same Ada GPU, the `gpt-fast` benchmark object never reaches a valid compiled regime on the tested modern stack.
+
+### SS11.4 Interpretation
+
+This case study does not overturn the internal TR147 result. It sharpens it.
+
+Inside the Banterhearts harness, Triton minor-version drift is sufficient to flip the qualitative story on the same Ada GPU:
+
+- Triton 3.3.1: fast prefill, unstable decode
+- Triton 3.4.0 / 3.6.0: stable decode, neutral prefill
+
+Inside the pinned `gpt-fast` benchmark object on A100-PCIe, Triton drift is *not* sufficient to rescue the compiled path:
+
+- eager remains stable at 33.83–35.29 tok/s
+- compiled remains 0/15 successful reps
+
+The more honest conclusion is therefore not "Triton explains everything." The conclusion is:
+
+1. Triton can be the decisive axis inside one benchmark object (SS8).
+2. A public benchmark object can still fail cleanly across all tested Triton versions if the surrounding compile stack has drifted enough (this section).
+3. Therefore the portable unit of analysis is the full benchmark object: model source, benchmark code, compiler stack, cache path, compile mode, and GPU regime.
+
+### SS11.5 What This Closes for the Paper
+
+The external case study is valuable even though it is a non-reproduction.
+
+- It answers the "internal-only chain" objection with artifact evidence rather than rhetoric.
+- It shows that the five-gate protocol can be applied prospectively to a public benchmark target.
+- It demonstrates a failure mode that reviewers care about: a public benchmark headline can be impossible to reproduce on a modern controlled stack even when the environment is fully pinned and the artifacts are complete.
+
+The paper should cite this section as a **clean external-validity non-reproduction**, not as a performance tuning result and not as a proof that the original historical claim was false on its original stack.
+
+### SS11.6 Dual-Variant Probe: Stack Constant, Code Varied
+
+The A100-PCIe probe (SS11.1–SS11.5) left the reader unable to separate two explanations for its all-zero compiled outcome: the modern stack may be incompatible with the pinned 2023 code, or the compile path may simply be broken at this point on A100-PCIe regardless of code age. A single follow-up experiment disambiguates: hold the stack constant on one known-good A100 point and sweep the `gpt-fast` code commit itself.
+
+Run directory: `research/tr147/v4/pulls/gpt_fast_latest_dual_20260418/gpt_fast_latest_dual/`. Authoritative summary: `latest_dual_summary.json`. Stack manifest: `latest_stack_manifest.json`. Per-variant raw data in `pinned_benchmark_commit/{summary,manifest,probe.log,gpt_fast_probe.jsonl}` and `latest_head/{summary,manifest,probe.log,gpt_fast_probe.jsonl}`.
+
+Held constant in both variants:
+
+- GPU: NVIDIA A100-SXM4-80GB (85.09 GB reported by the device)
+- torch: 2.11.0+cu130
+- Triton: 3.6.0
+- CUDA: 13.0
+- driver: common pod image
+- Model: `meta-llama/Llama-2-7b-chat-hf`
+- Prompt text, `num_samples` per invocation, repetitions per cell (5 reps × 5 samples, warmup sample dropped)
+- Probe harness: unmodified `gpt-fast generate.py`, tokens/sec read from the benchmark's own `Average tokens/sec:` log line.
+
+Varied:
+
+- `gpt-fast` commit SHA.
+
+**Variant 1 (`pinned_benchmark_commit`):** `d2c5d8223fd00ab5ce469d8fdd93a7de78fb8b4a`. This is the Dec-2023 commit that originally produced the 104.9 tok/s README headline.
+
+**Variant 2 (`latest_head`):** `6ecad9b5b6b987d17ac4303965545873d0192086`. This is the current `gpt-fast` main at the time of measurement.
+
+### SS11.7 Dual-Variant Probe: Results
+
+| Variant | `gpt-fast` SHA | Eager median tok/s [min, max], CV | Compiled ok / crash | Compiled median tok/s [min, max], CV | Reproduction band |
+|---------|-----------------|-----------------------------------|---------------------|---------------------------------------|-------------------|
+| README target | — | — | — | 104.9 (claim) | — |
+| Pinned | `d2c5d8223f` | 27.67 [26.88, 28.01], CV 0.0131 | 0 / 5 (100% crash) | — (no surviving samples) | null |
+| HEAD   | `6ecad9b5b6` | 10.53 [10.35, 10.68], CV 0.0073 | 25 / 0 (0% crash)  | **106.74** [105.43, 107.73], CV 0.0066 | **strong_match** |
+
+Pinned eager is stable on n=20 timed samples (CV 0.0131). Pinned compiled: 5/5 invocations crash with `returncode=1`, walltime range 33.7–104.5 s per invocation (some crashes land during compile, others during first execution of the compiled callable). Terminal frame across all five crashes is `torch/_inductor/output_code.py:656` inside `self.current_callable(inputs)`; the exception class itself is truncated by a stderr-capture bug in `gpt_fast_probe.py`.
+
+HEAD eager is stable on n=20 timed samples (CV 0.0073), 62% slower than pinned eager (10.53 vs 27.67 tok/s). HEAD compiled is stable on n=20 timed samples (CV 0.0066), median 106.74 tok/s — above the published 104.9 target, classifying as `strong_match` (≥ 90 tok/s) under the case-study-plan reproduction thresholds.
+
+Representative crash signature from `pinned_benchmark_commit/gpt_fast_probe.jsonl` (stderr tail excerpt):
+
+> `File "/tmp/venvs/gptfast_latest_dual/lib/python3.11/site-packages/torch/_inductor/output_code.py", line 656, in __call__` / `return self.current_callable(inputs)` / `^^^^^^^^^^^^^` (stderr truncated by harness)
+
+Representative HEAD success row (`latest_head/gpt_fast_probe.jsonl`, first compiled sample): `tokps=107.49, inference_total_s=1.86, bandwidth_gbps=1420.48, ttft_ms=97.58, decode_ms_per_tok=8.86, compile_time_s=70.18, memory_used_gb=13.70, avg_tokps_invocation=107.65, status=ok`.
+
+### SS11.8 Interpretation
+
+The dual-variant result is sharper than any of the three originally pre-registered interpretation branches (stack-fragile / robust / total non-reproduction). The observed outcome is a fourth shape:
+
+> *The 104.9 tok/s claim is reproducible — but only by people running HEAD code on HEAD stack (measured 106.74 tok/s = strong_match). The Dec-2023 code that originally produced 104.9 no longer works at all on the current stack; its compiled cell crashes 5/5 with `returncode=1` on every invocation. Benchmark numbers in this regime are maintained by continuous code maintenance, not by stack permanence.*
+
+Two additional observations follow from the table:
+
+1. **Code-version asymmetry on eager alone.** HEAD eager is 62% slower than pinned eager on the same hardware and stack (10.53 vs 27.67 tok/s). HEAD's eager path does more work per forward pass — plausibly flex-attention plumbing and correctness-path layers introduced between the two commits. The compile-vs-eager ratio therefore grew from the original `gpt-fast` ~4× headline claim to 10.14× on HEAD (106.74 / 10.53). Compile did not get 2.5× faster in absolute tok/s; eager got slower and the ratio widened.
+2. **Extension to the benchmark-identity tuple.** TR147 SS8 / SS10 established that a compile-path benchmark claim requires disclosing (GPU sm_N, Triton minor version, PyTorch build, cache type, compile mode). The dual-variant finding adds a sixth axis, code SHA. The CRI definition as written (see `research/tr147/v4/compute_cri.py`) operates on stack-axis perturbation sets. A code-axis CRI variant with perturbation set {pinned, HEAD} holding stack constant is a natural extension; this report names the extension and does not re-calibrate its thresholds because the pinned compiled cell has zero surviving samples and the existing robust/sensitive/fragile/catastrophic bands were calibrated for distributional shifts, not zero-survival cases.
+
+### SS11.9 Scope, Limitations, and Cross-Check with SS11.1–SS11.5
+
+The dual-variant probe is narrow by construction and must be read alongside the earlier A100-PCIe probe, not as a replacement.
+
+- Only one stack point is tested (torch 2.11.0+cu130, Triton 3.6.0). The dual-variant probe is not a three-Triton stack ablation; that is what SS11.1–SS11.5 was.
+- Only one model (`Llama-2-7b-chat-hf`) and one GPU class (A100-SXM4-80GB). Generalization to other models and SKUs is not claimed.
+- The A100-PCIe 3-Triton ablation on the pinned code (SS11.1–SS11.5) and the A100-SXM 1-stack × 2-code probe (SS11.6–SS11.8) are consistent: pinned `gpt-fast` code does not produce a successful compiled run on any tested combination of (A100-PCIe × {Triton 3.3.1, 3.4.0, 3.6.0}) or (A100-SXM × Triton 3.6.0). The broken axis is the pinned code's compile path, not the GPU SKU or the Triton minor version.
+- The exception class is not captured. The probe records `returncode=1`, the crash-time walltime distribution, and the terminal stack frame (`torch/_inductor/output_code.py:656`), which is sufficient to assert 0 survival but not to attribute the crash to a specific upstream commit. Future probes should patch the stderr-tail capture in `gpt_fast_probe.py` to preserve the exception class across the subprocess boundary.
+- The probe does not decompose prefill vs decode because it reads `gpt-fast`'s own aggregate `Average tokens/sec:` logline. Per-phase decomposition would require modifying `generate.py`, which would break the "unmodified benchmark object" discipline.
+
+### SS11.10 What the Dual-Variant Probe Closes for the Paper
+
+The three-Triton A100-PCIe probe (SS11.5) closed the "internal-only chain" objection with a non-reproduction. The dual-variant probe closes a sharper objection: "maybe a pinned benchmark-era compile benchmark is always broken on modern stacks, so non-reproduction is uninformative." The answer is no. HEAD code reproduces the claim on the same modern stack that crashes the pinned code 5/5. The non-reproduction in SS11.5 is therefore not a generic fact about modern stacks; it is specifically a fact about the pinned code's interaction with modern `torch.compile` infrastructure. The sustaining of the 104.9 tok/s claim across three years of upstream drift is continuous code maintenance, not stack permanence — which is the external-validity statement the paper was missing.
+
+---
+
+## SS12. Limitations and Remaining Open Work
 
 The following are the honest gaps.
 
 1. **The A100 matrix is narrower than the Ada matrix.** v3 covers only qwen2.5-1.5b and qwen2.5-3b at three token lengths, and v4 A100 covers StaticCache (3 models × 5 token lengths) and large-model (2 models × 5 token lengths). A full mirrored rerun of every Ada condition on A100 is not in TR147's budget. The combined-bundle verdict file shows 70 Ada-only conditions out of 94 total. The most valuable single follow-up would be an A100 Triton-version ablation matching SS8 exactly.
 2. **The large-model qwen path is not apples-to-apples across GPUs.** A100 uses dense FP16 qwen2.5-7b; Ada uses AWQ-4bit qwen2.5-7b because 48 GB is marginal for dense FP16 at this prompt/KV sizing. The llama3.1-8b cross-GPU comparison *is* apples-to-apples (dense FP16 on both) and is the preferred citation.
 3. **Triton ablation uses one model.** Qwen2.5-1.5b is the right canary (used throughout TR126 and v1–v2), but cross-family confirmation would strengthen the stack-attribution claim. A llama3.2-1b × 3-Triton-version follow-up is a ~3,600-row experiment and is tractable.
-4. **No third-party benchmark was re-analyzed inside TR147.** TR147 is a deep internal validation line. A next paper can apply the five-gate protocol retroactively to a published external benchmark; that is not in scope here.
-5. **The v4 Triton result is highly informative but the formal inferential appendix is compact.** The qualitative flip is unmissable (|d| > 10 on multiple cells; 80% vs 0% crash rate), so this is more a style critique than a substantive gap. A reviewer wanting full per-cell Holm-adjusted p-values can read Appendix B.
-6. **No runtime power / energy measurements.** TR147 measures latency and stability. Compute-economics claims (e.g., "compiled prefill is X% more energy-efficient") are not supported by TR147 data.
-7. **Temperature is fixed.** All latency measurements are at default GPU thermal state; sustained-thermal degradation is not probed.
+4. **The external case study is one public benchmark object, not a broad survey.** `gpt-fast` is a good target because it is public, specific, and tied to a concrete headline. It is still only one benchmark family. A second public case study would improve external breadth, but it is no longer required to justify the paper's methodological claim.
+5. **The external case study is not a historical full-stack replay.** We pinned the benchmark object (`gpt-fast` commit and model source) and varied Triton on a modern `torch==2.7.1` stack. That is the right portability probe for this paper. It is not sufficient to answer whether the original 104.9 tok/s claim held on its exact historical wheels and drivers.
+6. **The v4 Triton result is highly informative but the formal inferential appendix is compact.** The qualitative flip is unmissable (|d| > 10 on multiple cells; 80% vs 0% crash rate), so this is more a style critique than a substantive gap. A reviewer wanting full per-cell Holm-adjusted p-values can read Appendix B.
+7. **No runtime power / energy measurements.** TR147 measures latency and stability. Compute-economics claims (e.g., "compiled prefill is X% more energy-efficient") are not supported by TR147 data.
+8. **Temperature is fixed.** All latency measurements are at default GPU thermal state; sustained-thermal degradation is not probed.
 
 None of these limitations erase the main result; they describe the scope of the claim and the next sensible experiment.
 
 ---
 
-## SS12. Reproducibility and Source of Truth
+## SS13. Reproducibility and Source of Truth
 
-### SS12.1 Canonical Paths
+### SS13.1 Canonical Paths
 
 - **v1 Ada** — `research/tr147/results/20260412_195222/`
 - **v2 Ada (corrected)** — `research/tr147/v2/20260413_054740/`
 - **v3 A100** — `research/tr147/v3/20260414_190849/`
 - **v4 integrated results** — `research/tr147/v4/results/`
+- **external case study** — `research/tr147/v4/results/gpt_fast_probe/`
 - **v4 combined bundle / portability verdict** — `research/tr147/v4/combined_bundle/20260416_181351/`
 - **v4 integration manifest** — `research/tr147/v4/results/final_v4_integration_manifest.json`
 
-### SS12.2 Key Data Files
+### SS13.2 Key Data Files
 
 | Stage | File | Rows |
 |-------|------|------|
@@ -719,43 +911,78 @@ None of these limitations erase the main result; they describe the scope of the 
 | v4 Triton 3.3.1 | `research/tr147/v4/results/triton_ablation_ada_3.3.1/triton_ablation.jsonl` | 3,600 |
 | v4 Triton 3.4.0 | `research/tr147/v4/results/triton_ablation_ada_3.4.0/triton_ablation.jsonl` | 3,600 |
 | v4 Triton 3.6.0 | `research/tr147/v4/results/triton_ablation_ada_3.6.0/triton_ablation.jsonl` | 3,600 |
+| external case-study lock | `research/tr147/v4/results/gpt_fast_probe/stack_lock.json` | metadata |
+| external case-study summary | `research/tr147/v4/results/gpt_fast_probe/gptfast_cri.json` | summary |
+| external case-study Triton 3.3.1 | `research/tr147/v4/results/gpt_fast_probe/3.3.1/gpt_fast_probe.jsonl` | 30 |
+| external case-study Triton 3.4.0 | `research/tr147/v4/results/gpt_fast_probe/3.4.0/gpt_fast_probe.jsonl` | 30 |
+| external case-study Triton 3.6.0 | `research/tr147/v4/results/gpt_fast_probe/3.6.0/gpt_fast_probe.jsonl` | 30 |
+| dual-variant summary (SS11.6–SS11.10) | `research/tr147/v4/pulls/gpt_fast_latest_dual_20260418/gpt_fast_latest_dual/latest_dual_summary.json` | summary |
+| dual-variant stack manifest | `research/tr147/v4/pulls/gpt_fast_latest_dual_20260418/gpt_fast_latest_dual/latest_stack_manifest.json` | metadata |
+| dual-variant pinned code raw | `research/tr147/v4/pulls/gpt_fast_latest_dual_20260418/gpt_fast_latest_dual/pinned_benchmark_commit/gpt_fast_probe.jsonl` | 30 |
+| dual-variant HEAD code raw | `research/tr147/v4/pulls/gpt_fast_latest_dual_20260418/gpt_fast_latest_dual/latest_head/gpt_fast_probe.jsonl` | 50 |
 
-### SS12.3 Reproduction Commands
+### SS13.3 Reproduction Commands
 
 ```bash
 # (Ada or A100, depending on run host)
-python research/tr147/v4/scripts/run_static_cache_retest.py \
-    --gpu ada --models gpt2-100m llama3.2-1b qwen2.5-1.5b \
-    --token-lengths 1 8 32 128 512 --iterations 60 \
-    --out research/tr147/v4/results/static_cache_ada_v2/
+python research/tr147/v4/static_cache_retest.py \
+    --gpu ada \
+    --output research/tr147/v4/results/static_cache_ada_v2 \
+    --repetitions 60 \
+    --warmup-repetitions 3 \
+    --models gpt2-100m,qwen2.5-1.5b,llama3.2-1b
 
-python research/tr147/v4/scripts/run_large_model_cell.py \
-    --gpu a100 --models qwen2.5-7b:fp16 llama3.1-8b:fp16 \
-    --token-lengths 1 8 32 128 512 --iterations 60 \
-    --out research/tr147/v4/results/large_model_a100/
+python research/tr147/v4/large_model_cell.py \
+    --gpu a100 \
+    --output research/tr147/v4/results/large_model_a100 \
+    --repetitions 60 \
+    --warmup-repetitions 3 \
+    --models qwen2.5-7b,llama3.1-8b
 
-python research/tr147/v4/scripts/run_triton_ablation.py \
-    --gpu ada --model Qwen/Qwen2.5-1.5B --triton-versions 3.3.1 3.4.0 3.6.0 \
-    --token-lengths 1 8 32 128 512 --iterations 60 \
-    --out-prefix research/tr147/v4/results/triton_ablation_ada_
+python research/tr147/v4/triton_ablation.py \
+    --triton-version 3.3.1 \
+    --model Qwen/Qwen2.5-1.5B \
+    --output research/tr147/v4/results/triton_ablation_ada_3.3.1 \
+    --repetitions 60 \
+    --warmup-repetitions 3
+
+# Repeat the triton_ablation command for 3.4.0 and 3.6.0 with matching
+# --triton-version and --output values.
+
+# External case study
+python research/tr147/v4/gpt_fast_probe.py \
+    --gpt-fast-dir /workspace/gpt-fast \
+    --checkpoint /workspace/checkpoints/meta-llama/Llama-2-7b-chat-hf/model.pth \
+    --gpu a100_pcie \
+    --triton-label 3.3.1 \
+    --output research/tr147/v4/results/gpt_fast_probe/3.3.1 \
+    --reps 5 \
+    --num-samples 5 \
+    --expected-gpt-fast-sha d2c5d8223fd00ab5ce469d8fdd93a7de78fb8b4a
+
+python research/tr147/v4/compute_cri.py \
+    --mode external \
+    --input research/tr147/v4/results/gpt_fast_probe \
+    --output research/tr147/v4/results/gpt_fast_probe/gptfast_cri.json
 
 # Statistics recomputation
 python research/tr147/compute_v4_stats.py > research/tr147/v4/v4_stats_snapshot.txt
 ```
 
-Seeds: `42` for bootstrap. Iterations: 60 timed + 3 warmup per cell. Expected runtime: v4 StaticCache ≈ 3 hours per GPU; v4 large-model ≈ 2.5 hours per GPU; each Triton ablation ≈ 1.5 hours. Total v4 budget: ≈ 14 GPU-hours on A100-SXM4 + ≈ 8 GPU-hours on RTX 6000 Ada.
+Seeds: `42` for bootstrap. Iterations: 60 timed + 3 warmup per cell for the internal TR147 harness; 5 reps × 5 samples for the external `gpt-fast` probe. Expected runtime: v4 StaticCache ≈ 3 hours per GPU; v4 large-model ≈ 2.5 hours per GPU; each Triton ablation ≈ 1.5 hours; external `gpt-fast` full sweep ≈ 2–3 hours plus checkpoint conversion. Total v4 budget excluding retries: ≈ 14 GPU-hours on A100-SXM4 + ≈ 8 GPU-hours on RTX 6000 Ada + ≈ 3 A100-PCIe GPU-hours for the case study.
 
-### SS12.4 Final Source-of-Truth Note
+### SS13.4 Final Source-of-Truth Note
 
-The earlier publish-ready TR147 draft dated 2026-04-13 (Ada-only, "WEAKENED" label) is superseded by this version 4.0 file. The v4.0 file is the authoritative TR147 narrative for all downstream reports and papers.
+The earlier publish-ready TR147 drafts dated 2026-04-13 (Ada-only, "WEAKENED" label) and 2026-04-17 (internal full-depth, no external case study) are superseded by this version 4.1 file. The v4.1 file is the authoritative TR147 narrative for all downstream reports and papers.
 
 ---
 
-## SS13. References
+## SS14. References
 
 - [TR117](Technical_Report_117.md) — Original benchmark matrix lineage.
 - [TR120](Technical_Report_120.md) — Compile paradox root-cause audit.
 - [TR126](Technical_Report_126.md) — Linux/Triton reference regime and reporting standard.
+- [pytorch-labs/gpt-fast README at commit `d2c5d8223fd00ab5ce469d8fdd93a7de78fb8b4a`](https://github.com/pytorch-labs/gpt-fast/tree/d2c5d8223fd00ab5ce469d8fdd93a7de78fb8b4a) — Public benchmark target for the external-validity case study; benchmark table includes the 104.9 tok/s A100-80GB Llama-2-7B Base headline probed in SS11.
 - [PyTorch PR #175562](https://github.com/pytorch/pytorch/pull/175562) — Assertion-side fix relevant to the cudagraph tree path, drafted during this research program. Stability fix; does not alter codegen.
 - [PyTorch Issue #175557](https://github.com/pytorch/pytorch/issues/175557) — Compiled decode / cudagraph tree failure context.
 - [Triton v3.4.0 Release Notes](https://github.com/triton-lang/triton/releases/tag/v3.4.0) — Documents the prefill regression attributed to SS8. Key items: PR #7138 (documented LLVM + PTXAS register-spilling regression), PRs #6877 / #6694 / #6407 (dynamic register reallocation for warp specialization), PR #6982 (generic swizzling rewrite for `convert_layout` lowering). These codegen changes, not the PyTorch correctness fix, explain the 62–77% → 0–3% prefill-speedup collapse.
