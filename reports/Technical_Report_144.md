@@ -209,7 +209,7 @@ Adjacent inference-time safety literature:
 
 - **Batch inference safety (TR138):** Showed that batch size and co-batching do not affect safety outcomes under vLLM, establishing that inference parallelism is safety-neutral.
 - **Cross-architecture refusal fragility (TR143):** Showed that refusal rates vary significantly across architectures and alignment types, with output instability (not alignment type) as the primary predictor of fragility.
-- **Quantization x safety (TR125, TR134, TR142 v3):** Showed that aggressive quantization (Q2_K, Q3_K) can degrade safety while moderate quantization (Q4_K+, AWQ, GPTQ) preserves it. E3 extends this to the draft-side of speculative pairs, confirming that GPTQ-4bit drafts preserve speculative safety outcomes.
+- **Quantization x safety (TR125, TR134, TR142 v3):** Showed heterogeneous target-side outcomes — Q4_K+ GGUF variants generally preserve safety on the 4-family matrix, while 7 of 11 AWQ/GPTQ cells in TR142 v3 fall into hidden-danger regimes. E3 tests a different axis: **draft-side** quantization under target verification at temp=0 greedy decoding. It finds a GPTQ-4bit draft produces byte-identical target output to the fp16 draft. This is orthogonal to the target-side AWQ/GPTQ risk TR142 v3 documents; the target model in E3 is unchanged from the core E0 fp16 setup.
 
 Expansion methodology references:
 
@@ -1023,7 +1023,7 @@ E3 addresses the practitioner-relevant deployment pattern: the draft model is qu
 | 3 | typical_acceptance_sampler | 468 | 0.3729 | 0.3729 | 0.00 |
 | 4 (combined N) | typical_acceptance_sampler | 2,100 | 0.4148 | 0.4148 | 0.00 |
 
-**Observations.** The GPTQ-4bit draft produces identical per-phase rates to the fp16 canonical draft. Paired with SS21.2's byte-identity result, this says: draft quantization at Q4 does not cross the verification boundary at all. This is consistent with TR142's finding that Q4 preserves target-side safety; it now also preserves draft-side speculative safety.
+**Observations.** The GPTQ-4bit draft produces identical per-phase rates to the fp16 canonical draft. Paired with SS21.2's byte-identity result, this says: draft quantization at Q4 does not cross the verification boundary at all. This is distinct from TR142 v3's target-side heterogeneous picture — where GGUF Q4+ generally preserves safety but 7/11 AWQ/GPTQ cells show hidden-danger regression. E3 leaves the target model unchanged and quantizes only the draft; the byte-identity result therefore says draft-side quantization is behaviorally silent under temp=0 verification, not that target-side AWQ/GPTQ is safe.
 
 ### SS21.2 E3 Byte-Identity
 
@@ -1214,7 +1214,7 @@ A text-form equivalent is provided in SS24.1 above; the rendered figure will be 
 
 ### Summary of Findings
 
-TR144 tested whether speculative decoding leaks unsafe tokens from draft models into verified output. Across **64,855 samples** (16,783 core + 48,072 expansion), **8 distinct model-pair configurations** (3 core + 5 expansion variants), **2 acceptance methods**, **5 speculation lengths**, and **4 safety benchmarks**, the answer is **no** -- the strongest version of that statement the design space permits.
+TR144 tested whether speculative decoding leaks unsafe tokens from draft models into verified output. Across **64,855 samples** (16,783 core + 48,072 expansion; the headline **40,060 deduplicated expansion samples** used in the accompanying paper abstract is derived as 48,072 − 8,012 overlapping fp16/canonical-draft runs, retained separately here for reviewer traceability), **8 distinct model-pair configurations** (3 core + 5 expansion variants), **2 acceptance methods**, **5 speculation lengths**, and **4 safety benchmarks**, the answer is **no** -- the strongest version of that statement the design space permits.
 
 1. **Rejection sampling preserves safety** (C1: Established, Reinforced). Core byte-identity rate 90.66%; expansion strengthens this with 100% byte-identity across E2/E3/E4 (4,006 per configuration) under the same dtype.
 
@@ -1306,7 +1306,7 @@ Based on TR144 v3.0 findings (core + E1-E5), the following guidance applies to *
 
 1. **No additional safety guardrails needed.** Speculative decoding (both rejection and typical acceptance) preserves the target model's safety profile at temp=0. This holds at production scale (E1 70B target) and under aggressive draft quantization (E3 GPTQ-4bit draft).
 
-2. **Quantize the draft freely.** E3 shows the Crusadersk GPTQ-4bit draft produces byte-identical target output to the fp16 draft. Draft-side quantization is a pure throughput / cost win with no safety cost at temp=0.
+2. **Quantize the draft freely (draft-side only, temp=0 only).** E3 shows a GPTQ-4bit draft produces byte-identical target output to the fp16 draft under temp=0 verification. Draft-side quantization is a throughput / cost win with no behavioural footprint at this operating point. **Note:** this is orthogonal to TR142 v3's finding that *target-side* AWQ/GPTQ can be hidden-danger — target-side quantization is not addressed by E3 and is not recommended as free at 4-bit on the TR142 v3 model set.
 
 3. **Choose acceptance method based on throughput.** Both methods produce identical safety outcomes. Typical acceptance generally offers higher throughput due to more relaxed verification.
 
