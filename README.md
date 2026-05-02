@@ -5,9 +5,9 @@
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/sahilkadadekar) [![PyPI](https://img.shields.io/badge/PyPI-chimeraforge-3775A9?style=flat&logo=pypi)](https://pypi.org/project/chimeraforge/) [![YouTube](https://img.shields.io/badge/YouTube-Demo-FF0000?style=flat&logo=youtube)](https://youtu.be/IPbwLB_sZ9I)
 
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
-**Technical Blog:** .[The Third State in AI alignment](https://substack.com/home/post/p-191551029)
+**Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. 40 technical reports. 634,000+ empirical measurements. Everything measured, everything reproducible.
+I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **44 technical reports + 12 synthesis whitepapers. 728,000+ empirical measurements. 5 NeurIPS 2026 candidates packet-ready.** Everything measured, everything reproducible.
 
 ---
 
@@ -21,7 +21,7 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-3. **Empirical safety research** — 40 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, and scale concurrency. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned.
+3. **Empirical safety research** — 44 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, and scale concurrency. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned. Five papers packet-ready for NeurIPS 2026.
 
 ---
 
@@ -32,11 +32,11 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 ```mermaid
 graph TD
     BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 95%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
-    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>40 reports · 634K+ measurements"]
+    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>44 reports · 728K+ measurements"]
     CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>6 predictive models · 292 tests<br/>Python + Rust harnesses"]
     MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
     CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
-    BB["<b>Banterblogs</b><br/>Next.js 15 · Vercel<br/>266 episodes · 40+ reports"]
+    BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 44 reports + 12 whitepapers"]
     EC["<b>Echo</b><br/>Channel adapters for Chimera<br/>Slack · Discord · Telegram · WhatsApp · Email<br/>5 adapters · 68 tests"]
     JC["<b>JARVIS Console</b><br/>Next.js 15 operator UI<br/>React 19 · Radix · Framer Motion<br/>Chat · approvals · session telemetry"]
     WY["<b>ProjectWyvern</b><br/>Constitutional aerial autonomy<br/>MAVSDK · MAVLink · ROS 2 · PX4/ArduPilot<br/>Mission validation · cryptographic replay"]
@@ -102,7 +102,7 @@ Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chim
 - 6 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required)
 - Dual-language benchmarking harnesses (Python + Rust)
 - 292 tests
-- Operationalizes findings from 40 technical reports into deployment decisions
+- Operationalizes findings from 44 technical reports into deployment decisions
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
@@ -140,7 +140,7 @@ The autonomy plane in the Chimera ecosystem. Sits between the Chimera control pl
 
 ## Research Program
 
-**40 technical reports (TR 108--147). 634,000+ empirical measurements. 3 hypotheses overturned.**
+**44 technical reports + 12 synthesis whitepapers (TR 108–TR 147). 728,000+ empirical measurements. 3 hypotheses overturned. 5 NeurIPS 2026 papers packet-ready.**
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
