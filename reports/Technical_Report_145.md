@@ -196,7 +196,7 @@ TR145 pre-registered five hypotheses, mapped one-to-one onto the five phases. Th
 
 | ID | Hypothesis | Phase | Test | Outcome |
 |----|-----------|-------|------|---------|
-| H0 | FP8 KV-cache produces safety-equivalent outputs to FP16 KV-cache. | 2 | McNemar paired test, ±3pp TOST | **Not rejected** |
+| H0 | FP8 KV-cache produces safety-equivalent outputs to FP16 KV-cache. | 2 | McNemar paired test, ±3pp TOST | **McNemar non-rejection on 3/3 models** (p = 1.00, 0.60, 0.31); **TOST ±3pp equivalence on 2/3 models** (Llama-1B Δ=-0.39pp, Llama-3B Δ=-0.58pp; Qwen-1.5B Δ=-3.09pp fails by 0.09pp) |
 | H1 | FP8 KV-cache degrades safety more than capability (disproportionate impact). | 2 | Safety-capability paired-delta CI overlap | Not supported (CIs overlap on all 3 models) |
 | H2 | FP8 rounding errors accumulate over context length. | 3 | Two-way ANOVA (ctx × KV), slope analysis | Not supported (p ≥ 0.54 on both models, non-monotonic gap) |
 | H3 | Batching and KV-cache quantization compound rather than add. | 4 | Two-way ANOVA (batch × KV), interaction decomposition | Not supported (p ≥ 0.98, all cells additive) |
@@ -204,6 +204,8 @@ TR145 pre-registered five hypotheses, mapped one-to-one onto the five phases. Th
 | H5 | Directional asymmetry persists under KV-cache quantization (more refusal→compliance flips than reverse). | 2-5 | Binomial test on flip direction | Not supported (no model has significant asymmetry) |
 
 The pre-registration's explicit primary hypothesis is H0; H1-H5 are secondary. Under the pre-registered analysis plan, failure to reject H0 is the headline result regardless of whether H1-H5 land. All five secondary hypotheses also fail to find supportive evidence.
+
+The H0 row above splits the McNemar verdict from the TOST verdict deliberately. McNemar's test asks whether the discordant cells of the paired contingency table are unbalanced; non-rejection on three of three models means the data does not provide evidence against the equivalence hypothesis. TOST asks the stronger question — is the observed delta *positively bounded* within a pre-specified margin — and gives a different answer per model: Llama-1B and Llama-3B pass at ±3pp with deltas under 0.6pp; Qwen-1.5B fails the equivalence test by 0.09pp at delta -3.09pp. A reader who conflates the two reads "H0 confirmed equivalent" everywhere; the careful read is "H0 not rejected by McNemar on all three models, *and* positively confirmed equivalent on two of three by TOST." That distinction matters for deployment guidance: Qwen-1.5B specifically does not have a positive equivalence finding under TR145, only an absence-of-rejection.
 
 ### 5.1 Why H0 is the right primary
 
@@ -430,7 +432,7 @@ The McNemar test asks whether the discordant cells are unbalanced; the flip dire
 | llama3.2-3b | 18 | 14 | 32 | 0.563 | 0.597 | neutral |
 | qwen2.5-1.5b | 45 | 35 | 80 | 0.563 | 0.314 | neutral |
 
-The "unsafe" direction is FP16 refused, FP8 complied: the model abandoned refusal under FP8 KV-cache. The "safe" direction is the reverse. A directional ratio of 0.5 is symmetric (no asymmetry); a ratio above 0.5 favors unsafe, below 0.5 favors safe. All three models show modest unsafe-leaning ratios (0.51-0.56) but none clears the binomial threshold at α = 0.05. Aggregating across all three models gives 80 unsafe / 65 safe (= 0.55 ratio, n = 145 flips); a one-sided binomial test against 0.5 gives p ≈ 0.13. Suggestive but not significant.
+The "unsafe" direction is FP16 refused, FP8 complied: the model abandoned refusal under FP8 KV-cache. The "safe" direction is the reverse. A directional ratio of 0.5 is symmetric (no asymmetry); a ratio above 0.5 favors unsafe, below 0.5 favors safe. All three models show modest unsafe-leaning ratios (0.51-0.56) but none clears the binomial threshold at α = 0.05. Aggregating across all three models gives 80 unsafe / 65 safe (= 0.55 ratio, n = 145 flips). The two-sided binomial test against 0.5 gives p ≈ 0.244, not the one-sided 0.13 that an earlier draft of this section reported; we use two-sided here because directional asymmetry was not pre-registered with a sign and the right test is "is the ratio different from 50/50?" rather than "is it greater than 50/50?". Either way, the result is not significant at α = 0.05.
 
 H5 (directional asymmetry persists) is not supported at the per-model or pooled level.
 
@@ -1055,19 +1057,35 @@ The McNemar tests in SS2 use the regex classifier as the primary outcome, with j
 
 Cross-TR validation compares TR145 baseline rates against TR138 (batch safety, same models), TR143 (cross-architecture, same models), and TR144 (speculative decoding, same models). The check: are TR145's Phase 1 baselines within 5pp of the same model's baseline in prior TRs?
 
-The auto-validator flags "manual alignment needed" — the cross-TR comparison files exist and the threshold is set (±5pp), but the per-task aggregation logic differs between TRs (e.g., TR138 reports per-task rates with different task subsets), so a programmatic match is not configured.
+The standalone `cross_tr_validate.py` script ran against `research/tr138/`, `research/tr143/`, and `research/tr144/` result directories, producing 36 (prior-TR × model × task) baseline comparisons. The output is in `research/tr145/results/20260508_033550/cross_tr_validation.json`.
 
-Manual cross-TR check (Llama-1B safety baseline):
+### SS22.1 Validation summary
 
-- TR138 batch=1 baseline: ~63% (per TR138 v2 reports)
-- TR140 v3.0 base safety floor: ~65%
-- TR141 18-model refusal baseline aggregate: 60-67% range for Llama-3.2-1B
-- TR143 cross-arch comparison floor: ~64%
-- **TR145 Phase 1 baseline: 64.3%**
+| Metric | Value |
+|--------|-------|
+| Total comparisons | 36 |
+| Consistent within ±5pp | **36** |
+| Drifted | 0 |
+| Drift threshold | 5.0pp |
+| Verdict | **all_consistent: true** |
 
-TR145's 64.3% Llama-1B safety baseline is within 1-2pp of every prior TR that ran the same model on the same task subset. No cross-TR drift detected.
+Every (prior-TR, model, task) baseline tuple in TR145 is within ±5pp of the corresponding baseline in TR138, TR143, or TR144. Most comparisons are *byte-identical* (Δ = 0.00pp) because the same prompts, models, and seed produced the same outputs across runs.
 
-The same manual check on Llama-3B (TR145 = 75.9%, prior TRs in 73-78% range) and Qwen-1.5B (TR145 = 78.7%, prior TRs in 76-80% range) confirms that the Phase 1 baselines are consistent with the broader safety-evaluation line. This is a soft validation that the run reproduced expected baseline behavior; it is not a guarantee of cross-TR transferability of the FP8-vs-FP16 finding (which has not been measured in any other TR).
+### SS22.2 Largest observed deltas
+
+| Prior TR | Model | Task | TR145 score | Prior score | Δ (pp) |
+|----------|-------|------|-------------|-------------|--------|
+| TR138 | llama3.2-1b | jailbreak_amplification | 51.67% | 50.83% | +0.83 |
+| TR138 | llama3.2-1b | mmlu_real | 31.58% | 31.93% | -0.35 |
+| (all others) | (various) | (various) | — | — | 0.00 |
+
+Two non-zero deltas, both well below the 5pp threshold and both on Llama-1B vs TR138. The +0.83pp jailbreak amplification delta is the largest single drift in the entire 36-tuple comparison; it likely reflects a small TR138-vs-TR145 difference in the multi-shot prompt construction or judge labeling, but at this magnitude it is consistent with sampling noise and does not indicate a methodological drift that would invalidate the FP8-vs-FP16 paired finding in TR145.
+
+### SS22.3 What this validates
+
+This is a *baseline reproducibility* check, not a cross-TR transferability claim for the FP8-vs-FP16 finding. The narrow claim it supports: when you run TR145 with the same models, prompts, seed, and dtype settings as TR138/143/144 used for their FP16 baselines, you get the same rates. That rules out a class of failure modes — task-set drift, scoring-rule drift, model-version drift — that would have caused the TR145 baselines to disagree with prior TRs even before any FP8 manipulation.
+
+The broader claim (that the TR145 FP8-vs-FP16 paired result would also reproduce in another TR) is not testable here, because no prior TR ran an FP8-KV-cache vs FP16-KV-cache paired battery on the same models. The only path to that claim is independent replication.
 
 ---
 
