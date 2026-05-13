@@ -1,5 +1,7 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Safety Alignment — ~728,000 Primary Measurements, 41+ Technical Reports
+## LLM Inference Research & Safety Alignment — ~770,000 Primary Measurements, 42+ Technical Reports
+
+**Latest (2026-05-13):** TR148 v2 (Multi-Judge Reliability for Refusal-Axis Safety Classification) shipped to `Technical_Report_148.md` (1,556 lines). Triangulate verdict on gemma3 × llama3.1 κ = 0.6917, n = 12,809. Dual-axis methodology finding (safety-specialist judges measure composite-harm not refusal axis) integrated as Layer 1 of the bridge paper at `papers/serving_state_safety_certification/`. See `BANTERHEARTS_MEASUREMENT_COUNT.md` 2026-05-13 supplement.
 
 This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, safety alignment under inference optimizations, mechanistic safety probing, and **benchmarking-integrity reproducibility** — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM), cloud GPUs (Colab T4 16 GB, RunPod RTX 6000 Ada 48 GB, A100 80 GB, L40S 48 GB), Docker-based quantization pipelines (AWQ, GPTQ), and cross-version software-stack ablations (Triton 3.3.1 / 3.4.0 / 3.6.0).
 
