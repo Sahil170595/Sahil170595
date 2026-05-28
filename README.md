@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **44 technical reports + 12 synthesis whitepapers. 728,000+ empirical measurements. 5 NeurIPS 2026 candidates packet-ready.** Everything measured, everything reproducible.
+I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **48 technical reports. 841,000+ empirical measurements. 1 ICML 2026 workshop paper accepted + 5 under review at NeurIPS 2026.** Everything measured, everything reproducible.
 
 ---
 
@@ -21,7 +21,7 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-3. **Empirical safety research** — 44 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, and scale concurrency. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned. Five papers packet-ready for NeurIPS 2026.
+3. **Empirical safety research** — 48 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned, and the program's first mitigation now recovers 76% of the quantization refusal gap. One paper accepted at the ICML 2026 Workshop on Hypothesis Testing; five under review at NeurIPS 2026.
 
 ---
 
@@ -31,12 +31,12 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 ```mermaid
 graph TD
-    BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 95%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
-    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>44 reports · 728K+ measurements"]
+    BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 99%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
+    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>48 reports · 841K+ measurements"]
     CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>6 predictive models · 292 tests<br/>Python + Rust harnesses"]
     MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
     CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
-    BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 44 reports + 12 whitepapers"]
+    BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 48 reports · 5 live demos"]
     EC["<b>Echo</b><br/>Channel adapters for Chimera<br/>Slack · Discord · Telegram · WhatsApp · Email<br/>5 adapters · 68 tests"]
     JC["<b>JARVIS Console</b><br/>Next.js 15 operator UI<br/>React 19 · Radix · Framer Motion<br/>Chat · approvals · session telemetry"]
     WY["<b>ProjectWyvern</b><br/>Constitutional aerial autonomy<br/>MAVSDK · MAVLink · ROS 2 · PX4/ArduPilot<br/>Mission validation · cryptographic replay"]
@@ -69,7 +69,7 @@ graph TD
 **The core.** Everything else in the ecosystem feeds into or out of this.
 
 - **Constitutional Debate Engine (TDD001):** Multi-model debate with heat-based escalation and 3 consensus algorithms. Constitutional principles as first-class constraints, not afterthoughts.
-- **Fast-Path Router (TDD002):** Embedding-based cosine similarity routing. 95% of queries resolved in <10ms without touching the debate engine.
+- **Fast-Path Router (TDD002):** Embedding-based cosine similarity routing. 99% of queries resolved in <10ms without touching the debate engine.
 - **Rust Alignment Runtime (TDD005):** 7 crates. BFT consensus, Ed25519 provenance chains, zero-knowledge proofs via Pedersen commitments on Ristretto255, CRDT sync for cross-device state.
 - **RLAIF Pipeline:** Debate outcomes generate DPO training pairs that continuously refine the router's alignment centroid. The system improves itself.
 - **JARVIS Gateway:** Unified AI assistant with chat (turn-based state machine), voice (Whisper STT, TTS, wake word, barge-in), tool execution with human-in-the-loop approval, WebSocket streaming, and durable workflows.
@@ -102,7 +102,7 @@ Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chim
 - 6 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required)
 - Dual-language benchmarking harnesses (Python + Rust)
 - 292 tests
-- Operationalizes findings from 44 technical reports into deployment decisions
+- Operationalizes findings from 48 technical reports into deployment decisions
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
@@ -140,7 +140,7 @@ The autonomy plane in the Chimera ecosystem. Sits between the Chimera control pl
 
 ## Research Program
 
-**44 technical reports + 12 synthesis whitepapers (TR 108–TR 147). 728,000+ empirical measurements. 3 hypotheses overturned. 5 NeurIPS 2026 papers packet-ready.**
+**48 technical reports (TR 108–TR 163). 841,000+ empirical measurements. 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at NeurIPS 2026.**
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
@@ -155,6 +155,8 @@ Quantified the **safety tax of inference optimization** across 4 model families:
 | Concurrency | **2%** (null result, TOST-confirmed) |
 
 Key finding: **backend matters more than numerical precision for safety.** A 23pp safety drop traced to chat template divergence, not FP16 vs Q4 arithmetic.
+
+**First mitigation (TR163):** After a program of pure measurement, RTSI-gated routing now recovers **76%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing (out-of-sample LOOCV ROC-AUC **0.84**) — the move from measuring the problem to defending against it.
 
 ### Inference Systems & GPU Kernel Profiling | ~35,000 measurements
 
@@ -192,13 +194,13 @@ Built a **security awareness training platform in 90 days** as a founding engine
 - **5 specialized PR-review agents** distilled from ~2,500 comments across ~1,000 PRs
 - 5000+ tests across ~20 services
 
-### Attunica AI — Co-Founder & Chief Architect
+### Attunica, LLC — Co-Founder & Lead ML Architect
 
-Four-service AI platform for psychotherapy training.
+Multi-service clinical AI platform for psychotherapy training and research workflows.
 
-- Real-time streaming agent via **LiveKit SDK** + **Google Gemini Realtime API** in sub-100ms WebRTC sessions
-- Evaluation microservice with **Claude Sonnet 4.5** for criterion-based feedback
-- Privacy-first system (~$1.20/session) via transcript-mirroring protocol
+- Real-time streaming agent via **LiveKit SDK** + **Google Gemini Realtime API** for low-latency WebRTC voice/avatar sessions
+- Versioned persona engine, instructor workflows, and **Claude-powered** clinical evaluation service
+- Tiered consent, pattern-based PII scrubbing, research exports, and **HIPAA BAAs executed** across Anthropic and AWS
 
 ---
 
@@ -259,6 +261,12 @@ Four-service AI platform for psychotherapy training.
 ---
 
 ## Publications
+
+### 2026
+
+**A Paired Testing Protocol for Batch-Conditioned Refusal Robustness in LLM Serving**
+*Accepted — ICML 2026 Workshop on Hypothesis Testing*
+[![arXiv](https://img.shields.io/badge/arXiv-2605.27763-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2605.27763)
 
 ### 2023
 
