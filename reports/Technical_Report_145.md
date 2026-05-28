@@ -1452,13 +1452,13 @@ At ±3pp: 9/22 equivalent (40.9%). At ±5pp (a looser deployment-tolerance setti
 11. Chen et al. (2023). **Accelerating Large Language Model Decoding with Speculative Sampling.** arXiv:2302.01318.
 12. Banterhearts TR125 (2026). **Weight-Quantization Safety: 9-Format Comparison.** Internal report.
 13. Banterhearts TR134 (2026). **Quantization Calibration Sensitivity.** Internal report.
-14. Banterhearts TR138 (2026). **Batch-Inference Safety.** AI4GOOD ICML 2026.
-15. Banterhearts TR140 (2026). **Many-Shot Jailbreak under Quantization (JTP).** NeurIPS 2026 E&D submission #3724.
-16. Banterhearts TR141 (2026). **Refusal-Template Fragility under Quantization.** AI4GOOD ICML 2026.
-17. Banterhearts TR142 (2026). **Refusal Template Stability Index (RTSI).** NeurIPS 2026 E&D submission #3718.
+14. Banterhearts TR138 (2026). **Batch-Inference Safety.** Accepted, ICML 2026 Workshop on Hypothesis Testing.
+15. Banterhearts TR140 (2026). **Many-Shot Jailbreak under Quantization (JTP).**
+16. Banterhearts TR141 (2026). **Refusal-Template Fragility under Quantization.** Accepted, ICML 2026 Workshop on Hypothesis Testing.
+17. Banterhearts TR142 (2026). **Refusal Template Stability Index (RTSI).**
 18. Banterhearts TR143 (2026). **Cross-Architecture Safety.** Internal report.
-19. Banterhearts TR144 (2026). **Speculative Decoding Safety (TAIS).** NeurIPS 2026 E&D submission #3738.
-20. Banterhearts TR147 (2026). **Compile Reproducibility Index (CRI).** NeurIPS 2026 E&D submission #3731.
+19. Banterhearts TR144 (2026). **Speculative Decoding Safety (TAIS).**
+20. Banterhearts TR147 (2026). **Compile Reproducibility Index (CRI).**
 
 ---
 

@@ -23,7 +23,7 @@
 | **TR145 Calibration Drift** | Δκ(regex × gemma3) = −0.065 (TR145: 0.4274 on n=13,676; TR148: 0.3626 on n=13,676). Within expected sampling drift. |
 | **TR140 Cross-Validation** | Same Landis-Koch band as TR140 v3.0's gemma3 × Claude κ = 0.925? **No** — TR140 reported `near_perfect`, TR148 reports `substantial`. Different judge pair, different corpus, different band. Documented as a calibrated **two-axis finding**, not a JTP framework failure. |
 | **Bridge Paper Role** | Phase 4 Layer 1a (refusal-axis JTP gate) + Layer 1b (composite-harm-axis orthogonal screen). See `papers/serving_state_safety_certification/UPGRADE_PLAN.md` §0.5. |
-| **Related Work** | TR140 (JTP framework, NeurIPS 2026 #3724), TR142 (RTSI, #3718), TR144 (TAIS, #3738), TR145 (KV-cache safety, parked), TR147 (CRI, #3731). |
+| **Related Work** | TR140 (JTP framework), TR142 (RTSI), TR144 (TAIS), TR145 (KV-cache safety, parked), TR147 (CRI). |
 | **Compliance Gate** | OpenAI Researcher Access NOT obtained as of run date. Adversarial corpora (advbench / jailbreakbench / jailbreak_amplification / bbq_bias) sent to OpenAI only via the 100-record killed sync run; deferred for full-corpus gpt-4o judging until umbrella resolves. Anthropic Claude axis pending Fellowship grant. |
 
 ---
@@ -113,7 +113,7 @@ The Banterhearts Phase 3.7 safety papers (RTSI / TR142, JTP / TR140, TAIS / TR14
 
 ### 4.1 The implicit measurement-validity premise of Phase 3.7
 
-The five Phase 3.7 papers shipped to NeurIPS 2026 E&D Track on 2026-05-07 — RTSI (#3718), JTP (#3724), CRI (#3731), the multi-turn × quantization paper (#3697), and TAIS (#3738) — all use at least one LLM-based judge to convert a model's free-form response into a safety axis label. RTSI and the multi-turn paper run gemma3:12b as the primary judge with a binary safe/unsafe outcome derived from the FULL_REFUSAL / PARTIAL_REFUSAL / COMPLIANCE / UNCLEAR / TRUTHFUL / UNTRUTHFUL / BIASED / UNBIASED label vocabulary. JTP itself was a measurement-validity paper that calibrated cross-family judge agreement on the TR140 corpus and reported gemma3:12b × claude-3.5-sonnet Cohen's κ = 0.925 on n = 11,451 paired records, which is near-perfect agreement by Landis-Koch's bands. JTP licensed downstream Phase 3.7 papers to use single-judge gemma3:12b labels as the primary outcome, with the implicit reasoning that the cross-family check has been done once and the framework is calibrated.
+The five Phase 3.7 papers — RTSI, JTP, CRI, the multi-turn × quantization paper, and TAIS — all use at least one LLM-based judge to convert a model's free-form response into a safety axis label. RTSI and the multi-turn paper run gemma3:12b as the primary judge with a binary safe/unsafe outcome derived from the FULL_REFUSAL / PARTIAL_REFUSAL / COMPLIANCE / UNCLEAR / TRUTHFUL / UNTRUTHFUL / BIASED / UNBIASED label vocabulary. JTP itself was a measurement-validity paper that calibrated cross-family judge agreement on the TR140 corpus and reported gemma3:12b × claude-3.5-sonnet Cohen's κ = 0.925 on n = 11,451 paired records, which is near-perfect agreement by Landis-Koch's bands. JTP licensed downstream Phase 3.7 papers to use single-judge gemma3:12b labels as the primary outcome, with the implicit reasoning that the cross-family check has been done once and the framework is calibrated.
 
 The "implicit" qualifier is doing real work in that previous sentence. Phase 3.7's papers each adopted single-judge labels from gemma3:12b. None of those papers re-ran the cross-family check on their own corpus. None of them measured whether the JTP framework's near-perfect agreement on TR140 reproduces on the other corpora that Phase 3.7 produced — RTSI's TR142 51-cell quantization grid, the multi-turn paper's TR139 5-turn conversations, CRI's TR147 compile-pair set, TAIS's TR144 speculative-vs-rejection battery, and TR145's KV-cache subset. The Phase 4 bridge paper at `papers/serving_state_safety_certification/` consumes evidence from at least three of those (TR141 + TR144 + TR145), and a reviewer of the bridge paper will reasonably ask whether the within-corpus measurement-validity check has been done before any Phase 4 derived claim is licensed. That is the gap TR148 fills.
 
@@ -151,7 +151,7 @@ Readers concerned with the JTP framework's cross-corpus generalization should fo
 
 ### 5.1 Pre-registered hypotheses inherited from TR140's JTP framework
 
-The Judge Triangulation Protocol shipped as part of TR140 v3.0 / NeurIPS 2026 submission #3724 specified four pre-registered hypotheses around cross-family judge agreement on safety classification tasks. TR148 v2 re-tests three of those against the TR145 corpus and the regex + gemma3:12b + llama3.1:8b cohort. The hypothesis statements have been edited to substitute the TR148-specific cohort and corpus, but the threshold scheme and the underlying decision logic are inherited verbatim from TR140's pre-registration.
+The Judge Triangulation Protocol shipped as part of TR140 v3.0 specified four pre-registered hypotheses around cross-family judge agreement on safety classification tasks. TR148 v2 re-tests three of those against the TR145 corpus and the regex + gemma3:12b + llama3.1:8b cohort. The hypothesis statements have been edited to substitute the TR148-specific cohort and corpus, but the threshold scheme and the underlying decision logic are inherited verbatim from TR140's pre-registration.
 
 **H0 (the JTP null, primary).** On the TR145 safety subset (13,724 records, 5 task families) and the cross-LLM pair gemma3:12b × llama3.1:8b-instruct-q8_0 (the same prompt template applied to both judges per `research/tr148/openai_judge.py:build_messages`), Cohen's κ on the binary safe / unsafe outcome is in the substantial Landis-Koch band (0.61 ≤ κ ≤ 0.80) — sufficient agreement that majority-vote-with-three-or-more-judges resolves disagreements consistently, but not sufficient agreement that single-judge labels are safe to ship downstream without triangulation. H0 maps to the JTP `triangulate` bucket; the bridge paper's Layer 1 runs in multi-judge mode if H0 holds.
 
@@ -278,7 +278,7 @@ All Ollama models were run with temperature 0.0, seed 42, top_p 1.0, max_tokens 
 |---|---|
 | Source TR | TR145 v1.0 |
 | Source run directory | `research/tr145/results/20260508_033550/` |
-| Source generation time | 2026-05-07 / 2026-05-08 |
+| Source generation time | May 2026 |
 | Source vLLM image | `vllm/vllm-openai:v0.19.1` |
 | Source models (response-generating models, not judges) | Llama-3.2-1B-Instruct, Llama-3.2-3B-Instruct, Qwen2.5-1.5B-Instruct |
 | Source temperature | 0.0 (deterministic) |
@@ -1508,7 +1508,7 @@ The 3.5× ratio between shieldgemma's 15.6% unsafe rate and llama-guard3's 54.6%
 
 | Term | Definition |
 |---|---|
-| **JTP** | Judge Triangulation Protocol — the framework defined in TR140 v3.0 / NeurIPS 2026 submission #3724 for assessing cross-family judge agreement on safety labels via Cohen's κ thresholds. |
+| **JTP** | Judge Triangulation Protocol — the framework defined in TR140 v3.0 for assessing cross-family judge agreement on safety labels via Cohen's κ thresholds. |
 | **κ (Cohen's kappa)** | Chance-corrected inter-rater agreement statistic on a categorical outcome axis. Range: [−1, +1]; 0 = chance agreement, 1 = perfect agreement, negative = systematic anti-correlation. |
 | **PABAK** | Prevalence-Adjusted Bias-Adjusted Kappa (Byrt 1993). Corrects for marginal imbalance that depresses κ when one outcome dominates the marginal. |
 | **Krippendorff's α** | Multi-rater-generalizable agreement coefficient. For 2-rater binary it approximates κ but is more robust to missing data. |
@@ -1527,11 +1527,11 @@ The 3.5× ratio between shieldgemma's 15.6% unsafe rate and llama-guard3's 54.6%
 
 ## References
 
-- Banterhearts TR140 v3.0 — Judge Triangulation Protocol calibration. NeurIPS 2026 E&D Track submission #3724. `papers/manyshot_longcontext_quantization/`.
-- Banterhearts TR142 — Refusal Template Stability Index (RTSI). NeurIPS 2026 E&D Track submission #3718. `papers/quality_safety_correlation/`.
-- Banterhearts TR144 — Speculative Decoding × Safety (TAIS). NeurIPS 2026 E&D Track submission #3738. `papers/speculative_decoding_safety/`.
+- Banterhearts TR140 v3.0 — Judge Triangulation Protocol calibration. `papers/manyshot_longcontext_quantization/`.
+- Banterhearts TR142 — Refusal Template Stability Index (RTSI). `papers/quality_safety_correlation/`.
+- Banterhearts TR144 — Speculative Decoding × Safety (TAIS). `papers/speculative_decoding_safety/`.
 - Banterhearts TR145 v1.0 — KV-Cache Quantization × Safety. `PublishReady/reports/Technical_Report_145.md`. Parked paper; bridge-paper worked-example seed.
-- Banterhearts TR147 v4.0 — Compile Reproducibility Index (CRI). NeurIPS 2026 E&D Track submission #3731. `papers/benchmarking_integrity/`.
+- Banterhearts TR147 v4.0 — Compile Reproducibility Index (CRI). `papers/benchmarking_integrity/`.
 - Banterhearts bridge paper — Serving-State Safety Certification. `papers/serving_state_safety_certification/UPGRADE_PLAN.md`. Phase 4 consolidation paper.
 - Banterhearts `feedback_openai_batch_api_mandatory.md` — OpenAI Batch API rule for corpus-scale judging.
 - Banterhearts `feedback_openai_safety_umbrella_gate.md` — OpenAI compliance gate for adversarial content.

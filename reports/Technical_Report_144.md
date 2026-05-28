@@ -1183,7 +1183,7 @@ A forest plot of Cohen's h (95% CI) for the 18 AdvBench refusal contrasts in SS2
 - The widest CI is E1 at 70B (|h| < 0.05, CI half-width ~0.08 because n=200 at the advbench slice).
 - All CIs overlap zero; all overlap each other; no directional pattern (positive vs negative h) correlates with experiment category.
 
-A text-form equivalent is provided in SS24.1 above; the rendered figure will be included in the NeurIPS submission's supplementary materials.
+A text-form equivalent is provided in SS24.1 above; the rendered figure will be included in the paper's supplementary materials.
 
 ### SS24.5 Strong vs Weak Claims
 
@@ -1296,7 +1296,7 @@ The 90.66% byte-identity rate (rather than 100%) arises from FP16 non-associativ
 
 11. **No explicit EAGLE-style tree speculation tested (new limitation).** vLLM v0.19's speculative decoding uses the standard draft-verify linear speculation. EAGLE-2 / EAGLE-3 style tree speculation, which can verify multiple draft branches in parallel, is a different mechanism and is not exercised by any TR144 experiment. Future work.
 
-12. **Expansion judge rejudge incomplete (honest gap).** The expansion safety rates reported in SS19-SS23 use the regex `RefusalDetector` from `research.tr134.shared.safety_classifiers`, applied post-hoc to raw samples. The Gemma 3 12B judge rejudge and Claude Sonnet 4.6 rejudge are queued (`research/tr144/expansion/openai_rejudge.py`, `judge_audit.py`) but not yet complete for E1-E5. If the rejudge lands before NeurIPS submission, v3.1 will update SS24 with judge-mode safety rates. If the rejudge finds any disagreement, the v2.0 pattern (judge null holds independently of classifier null) suggests the expansion null will likewise hold; we flag this explicitly as pending evidence rather than assume it.
+12. **Expansion judge rejudge incomplete (honest gap).** The expansion safety rates reported in SS19-SS23 use the regex `RefusalDetector` from `research.tr134.shared.safety_classifiers`, applied post-hoc to raw samples. The Gemma 3 12B judge rejudge and Claude Sonnet 4.6 rejudge are queued (`research/tr144/expansion/openai_rejudge.py`, `judge_audit.py`) but not yet complete for E1-E5. If the rejudge lands before the paper finalizes, v3.1 will update SS24 with judge-mode safety rates. If the rejudge finds any disagreement, the v2.0 pattern (judge null holds independently of classifier null) suggests the expansion null will likewise hold; we flag this explicitly as pending evidence rather than assume it.
 
 ---
 
