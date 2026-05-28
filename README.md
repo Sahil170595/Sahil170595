@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **48 technical reports. 841,000+ empirical measurements. 1 ICML 2026 workshop paper accepted + 5 under review at NeurIPS 2026.** Everything measured, everything reproducible.
+I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **48 technical reports. 1,000,000+ empirical measurements. 1 ICML 2026 workshop paper accepted + 5 under review at NeurIPS 2026.** Everything measured, everything reproducible.
 
 ---
 
@@ -32,7 +32,7 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 ```mermaid
 graph TD
     BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 99%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
-    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>48 reports · 841K+ measurements"]
+    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>48 reports · 1M+ measurements"]
     CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>6 predictive models · 292 tests<br/>Python + Rust harnesses"]
     MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
     CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
@@ -140,7 +140,7 @@ The autonomy plane in the Chimera ecosystem. Sits between the Chimera control pl
 
 ## Research Program
 
-**48 technical reports (TR 108–TR 163). 841,000+ empirical measurements. 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at NeurIPS 2026.**
+**48 technical reports (TR 108–TR 163). 1,000,000+ empirical measurements. 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at NeurIPS 2026.**
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
