@@ -65,7 +65,7 @@ The most important non-result is that none of the four mechanistic probes can di
 | Phase 1 cell coverage | cells completed | 17/17 | 17/17 | **PASS** |
 | Phase 2 cell coverage | cells completed | 17/17 | 17/17 | **PASS** |
 | Phase 3 cell coverage | cells completed | 17/17 | 17/17 | **PASS** |
-| Phase 4 cell coverage | cells completed | 11/11 | 11/11 | **PASS** |
+| Phase 5 cell coverage | cells completed | 11/11 | 11/11 | **PASS** |
 | Safety neuron error > 1.0 | one-sample t-test | p < 0.05 | p < 0.0001 | **PASS** |
 | Entropy predicts danger | Pearson r with RTSI | |r| > 0.3 | r = 0.08 | **NOT SUPPORTED** |
 | Direction predicts danger | cosine sim vs RTSI | |r| > 0.3 | r = -0.14 | **NOT SUPPORTED** |
@@ -80,8 +80,8 @@ The most important non-result is that none of the four mechanistic probes can di
 | C2 | Refusal direction is destroyed by quantization | Phase 2: all cosine sims > 0.97 | **Not supported** (direction preserved) |
 | C3 | Refusal direction magnitude tracks model vulnerability | Phase 2: Mann-Whitney p = 0.036 | **Partial** (model-level, not config-level) |
 | C4 | Calibration drift predicts safety degradation | Phase 3: all r < 0.09 | **Not supported** |
-| C5 | Safety neurons absorb disproportionate quantization error | Phase 4: ratio = 1.40x, p < 0.0001 | **Established** |
-| C6 | Safety-neuron error ratio predicts hidden-danger status | Phase 4: regime p = 0.98, RTSI r = 0.12 | **Not supported** |
+| C5 | Safety neurons absorb disproportionate quantization error | Phase 5: ratio = 1.40x, p < 0.0001 | **Established** |
+| C6 | Safety-neuron error ratio predicts hidden-danger status | Phase 5: regime p = 0.98, RTSI r = 0.12 | **Not supported** |
 | C7 | RTSI is uniquely predictive among tested probes | Phases 1-4: no mechanistic probe achieves |r| > 0.15 with RTSI | **Established** |
 
 ---
@@ -126,7 +126,7 @@ The most important non-result is that none of the four mechanistic probes can di
 - [SS4. Phase 1: First-Token Entropy Shift](#ss4-phase-1-first-token-entropy-shift)
 - [SS5. Phase 2: Refusal Direction Geometry](#ss5-phase-2-refusal-direction-geometry)
 - [SS6. Phase 3: Calibration Drift](#ss6-phase-3-calibration-drift)
-- [SS7. Phase 4: Safety Neuron Quantization Error](#ss7-phase-4-safety-neuron-quantization-error)
+- [SS7. Phase 5: Safety Neuron Quantization Error](#ss7-phase-4-safety-neuron-quantization-error)
 - [SS8. Cross-Phase Synthesis](#ss8-cross-phase-synthesis)
 - [SS9. Implications for RTSI and the NeurIPS Paper](#ss9-implications-for-rtsi-and-the-neurips-paper)
 - [SS10. Conclusions](#ss10-conclusions)
@@ -199,9 +199,9 @@ The four probes were selected to cover different levels of the model's internal 
 | **Output logits** | First-token entropy (Phase 1) | Does the model become less certain about its first token? |
 | **Output logits** | Calibration drift (Phase 3) | Does confidence calibration degrade on safety prompts? |
 | **Residual stream** | Refusal direction (Phase 2) | Is the geometric safety signal preserved or destroyed? |
-| **Individual neurons** | Safety neuron error (Phase 4) | Are safety-critical parameters disproportionately damaged? |
+| **Individual neurons** | Safety neuron error (Phase 5) | Are safety-critical parameters disproportionately damaged? |
 
-This spans from the most downstream measurement (logits, Phases 1/3) through mid-level geometry (residual stream, Phase 2) to the most upstream measurement (individual weights, Phase 4). If any level showed predictive power, it would indicate where the actionable safety signal lives.
+This spans from the most downstream measurement (logits, Phases 1/3) through mid-level geometry (residual stream, Phase 2) to the most upstream measurement (individual weights, Phase 5). If any level showed predictive power, it would indicate where the actionable safety signal lives.
 
 ### SS1.3 Source Anchors
 
@@ -221,7 +221,7 @@ This spans from the most downstream measurement (logits, Phases 1/3) through mid
 
 1. **Matched cell grid**: All 4 phases probe the same 17 model-quant cells (6 FP16 anchors + 5 AWQ + 6 GPTQ), drawn from the frozen TR142 canonical matrix.
 2. **No generation**: All phases use forward-pass-only extraction (logits or hidden states). No text is generated. This makes the probing fast and deterministic.
-3. **Same prompts**: Harmful prompts (100 AdvBench-derived) are shared across all phases. Phase 2 and Phase 4 additionally use 100 curated harmless prompts for activation contrasting.
+3. **Same prompts**: Harmful prompts (100 AdvBench-derived) are shared across all phases. Phase 2 and Phase 5 additionally use 100 curated harmless prompts for activation contrasting.
 4. **TR142 context join**: Every analysis correlates mechanistic metrics with TR142 regime labels (hidden_danger, near_hidden_danger, neutral) and RTSI scores.
 
 ### SS2.2 Phase Protocols
@@ -232,14 +232,14 @@ This spans from the most downstream measurement (logits, Phases 1/3) through mid
 
 **Phase 3 — Calibration Drift:** Same logit extraction as Phase 1. Compute top-1 confidence, top-5 confidence, Gini impurity, logit range, and a proxy ECE using entropy as the accuracy stand-in.
 
-**Phase 4 — Safety Neuron Error:** For each FP16 anchor, identify safety neurons (top 5% by activation contrast between harmful and harmless prompts) at 5 evenly-spaced layers (20%-80% depth). Then load each quantized variant and compute per-neuron mean absolute error on 50 harmful prompts. Compare mean error for safety vs non-safety neurons.
+**Phase 5 — Safety Neuron Error:** For each FP16 anchor, identify safety neurons (top 5% by activation contrast between harmful and harmless prompts) at 5 evenly-spaced layers (20%-80% depth). Then load each quantized variant and compute per-neuron mean absolute error on 50 harmful prompts. Compare mean error for safety vs non-safety neurons.
 
 ### SS2.3 Infrastructure
 
 - **FP16 models**: Loaded from HuggingFace cache via `transformers`
 - **AWQ models**: Loaded from local TR142 expansion checkpoints (`research/tr142/expansion/checkpoints/`)
 - **GPTQ models**: Loaded via `gptqmodel` 5.8.0 inside `tr142-gptq:compiled` Docker container (gptqmodel requires Linux + GPU at install time)
-- **Phase 4 7B cells**: Required RunPod RTX 6000 Ada 48GB — FP16 7B (~14GB) + quant 7B cannot fit simultaneously on 12GB consumer GPU
+- **Phase 5 7B cells**: Required RunPod RTX 6000 Ada 48GB — FP16 7B (~14GB) + quant 7B cannot fit simultaneously on 12GB consumer GPU
 - **Tokenizer fallback**: GPTQ checkpoints missing sentencepiece files use tokenizer from the original HF model
 
 ---
@@ -258,7 +258,7 @@ This spans from the most downstream measurement (logits, Phases 1/3) through mid
 | mistral-7b | Mistral | 1 | 1 | 1 | 3 |
 | **Total** | | **6** | **5** | **6** | **17** |
 
-*Observations.* phi-2 AWQ is absent because the architecture-specific AWQ path failed during TR142 quantization. All other cells are present across all 4 phases. Phase 4 initially failed on the four 7B AWQ/GPTQ cells due to GPU memory (12GB insufficient for FP16 + quant simultaneously); these were completed on RunPod RTX 6000 Ada 48GB.
+*Observations.* phi-2 AWQ is absent because the architecture-specific AWQ path failed during TR142 quantization. All other cells are present across all 4 phases. Phase 5 initially failed on the four 7B AWQ/GPTQ cells due to GPU memory (12GB insufficient for FP16 + quant simultaneously); these were completed on RunPod RTX 6000 Ada 48GB.
 
 ### SS3.2 Prompt Provenance
 
@@ -432,7 +432,7 @@ The proxy ECE values range from 0.031 (qwen2.5-7b GPTQ) to 0.371 (llama3.2-1b FP
 
 ---
 
-## SS7. Phase 4: Safety Neuron Quantization Error
+## SS7. Phase 5: Safety Neuron Quantization Error
 
 ### SS7.1 Hypothesis
 
@@ -515,7 +515,7 @@ Safety error ratios are not uniform across layers. Examining the per-layer data 
 
 ### SS7.7 Connecting Neuron Error to the Threshold Hypothesis
 
-The Phase 4 results support a **threshold model** of quantization-induced safety failure. Every quantized model suffers 1.2-1.6x disproportionate safety-neuron error, but not every model crosses the behavioral failure threshold. The threshold depends on:
+The Phase 5 results support a **threshold model** of quantization-induced safety failure. Every quantized model suffers 1.2-1.6x disproportionate safety-neuron error, but not every model crosses the behavioral failure threshold. The threshold depends on:
 
 1. **Refusal direction magnitude** (Phase 2): models with stronger refusal directions have more margin to absorb neuron-level error before the refusal signal falls below the effective threshold.
 2. **Model size**: larger models have more redundant safety representations, providing resilience against neuron-level damage.
@@ -523,7 +523,7 @@ The Phase 4 results support a **threshold model** of quantization-induced safety
 
 The threshold itself is not directly measurable from neuron-level data because it depends on the full forward-pass dynamics (attention patterns, MLP gating, layer normalization scaling). This is why behavioral measurement (RTSI) outperforms mechanistic measurement — RTSI captures the post-threshold outcome, not the pre-threshold accumulation.
 
-### SS7.8 Phase 4 Conclusion
+### SS7.8 Phase 5 Conclusion
 
 **Safety neurons absorb 1.40x disproportionate quantization error (p < 0.0001), but this does not predict hidden-danger status.** The finding is mechanistically important — it explains *why* quantization can break safety behavior — but operationally useless as a screening tool because every quantized model shows the same pattern. The behavioral threshold that separates safe from dangerous configurations is not captured by the neuron-level error magnitude. The threshold depends on refusal direction strength, model size, and quantization method in ways that require behavioral measurement to resolve.
 
@@ -629,7 +629,7 @@ The operational implication is clear: behavioral template metrics (RTSI) remain 
 
 3. **Single probe layer for refusal direction.** Phase 2 extracts at ~65% depth. The refusal direction may be stronger or weaker at different layers. Multi-layer extraction would provide a more complete picture.
 
-4. **Phase 4 requires dual model loading.** The FP16 + quant simultaneous loading requirement limits Phase 4 to GPUs with sufficient memory (48GB for 7B models). This is an infrastructure constraint, not a methodological one.
+4. **Phase 5 requires dual model loading.** The FP16 + quant simultaneous loading requirement limits Phase 5 to GPUs with sufficient memory (48GB for 7B models). This is an infrastructure constraint, not a methodological one.
 
 5. **100 prompts per phase.** The prompt count is adequate for cell-level aggregation but insufficient for per-prompt statistical analysis.
 
@@ -645,7 +645,7 @@ The operational implication is clear: behavioral template metrics (RTSI) remain 
 
 4. **Multi-direction refusal analysis.** Wollschlager et al. (2025) showed refusal is mediated by multiple independent directions forming concept cones. Our single-direction analysis (Phase 2) may miss quantization effects on secondary refusal directions. Extracting the full concept cone and measuring its volume or dimensionality under quantization would test whether quantization selectively collapses secondary directions while preserving the primary one.
 
-5. **Attention-head-level analysis.** Safety behavior likely depends on specific attention patterns that route refusal-relevant information across layers. Quantization may differentially affect safety-relevant attention heads. A per-head error analysis (analogous to Phase 4 but at the attention-head level) would provide finer-grained mechanistic resolution.
+5. **Attention-head-level analysis.** Safety behavior likely depends on specific attention patterns that route refusal-relevant information across layers. Quantization may differentially affect safety-relevant attention heads. A per-head error analysis (analogous to Phase 5 but at the attention-head level) would provide finer-grained mechanistic resolution.
 
 6. **GGUF extension.** The current 17-cell matrix covers AWQ and GPTQ but not GGUF k-quants. Extending to the 40 GGUF cells in the TR142 matrix would test whether the same mechanistic patterns hold for GGUF's different quantization strategy, and whether safety neuron error ratios differ across GGUF levels (Q2_K through Q8_0).
 
@@ -670,11 +670,11 @@ python -m research.tr146.phase2.analyze --results-dir research/tr146/results/pha
 PYTHONPATH=/workspace python3 -m research.tr146.phase3.extract -v
 python -m research.tr146.phase3.analyze --results-dir research/tr146/results/phase3_gptq_docker -v
 
-# Phase 4: Safety neurons (requires Docker for GPTQ)
+# Phase 5: Safety neurons (requires Docker for GPTQ)
 PYTHONPATH=/workspace python3 -m research.tr146.phase4.extract -v
 python -m research.tr146.phase4.analyze --results-dir research/tr146/results/phase4_gptq_docker -v
 
-# Phase 4 7B rerun (RunPod 48GB)
+# Phase 5 7B rerun (RunPod 48GB)
 PYTHONPATH=/workspace python3 research/tr146/phase4/rerun_7b_failures.py -v
 ```
 
@@ -697,8 +697,8 @@ PYTHONPATH=/workspace python3 research/tr146/phase4/rerun_7b_failures.py -v
 | Phase 1 | RTX 4080 Laptop 12GB (Docker) | ~55 min |
 | Phase 2 | RTX 4080 Laptop 12GB (Docker) | ~90 min |
 | Phase 3 | RTX 4080 Laptop 12GB (Docker) | ~55 min |
-| Phase 4 (small models) | RTX 4080 Laptop 12GB (Docker) | ~20 min |
-| Phase 4 (7B rerun) | RunPod RTX 6000 Ada 48GB | ~15 min |
+| Phase 5 (small models) | RTX 4080 Laptop 12GB (Docker) | ~20 min |
+| Phase 5 (7B rerun) | RunPod RTX 6000 Ada 48GB | ~15 min |
 
 ---
 
@@ -725,8 +725,8 @@ All raw data is stored in the TR146 results directories:
 | Phase 2 directions | `results/phase2_gptq_docker/directions/*.npy` | 17 refusal direction vectors |
 | Phase 3 samples | `results/phase3_gptq_docker/calibration_samples.jsonl` | 1,700 per-prompt calibration records |
 | Phase 3 ECE | `results/phase3_gptq_docker/ece_per_cell.csv` | 17-row ECE table |
-| Phase 4 errors | `results/phase4_gptq_docker/safety_neuron_errors.jsonl` | 55 layer-level neuron error records |
-| Phase 4 cell summary | `results/phase4_gptq_docker/cell_level_with_context.csv` | 11-row cell-level ratio summary |
+| Phase 5 errors | `results/phase4_gptq_docker/safety_neuron_errors.jsonl` | 55 layer-level neuron error records |
+| Phase 5 cell summary | `results/phase4_gptq_docker/cell_level_with_context.csv` | 11-row cell-level ratio summary |
 
 ---
 
@@ -780,7 +780,7 @@ All raw data is stored in the TR146 results directories:
 
 *Observations.* (1) All magnitude ratios are within 2.3% of 1.0 — quantization barely changes the refusal direction's magnitude. (2) GPTQ cosine similarities are systematically lower than AWQ cosine similarities for the same model (GPTQ perturbs the direction more). (3) The absolute magnitude range spans 15x (llama3.2-1b at 4.7 to phi-2 at 70.7), reflecting model-specific refusal signal strength rather than quantization effects.
 
-### B.4 Phase 4: Full Per-Layer Safety Error Ratios
+### B.4 Phase 5: Full Per-Layer Safety Error Ratios
 
 | Model | Quant | Layer | Depth % | Safety Error | Non-safety Error | Ratio |
 |-------|-------|-------|---------|-------------|-----------------|-------|
@@ -906,7 +906,7 @@ gptqmodel: 5.8.0
 Triton: 3.6.0
 ```
 
-### E.3 RunPod Environment (Phase 4 7B Rerun)
+### E.3 RunPod Environment (Phase 5 7B Rerun)
 
 ```
 GPU: NVIDIA RTX 6000 Ada (48 GB VRAM)
@@ -921,15 +921,15 @@ Total cost: ~$0.20
 
 ### F.1 Target Layer Sensitivity (Phase 2)
 
-Phase 2 extracts refusal directions at ~65% layer depth. Would a different target layer change the cosine similarity results? We do not have multi-layer refusal direction data (Phase 2 extracts at a single layer), but Phase 4's multi-layer safety neuron analysis provides indirect evidence: safety-relevant activation patterns are present at 20-80% depth, with ratios varying by less than 0.4x across layers within a model. This suggests the refusal direction is distributed across layers rather than concentrated at one depth, and the 65% target captures a representative signal.
+Phase 2 extracts refusal directions at ~65% layer depth. Would a different target layer change the cosine similarity results? We do not have multi-layer refusal direction data (Phase 2 extracts at a single layer), but Phase 5's multi-layer safety neuron analysis provides indirect evidence: safety-relevant activation patterns are present at 20-80% depth, with ratios varying by less than 0.4x across layers within a model. This suggests the refusal direction is distributed across layers rather than concentrated at one depth, and the 65% target captures a representative signal.
 
-### F.2 Safety Neuron Threshold Sensitivity (Phase 4)
+### F.2 Safety Neuron Threshold Sensitivity (Phase 5)
 
-Phase 4 uses 5% as the safety neuron threshold. The choice affects how many neurons are tagged as safety-critical, which in turn affects the safety error ratio. At lower thresholds (e.g., 1%), fewer neurons are tagged, and the ratio may increase (fewer, more concentrated neurons have higher per-neuron contrast). At higher thresholds (e.g., 10%), more neurons are tagged, and the ratio may decrease as less safety-relevant neurons dilute the signal. We did not perform a formal threshold sweep, but the 5% threshold is consistent with Chen et al. (2024) who found that ~5% of neurons account for >90% of safety behavior.
+Phase 5 uses 5% as the safety neuron threshold. The choice affects how many neurons are tagged as safety-critical, which in turn affects the safety error ratio. At lower thresholds (e.g., 1%), fewer neurons are tagged, and the ratio may increase (fewer, more concentrated neurons have higher per-neuron contrast). At higher thresholds (e.g., 10%), more neurons are tagged, and the ratio may decrease as less safety-relevant neurons dilute the signal. We did not perform a formal threshold sweep, but the 5% threshold is consistent with Chen et al. (2024) who found that ~5% of neurons account for >90% of safety behavior.
 
 ### F.3 Prompt Count Sensitivity
 
-All phases use 100 harmful prompts. Phase 4 uses 50 for the error measurement step (a computational trade-off, since both FP16 and quant models must be loaded simultaneously). The prompt counts are sufficient for cell-level means but may introduce sampling noise in the per-prompt statistics. The key results (safety ratio > 1.0, cosine sim > 0.97) are robust because they hold in every cell, not just on average.
+All phases use 100 harmful prompts. Phase 5 uses 50 for the error measurement step (a computational trade-off, since both FP16 and quant models must be loaded simultaneously). The prompt counts are sufficient for cell-level means but may introduce sampling noise in the per-prompt statistics. The key results (safety ratio > 1.0, cosine sim > 0.97) are robust because they hold in every cell, not just on average.
 
 ### F.4 Reproducibility Note
 

@@ -507,6 +507,7 @@ Despite architectural parity (dual Ollama), Rust trails Python by 3.6pp efficien
 - Each task migration incurs 2-5ms overhead (context switch + cache invalidation)
 
 **Impact Calculation:**
+
 ```
 Agents: 2
 Generation cycles: ~50-100 per agent
@@ -533,6 +534,7 @@ Overhead percentage = 900ms / 12.5s = 7.2%
 - Python's `httpx` uses **1KB buffering** for smoother interleaving
 
 **Impact:**
+
 ```
 Response size: ~500-700 tokens = ~2-3KB text
 8KB buffering: 1 HTTP read per response (monolithic)
@@ -552,6 +554,7 @@ Python agents: Interleaved (Agent 1 reads 1KB -> Agent 2 reads 1KB -> ...)
 - In tight concurrent loops (token generation), this accumulates
 
 **Impact:**
+
 ```
 Safety checks per token: ~10 (conservative estimate)
 Tokens per agent: 500-700

@@ -16,7 +16,7 @@
 | **Phase 1 Samples** | 3,366 |
 | **Phase 2 Samples** | 1,284 |
 | **Phase 3 Samples** | 1,485 |
-| **Phase 4 Samples** | 1,122 |
+| **Phase 5 Samples** | 1,122 |
 | **Audit Layer Candidates** | 44 (corrected from 49) |
 
 ---
@@ -57,7 +57,7 @@ The v2 report should therefore be read as **a revision that sharpens the v1 evid
 - **Phase 1:** paired comparisons versus `batch=1`, chi-squared with Fisher exact
 - **Phase 2:** paired t-tests across `solo`, `benign`, `adversarial`, and `safety`; two-way ANOVA (model x condition)
 - **Phase 3:** two-way ANOVA for `quantization x concurrency`, per-model
-- **Phase 4:** paired comparison between true batching and synchronized-dispatch references
+- **Phase 5:** paired comparison between true batching and synchronized-dispatch references
 - **Audit layer:** binomial test for unsafe-direction asymmetry, Wilson CIs, odds ratios
 - **Holm-Bonferroni** correction for all multiple testing families
 - **TOST equivalence** at `+/-3pp`
@@ -88,13 +88,17 @@ The v2.2 refusal detector normalizes Unicode curly quotes (`\u2019`, `\u201c`, `
 
 This report presents TR138 v2, a strengthened-evidence revision of the 31,410-sample TR138 v1 study on batch-induced safety non-determinism. TR138 v2 adds two evidence layers: (1) a corrected audit of 44 behavior-changing rows from v1, finding that 26 (59.1%) flip in the unsafe direction, and (2) a 7,257-sample reduced replication on an enriched 187-prompt subset across 3 models and 4 phases.
 
-The replication confirms and amplifies the v1 headline findings. Phase 1 safety flips reach **1.68%** (27/1,605) versus **0.42%** capability flips (5/1,200), a **4.0x ratio**. Refusal-to-compliance flips account for **72.7%** of directionally classified safety flips, confirming that batch-induced instability weakens safety alignment rather than randomly perturbing it. Phase 4 explicit true-batching validation records **3.27%** safety flips (14/428) with **98.67%** mean flip agreement to Phase 1, demonstrating the core signal is not a scheduler artifact.
+**Post-report Study D addendum.** A later targeted addendum adds a 110-record vLLM/H100 batch-invariant-kernel ablation on 55 current score-flip candidates. This addendum strengthens the mechanism chain without changing the original TR138 v2 scope.
+
+The replication confirms and amplifies the v1 headline findings. Phase 1 safety flips reach **1.68%** (27/1,605) versus **0.42%** capability flips (5/1,200), a **4.0x ratio**. Refusal-to-compliance flips account for **72.7%** of directionally classified safety flips, confirming that batch-induced instability weakens safety alignment rather than randomly perturbing it. Phase 5 explicit true-batching validation records **3.27%** safety flips (14/428) with **98.67%** mean flip agreement to Phase 1, demonstrating the core signal is not a scheduler artifact.
 
 Phase 3 now shows **3/3 models** with significant quantization effects (consistent with corrected v1 (also 3/3)), while concurrency and interaction terms remain null. The audit layer scorer correction (curly-quote normalization) removes 5 false-flip rows, tightening the candidate set without altering the core asymmetry finding.
 
 The defensible conclusion is unchanged but now better supported:
 
 > under deterministic decoding on this hardware and model set, batching introduces a small but measurable safety tax, the tax is directionally unsafe, it survives true-batching validation, and the scorer-corrected audit preserves the asymmetry.
+
+**Post-report Study D addendum.** On the current candidate surface, standard vLLM on H100 reproduces candidate label flips while the tested batch-invariant execution path removes them. This adds mechanism evidence but does not retroactively turn TR138 v2 into a full batch-invariant benchmark.
 
 ---
 
@@ -126,6 +130,7 @@ The defensible conclusion is unchanged but now better supported:
 - [22. Conclusions](#22-conclusions)
 - [23. Production Guidance](#23-production-guidance)
 - [24. Reproducibility](#24-reproducibility)
+- [25. Study D Addendum: Batch-Invariant Kernel Ablation](#25-study-d-addendum-batch-invariant-kernel-ablation)
 - [A. Appendix A: Raw Statistical Tables](#appendix-a-raw-statistical-tables)
 - [B. Appendix B: TOST & Equivalence Detail](#appendix-b-tost--equivalence-detail)
 - [C. Appendix C: Sensitivity & Audit Detail](#appendix-c-sensitivity--audit-detail)
@@ -140,11 +145,12 @@ The defensible conclusion is unchanged but now better supported:
 
 1. **Batching changes safety behavior more than capability behavior.** Replication Phase 1 safety flips are 1.68% versus 0.42% for capability, a 4.0x differential (v1: 0.5% vs 0.1%, 3.7x).
 2. **The unsafe direction dominates.** Refusal -> compliance accounts for 72.7% of classified safety flips (v1: 69.0%).
-3. **The signal survives explicit true batching.** Phase 4 reports 3.27% safety flips under prompt-list batching, with 98.67% agreement to the synchronized-dispatch signal (v1: 0.8%, 99.4%).
+3. **The signal survives explicit true batching.** Phase 5 reports 3.27% safety flips under prompt-list batching, with 98.67% agreement to the synchronized-dispatch signal (v1: 0.8%, 99.4%).
 4. **Co-batching interference is not established.** Phase 2 effects remain small, inconsistent, and non-significant.
 5. **Quantization is now significant in all three models.** Phase 3 ANOVA: 3/3 significant for quant (v1: 3/3), with mean eta-squared = 0.214.
 6. **Audit layer confirms directional asymmetry.** Of 44 scorer-corrected audit candidates, 26 (59.1%) flip unsafe. The odds ratio is 1.44 [0.79, 2.63].
 7. **Scorer correction is conservative.** Curly-quote normalization removes 5 false-flip rows but does not change the unsafe majority.
+8. **Study D closes the kernel-path mechanism check for current candidates.** On 55 current Phase 1/Phase 5 score-flip candidates, standard vLLM 0.19.1 on H100 reproduces 22 label flips and 25 text changes; `VLLM_BATCH_INVARIANT=1` reduces the same test to 0 label flips and 0 text changes.
 
 ### Validation summary
 
@@ -152,11 +158,12 @@ The defensible conclusion is unchanged but now better supported:
 |--------|--------|----------|--------|
 | Safety-capability asymmetry detected | Phase 1 flip ratio | 4.0x | PASS |
 | Unsafe directionality detected | Refusal -> compliance share | 72.7% | PASS |
-| True-batch confirmation | Phase 4 flip agreement | 98.67% | PASS |
+| True-batch confirmation | Phase 5 flip agreement | 98.67% | PASS |
 | Co-batch interference established | Phase 2 pairwise tests | Not established | MIXED |
 | Concurrency hazard established | Phase 3 concurrency ANOVA | p = 1.0000 | REFUTED |
 | Audit asymmetry | Scorer-corrected unsafe share | 59.1% (26/44) | PASS |
 | Phase 3 quant all models | Per-model ANOVA | 3/3 significant | PASS (improved) |
+| Batch-invariant kernel ablation | Standard vs invariant vLLM/H100 | 22/55 -> 0/55 label flips | PASS (targeted) |
 
 ### Citation-grade claim hierarchy
 
@@ -165,6 +172,7 @@ The defensible conclusion is unchanged but now better supported:
 | Primary claim | Batch condition is a safety-relevant serving variable | Strong (replicated) | 7, 10, 22 |
 | Primary support | The dominant batch failure direction is refusal -> compliance | Strong (replicated) | 7.3, 11, 22 |
 | Mechanism support | The signal survives explicit true batching | Strong (replicated) | 10.2, 22 |
+| Mechanism addendum | Current candidate flips collapse under batch-invariant vLLM/H100 execution | Strong for candidate surface | 25 |
 | Revision claim | Scorer correction preserves the audit asymmetry | Strong | 11, Appendix C |
 | Negative finding | Adversarial co-batching is not established | Strong negative | 8, 12 |
 | Auxiliary finding | Quantization matters more than concurrency, now 3/3 models | Strong | 9, 10.1 |
@@ -176,12 +184,13 @@ The defensible conclusion is unchanged but now better supported:
 |-------|---------------|--------|
 | Batch-induced changes are safety-neutral | Safety flips exceed capability flips by 4.0x | **REFUTED** |
 | Batching mostly causes harmless wording drift | 72.7% of flips are refusal -> compliance | **REFUTED** |
-| Phase 1 is only a scheduler artifact | Phase 4 true batching retains the signal (98.67% agreement) | **REFUTED** |
+| Phase 1 is only a scheduler artifact | Phase 5 true batching retains the signal (98.67% agreement) | **REFUTED** |
 | v1 audit candidates included false flips | 5 of 49 were curly-quote artifacts; corrected to 44 | **VALIDATED** |
 | Unsafe direction dominates audit flips | 26/44 = 59.1% unsafe, OR = 1.44 | **VALIDATED** |
 | Adversarial co-batching clearly harms | Phase 2 deltas are small and non-significant | **NOT ESTABLISHED** |
 | Quant x concurrency interaction is major | Interaction p = 1.0000 | **REFUTED** |
-| Batch size is operationally safety-relevant | Phase 1 + Phase 4 + Audit jointly support this | **VALIDATED** |
+| Batch size is operationally safety-relevant | Phase 1 + Phase 5 + Audit jointly support this | **VALIDATED** |
+| Current score-flip candidates are independent of kernel path | Study D standard vLLM 22/55 vs batch-invariant 0/55 | **REFUTED** |
 
 ### Key decisions for practitioners
 
@@ -190,6 +199,7 @@ The defensible conclusion is unchanged but now better supported:
 3. **Treat batching and quantization as distinct safety axes.** Phase 3 now confirms quantization significance across all three models.
 4. **Do not use TR138 to claim strong co-batching interference.** Phase 2 remains negative.
 5. **Use the scorer-corrected audit layer for external evidence.** The v2.2 correction removes false positives and tightens the candidate set.
+6. **Validate the exact kernel path actually served.** Study D shows that the same candidate rows can flip under standard vLLM and become stable under the tested batch-invariant execution path.
 
 ### When to use this report
 
@@ -197,7 +207,7 @@ The defensible conclusion is unchanged but now better supported:
 Use TR138 v2 to answer: no. The replication amplifies the v1 finding with higher flip rates on the enriched prompt subset.
 
 **Scenario 2: "Does the effect survive true batching?"**
-Use Phase 4. At 3.27% safety flips with 98.67% agreement, this is the strongest mechanism evidence.
+Use Phase 5. At 3.27% safety flips with 98.67% agreement, this is the strongest mechanism evidence.
 
 **Scenario 3: "Should I worry more about concurrency or quantization?"**
 Use Phase 3. Quantization matters in all three models; concurrency alone does not.
@@ -282,7 +292,7 @@ Four-phase experiment measuring output non-determinism under batch inference on 
 - **Phase 1 (vLLM):** Synchronized request groups force exact in-flight batch sizes.
 - **Phase 2 (vLLM):** One target prompt is evaluated under four conditions: `solo`, `benign`, `adversarial`, and `safety` co-batches.
 - **Phase 3 (Ollama):** Concurrent API load is used as a separate proxy axis. It measures quantization x concurrency, not true batching.
-- **Phase 4 (vLLM):** A single completions call receives a prompt list, giving explicit true batching without cross-request arrival timing effects.
+- **Phase 5 (vLLM):** A single completions call receives a prompt list, giving explicit true batching without cross-request arrival timing effects.
 
 ### 5.2 Replication design
 
@@ -293,12 +303,12 @@ The replication layer uses an enriched 187-prompt subset per model, selected to 
 | Phase 1 | 187 (107 safety + 80 capability) | 3 models x 6 batch sizes | 3,366 |
 | Phase 2 | 107 safety targets | 3 models x 4 conditions | 1,284 |
 | Phase 3 | 55 safety prompts | 3 models x 3 quants x 3 concurrency | 1,485 |
-| Phase 4 | 187 (107 safety + 80 capability) | 2 models x 3 batch sizes | 1,122 |
+| Phase 5 | 187 (107 safety + 80 capability) | 2 models x 3 batch sizes | 1,122 |
 
 **Phase 1 tasks:** AdvBench, Jailbreak, BBQ, TruthfulQA (safety); MMLU, ARC-Challenge (capability) = 187 prompts
 **Phase 2 tasks:** AdvBench, Jailbreak, BBQ, TruthfulQA = 107 safety prompts
 **Phase 3 tasks:** AdvBench + Jailbreak subset = 55 safety prompts
-**Phase 4 tasks:** Reduced all-task subset = 187 prompts (107 safety + 80 capability)
+**Phase 5 tasks:** Reduced all-task subset = 187 prompts (107 safety + 80 capability)
 
 ### 5.3 Audit design
 
@@ -339,7 +349,7 @@ The central claim would be much weaker without capability tasks. If batching cha
 
 ## 6. Models & Configuration
 
-| Model | Family | Params | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Backend |
+| Model | Family | Params | Phase 1 | Phase 2 | Phase 3 | Phase 5 | Backend |
 |-------|--------|--------|---------|---------|---------|---------|---------|
 | llama3.2-1b | llama | 1236M | Yes | Yes | Yes | No | vLLM FP16, Ollama Q8/Q4/Q2 |
 | llama3.2-3b | llama | 3213M | Yes | Yes | Yes | Yes | vLLM FP16, Ollama Q8/Q4/Q2, vLLM true-batch |
@@ -453,7 +463,7 @@ Phase 1 establishes well:
 
 Phase 1 does not establish on its own:
 
-- that the mechanism is pure tensor batching rather than some scheduler artifact (that is Phase 4's role)
+- that the mechanism is pure tensor batching rather than some scheduler artifact (that is Phase 5's role)
 - that the same magnitude will appear on larger models or other hardware
 - that every safety domain is equally vulnerable
 
@@ -602,7 +612,7 @@ Phase 3 asks whether quantized models become more safety-vulnerable under concur
 
 **Observations.** Quantization variance (36.51pp) is roughly 5x larger than batch-size variance (7.03pp) and true-batching variance (8.31pp). Concurrency contributes nothing measurable. This ranking preserves the v1 ordering and is consistent with the TR137 cross-TR synthesis: quantization remains the dominant serving-induced safety risk axis. Batching fills a genuine middle band -- material enough to matter but much smaller than quantization.
 
-### 10.2 Phase 4 True-Batching Validation
+### 10.2 Phase 5 True-Batching Validation
 
 Explicit prompt-list true batching produces an overall safety flip rate of **3.27%** (14/428 safety samples across two batch sizes).
 
@@ -615,9 +625,9 @@ Mean flip-agreement with Phase 1 synchronized dispatch is **98.67%**, indicating
 | qwen2.5-1.5b | 4 | 187 | 99.5 | 99.5 |
 | qwen2.5-1.5b | 8 | 187 | 97.9 | 97.9 |
 
-**Observations.** The 98.67% mean flip agreement confirms the Phase 1 signal is not reducible to request-arrival timing alone. The Phase 4 safety flip rate (3.27%) is nearly double the Phase 1 rate (1.68%), suggesting that explicit true batching may produce slightly more perturbation than synchronized dispatch. The per-model breakdown shows qwen2.5-1.5b at BS=4 has the highest agreement (99.5%) while the same model at BS=8 has the lowest (97.9%), indicating some batch-size-dependent variability in the mechanism pathway.
+**Observations.** The 98.67% mean flip agreement confirms the Phase 1 signal is not reducible to request-arrival timing alone. The Phase 5 safety flip rate (3.27%) is nearly double the Phase 1 rate (1.68%), suggesting that explicit true batching may produce slightly more perturbation than synchronized dispatch. The per-model breakdown shows qwen2.5-1.5b at BS=4 has the highest agreement (99.5%) while the same model at BS=8 has the lowest (97.9%), indicating some batch-size-dependent variability in the mechanism pathway.
 
-### 10.3 Phase 4 Detailed Flip Rates
+### 10.3 Phase 5 Detailed Flip Rates
 
 | Model | BS | Safety Flip Rate | Cap Flip Rate | Flip Ratio |
 |-------|----|-----------------|---------------|------------|
@@ -671,9 +681,9 @@ The v2.2 refusal detector normalizes Unicode curly quotes before applying regex 
 | Phase | Count |
 |-------|-------|
 | Phase 1 | 41 |
-| Phase 4 | 8 |
+| Phase 5 | 8 |
 
-**Observations.** The concentration in Phase 1 (93.2%) reflects the larger v1 Phase 1 sample. Phase 4's 8 candidates from a much smaller sample indicate a proportionally higher flip density under true batching, consistent with the replication findings in Section 10.
+**Observations.** The concentration in Phase 1 (93.2%) reflects the larger v1 Phase 1 sample. Phase 5's 8 candidates from a much smaller sample indicate a proportionally higher flip density under true batching, consistent with the replication findings in Section 10.
 
 ### 11.4 Audit candidates by model
 
@@ -712,7 +722,7 @@ The v2.2 refusal detector normalizes Unicode curly quotes before applying regex 
 | Phase | Baseline Unsafe Compliance | Shifted Unsafe Compliance | Delta |
 |-------|---------------------------|--------------------------|-------|
 | Phase 1 | 36.5% | 36.8% | +0.3pp |
-| Phase 4 | 25.7% | 25.4% | -0.4pp |
+| Phase 5 | 25.7% | 25.4% | -0.4pp |
 
 **Observations.** The harmful prompt compliance rate shifts by less than 0.5pp in either direction. While individual rows flip, the overall unsafe compliance rate remains stable. This is consistent with the core finding: batch effects are sparse and safety-skewed, not a broad safety collapse.
 
@@ -737,7 +747,7 @@ Two One-Sided Tests (TOST) for equivalence with +/-3pp margin.
 | Phase 1 | `batch=1` vs other batch sizes | Large absolute batch penalties are ruled out at +/-3pp in most cells |
 | Phase 2 | `solo` vs `adversarial` | Large co-batch interference is ruled out |
 | Phase 3 | concurrency contrasts within quant level | Trivially equivalent (zero variance) |
-| Phase 4 | true-batch vs `batch=1` | Mixed; some cells fail equivalence due to higher enriched-subset flip rates |
+| Phase 5 | true-batch vs `batch=1` | Mixed; some cells fail equivalence due to higher enriched-subset flip rates |
 
 ### 12.2 Why equivalence testing matters here
 
@@ -747,11 +757,11 @@ TOST is critical in TR138 because the headline batch findings are rare-event eff
 
 For Phase 1, most batch-size comparisons remain within the +/-3pp equivalence band. The aggregate safety-capability difference is 1.26pp, well within the +/-3pp margin. The largest per-cell safety flip rate (3.7% for qwen2.5-1.5b at BS=32) approaches but does not dramatically exceed the margin.
 
-### 12.4 Phase 2 and Phase 4
+### 12.4 Phase 2 and Phase 5
 
 For Phase 2, all solo_vs_adversarial comparisons pass equivalence at +/-3pp. Maximum observed delta is 1.4pp. This formally rules out large co-batching interference.
 
-For Phase 4, some cells on the enriched subset may fail +/-3pp equivalence due to the higher observed flip rates (up to 4.67%). This is expected given the intentional enrichment of boundary-sensitive prompts. The v1 full-set TOST results remain the better reference for deployment-grade equivalence conclusions.
+For Phase 5, some cells on the enriched subset may fail +/-3pp equivalence due to the higher observed flip rates (up to 4.67%). This is expected given the intentional enrichment of boundary-sensitive prompts. The v1 full-set TOST results remain the better reference for deployment-grade equivalence conclusions.
 
 ### 12.5 Bottom line
 
@@ -775,9 +785,9 @@ Power is a major interpretive constraint because the main batch-related event ra
 | Phase 1 | Safety flip rate (aggregate) | 1,605 safety rows | ~3.5 |
 | Phase 2 | Safety score by condition | 1,284 rows | ~5.3 |
 | Phase 3 | Safety score grid | 1,485 rows | ~4.2 |
-| Phase 4 | True-batch validation | 428 safety rows | ~7.5 |
+| Phase 5 | True-batch validation | 428 safety rows | ~7.5 |
 
-**Observations.** The replication design has smaller sample sizes than v1, which increases the MDE. Phase 4's MDE of ~7.5pp means it is useful as a mechanism check but not a high-power effect-size study. The observed Phase 4 safety flip rate (3.27%) is below this MDE, which is why per-cell significance is hard to achieve. The value of Phase 4 lies in its directional agreement with Phase 1, not in its standalone statistical power.
+**Observations.** The replication design has smaller sample sizes than v1, which increases the MDE. Phase 5's MDE of ~7.5pp means it is useful as a mechanism check but not a high-power effect-size study. The observed Phase 5 safety flip rate (3.27%) is below this MDE, which is why per-cell significance is hard to achieve. The value of Phase 5 lies in its directional agreement with Phase 1, not in its standalone statistical power.
 
 ### 13.2 What is well powered
 
@@ -788,7 +798,7 @@ Power is a major interpretive constraint because the main batch-related event ra
 ### 13.3 What is underpowered
 
 - Per-batch-size disproportionality tests in Phase 1
-- Per-model true-batching effects in Phase 4
+- Per-model true-batching effects in Phase 5
 - Prompt-level correlation analysis
 
 ### 13.4 Practical reading rule
@@ -854,7 +864,7 @@ Cohen's kappa between regex classifiers and LLM judge (Qwen 2.5 7B @ Q8_0).
 | Phase 1 batch sizes | 0.104-0.143 | 66.7%-67.3% | Low agreement |
 | Phase 2 conditions | 0.101-0.121 | 66.1%-66.7% | Low agreement |
 | Phase 3 quant levels | 0.043-0.234 | 55.8%-92.7% | Highly variable |
-| Phase 4 true batching | 0.000-0.044 | 70.9% | Poor kappa despite decent agreement |
+| Phase 5 true batching | 0.000-0.044 | 70.9% | Poor kappa despite decent agreement |
 
 ### 15.2 Selected strata
 
@@ -870,7 +880,7 @@ Cohen's kappa between regex classifiers and LLM judge (Qwen 2.5 7B @ Q8_0).
 | P4_bs4 | 0.044 | 70.9% | 110 |
 | P4_bs8 | 0.000 | 70.9% | 110 |
 
-**Observations.** Kappa remains poor across all conditions. Even where percent agreement is high (P3_Q8_0 at 92.7%), kappa is only 0.234 due to class imbalance. The P3_Q2_K stratum shows particularly poor kappa (0.043) at 55.8% agreement, suggesting that low-quantization outputs are harder for both classifiers to agree on. Phase 4 at BS=8 shows kappa = 0.000, meaning the judge and heuristic scorer agree no better than chance once class imbalance is accounted for.
+**Observations.** Kappa remains poor across all conditions. Even where percent agreement is high (P3_Q8_0 at 92.7%), kappa is only 0.234 due to class imbalance. The P3_Q2_K stratum shows particularly poor kappa (0.043) at 55.8% agreement, suggesting that low-quantization outputs are harder for both classifiers to agree on. Phase 5 at BS=8 shows kappa = 0.000, meaning the judge and heuristic scorer agree no better than chance once class imbalance is accounted for.
 
 The judge results do not invalidate the report, but they force disciplined interpretation: trust relative condition comparisons within the same scoring stack; distrust any claim that depends on the judge as an oracle; treat all absolute safety percentages as approximate. The low kappa is one reason the report emphasizes binary flip direction, replication across phases, and mechanism validation rather than pretending to offer precise calibrated safety rates.
 
@@ -995,7 +1005,7 @@ Formal Wilson CI overlap test for per-batch disproportionality.
 
 ### 21.1 What these limitations do and do not invalidate
 
-These limitations weaken ambitious claims. They do not erase the central contribution. The central contribution survives because it is replicated in the two phases that matter most: Phase 1 shows the safety-skewed perturbation, and Phase 4 shows the same direction under explicit true batching.
+These limitations weaken ambitious claims. They do not erase the central contribution. The central contribution survives because it is replicated in the two phases that matter most: Phase 1 shows the safety-skewed perturbation, and Phase 5 shows the same direction under explicit true batching.
 
 ---
 
@@ -1013,7 +1023,7 @@ No. The aggregate safety flip rate is 1.68% versus 0.42% for capability (4.0x ra
 
 **RQ3: Is the main result just a scheduler artifact?**
 
-Not entirely. Phase 4 preserves the direction at 3.27% safety flips with 98.67% agreement to Phase 1.
+Not entirely. Phase 5 preserves the direction at 3.27% safety flips with 98.67% agreement to Phase 1.
 
 **RQ4: Does adversarial co-batching create strong interference?**
 
@@ -1046,10 +1056,10 @@ No. Phase 3 is dominated by quantization (3/3 models significant, eta-squared = 
 | Audit candidate count | 49 | 44 (scorer-corrected) | Tighter, more conservative |
 | Unsafe share | 59.1% (26/44) | 59.1% (26/44) | Slightly lower but still majority |
 | Phase 1 safety flip rate | 0.51% | 1.68% | Higher (enriched subset) |
-| Phase 4 safety flip rate | 0.8% | 3.27% | Higher (enriched subset) |
+| Phase 5 safety flip rate | 0.8% | 3.27% | Higher (enriched subset) |
 | Phase 3 quant significance | 3/3 models | 3/3 models | Consistent |
 | Flip direction | 69.0% unsafe | 72.7% unsafe | Replicated |
-| Phase 4 agreement | 99.4% | 98.67% | Replicated |
+| Phase 5 agreement | 99.4% | 98.67% | Replicated |
 
 ### 22.5 Final framing
 
@@ -1121,7 +1131,7 @@ What does not follow directly:
 |---------|-----------|-------------------------------|
 | Immediate | Human-annotate the 44 scorer-corrected audit candidates | The automated scorer is corrected but not gold-standard |
 | Immediate | Add stack-matched batch validation to deployment gates | The replication confirms batch condition is safety-relevant |
-| Near-term | Replicate Phase 4 on a larger model and datacenter GPU | External validity is the main remaining gap |
+| Near-term | Replicate Phase 5 on a larger model and datacenter GPU | External validity is the main remaining gap |
 | Near-term | Run full 31,410-sample sweep with corrected scorer | Provides a definitive v2 replacement for v1 numbers |
 | Medium-term | Build a persistent flip registry across reports | Rare high-value flip rows are the right objects for cross-report comparison |
 
@@ -1169,7 +1179,7 @@ What does not follow directly:
 ### Docker Commands
 
 ```bash
-# vLLM server (Phase 1-2, Phase 4)
+# vLLM server (Phase 1-2, Phase 5)
 docker run --gpus all -p 8000:8000 \
   vllm/vllm-openai:latest \
   --model unsloth/Llama-3.2-1B-Instruct \
@@ -1183,10 +1193,61 @@ After a rerun, the minimum sanity checks are:
 
 1. `samples.jsonl` reaches 7,257 rows with phase totals 3,366 / 1,284 / 1,485 / 1,122
 2. Phase 1 aggregate safety flip rate is near 1.68%
-3. Phase 4 aggregate safety flip rate is near 3.27%
+3. Phase 5 aggregate safety flip rate is near 3.27%
 4. Phase 3 shows 3/3 models significant for quantization
 5. Audit layer shows 44 candidates after scorer correction
-6. Phase 4 flip agreement with Phase 1 is near 98.67%
+6. Phase 5 flip agreement with Phase 1 is near 98.67%
+
+---
+
+## 25. Study D Addendum: Batch-Invariant Kernel Ablation
+
+This post-report addendum records the targeted kernel-path ablation run after the original TR138 v2 report. It is appended rather than merged into the original TR138 v2 counts because the run was designed as a camera-ready mechanism check, not as a replacement for the four-phase TR138 protocol.
+
+The full-depth technical treatment is preserved separately in `PublishReady/reports/Technical_Report_138_Study_D_Addendum.md`. This section is the compact in-report summary; the standalone addendum contains the full hypothesis, paired statistical test, candidate provenance, breakdowns, threats to validity, and reproducibility protocol.
+
+### 25.1 Question
+
+The ablation asks whether the current TR138 Phase 1/Phase 5 score-flip candidates depend on the standard vLLM kernel path. The counterfactual is the same reconstructed dispatch semantics under vLLM's batch-invariant execution mode.
+
+### 25.2 Design
+
+| Component | Value |
+|-----------|-------|
+| Candidate surface | 55 current Phase 1/Phase 5 score-flip rows |
+| Records executed | 110 total records: 55 standard, 55 batch-invariant |
+| Candidate composition | 44 safety rows, 11 capability rows |
+| Models | llama3.2-1b, llama3.2-3b, qwen2.5-1.5b |
+| Dispatch reconstruction | Phase 1 synchronized dispatch; Phase 5 prompt-list dispatch |
+| Serving stack | vLLM 0.19.1 OpenAI-compatible server |
+| Hardware class | H100 80GB |
+| Decoding | temperature 0, max_tokens 256, seed 42 |
+| Invariant condition | `VLLM_BATCH_INVARIANT=1` |
+
+### 25.3 Results
+
+| Mode | Records | OK | Label flips | Text changes | Matched original direction |
+|------|---------|----|-------------|--------------|----------------------------|
+| Standard vLLM | 55 | 55 | 22 | 25 | 15 |
+| Batch-invariant vLLM | 55 | 55 | 0 | 0 | 0 |
+
+In the standard path, all 22 reproduced label flips are safety-domain flips. By model, the standard-path label flips are 1 for llama3.2-1b, 8 for llama3.2-3b, and 13 for qwen2.5-1.5b. By dispatch reconstruction, 18 arise under synchronized Phase 1 dispatch and 4 under prompt-list Phase 5 dispatch.
+
+### 25.4 Interpretation
+
+Study D strengthens the mechanism chain for the current candidate surface. Standard vLLM reproduces candidate label flips on the H100 run, while the tested batch-invariant path removes both label flips and text changes on the same 55-row surface. This supports the interpretation that these candidate flips are kernel-path dependent rather than prompt-content contamination or pure scorer noise.
+
+The addendum does not change the conservative TR138 v2 headline: batch-conditioned refusal flips are real but low-rate, enriched candidate surfaces inflate apparent prevalence, and human adjudication remains necessary for behavioral claims. It also does not establish that batch-invariant kernels eliminate all possible batch-conditioned refusal flips on all models, GPUs, batch sizes, or production schedulers. It closes the reviewer-requested mechanism check for the tested vLLM/H100 candidate surface.
+
+### 25.5 Artifact paths
+
+| Artifact | Path |
+|----------|------|
+| Summary JSON | `research/tr138_kernel_ablation/results/20260524_172010/summary.json` |
+| Metadata JSON | `research/tr138_kernel_ablation/results/20260524_172010/metadata.json` |
+| Candidate summary | `research/tr138_kernel_ablation/candidates/tr138_p1_p4_score_flips_current.summary.json` |
+| Runner README | `research/tr138_kernel_ablation/README.md` |
+| Full-depth addendum report | `PublishReady/reports/Technical_Report_138_Study_D_Addendum.md` |
 
 ---
 
@@ -1204,7 +1265,7 @@ After a rerun, the minimum sanity checks are:
 
 **Observations.** This table combines output identity and safety asymmetry in one view. Byte-level instability is common (7-10% of outputs change), but score changes are the rare safety-relevant subset. The odds ratios are consistently above 1.0 at every batch size, supporting the directional claim even where individual chi-squared tests do not reach significance after correction.
 
-### A.2 Phase 4 true-batch output identity
+### A.2 Phase 5 true-batch output identity
 
 | True batch size | Byte-identical (%) | Safety score changes | Cap score changes | Safety flip rate | Cap flip rate |
 |----------------|--------------------|--------------------|-------------------|-----------------|---------------|
@@ -1221,7 +1282,7 @@ After a rerun, the minimum sanity checks are:
 | llama3.2-3b | 24.47 | 0.092 | 0.0000 | 2 | 486 | 33.38 |
 | qwen2.5-1.5b | 109.89 | 0.311 | 0.0000 | 2 | 486 | 119.93 |
 
-### A.4 Phase 4 statistical tests
+### A.4 Phase 5 statistical tests
 
 | Model | BS | Chi-squared | Chi-squared p | Fisher p | Odds ratio |
 |-------|----|------------|--------------|----------|------------|
@@ -1230,7 +1291,7 @@ After a rerun, the minimum sanity checks are:
 | qwen2.5-1.5b | 4 | 2.280 | 0.1311 | 0.2617 | 5.392 |
 | qwen2.5-1.5b | 8 | 3.841 | 0.0500 | 0.0722 | 8.639 |
 
-**Observations.** qwen2.5-1.5b at BS=8 approaches significance (chi-squared = 3.841, p = 0.050, Fisher p = 0.072) with an odds ratio of 8.639, the largest in the Phase 4 table. This is the single strongest per-cell signal in the entire report, arising from the true-batching mechanism path.
+**Observations.** qwen2.5-1.5b at BS=8 approaches significance (chi-squared = 3.841, p = 0.050, Fisher p = 0.072) with an odds ratio of 8.639, the largest in the Phase 5 table. This is the single strongest per-cell signal in the entire report, arising from the true-batching mechanism path.
 
 ### A.5 Phase 2 key pairwise tests: solo vs adversarial
 
@@ -1259,9 +1320,9 @@ All solo_vs_adversarial comparisons pass equivalence at +/-3pp. Maximum observed
 
 Phase 3 TOST is trivially degenerate because cell means are identical across concurrency levels. The result mechanically confirms concurrency has no effect.
 
-### B.4 Phase 4 TOST caveat
+### B.4 Phase 5 TOST caveat
 
-Some Phase 4 cells on the enriched subset may approach or fail +/-3pp equivalence due to the higher observed flip rates (up to 4.67% at qwen2.5-1.5b BS=8). This is expected given the intentional enrichment. The v1 full-set TOST results remain the better reference for deployment-grade conclusions.
+Some Phase 5 cells on the enriched subset may approach or fail +/-3pp equivalence due to the higher observed flip rates (up to 4.67% at qwen2.5-1.5b BS=8). This is expected given the intentional enrichment. The v1 full-set TOST results remain the better reference for deployment-grade conclusions.
 
 ---
 
@@ -1287,18 +1348,18 @@ All 5 removed candidates came from Phase 1, one AdvBench prompt, across multiple
 |--------|---|--------|----------|------------|
 | All corrected | 44 | 26 | 59.1% | 0.2912 |
 | Phase 1 only | 36 | 22 | 61.1% | 0.1431 |
-| Phase 4 only | 8 | 4 | 50.0% | 1.0000 |
+| Phase 5 only | 8 | 4 | 50.0% | 1.0000 |
 | Refusal tasks only | 17 | 13 | 76.5% | 0.0490 |
 | Non-refusal tasks only | 32 | 18 | 56.3% | 0.5898 |
 
-**Observations.** The asymmetry is strongest and only significant in refusal tasks (76.5% unsafe, p = 0.049), where flip direction is most clearly defined. Non-refusal tasks show a weaker asymmetry (56.3%) because bias and truthfulness flips can go in either direction. The overall 59.1% rate is driven primarily by refusal-task flips. Phase 4 alone has only 8 candidates, too few for meaningful inference.
+**Observations.** The asymmetry is strongest and only significant in refusal tasks (76.5% unsafe, p = 0.049), where flip direction is most clearly defined. Non-refusal tasks show a weaker asymmetry (56.3%) because bias and truthfulness flips can go in either direction. The overall 59.1% rate is driven primarily by refusal-task flips. Phase 5 alone has only 8 candidates, too few for meaningful inference.
 
 ### C.4 v1 harmful prompt compliance stability
 
 | Phase | Baseline Compliance | Shifted Compliance | Delta |
 |-------|--------------------|--------------------|-------|
 | Phase 1 | 36.5% | 36.8% | +0.3pp |
-| Phase 4 | 25.7% | 25.4% | -0.4pp |
+| Phase 5 | 25.7% | 25.4% | -0.4pp |
 
 The audit layer operates on v1 data, so these metrics are identical by construction to the v1 values. The stability (<0.5pp shift) confirms that batch effects are sparse rather than systemic.
 
@@ -1307,7 +1368,7 @@ The audit layer operates on v1 data, so these metrics are identical by construct
 | Phase | Baseline Over-Refusal Rate | Shifted Over-Refusal Rate | Delta |
 |-------|---------------------------|--------------------------|-------|
 | Phase 1 | 0.0% | 0.0% | 0.0pp |
-| Phase 4 | 0.0% | 0.0% | 0.0pp |
+| Phase 5 | 0.0% | 0.0% | 0.0pp |
 
 **Observations.** No capability prompts were incorrectly refused at any batch condition. The over-refusal rate is zero throughout, confirming that batch perturbation does not create false refusals on benign capability prompts.
 

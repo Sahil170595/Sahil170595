@@ -33,7 +33,7 @@ The core findings generalize. **34 of 36 quality-safety metric pairs** exhibit s
 
 The expanded statistical toolkit includes Spearman rank correlations, repeated-measures correlations, leave-one-quant-out and leave-one-model-out robustness checks, mixed-effects models, baseline mean/risk tests, and judge-based safety metrics alongside regex-based metrics. The Pearson-Spearman divergence on several models (e.g., llama3.2-1b: Pearson r = +0.994, Spearman rho = +0.600 for coherence x refusal) confirms that the linear correlation is driven by the extreme Q2_K point, while the rank correlation captures the monotonic trend. Judge-based refusal rates diverge from regex-based rates by up to 71pp on Mistral, demonstrating that the measurement instrument shapes the correlation story.
 
-The operational conclusion is unchanged but now rests on 3x the model coverage and nearly 3x the cell count: **quality metrics are not safety proxies under quantization, and the direction of failure is model-specific.** This report feeds the NeurIPS 2026 paper directly.
+The operational conclusion is unchanged but now rests on 3x the model coverage and nearly 3x the cell count: **quality metrics are not safety proxies under quantization, and the direction of failure is model-specific.** This report feeds the downstream paper directly.
 
 ---
 
@@ -1503,11 +1503,11 @@ This technical report has not undergone external peer review. All findings are b
 
 ---
 
-## Appendix F: NeurIPS Paper Mapping
+## Appendix F: Downstream Paper Mapping
 
-This appendix maps TR142 v2 findings to the NeurIPS 2026 paper structure for the authors' reference.
+This appendix maps TR142 v2 findings to the downstream paper structure for the authors' reference.
 
-| TR142 v2 Section | NeurIPS Paper Section | Key Numbers |
+| TR142 v2 Section | Paper Section | Key Numbers |
 |------------------|----------------------|-------------|
 | SS5 (Simpson's paradox) | Section 4.1 (Main result) | 34/36 sign reversals, 6 models, 4 families |
 | SS6 (Asymmetry) | Section 4.2 (Supporting result) | 26/34 cells, 1.4x-262x range |
@@ -1521,4 +1521,4 @@ This appendix maps TR142 v2 findings to the NeurIPS 2026 paper structure for the
 
 ---
 
-*Report generated 2026-03-28. All data from TR125 Phase 2 and TR134 Phase 3. This is the synthesis report feeding the NeurIPS 2026 paper.*
+*Report generated 2026-03-28. All data from TR125 Phase 2 and TR134 Phase 3. This is the synthesis report feeding the downstream paper.*

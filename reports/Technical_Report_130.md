@@ -132,7 +132,7 @@ The practical consequence is dramatic. For llama3.2-1b at N=8 concurrent agents,
 - [SS8. Cross-Backend Serial Fraction Comparison](#ss8-cross-backend-serial-fraction-comparison)
 - [SS9. Saturation Detection](#ss9-saturation-detection)
 - [SS10. Fairness Analysis](#ss10-fairness-analysis)
-- [SS11. Phase 4 -- TTFT Comparison](#ss11-phase-4--ttft-comparison)
+- [SS11. Phase 5 -- TTFT Comparison](#ss11-phase-4--ttft-comparison)
 - [SS12. Queue Dynamics](#ss12-queue-dynamics)
 - [SS13. VRAM Usage](#ss13-vram-usage)
 - [SS14. TR129 Cross-Validation](#ss14-tr129-cross-validation)
@@ -634,7 +634,7 @@ Jain's Fairness Index: J = (sum(x))^2 / (n x sum(x^2)), where x_i is agent i's m
 
 **Observation 4 -- Fairness is high but throughput is not.** The key insight is that fairness != performance. Ollama at N=8 distributes 31 tok/s perfectly equally among 8 agents. vLLM at N=8 distributes 70 tok/s with 6.3% CV. A 6.3% unfairness in 70 tok/s (worst agent gets 63.3) still beats Ollama's perfectly-fair 31 tok/s by 2x.
 
-## SS11. Phase 4 -- TTFT Comparison
+## SS11. Phase 5 -- TTFT Comparison
 
 ### SS11.1 Time-to-First-Token (N=1)
 

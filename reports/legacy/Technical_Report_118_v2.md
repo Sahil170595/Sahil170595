@@ -1,5 +1,5 @@
 # Technical Report 118v2: Model Scale Comparative Analysis
-## REPORT STATUS: INVALID - CONTAINS FABRICATED DATA 
+## REPORT STATUS: INVALID - CONTAINS FABRICATED DATA
 
 | Field | Value |
 |-------|-------|
@@ -8,7 +8,7 @@
 
 ---
 
-**This report version contains critical methodological errors and unsupported data tables.** 
+**This report version contains critical methodological errors and unsupported data tables.**
 **See [Technical_Report_118_v2.1.md](Technical_Report_118_v2.1.md) for the corrected analysis.**
 
 1. **Fabricated GPT-2 generate tables** - Shows latency data for TRT backends that were 100% degraded (never ran successfully)
@@ -25,11 +25,11 @@
 # Technical Report 118v2: Model Scale Comparative Analysis (INVALID)
 ## ONNX Runtime + TensorRT Performance Across 1,210x Parameter Scaling
 
-**Project:** Banterhearts LLM Performance Research 
-**Date:** 2025-12-13 
-**Author:** Research Team 
-**Report Type:** Definitive Multi-Scale ONNX/TensorRT Performance Analysis (INVALID - See v2.1) 
-**Test Duration:** 678 seconds (360 comprehensive benchmark runs across 2 models) 
+**Project:** Banterhearts LLM Performance Research
+**Date:** 2025-12-13
+**Author:** Research Team
+**Report Type:** Definitive Multi-Scale ONNX/TensorRT Performance Analysis (INVALID - See v2.1)
+**Test Duration:** 678 seconds (360 comprehensive benchmark runs across 2 models)
 **Related Work:** [TR118](Technical_Report_118.md) (Single-Model Deep Dive), [TR117](Technical_Report_117.md) (Cross-Backend Baseline), [TR115_v2](Technical_Report_115_v2.md) (Runtime Analysis)
 
 ---
@@ -49,7 +49,7 @@ This comparative study addresses a fundamental question in LLM deployment: **"Ho
 **Tiny Model (0.103M params) - Prefill Phase:**
 1. **ONNX Runtime CPU:** 146K tok/s | 0.52ms latency | **97x faster than PyTorch** ⚡ **TINY SPECIALIST**
 2. **TensorRT FP32:** 7.0K tok/s | 10.9ms latency | 15.9% faster than PyTorch ✅ **BALANCED**
-3. **TensorRT INT8:** 7.0K tok/s | 11.0ms latency | 15.6% faster than PyTorch 
+3. **TensorRT INT8:** 7.0K tok/s | 11.0ms latency | 15.6% faster than PyTorch
 4. **ONNX Runtime GPU:** 6.7K tok/s | 11.4ms latency | 11.2% faster than PyTorch
 5. **PyTorch GPU-compile:** 6.0K tok/s | 12.6ms latency | Baseline 🏆 **BASELINE**
 
@@ -274,6 +274,7 @@ We evaluate 6 **workload scenarios** designed to stress different inference patt
 ### 3.1 Tiny-GPT2 (0.103M Parameters)
 
 **Architecture:**
+
 ```
 GPT2Model(
  (wte): Embedding(256, 128)    # 32,768 params
@@ -311,6 +312,7 @@ GPT2Model(
 ### 3.2 GPT-2 (124.4M Parameters)
 
 **Architecture:**
+
 ```
 GPT2Model(
  (wte): Embedding(50257, 768)   # 38,597,376 params
@@ -634,7 +636,7 @@ GPT2Model(
 
 **Tiny-GPT2 (0.103M params) - Prefill Latency:**
 1. **ONNX Runtime CPU:** 0.31ms | **97.0x faster** | **WINNER** ⚡
-2. **TensorRT FP16:** 3.30ms (degraded) | 55.6% faster | — 
+2. **TensorRT FP16:** 3.30ms (degraded) | 55.6% faster | —
 3. **TensorRT FP32:** 5.07ms | 31.7% faster | —
 4. **TensorRT INT8:** 5.23ms | 29.5% faster | —
 5. **ONNX Runtime GPU:** 6.00ms | 19.2% faster | —
@@ -1035,6 +1037,7 @@ END IF
 - **Software:** PyTorch 2.8.0+cu128, TensorRT 10.12.0.36, ONNX Runtime 1.23.2
 
 **To reproduce:**
+
 ```bash
 # Run full TR118v2 comparative study
 python scripts/tr118/run_tr118v2.py --device cuda --label reproduce --with-plots --with-report
@@ -1125,6 +1128,7 @@ python scripts/tr118/analyze_results.py --run-dir scripts/tr118/results/tr118v2/
 ### Appendix D: TensorRT Build Configuration
 
 **Builder Settings:**
+
 ```python
 builder_config = {
   "workspace_gb": 6,
@@ -1136,6 +1140,7 @@ builder_config = {
 ```
 
 **Dynamic Shape Profiles:**
+
 ```python
 profiles = [
   {"batch": [1, 1, 1], "seq": [8, 16, 32]},  # Profile 0: single micro/short
@@ -1147,6 +1152,7 @@ profiles = [
 ```
 
 **INT8 Calibration:**
+
 ```python
 calibration_config = {
   "dataset": "wikitext",
@@ -1207,6 +1213,7 @@ Special thanks to:
 **License:** MIT License (for code), CC BY 4.0 (for report)
 
 **Citation:**
+
 ```bibtex
 @techreport{tr118v2,
  title={Technical Report 118v2: Model Scale Comparative Analysis - ONNX Runtime + TensorRT Performance Across 1,210x Parameter Scaling},
@@ -1222,9 +1229,9 @@ Special thanks to:
 
 ---
 
-**End of Report** 
-**Generated:** 2025-12-13 
-**Version:** 1.0.0 
-**Total Benchmarks:** 360 (180 x 2 models) 
-**Total Runtime:** 678 seconds (11.3 minutes) 
+**End of Report**
+**Generated:** 2025-12-13
+**Version:** 1.0.0
+**Total Benchmarks:** 360 (180 x 2 models)
+**Total Runtime:** 678 seconds (11.3 minutes)
 **Report Length:** 12,847 words | 91,423 characters

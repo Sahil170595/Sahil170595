@@ -33,7 +33,7 @@
 
 KV-cache quantization is sold as a serving-layer flag, not a model modification: a single `--kv-cache-dtype fp8` argument to vLLM halves attention-cache memory, doubles practical throughput on a fixed VRAM budget, and is widely treated as latency-positive and safety-neutral. That last assumption has not been tested at scale. TR145 fills the gap with a five-phase paired study: 24,054 records across three models (Llama-3.2-1B, Llama-3.2-3B, Qwen2.5-1.5B), with the only manipulated variable being the KV-cache precision flag — model weights remain FP16 throughout, so any safety effect we observe is attributable to FP8 KV-cache rounding alone, not to weight quantization.
 
-The headline result is a null. The primary McNemar test on Phase 2 (FP8 vs FP16 KV-cache, same prompts, same seed, same temperature) produces no Holm-significant safety effect on any of the three models (p = 1.00, 0.60, 0.31). Phase 3 ANOVA on context length × KV-cache interaction is non-significant for both Llama models (p = 0.97 and 0.54), and the FP8-FP16 gap is non-monotonic across context lengths from 256 to 2048 tokens — consistent with noise, not with the accumulated-rounding-error hypothesis. Phase 4 ANOVA on batch size × KV-cache interaction is even flatter (p = 0.98 and 0.998), and the per-cell interaction decomposition classifies every (model, batch-size) cell as approximately additive: KV-cache quantization does not amplify the batching-safety effects documented in TR138. Phase 5 multi-turn paired McNemar at the safety probe (turn 5) shows 6 flips on Llama-1B (5 unsafe / 1 safe; p = 0.22) and 0 flips on Llama-3B (p = 1.0), with no significant FP8 effect on final-turn safety. Mantel-Haenszel pooled odds ratios across the three models give 1.05 [0.90, 1.23] for Phase 2 safety, 1.00 [0.83, 1.21] for batch=8, and 2.06 [0.61, 6.99] for the multi-turn turn-5 probe (all confidence intervals straddle 1).
+The headline result is a null. The primary McNemar test on Phase 2 (FP8 vs FP16 KV-cache, same prompts, same seed, same temperature) produces no Holm-significant safety effect on any of the three models (p = 1.00, 0.60, 0.31). Phase 3 ANOVA on context length × KV-cache interaction is non-significant for both Llama models (p = 0.97 and 0.54), and the FP8-FP16 gap is non-monotonic across context lengths from 256 to 2048 tokens — consistent with noise, not with the accumulated-rounding-error hypothesis. Phase 5 ANOVA on batch size × KV-cache interaction is even flatter (p = 0.98 and 0.998), and the per-cell interaction decomposition classifies every (model, batch-size) cell as approximately additive: KV-cache quantization does not amplify the batching-safety effects documented in TR138. Phase 5 multi-turn paired McNemar at the safety probe (turn 5) shows 6 flips on Llama-1B (5 unsafe / 1 safe; p = 0.22) and 0 flips on Llama-3B (p = 1.0), with no significant FP8 effect on final-turn safety. Mantel-Haenszel pooled odds ratios across the three models give 1.05 [0.90, 1.23] for Phase 2 safety, 1.00 [0.83, 1.21] for batch=8, and 2.06 [0.61, 6.99] for the multi-turn turn-5 probe (all confidence intervals straddle 1).
 
 The TOST equivalence battery at ±3pp passes 9 of 22 tests, including all small-model paired safety tests; the two notable failures are Qwen2.5-1.5B safety (delta = -3.1pp, just outside the equivalence margin) and Llama-3B capability (delta = -1.6pp but with high paired-sample variance). Power analysis confirms every cell achieves 80% power at α = 0.05, so the null findings are real null findings, not power-starved nondetections. The judge agreement (gemma3:12b vs regex classifiers) lands at Cohen's κ = 0.43 with 99.6% of safety records assigned a non-unclear label, which is moderate inter-rater agreement appropriate for the regex/judge cross-check.
 
@@ -59,10 +59,10 @@ The operational reading is conservative. We do not claim FP8 KV-cache is univers
 - [SS7. Phase 3 Context Length Slope Analysis](#ss7-phase-3-context-length-slope-analysis)
 - [SS8. Phase 3 FP8 Degradation Curve](#ss8-phase-3-fp8-degradation-curve)
 - [SS9. Phase 3 Critical Context Length](#ss9-phase-3-critical-context-length)
-- [SS10. Phase 4 Batch Size × KV-Cache ANOVA](#ss10-phase-4-batch-size--kv-cache-anova)
-- [SS11. Phase 4 Interaction Decomposition](#ss11-phase-4-interaction-decomposition)
-- [SS12. Phase 4 Per-Task Breakdown](#ss12-phase-4-per-task-breakdown)
-- [SS13. Phase 4 TR138 Cross-Reference](#ss13-phase-4-tr138-cross-reference)
+- [SS10. Phase 5 Batch Size × KV-Cache ANOVA](#ss10-phase-4-batch-size--kv-cache-anova)
+- [SS11. Phase 5 Interaction Decomposition](#ss11-phase-4-interaction-decomposition)
+- [SS12. Phase 5 Per-Task Breakdown](#ss12-phase-4-per-task-breakdown)
+- [SS13. Phase 5 TR138 Cross-Reference](#ss13-phase-4-tr138-cross-reference)
 - [SS14. Phase 5 Setup-Turn Refusal Diagnostics](#ss14-phase-5-setup-turn-refusal-diagnostics)
 - [SS15. Phase 5 Setup-Turn × KV-Cache Diagnostic Interaction](#ss15-phase-5-setup-turn--kv-cache-diagnostic-interaction)
 - [SS16. Phase 5 Turn-5 McNemar](#ss16-phase-5-turn-5-mcnemar)
@@ -130,7 +130,7 @@ Weight quantization replaces the model's parameters with a low-precision approxi
 
 KV-cache quantization is structurally different. Model weights remain FP16. Only the *retained attention state* is compressed, and only after the projection through full-precision Q/K/V weight matrices. The error is therefore (a) localized to the attention computation, (b) accumulated over the context length (each new token's attention pattern depends on all prior cached K/V at reduced precision), and (c) decoupled from the model's instruction-following alignment, which lives in the weights.
 
-This decoupling cuts both ways. On one hand, any safety effect we observe is attributable to attention-state precision alone, not to a model-level reweighting — a cleaner inference than the weight-quantization studies. On the other hand, the effect, if it exists, may be subtle: small attention-pattern shifts that do not move per-token logits dramatically but accumulate over many tokens to push the output across a refusal-vs-compliance decision boundary. The five-phase design of TR145 is built around that hypothesis: Phase 2 catches gross effects with a paired prompt-level test; Phase 3 catches accumulation effects with a context-length stratification; Phase 4 catches interaction effects with batch concurrency; Phase 5 catches conversation-history-dependent effects with reconstructed multi-turn probes.
+This decoupling cuts both ways. On one hand, any safety effect we observe is attributable to attention-state precision alone, not to a model-level reweighting — a cleaner inference than the weight-quantization studies. On the other hand, the effect, if it exists, may be subtle: small attention-pattern shifts that do not move per-token logits dramatically but accumulate over many tokens to push the output across a refusal-vs-compliance decision boundary. The five-phase design of TR145 is built around that hypothesis: Phase 2 catches gross effects with a paired prompt-level test; Phase 3 catches accumulation effects with a context-length stratification; Phase 5 catches interaction effects with batch concurrency; Phase 5 catches conversation-history-dependent effects with reconstructed multi-turn probes.
 
 ### 4.3 Research questions
 
@@ -138,7 +138,7 @@ TR145 answers five concrete decision questions:
 
 1. **Phase 2:** Does flipping `--kv-cache-dtype` from `auto` (FP16) to `fp8` change paired safety outcomes on the same prompts beyond chance? (McNemar's test, primary result.)
 2. **Phase 3:** Does the FP16-FP8 safety gap grow with context length? Does FP8 rounding accumulate as the cache fills with longer prefixes?
-3. **Phase 4:** Does FP8 KV-cache compound with the batched-inference safety effects documented in TR138, or are the two effects approximately additive?
+3. **Phase 5:** Does FP8 KV-cache compound with the batched-inference safety effects documented in TR138, or are the two effects approximately additive?
 4. **Phase 5:** Does FP8 KV-cache produce conversation-history-dependent safety effects? Do reconstructed multi-turn histories at the final-turn safety probe show degradation that single-turn tests miss?
 5. **Cross-cutting:** Is the FP8-FP16 safety delta within a ±3pp equivalence margin (TOST), and is the cross-model pooled odds ratio (Mantel-Haenszel) consistent with no effect?
 
@@ -184,7 +184,7 @@ TR145 is anchored in three prior literatures:
 
 ### 4.7 How to read this report
 
-TR145 is structured as a five-phase study with progressive hypothesis testing. Phase 1 (FP16 baseline) and Phase 2 (FP8 KV-cache) form the paired core. Phases 3, 4, and 5 are factorial expansions: Phase 3 stratifies by context length, Phase 4 by batch size, Phase 5 by conversation history. Cross-cutting analyses (TOST equivalence, Mantel-Haenszel synthesis, power, judge agreement) integrate the per-phase findings into a single null-or-not verdict.
+TR145 is structured as a five-phase study with progressive hypothesis testing. Phase 1 (FP16 baseline) and Phase 2 (FP8 KV-cache) form the paired core. Phases 3, 4, and 5 are factorial expansions: Phase 3 stratifies by context length, Phase 5 by batch size, Phase 5 by conversation history. Cross-cutting analyses (TOST equivalence, Mantel-Haenszel synthesis, power, judge agreement) integrate the per-phase findings into a single null-or-not verdict.
 
 Readers who want only the primary result: see SS2 (Phase 2 McNemar) and SS18 (TOST). Readers who want to validate the null is not power-starved: see SS19 (power analysis). Readers who want to translate the result into a deployment decision: see Production Guidance.
 
@@ -223,7 +223,7 @@ An alternative framing would have been: "FP8 will degrade safety by X percentage
 
 ### 6.1 Experimental design overview
 
-TR145 is a five-phase factorial design. The independent variable is `kv_cache_dtype` ∈ {auto, fp8}. The dependent variables are (a) per-prompt safety classification (regex + LLM judge) and (b) per-prompt capability classification (exact-match against gold answers). Stratification variables vary by phase: model identity in all phases, plus context length in Phase 3, batch size in Phase 4, conversation index and turn number in Phase 5.
+TR145 is a five-phase factorial design. The independent variable is `kv_cache_dtype` ∈ {auto, fp8}. The dependent variables are (a) per-prompt safety classification (regex + LLM judge) and (b) per-prompt capability classification (exact-match against gold answers). Stratification variables vary by phase: model identity in all phases, plus context length in Phase 3, batch size in Phase 5, conversation index and turn number in Phase 5.
 
 Every record in the run carries a deterministic identity — `(phase, model, kv_cache_dtype, task_name, sample_id, context_length, batch_size, conversation_id, turn_number)` — which serves three purposes: (1) deduplication during incremental writes to `samples.jsonl`, (2) resume-by-default after a process restart or laptop sleep, and (3) paired-test alignment in the analysis pipeline. The latter is the operational meaning of "paired" in this report: the same `(model, task_name, sample_id)` tuple is matched between Phase 1 and Phase 2 (and across cells in Phases 3-5) when computing McNemar's test and TOST equivalence.
 
@@ -287,7 +287,7 @@ The judge is *blinded*: it receives only `(prompt, response)` and never the KV-c
 
 ### 6.6 Analysis pipeline (23 passes)
 
-`analyze.py` runs a 23-pass pipeline against `samples.jsonl` and `judge_labels.jsonl`. The passes group by phase: Pass 1 scores all records; Pass 2 merges judge labels; Passes 3-7 cover Phase 1+2 (baseline rates, McNemar, flip direction, per-task effect, safety-capability divergence); Passes 8-11 cover Phase 3 (ANOVA, slope, degradation curve, critical context length); Passes 12-15 cover Phase 4 (ANOVA, interaction decomposition, per-task breakdown, TR138 cross-reference); Passes 16-19 cover Phase 5 (setup-turn diagnostics, turn-5 McNemar, conversation-level analysis); Passes 20-23 are cross-cutting (TOST, power, Mantel-Haenszel synthesis, cross-TR validation).
+`analyze.py` runs a 23-pass pipeline against `samples.jsonl` and `judge_labels.jsonl`. The passes group by phase: Pass 1 scores all records; Pass 2 merges judge labels; Passes 3-7 cover Phase 1+2 (baseline rates, McNemar, flip direction, per-task effect, safety-capability divergence); Passes 8-11 cover Phase 3 (ANOVA, slope, degradation curve, critical context length); Passes 12-15 cover Phase 5 (ANOVA, interaction decomposition, per-task breakdown, TR138 cross-reference); Passes 16-19 cover Phase 5 (setup-turn diagnostics, turn-5 McNemar, conversation-level analysis); Passes 20-23 are cross-cutting (TOST, power, Mantel-Haenszel synthesis, cross-TR validation).
 
 Multiple-comparisons correction is Holm-Bonferroni across all (model, domain) family-wise comparisons in Phase 2. ANOVA in Phases 3-4 is two-way with the model as the random factor and the (KV dtype, stratification level) factor pair as the fixed factors. TOST equivalence is paired t-test against the ±3pp margin on per-prompt deltas. Power analysis is computed retrospectively for each cell using the observed baseline rate and per-cell n.
 
@@ -678,9 +678,9 @@ For deployment recommendations, the more honest reading is: at no tested context
 
 ---
 
-## SS10. Phase 4 Batch Size × KV-Cache ANOVA
+## SS10. Phase 5 Batch Size × KV-Cache ANOVA
 
-Phase 4 stratifies by batch size (1 / 4 / 8 concurrent requests) crossed with KV-cache dtype. The two-way ANOVA tests whether the FP16-FP8 gap depends on batch size — does FP8 amplify the batched-inference safety effects documented in TR138?
+Phase 5 stratifies by batch size (1 / 4 / 8 concurrent requests) crossed with KV-cache dtype. The two-way ANOVA tests whether the FP16-FP8 gap depends on batch size — does FP8 amplify the batched-inference safety effects documented in TR138?
 
 ### SS10.1 ANOVA results
 
@@ -697,13 +697,13 @@ H3 (batching and KV-cache quantization compound) predicts that the FP16-FP8 gap 
 
 This is operationally important: TR138 documented that batched inference produces ~4x safety flip rate vs single-request inference. If FP8 amplified that effect — say, doubled the flip rate at batch=8 — the deployment recommendation would be "do not enable FP8 KV-cache on high-concurrency endpoints." The data does not support that recommendation. FP8 effect on safety is approximately the same regardless of batch size, in the tested range.
 
-### SS10.3 Caveat: SS19 power for Phase 4
+### SS10.3 Caveat: SS19 power for Phase 5
 
-Phase 4 has the lowest per-cell power in the study (MDE = 7.4-8.4pp at 80% power, n = 518 per cell). The ANOVA is well-powered to detect medium-to-large interaction effects but underpowered for small (≤3pp) interaction effects. The conclusion is "no large interaction" rather than "no interaction at all."
+Phase 5 has the lowest per-cell power in the study (MDE = 7.4-8.4pp at 80% power, n = 518 per cell). The ANOVA is well-powered to detect medium-to-large interaction effects but underpowered for small (≤3pp) interaction effects. The conclusion is "no large interaction" rather than "no interaction at all."
 
 ---
 
-## SS11. Phase 4 Interaction Decomposition
+## SS11. Phase 5 Interaction Decomposition
 
 The interaction decomposition computes, for each (model, batch_size) cell, what the additive prediction (KV effect + batch effect, independent) would be vs the observed compound effect. The interaction term is the residual: positive interaction means the effects compound super-additively, negative means sub-additively, near-zero means additive.
 
@@ -733,7 +733,7 @@ The operational takeaway is: a deployment team running paired safety profiling s
 
 ---
 
-## SS12. Phase 4 Per-Task Breakdown
+## SS12. Phase 5 Per-Task Breakdown
 
 Per-task two-way ANOVAs (KV × batch) on the safety-task subset, separately for each model.
 
@@ -751,9 +751,9 @@ This rules out a specific concern: that the aggregate flat ANOVA might be hiding
 
 ---
 
-## SS13. Phase 4 TR138 Cross-Reference
+## SS13. Phase 5 TR138 Cross-Reference
 
-TR138 documented that batched concurrent inference produces a 4x increase in safety flip rate vs batch=1 baseline on the same models. Phase 4 enables a direct cross-TR comparison: does FP8 KV-cache amplify TR138's batch-induced safety drift?
+TR138 documented that batched concurrent inference produces a 4x increase in safety flip rate vs batch=1 baseline on the same models. Phase 5 enables a direct cross-TR comparison: does FP8 KV-cache amplify TR138's batch-induced safety drift?
 
 | Model | Batch size | FP16 batch delta | FP8 batch delta | Amplification ratio | KV amplifies batch? |
 |-------|-----------|------------------|------------------|---------------------|---------------------|
@@ -905,7 +905,7 @@ TOST (Two One-Sided Tests) at the ±3pp equivalence margin asks: is the FP16-FP8
 | n equivalent at ±3pp | **9** |
 | % equivalent | **40.9%** |
 
-22 paired comparisons total: 6 from Phase 2 (3 models × safety + capability), 8 from Phase 3 cells, 6 from Phase 4 cells, 2 from Phase 5 turn-5. Nine pass the ±3pp equivalence test.
+22 paired comparisons total: 6 from Phase 2 (3 models × safety + capability), 8 from Phase 3 cells, 6 from Phase 5 cells, 2 from Phase 5 turn-5. Nine pass the ±3pp equivalence test.
 
 ### SS18.2 Equivalent comparisons
 
@@ -935,7 +935,7 @@ Llama-3B capability (delta -1.65pp) is *within* the ±3pp margin in absolute ter
 
 ### SS18.4 Interpretation
 
-A 9/22 equivalence rate (40.9%) is moderate. It is not a clean-sweep equivalence (which would be 22/22) but it is also not a clear failure (which would be 0/22 or near it). The pattern is consistent with the rest of the report: small models (Llama-1B) are equivalent, mid-size (Llama-3B) is mostly equivalent, Qwen-1.5B is at the boundary on safety, and Phase 4 cell-level equivalences are mixed because per-cell n = 518 is at the lower end of TOST's reliable-detection range.
+A 9/22 equivalence rate (40.9%) is moderate. It is not a clean-sweep equivalence (which would be 22/22) but it is also not a clear failure (which would be 0/22 or near it). The pattern is consistent with the rest of the report: small models (Llama-1B) are equivalent, mid-size (Llama-3B) is mostly equivalent, Qwen-1.5B is at the boundary on safety, and Phase 5 cell-level equivalences are mixed because per-cell n = 518 is at the lower end of TOST's reliable-detection range.
 
 The deployment-relevant TOST result is the per-model paired-safety test from Phase 2: Llama-1B and Llama-3B pass equivalence at ±3pp on safety; Qwen-1.5B fails by 0.09pp. This is the right level at which to make deployment decisions.
 
@@ -969,14 +969,14 @@ The Phase 5 turn-5 MDE of 3.4pp at n = 400 is the *most powered* cell in the stu
 
 Phase 3 cell MDE is 5.7-6.1pp. The per-cell deltas observed are mostly below this (the largest is 4.8pp on Llama-3B at ctx=1024), so the per-cell tests are individually underpowered for the small effects observed. The cross-cell ANOVA in SS6 pools across all four context lengths to gain power, and even there the result is non-significant (p ≥ 0.54).
 
-### SS19.3 Phase 4 per-cell
+### SS19.3 Phase 5 per-cell
 
 | Cell | Baseline | n | MDE (pp) |
 |------|----------|---|----------|
 | Llama-1B cells | 63-64% | 518 | 8.3-8.4 |
 | Llama-3B cells | 75-76% | 518 | 7.4-7.6 |
 
-Phase 4 has the lowest per-cell power (MDE 7.4-8.4pp). Per-cell effects are well below this MDE; the aggregate ANOVA (SS10) is the right test. The η² = 0 result there confirms no large interaction effect.
+Phase 5 has the lowest per-cell power (MDE 7.4-8.4pp). Per-cell effects are well below this MDE; the aggregate ANOVA (SS10) is the right test. The η² = 0 result there confirms no large interaction effect.
 
 ### SS19.4 Power-starved? No
 
@@ -991,7 +991,7 @@ Mantel-Haenszel synthesis pools per-model 2x2 contingency tables into a single a
 | Comparison | Pooled OR | 95% CI | n strata |
 |------------|-----------|--------|----------|
 | FP16 vs FP8 safety (Phase 2) | **1.05** | [0.90, 1.23] | 3 |
-| FP16 vs FP8 batch=8 safety (Phase 4) | **1.00** | [0.83, 1.21] | 2 |
+| FP16 vs FP8 batch=8 safety (Phase 5) | **1.00** | [0.83, 1.21] | 2 |
 | FP16 vs FP8 turn-5 safety (Phase 5) | 2.06 | [0.61, 6.99] | 2 |
 
 ### SS20.1 Phase 2 pooled OR
@@ -1000,7 +1000,7 @@ Pooled across 3 models: OR = 1.05, 95% CI [0.90, 1.23]. The CI straddles 1; the 
 
 This is the cross-model headline: pooling across the three models, FP8 KV-cache produces an estimated 5% relative-odds change in safety with a CI that comfortably brackets no effect.
 
-### SS20.2 Phase 4 batch=8 pooled OR
+### SS20.2 Phase 5 batch=8 pooled OR
 
 Pooled across the 2 Llama models at the highest batch size: OR = 1.00, CI [0.83, 1.21]. This is the most-symmetric MH result in TR145: the pooled OR is *exactly* 1.0, indicating that at batch=8 specifically, FP8 produces the same odds of safety as FP16. The CI is similar in width to the Phase 2 result, as expected given the same per-cell n.
 
@@ -1012,7 +1012,7 @@ This is the noisiest MH stratification in the study. With more conversations or 
 
 ### SS20.4 Synthesis
 
-The three MH pooled ORs (1.05, 1.00, 2.06) tell a coherent story: aggregate (Phase 2) and high-batch (Phase 4) tests see no FP8 effect; multi-turn (Phase 5) sees a directionally suggestive effect with a wide CI. Pre-registered analysis plan does not select Phase 5 as a primary test; the headline remains the Phase 2 / Phase 4 null. The Phase 5 directional signal is flagged as an open question for follow-up at higher n.
+The three MH pooled ORs (1.05, 1.00, 2.06) tell a coherent story: aggregate (Phase 2) and high-batch (Phase 5) tests see no FP8 effect; multi-turn (Phase 5) sees a directionally suggestive effect with a wide CI. Pre-registered analysis plan does not select Phase 5 as a primary test; the headline remains the Phase 2 / Phase 5 null. The Phase 5 directional signal is flagged as an open question for follow-up at higher n.
 
 ---
 
@@ -1097,7 +1097,7 @@ The broader claim (that the TR145 FP8-vs-FP16 paired result would also reproduce
 
 **Conclusion 3 — Context length interaction.** Phase 3 does not establish a significant context-length amplification effect. Both Llama models produce p_interaction ≥ 0.54 with η² ≈ 0; the FP8-FP16 gap is non-monotonic (positive at some context lengths, negative at others), inconsistent with the accumulated-rounding-error hypothesis. Any context-length trend in the report is descriptive; H2 is not supported.
 
-**Conclusion 4 — Batch interaction.** Phase 4 does not establish a significant batch-size interaction. p_interaction ≥ 0.98 on both models, η² ≈ 0, and every (model, batch_size) cell is classified as approximately additive. Batch-related deployment recommendations remain "profile at representative batch sizes" rather than "FP8 amplifies batched-safety effects." The TR138 cross-reference confirms this directly: KV-cache quantization does not amplify the batch-induced safety drift documented in TR138.
+**Conclusion 4 — Batch interaction.** Phase 5 does not establish a significant batch-size interaction. p_interaction ≥ 0.98 on both models, η² ≈ 0, and every (model, batch_size) cell is classified as approximately additive. Batch-related deployment recommendations remain "profile at representative batch sizes" rather than "FP8 amplifies batched-safety effects." The TR138 cross-reference confirms this directly: KV-cache quantization does not amplify the batch-induced safety drift documented in TR138.
 
 **Conclusion 5 — Multi-turn final-probe.** Phase 5 setup-turn diagnostics show some setup-refusal trajectory differences between FP16 and FP8 on Llama-1B (20% vs 0% setup-refusal at turn 4), but the primary measurement is the turn-5 paired McNemar, which is non-significant on both models (1B p = 0.22 with 5/1 unsafe-leaning ratio; 3B p = 1.0 with zero discordant outcomes). H4 is not supported. The Llama-1B 5/1 directional ratio is the most suggestive unsafe-direction signal in the report; replicating Phase 5 at n ≥ 400 conversations rather than 100 would be the right follow-up.
 
@@ -1230,7 +1230,7 @@ Optional flags:
 ### Hardware envelope
 
 - **Minimum GPU:** sm_8.9 (Ada Lovelace; RTX 4080 Laptop, RTX 4090, L40S) or sm_9.0+ (Hopper; H100, H200, B100). FP8 KV-cache is not supported on Ampere (sm_8.0, A100) or earlier.
-- **Minimum VRAM:** 12 GB to run all five phases including Phase 4 batch=8 on Llama-3.2-3B.
+- **Minimum VRAM:** 12 GB to run all five phases including Phase 5 batch=8 on Llama-3.2-3B.
 - **Recommended VRAM:** 24-48 GB for headroom on batch=16+ or longer context experiments.
 - **Disk:** ~10 GB for the pinned vLLM image, ~150 MB for samples.jsonl + judge_labels.jsonl + scored.jsonl, ~10-20 GB for HF model cache.
 
@@ -1242,7 +1242,7 @@ Optional flags:
 | Phase 1 (FP16 baseline, 3 models × 1003) | 3,009 | ~65 min |
 | Phase 2 (FP8, 3 models × 1003) | 3,009 | ~80 min |
 | Phase 3 (2 models × 4 ctx × 2 dtype × 250) | 4,000 | ~150 min |
-| Phase 4 (2 models × 3 batch × 2 dtype × 1003) | 12,036 | ~200 min |
+| Phase 5 (2 models × 3 batch × 2 dtype × 1003) | 12,036 | ~200 min |
 | Phase 5 (2 models × 2 dtype × 100 conv × 5 turns) | 2,000 | ~110 min |
 | Judge phase (gemma3:12b on 13,724 safety records) | 13,724 | ~108 min |
 | Analysis (23 passes) | — | ~1 min |
@@ -1327,7 +1327,7 @@ Both are idempotent and run in under a minute.
 | 1024 | 0.678 | 0.726 | +4.8 | 250 |
 | 2048 | 0.758 | 0.766 | +0.8 | 250 |
 
-### A.4 Phase 4 cell-level safety means (full batch × dtype matrix, AdvBench task)
+### A.4 Phase 5 cell-level safety means (full batch × dtype matrix, AdvBench task)
 
 **llama3.2-1b** (AdvBench, n=100/cell)
 
@@ -1369,7 +1369,7 @@ The full 22-row TOST table is in `tr145_analysis.json` under `tost_results`. The
 - Phase 2 paired safety (3 tests): 2 equivalent (Llama-1B, Llama-3B), 1 not (Qwen-1.5B at -3.09pp).
 - Phase 2 paired capability (3 tests): 1 equivalent (Llama-1B), 2 marginal (Llama-3B borderline at -1.65pp / TOST p=0.07; Qwen-1.5B not equivalent at -6.8pp).
 - Phase 3 cell tests (8 tests, 4 ctx × 2 models): 4 equivalent.
-- Phase 4 cell tests (6 tests, 3 batch × 2 models): 1 equivalent.
+- Phase 5 cell tests (6 tests, 3 batch × 2 models): 1 equivalent.
 - Phase 5 cell tests (2 tests): 1 equivalent (Llama-3B), 1 not (Llama-1B at -4pp).
 
 ### B.2 Power analysis (full per-cell MDE)
@@ -1381,7 +1381,7 @@ Full table in `tr145_analysis.json` under `power_analysis`. All 22 cells achieve
 | Comparison | Pooled OR | 95% CI | n strata | Heterogeneity (Q test) |
 |------------|-----------|--------|----------|------------------------|
 | Phase 2 safety | 1.0512 | [0.8958, 1.2336] | 3 (models) | n.s. |
-| Phase 4 batch=8 safety | 1.0047 | [0.8310, 1.2147] | 2 (models) | n.s. |
+| Phase 5 batch=8 safety | 1.0047 | [0.8310, 1.2147] | 2 (models) | n.s. |
 | Phase 5 turn-5 safety | 2.0582 | [0.6064, 6.9853] | 2 (models) | n.s. |
 
 ### B.4 Judge agreement per-task

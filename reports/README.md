@@ -1,7 +1,7 @@
 # Banterhearts Technical Reports
-## LLM Inference Research & Safety Alignment — ~800,000 Primary + Judge Measurements, 43+ Technical Reports
+## LLM Inference Research & Safety Alignment — ~1,041,000 Primary + Judge Measurements, 45+ Technical Reports
 
-**Latest (2026-05-14):** TR149 (Standardized Safety Battery) shipped to `Technical_Report_149.md` (1,303 lines). FP8 KV-cache safety null replicates on HarmBench / JBB-100 / StrongREJECT / XSTest — cross-battery matched-pairs Mantel-Haenszel pooled OR 0.8065 [0.38, 1.70], 0/12 cells Holm-significant, 12/12 TOST-equivalent at ±3pp. Cross-corpus judge observation: gemma3 × llama3.1 κ = 0.8306 on standardized batteries vs 0.6917 on TR145's mixed set in TR148 — the JTP triangulate verdict tightens to robust on clean adversarial batteries. SS21 documents a paired-odds-ratio estimator fix. Run local-only under `--skip-openai-judge`. Previous: **2026-05-13** TR148 v2 (Multi-Judge Reliability) shipped to `Technical_Report_148.md` (1,556 lines) — triangulate verdict gemma3 × llama3.1 κ = 0.6917, dual-axis methodology finding. See `BANTERHEARTS_MEASUREMENT_COUNT.md` 2026-05-14 supplement.
+**Latest (2026-05-28):** **Conclusive Phase 6 synthesis trilogy** shipped — `Conclusive_Phase6.md` (1,453-line main synthesis), `Conclusive_Phase6_Extended_Appendices.md` (1,585-line per-TR appendix volume: Appendices A–G + cross-cutting X1–X4 + glossary), and `Conclusive_Phase6_Whitepaper.md` (408-line external decision whitepaper including the 5-layer protocol table, Qwen 2.5 1.5B worked example, and 8-objection reviewer FAQ). Consolidates seven executed reports — **TR144** (Speculative Decoding × Safety / TAIS), **TR145** (FP8 KV-cache single-config), **TR146** (mechanistic-probe falsification), **TR147** (Compile Reproducibility Index / CRI), **TR148** (Judge Triangulation Protocol / JTP), **TR149** (FP8 standardized batteries), **TR152** (FP8 serving-state factorial) — into a single **five-layer serving-state safety certification protocol** (Layer 1 JTP / Layer 2 RTSI + TAIS / Layer 3 CRI / Layer 4 scale validity / Layer 5 serving-state validity). Headline deliverable: a **serving-state-independent FP8 (E4M3) KV-cache certificate** for 1B–4B instruction-tuned models on vLLM v0.19.1 — harmful-refusal-neutral across batch ∈ {1, 8, 32}, prefix-caching {on, off}, and temperature ∈ {0.0, 0.7, 1.0} (TR152: **0 / 8,976 harmful-battery pairs discordant**; FP8-interaction spread 2.99 pp inside the ±3 pp band), with one located footnote — a sub-1 pp Qwen-2.5 over-refusal lean on the XSTest benign-edge battery (per-family Mantel–Haenszel OR 3.878 [2.386, 6.302]). The negative control (TR146) is load-bearing: four mechanistic probes all fail to distinguish safe from dangerous configs, so the entire arc stays behavioural — safety cannot be read off the weights. Claim ladder **C1–C10** (6 Supported / 2 Licensed / 2 Forbidden); the whole executed substrate ran at **$0 external API cost** under the umbrella gate on a local Ollama judge cohort. Cloud-gated envelope widenings (TR150 long-context, TR151 7B–72B scale, TR153 KV-method sweep) are gated on the 2026-10-24 GO/NO-GO trigger. The trilogy's most recent constituent report is TR152 v2 (Serving-State Safety Factorial — **canonical v2 local expansion**), shipped to `Technical_Report_152.md` (**1,341 lines full-depth narration with Appendices A-D**, supersedes the v1 pilot's 348 lines — matches TR148 / TR149 gold-standard template). SS14 tightened 2026-05-28 with v2's per-battery cross-judge κ recomputed directly from the sign-aware `per_judge_outcome` substrate (XSTest gemma↔llama κ = +0.7989 robust by JTP; harmful batteries degenerate-via-chance-correction-not-disagreement; pooled κ sanity-matches the analysis JSON exactly at 0.8310 / 0.0622 / 0.0962). Bridge-paper Layer 5: folds the FP8 KV-cache, batch, prefix-caching, speculative-decoding, and temperature axes into one `fp8_anchored_star` factorial (12 of 14 cells per model runnable; the 2 speculative-decoding cells fail uniformly on vLLM v0.19.1 argparse, not OOM — **v1's "cloud-gated by VRAM" attribution retracted**). **45,000 records, 20,754 matched FP16-vs-FP8 pairs across 5 models × 4 batteries (3 families)**, with XSTest uncapped to 450 / cell. Verdict: FP8 is **refusal-neutral on harmful prompts across the whole factorial** — HarmBench / JBB / StrongREJECT perfectly concordant (0 / 8,976 discordant pairs across 5 models × 6 contexts × 3 batteries), 0 / 120 cells Holm-significant, **117 / 120 TOST-equivalent at ±3 pp (97.5%, up from v1's 83.3%)**. The only footprint is a sub-1 pp over-refusal lean on the **Qwen family's XSTest** — **Mantel-Haenszel pooled OR 1.88 [1.32, 2.69] on 133 discordant pairs, sign-test p ≈ 0.0004**, refining v1's barely-clearing 2.69 [1.09, 6.62] on 23 pairs by 5.8 × the discordant base and tightening the CI by 4 ×. phi3-mini-4k and llama3.2-1b (both new in v2) pattern with the Llama-3.2-3b family-side: clean on XSTest, FP8 marginally improves their over-refusal behavior. The family signal localizes to Qwen 2.5 (both variants), amplified mildly by temperature on the 1.5 B variant. Run local-only under `--skip-openai-judge`, $0 external cost, 28.7 h end-to-end on RTX 4080 Laptop 12 GB. Previous: **2026-05-22** TR152 v1 (pilot, 348 lines — now retired in favor of v2 narration); **2026-05-14** TR149 (Standardized Safety Battery) → `Technical_Report_149.md` (1,303 lines) — FP8 KV-cache null replicates on the four standardized batteries (cross-battery MH pooled OR 0.8065 [0.38, 1.70], 0 / 12 Holm-significant, 12 / 12 TOST-equivalent); and **2026-05-13** TR148 v2 (Multi-Judge Reliability) → `Technical_Report_148.md` (1,556 lines) — triangulate verdict κ = 0.6917, dual-axis methodology finding. TR152 v2 judging completed 2026-05-28 00:06 ET — 135,000 judge-label rows now on disk, locking the program total at ~1,041,000 primary + judge measurements (see `BANTERHEARTS_MEASUREMENT_COUNT.md` 2026-05-28 supplement for verified row counts).
 
 This directory contains the complete research program documenting LLM inference performance, optimization, multi-agent orchestration, cross-language analysis, deployment policy, safety alignment under inference optimizations, mechanistic safety probing, and **benchmarking-integrity reproducibility** — spanning consumer hardware (NVIDIA RTX 4080 Laptop GPU, 12 GB VRAM), cloud GPUs (Colab T4 16 GB, RunPod RTX 6000 Ada 48 GB, A100 80 GB, L40S 48 GB), Docker-based quantization pipelines (AWQ, GPTQ), and cross-version software-stack ablations (Triton 3.3.1 / 3.4.0 / 3.6.0).
 
@@ -48,15 +48,22 @@ Alignment robustness under quantization, multi-agent concurrency safety, cross-b
 
 The v3 expansion (TR125 v3, TR134 v3, TR142 v3) extends the evaluation matrix from GGUF k-quants to include AWQ and GPTQ 4-bit formats across 6 models, adding 11 new model-quant cells, 18,568 AWQ/GPTQ primary samples, and 5,148 AWQ/GPTQ judge annotations. A second-judge robustness check (Claude Sonnet 4, 11,470 rows) validates consistency across the full matrix.
 
-### Phase 4: Benchmarking Integrity (TR147)
+### Phase 5: Benchmarking Integrity (TR147)
 **1 technical report, 4 sub-versions. 62,280 measurements.**
 
 Cross-GPU, cross-cache, cross-compile-mode, cross-Triton-version reproducibility ablation on `torch.compile`. V1 established the portability regression on RTX 6000 Ada; V2 hardened it with phase separation and StaticCache; V3 extended to A100 80 GB (where compiled decode crashes 100% at every token length tested); V4 closed the reviewer kill-shot with a 10,800-row same-GPU Triton-version ablation that flips the qualitative conclusion purely from a Triton 3.3.1 → 3.4.0 upgrade, and a 7B AWQ probe showing the only compile path that survives `reduce-overhead` decode on Ada.
 
-### Conclusive Reports
-**12 synthesis documents spanning all phases.**
+### Phase 6: Serving-State Safety Certification (TR144-TR152)
+**5 technical reports (TR144, TR145, TR148, TR149, TR152) + TR146 negative control. ~130,000+ primary + judge measurements.**
 
-Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR138-TR143), five extended appendices volumes, and five executive whitepapers — providing decision guidance with artifact provenance.
+Five-layer serving-state safety certification protocol synthesised across speculative decoding × safety (TR144 / TAIS), FP8 KV-cache single-config (TR145), mechanistic-probe falsification as negative control (TR146), multi-judge reliability + dual-axis methodology (TR148 / JTP), standardized safety batteries (TR149), and the FP8 serving-state factorial (TR152). Layer 1 = JTP measurement validity (1a refusal-axis, 1b composite-harm-axis); Layer 2 = behavioural screens (RTSI inherited from TR142 + TAIS); Layer 3 = CRI compile integrity (inherited from TR147); Layer 4 = scale validity (TR149 1B–3B anchor; TR151 7B–72B cloud-gated); Layer 5 = serving-state validity (TR152 fp8_anchored_star factorial).
+
+Headline deliverable: a serving-state-independent FP8 (E4M3) KV-cache certificate for 1B–4B instruction-tuned models on vLLM v0.19.1 — harmful-refusal-neutral across batch ∈ {1, 8, 32}, prefix-caching {on, off}, and temperature ∈ {0.0, 0.7, 1.0} (TR152: **0 / 8,976 harmful-battery pairs discordant**; FP8-interaction spread 2.99 pp inside the ±3 pp band), with one located footnote — a sub-1 pp Qwen-2.5 over-refusal lean on the XSTest benign-edge battery (per-family Mantel–Haenszel OR 3.878 [2.386, 6.302]). The TR146 negative control is load-bearing: four mechanistic probes (first-token entropy, refusal-direction cosine, calibration drift, safety-neuron error magnitude) all fail to distinguish safe from dangerous configs, so the entire arc stays behavioural. Whole executed substrate ran at **$0 external API cost** under the umbrella gate on a local Ollama judge cohort. Cloud-gated envelope widenings (TR150 long-context, TR151 7B–72B scale, TR153 KV-method sweep) are gated on the 2026-10-24 GO/NO-GO trigger.
+
+### Conclusive Reports
+**18 synthesis documents spanning all phases.**
+
+Six conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR138-TR143, and Phase 6 / TR144-TR152), six extended appendices volumes, and six executive whitepapers — providing decision guidance with artifact provenance. The Phase 6 trilogy consolidates the seven executed serving-state safety reports into a single five-layer certification protocol.
 
 ---
 
@@ -116,7 +123,7 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 | **TR143** | Cross-Request Safety Leakage Under Continuous Batching | 14,250 | Complete (v2.0) | Aggregate composition effect not significant; directional asymmetry IS significant — 88-92% of flips trend unsafe (p=0.006) |
 | **TR146** | Mechanistic Safety Probing Under Quantization | 5,100 forward passes | Complete | Safety neurons absorb 1.40x disproportionate quant error (p<0.0001), but none of 4 mechanistic probes distinguish safe from dangerous configs; behavioral screens (RTSI) remain the only viable pre-deployment check |
 
-### Phase 4: Benchmarking Integrity (TR147)
+### Phase 5: Benchmarking Integrity (TR147)
 
 | Report | Title | Samples | Status | Key Finding |
 |--------|-------|---------|--------|-------------|
@@ -124,6 +131,22 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 | **TR147 v2** | Five-Experiment Ada Deep-Dive (E1–E5) | 6,840 | Complete | StaticCache rescues decode correctness at ~5.8x latency tax; DynamicCache + `reduce-overhead` decode unsafe |
 | **TR147 v3** | A100 80 GB Ampere Second-Regime | 1,440 | Complete | Ampere amplifies, does not rescue: 100% decode crash at every token length tested on A100 |
 | **TR147 v4** | StaticCache Retest + 7B AWQ + Triton Ablation (Ada + A100) | 35,400 | Complete | **Triton kill-shot**: same GPU + same code + Triton 3.3.1 → 3.4.0 flips prefill gain 62–77% → 0–3% and decode crash 80% → 0%, |d|>10; 7B AWQ is the only `reduce-overhead` decode path with 0% crash |
+
+### Phase 6: Serving-State Safety Certification (TR144, TR145, TR148, TR149, TR152)
+
+| Report | Title | Samples | Status | Key Finding |
+|--------|-------|---------|--------|-------------|
+| **TR144** | Speculative Decoding × Safety / TAIS | 16,783 core + 48,072 E1–E5 expansion = 64,855 total | Complete | Typical-Acceptance Invariance Screen (TAIS) named method; max |Cohen's h| = 0.024 across matched draft+target pairs under rejection vs typical acceptance; null cutoff |h| < 0.1 calibrated; integrated into NeurIPS submission #3738 |
+| **TR145** | FP8 KV-Cache Single-Config Safety | 24,054 records (P1–P5); 13,724 judge-labelled (gemma3:12b, κ=0.43, 0 errors) | Complete | Across-the-board null: Phase 2 McNemar all 3 models p≥0.31, Phase 3 ctx×KV ANOVA p≥0.54, Phase 4 batch×KV ANOVA p≥0.98, Phase 5 turn-5 paired McNemar 1B p=0.22 / 3B p=1.0; MH pooled OR safety=1.05 [0.90, 1.23]; bound claims to "no detectable FP8 effect under tested conditions" |
+| **TR148** | Multi-Judge Reliability / JTP Dual-Axis | 13,724 records × 5 judges = 41,272 fresh judge-label rows (regex + gemma3:12b + llama3.1:8b + shieldgemma:9b + llama-guard3:8b + 100-record gpt-4o calibration anchor) | Complete (v2, 1,556 lines) | TRIANGULATE verdict gemma3 × llama3.1 κ = 0.6917 at n=12,809, 0.0083 below JTP robust threshold; **dual-axis finding**: safety-specialist judges anti-correlate with general LLM judges (κ = −0.13 to −0.26) because they measure composite prompt+response harm, not response-only refusal; bridge paper Layer 1 splits 1a refusal-axis vs 1b composite-harm-axis |
+| **TR149** | FP8 KV-Cache on Standardized Safety Batteries | 7,578 primary + 22,734 judge across 3 models × 4 batteries (HarmBench-400, JBB-100, StrongREJECT-313, XSTest-450) × 2 KV-cache dtypes | Complete (1,303 lines) | TR145 null replicates on the literature-canonical batteries: cross-battery MH pooled OR 0.8065 [0.38, 1.70], **0 / 12 cells Holm-significant**, **12 / 12 TOST-equivalent at ±3pp**; cross-corpus judge κ 0.83 (vs TR145's 0.69) confirms triangulate verdict is corpus-specific; first run under `--skip-openai-judge` umbrella gate ($0 external cost) |
+| **TR152** | FP8 Serving-State Factorial (v2) | **45,000 primary records, 20,754 matched FP16-vs-FP8 pairs** across 5 models × `fp8_anchored_star` 14-cell star × 4 batteries (XSTest uncapped to 450, harmful at 100); 135,000 judge-label rows on disk (regex + gemma3:12b + llama3.1:8b, completed 2026-05-28 00:06 ET) | Complete (1,341 lines) | FP8 **refusal-neutral on harmful prompts across the entire factorial**: HarmBench/JBB/StrongREJECT perfectly concordant (0 / 8,976 discordant pairs across 5 models × 6 contexts × 3 batteries); 0 / 120 cells Holm-significant; **117 / 120 TOST-equivalent at ±3pp (97.5%, up from v1's 83.3%)**. Footprint = sub-1pp Qwen XSTest over-refusal lean: MH pooled OR 1.88 [1.32, 2.69] on 133 discordant pairs, sign-test p ≈ 0.0004. Speculative-decoding cells fail at vLLM v0.19.1 argparse (not OOM — v1's "cloud-gated by VRAM" attribution retracted). $0 external cost; 28.7 h end-to-end on RTX 4080 Laptop 12 GB |
+
+### Phase 6 Companion: TR138 Camera-Ready Study D
+
+| Report | Title | Samples | Status | Key Finding |
+|--------|-------|---------|--------|-------------|
+| **TR138 Study D Addendum** | Batch-Invariant Kernel Ablation (ICML 2026 Workshop on Hypothesis Testing camera-ready supplement) | 110 primary (standard 22/55 label flips, batch-invariant 0/55) + 2 pilot runs (12 each) on run `20260524_172010` | Complete (870 lines) | Batch-invariance kernel ablation eliminates the flip signal end-to-end; supports the reviewer-requested batch-invariant-kernel control; folded into the accepted batch_inference_safety camera-ready **UPLOADED 2026-05-29** (workshop 2026-07-11) |
 
 ### Expansion v2 Reports (TR142 Matrix Expansion)
 
@@ -157,9 +180,12 @@ Five conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR1
 | **Conclusive 134-137** | Phase 3a Synthesis (Safety Cost of Inference Optimization) | 2,571 lines, 74,254 samples |
 | **Conclusive 134-137 Extended Appendices** | Phase 3a Deep-Dive Appendices | 908 lines |
 | **Conclusive 134-137 Whitepaper** | Phase 3a Executive Guidance | 228 lines |
-| **Conclusive 138-143** | Phase 3.5/4 Synthesis (Safety Attack Surface) | 2,497 lines, 306,996 samples |
-| **Conclusive 138-143 Extended Appendices** | Phase 3.5/4 Deep-Dive Appendices | 722 lines |
-| **Conclusive 138-143 Whitepaper** | Phase 3.5/4 Executive Guidance | 253 lines |
+| **Conclusive 138-143** | Phase 3b Synthesis (Safety Attack Surface) — file: `Technical_Report_Conclusive_Phase5.md` | 2,590 lines, 306,996 samples |
+| **Conclusive 138-143 Extended Appendices** | Phase 3b Deep-Dive Appendices — file: `Technical_Report_Conclusive_Phase5_Extended_Appendices.md` | 744 lines |
+| **Conclusive 138-143 Whitepaper** | Phase 3b Executive Guidance — file: `Technical_Report_Conclusive_Phase5_Whitepaper.md` | 285 lines |
+| **Conclusive Phase 6** (144-152) | Serving-State Safety Certification Synthesis (5-layer protocol; TR144/145/146/147/148/149/152) | 1,453 lines |
+| **Conclusive Phase 6 Extended Appendices** | Per-TR appendix volume (A–G + cross-cutting X1–X4 + glossary) | 1,585 lines |
+| **Conclusive Phase 6 Whitepaper** | Serving-State Certification Executive Guidance (5-layer protocol table, Qwen 2.5 1.5B worked example, 8-objection reviewer FAQ) | 408 lines |
 
 ### Historical Reports (Superseded)
 
@@ -274,7 +300,7 @@ Six shippable decisions backed by ~62,000 measurements:
 
 ---
 
-## Phase 4 Key Findings — Benchmarking Integrity
+## Phase 5 Key Findings — Benchmarking Integrity
 
 - **`torch.compile` benchmark identity is a 5-tuple, not a single number.** The combination (GPU sm_N, Triton minor version, PyTorch build, cache implementation, compile mode) determines the result. Changing any one axis with all others held constant can flip the qualitative conclusion. A published benchmark missing any of these five axes is point-in-time evidence, not a reproducible claim (TR147).
 
@@ -287,6 +313,24 @@ Six shippable decisions backed by ~62,000 measurements:
 - **StaticCache restores compiled-decode correctness at a measurable latency cost.** Swapping DynamicCache → StaticCache gives 0% decode crash under `mode="default"` on both Ada and A100, at the cost of compiled decode being 1.6–3.5% *slower* than eager. TOST rejects any decode speedup claim. Compiled prefill retains 54–63% gains across the stable cells (TR147 v4 B1–B2).
 
 - **AWQ-4bit 7B is the only compile path with zero `reduce-overhead` decode crash.** Across every (GPU, model, cache, compile mode, Triton) combination TR147 evaluated, the single cell that survives `reduce-overhead` decode with 0% crash is Ada + qwen2.5-7b-AWQ-4bit + StaticCache. Large dense FP16 7B and 8B models still show the phase split (50–57% prefill gain, 80% decode crash). Quantization via AWQ accidentally stabilizes compilation in a way that dense FP16 at the same parameter count does not (TR147 v4 SS7).
+
+---
+
+## Phase 6 Key Findings — Serving-State Safety Certification
+
+- **FP8 KV-cache is refusal-neutral on harmful prompts across the entire factorial.** TR152 v2 records **0 / 8,976 discordant pairs** on HarmBench / JailbreakBench / StrongREJECT across 5 models × 6 contexts × 3 harmful batteries, **0 / 120 cells Holm-significant**, and **117 / 120 TOST-equivalent at ±3 pp** under the matched-pairs Cohen's h paired-binary effect-size protocol. FP8-interaction spread is 2.99 pp — inside the ±3 pp band. The TR145 null replicates on standardized batteries (TR149: cross-battery MH pooled OR 0.8065 [0.38, 1.70], 12/12 TOST-equivalent) and on the full serving-state factorial (TR152). FP8 KV-cache safety claims are bounded to 1B–4B instruction-tuned models on vLLM v0.19.1 at temperature ∈ {0.0, 0.7, 1.0}, batch ∈ {1, 8, 32}, prefix-caching {on, off}.
+
+- **The only located footprint is a sub-1 pp Qwen-2.5 over-refusal lean on the XSTest benign-edge battery.** Per-family Mantel–Haenszel OR 3.878 [2.386, 6.302] on 133 discordant pairs, sign-test p ≈ 0.0004, refining v1's barely-clearing 2.69 [1.09, 6.62] by 5.8 × the discordant base. Llama 3.2-{1B, 3B} and phi-3-mini-4k pattern with the Llama-3.2-3b family side: clean on XSTest, FP8 marginally improves their over-refusal behavior. The signal localizes to the Qwen family, amplified mildly by temperature on the 1.5 B variant (TR152).
+
+- **Mechanistic probes cannot predict the serving-state behavior — RTSI remains the only viable pre-deployment screen.** TR146's four probes (first-token entropy, refusal-direction cosine, calibration drift, safety-neuron error magnitude) all fail to distinguish safe from dangerous configs. Safety neurons absorb 1.40 × disproportionate quantization error universally (p<0.0001), but the damage is necessary, not sufficient, for behavioral failure. The Phase 6 protocol therefore stays behavioural end-to-end (TR146).
+
+- **JTP triangulation requires multi-judge majority-vote at corpus scale.** TR148 v2's cross-LLM pair gemma3 × llama3.1 reaches κ = 0.6917 at n = 12,809 — 0.0083 below the JTP robust threshold of 0.70 → TRIANGULATE bucket. Downstream Phase 6 TRs (TR149, TR151, TR152) require multi-judge majority-vote rather than single-judge sign-off. The bridge paper Layer 1a anchors on this verdict (TR148 v2).
+
+- **Safety judges measure two orthogonal axes, not one noisy axis.** Adding safety-specialist judges (shieldgemma:9b + llama-guard3:8b) at corpus scale reveals they **anti-correlate** with general LLM judges across 4 large-n pairs (cross-axis κ = −0.13 to −0.26) because they measure composite prompt+response harm, not response-only refusal. The bridge paper Layer 1 now splits the safety-specialist axis as an orthogonal screen (Layer 1b), not a fifth column of the refusal-axis JTP (Layer 1a). This is a methodological contribution that emerged only at TR148 v2's 5-judge scale (TR148 v2 SS4).
+
+- **Typical-acceptance speculative decoding is safety-invariant under matched draft+target pairs.** TR144's E1–E5 expansion (48,072 expansion-probe samples on top of the 16,783-sample core) finds max |Cohen's h| = 0.024 across rejection sampling vs typical acceptance — well below the ±0.1 null cutoff calibrated from the same expansion. TAIS named method (Typical-Acceptance Invariance Screen) ships as the Phase 6 Layer 2 behavioural complement to RTSI; integrated into NeurIPS submission #3738 (TR144).
+
+- **The whole locally-runnable arc ran at $0 external API cost.** TR145 + TR146 + TR148 + TR149 + TR152 + TR144 expansion all under the `--skip-openai-judge` umbrella gate on a local Ollama judge cohort (regex + gemma3:12b + llama3.1:8b + shieldgemma:9b + llama-guard3:8b). No adversarial-prompt content sent to any external API. Cloud-gated envelope widenings (TR150 long-context, TR151 7B–72B scale, TR153 KV-method sweep) wait on the 2026-10-24 GO/NO-GO trigger (Anthropic Fellowship + NeurIPS-acceptance signal).
 
 ---
 
@@ -417,7 +461,7 @@ Six shippable decisions backed by ~62,000 measurements:
 **File:** `Technical_Report_138.md`
 - 4-phase batching study, 31,410 total samples; vLLM + Ollama backends
 - Safety flip rate 4x higher than capability flip rate under batch non-determinism
-- Phase 4 explicit true-batch validates effect is not a timing artifact
+- Phase 5 explicit true-batch validates effect is not a timing artifact
 
 #### TR138 v2: Batch Safety — Strengthened-Evidence Revision
 **File:** `Technical_Report_138_v2.md`
@@ -467,8 +511,62 @@ Six shippable decisions backed by ~62,000 measurements:
 - Phase 1 (first-token entropy): AWQ increases, GPTQ decreases uncertainty — no predictive power (r=0.08)
 - Phase 2 (refusal direction): cosine similarity >0.97 in every cell, yet behaviorally ineffective in hidden-danger rows
 - Phase 3 (calibration drift): negative drift — quantization doesn't degrade calibration, no predictive power
-- Phase 4 (safety neuron error): 1.40x disproportionate error (p<0.0001), but universal, not danger-specific (regime p=0.98)
+- Phase 5 (safety neuron error): 1.40x disproportionate error (p<0.0001), but universal, not danger-specific (regime p=0.98)
 - Key conclusion: all four mechanistic probes fail to distinguish safe from dangerous configs; RTSI remains the only viable screen
+
+### Phase 6: Serving-State Safety Certification (TR144, TR145, TR148, TR149, TR152)
+
+#### TR144: Speculative Decoding × Safety / TAIS
+**File:** `Technical_Report_144.md` (1,925 lines)
+- 16,783-sample core paired study + 48,072-sample E1–E5 expansion = 64,855 total samples
+- Hardware: RunPod A100-SXM4-80GB for the E1–E5 expansion; RTX 4080 Laptop for core paired runs
+- Named method: **TAIS** (Typical-Acceptance Invariance Screen) — matched-pairs Cohen's h ±0.1 null cutoff calibrated from expansion max observed 0.024
+- Verdict: speculative decoding via rejection sampling vs typical acceptance under matched draft+target pairs is safety-invariant
+- Integrated into NeurIPS 2026 E&D Track submission #3738 (TAIS paper, under blind review; notification 2026-09-24 AoE)
+
+#### TR145: FP8 KV-Cache Single-Config Safety
+**File:** `Technical_Report_145.md` (1,465 lines)
+- 24,054 records across 5 phases (P1=3009 FP16 baseline, P2=3009 FP8 paired, P3=4000 ctx×KV interaction, P4=12036 batch×KV interaction, P5=2000 multi-turn)
+- 13,724 judge-labelled records (gemma3:12b, κ=0.43, 0 judge errors)
+- Hardware: RTX 4080 Laptop 12GB, vLLM v0.19.1 Docker pinned, port 8801
+- Across-the-board null: Phase 2 McNemar all 3 models p≥0.31, Phase 3 ctx×KV ANOVA p≥0.54, Phase 4 batch×KV ANOVA p≥0.98 (interactions ~additive), Phase 5 turn-5 paired McNemar 1B p=0.22 / 3B p=1.0
+- MH pooled OR safety=1.05 [0.90, 1.23], batch=8 OR=1.00, turn-5 OR=2.06 (CI [0.61, 6.99])
+- Claims bounded to "no detectable FP8 effect under tested conditions" with paired-profiling deployment guidance — not "FP8 is safe"
+
+#### TR148: Multi-Judge Reliability / JTP Dual-Axis
+**File:** `Technical_Report_148.md` (1,556 lines)
+- 13,724 records re-judged with 5 fresh judges (regex + gemma3:12b + llama3.1:8b + shieldgemma:9b + llama-guard3:8b) + 100-record gpt-4o calibration anchor from a killed synchronous run
+- 41,272 fresh judge-label rows added on top of TR145's gemma3:12b baseline
+- TRIANGULATE verdict: gemma3 × llama3.1 cross-LLM κ = 0.6917, n=12,809 paired records, 0.0083 below JTP robust threshold of 0.70 → downstream Phase 6 TRs require multi-judge majority-vote
+- **Dual-axis finding (SS4):** safety-specialist judges anti-correlate with general LLM judges (cross-axis κ = −0.13 to −0.26 across 4 large-n pairs) because they measure composite prompt+response harm, not response-only refusal
+- Bridge paper Layer 1 splits: 1a refusal-axis JTP (general judges) + 1b composite-harm-axis screen (safety specialists)
+- Integrated into NeurIPS 2026 E&D Track submission #3724 (JTP paper) + bridge-paper Layer 1 anchor
+
+#### TR149: FP8 KV-Cache on Standardized Safety Batteries
+**File:** `Technical_Report_149.md` (1,303 lines)
+- 7,578 primary records across 3 models × 4 batteries (HarmBench-400, JailbreakBench-100, StrongREJECT-313, XSTest-450) × 2 KV-cache dtypes
+- 22,734 judge-label rows (3 judges — regex + gemma3:12b + llama3.1:8b — × 7,578 records, 0 judge errors)
+- Hardware: RTX 4080 Laptop 12GB, vLLM v0.19.1 Docker pinned, port 8801
+- TR145 null **replicates on the literature-canonical batteries**: cross-battery MH pooled OR 0.8065 [0.38, 1.70]; **0 / 12 cells Holm-significant**; **12 / 12 TOST-equivalent at ±3pp**
+- Cross-corpus judge κ = 0.83 (vs TR145's 0.69) confirms triangulate verdict is corpus-specific, not a universal noise floor
+- First run under the new `--skip-openai-judge` umbrella gate (`triangulate_no_openai` bucket): $0 external API cost, no adversarial-prompt content sent to any external API
+
+#### TR152: FP8 Serving-State Factorial (v2)
+**File:** `Technical_Report_152.md` (1,341 lines — supersedes v1 pilot's 348 lines; matches TR148/TR149 gold-standard template depth)
+- **v2 local expansion run `20260526_232600`**: 45,000 primary records, 20,754 matched FP16-vs-FP8 pairs across 5 models × `fp8_anchored_star` 14-cell star × 4 batteries (XSTest uncapped to 450, harmful at 100); sampling complete 2026-05-27 13:59; judge step adds ~135,000 judge-label rows when complete
+- Models: qwen2.5-1.5b-instruct, qwen2.5-3b-instruct, llama3.2-1b-instruct (new in v2), llama3.2-3b-instruct, phi-3-mini-4k-instruct (new in v2)
+- Hardware: RTX 4080 Laptop 12GB, $0 external cost, 28.7 h end-to-end
+- Bridge paper Layer 5: folds FP8 KV-cache + batch + prefix-caching + speculative-decoding + temperature axes into one factorial (12 of 14 cells per model runnable; 2 speculative-decoding cells fail uniformly on vLLM v0.19.1 argparse — **v1's "cloud-gated by VRAM" attribution retracted**)
+- **FP8 is refusal-neutral on harmful prompts across the entire factorial.** HarmBench / JBB / StrongREJECT perfectly concordant: **0 / 8,976 discordant pairs across 5 models × 6 contexts × 3 batteries**, 0 / 120 cells Holm-significant, **117 / 120 TOST-equivalent at ±3 pp (97.5%, up from v1's 83.3%)**
+- The only footprint: sub-1 pp Qwen-2.5 over-refusal lean on XSTest — Mantel-Haenszel pooled OR 1.88 [1.32, 2.69] on 133 discordant pairs, sign-test p ≈ 0.0004, refining v1's 2.69 [1.09, 6.62] on 23 pairs by 5.8 × the discordant base and tightening the CI by 4 ×
+- SS14 tightened 2026-05-28 with v2's per-battery cross-judge κ recomputed directly from the sign-aware `per_judge_outcome` substrate (XSTest gemma↔llama κ = +0.7989 robust by JTP; harmful batteries degenerate-via-chance-correction-not-disagreement; pooled κ sanity-matches the analysis JSON at 0.8310 / 0.0622 / 0.0962)
+
+#### TR138 Study D Addendum: Batch-Invariant Kernel Ablation
+**File:** `Technical_Report_138_Study_D_Addendum.md` (870 lines)
+- ICML 2026 Workshop on Hypothesis Testing camera-ready supplement for the accepted batch_inference_safety paper (acceptance rating 7, "clearly in-scope"; camera-ready **UPLOADED 2026-05-29** ahead of 2026-06-17 deadline; workshop 2026-07-11)
+- Canonical run `20260524_172010`: 110 primary records (standard 22/55 label flips, batch-invariant 0/55) + 2 pilot runs (12 each)
+- Reviewer-requested batch-invariant-kernel ablation eliminates the flip signal end-to-end, supporting the paper's mechanistic claim
+- Companion to the TR138 v2.2 / TR141 / TR143 evidence base
 
 ### v3 AWQ/GPTQ Cross-Method Reports
 
@@ -565,33 +663,53 @@ Six shippable decisions backed by ~62,000 measurements:
 
 ## Conclusive Report Details
 
-### Phase 1a Synthesis: Technical_Report_Conclusive_108-116
-**File:** `Technical_Report_Conclusive_108-116.md` (2,826 lines)
+### Phase 1a Synthesis: Technical_Report_Conclusive_Phase1
+**File:** `Technical_Report_Conclusive_Phase1.md` (2,826 lines)
 - Covers TR108 through TR116: Python-to-Rust migration, multi-agent architecture, runtime selection, cross-model validation
 - Six shippable decisions: Rust for production, dual Ollama mandatory, Tokio-default runtime, Gemma 3 for scaling, Python ceiling at ~86%, config transfer failure
-- Extended Appendices: `Technical_Report_Conclusive_108-116_Extended_Appendices.md` (1,171 lines)
-- Executive Whitepaper: `Technical_Report_Conclusive_108-116_Whitepaper.md` (214 lines)
+- Extended Appendices: `Technical_Report_Conclusive_Phase1_Extended_Appendices.md` (1,171 lines)
+- Executive Whitepaper: `Technical_Report_Conclusive_Phase1_Whitepaper.md` (214 lines)
 
-### Phase 1b Synthesis: Technical_Report_Conclusive_117-122
-**File:** `Technical_Report_Conclusive_117-122.md` (208KB)
+### Phase 1b Synthesis: Technical_Report_Conclusive_Phase2
+**File:** `Technical_Report_Conclusive_Phase2.md` (208KB)
 - Covers TR117 through TR122
-- Extended Appendices: `Technical_Report_Conclusive_117-122_Extended_Appendices.md` (89KB)
-- Executive Whitepaper: `Technical_Report_Conclusive_117-122_Whitepaper.md` (8KB)
+- Extended Appendices: `Technical_Report_Conclusive_Phase2_Extended_Appendices.md` (89KB)
+- Executive Whitepaper: `Technical_Report_Conclusive_Phase2_Whitepaper.md` (8KB)
 
-### Phase 2 Synthesis: Technical_Report_Conclusive_123-133
-**File:** `Technical_Report_Conclusive_123-133.md` (433KB, 3,327 lines, 60 appendices)
+### Phase 2 Synthesis: Technical_Report_Conclusive_Phase3
+**File:** `Technical_Report_Conclusive_Phase3.md` (433KB, 3,327 lines, 60 appendices)
 - Covers TR123 through TR133
 - Three stable conclusions, six shippable decisions, full artifact provenance
-- Extended Appendices: `Technical_Report_Conclusive_123-133_Extended_Appendices.md` (62KB)
-- Executive Whitepaper: `Technical_Report_Conclusive_123-133_Whitepaper.md` (15KB)
+- Extended Appendices: `Technical_Report_Conclusive_Phase3_Extended_Appendices.md` (62KB)
+- Executive Whitepaper: `Technical_Report_Conclusive_Phase3_Whitepaper.md` (15KB)
 
-### Phase 3a Synthesis: Technical_Report_Conclusive_134-137
-**File:** `Technical_Report_Conclusive_134-137.md` (2,571 lines)
+### Phase 3a Synthesis: Technical_Report_Conclusive_Phase4
+**File:** `Technical_Report_Conclusive_Phase4.md` (2,571 lines)
 - Covers TR134 through TR137: quantization-induced alignment erosion, concurrency invariance, backend-driven template divergence, cross-axis safety taxonomy
 - 74,254 evaluated samples, 24-configuration deployment risk matrix (3 CRITICAL, 3 moderate, 18 low)
 - Key finding: serving backend choice is a previously uncharted safety variable (41% of safety cost)
-- Extended Appendices: `Technical_Report_Conclusive_134-137_Extended_Appendices.md` (908 lines)
-- Executive Whitepaper: `Technical_Report_Conclusive_134-137_Whitepaper.md` (228 lines)
+- Extended Appendices: `Technical_Report_Conclusive_Phase4_Extended_Appendices.md` (908 lines)
+- Executive Whitepaper: `Technical_Report_Conclusive_Phase4_Whitepaper.md` (228 lines)
+
+### Phase 3b Synthesis: Technical_Report_Conclusive_Phase5
+**File:** `Technical_Report_Conclusive_Phase5.md` (2,590 lines)
+- Covers TR138 through TR143: batch-inference safety attack surface — batch non-determinism, multi-turn jailbreak under quantization, many-shot/long-context jailbreak, cross-architecture refusal fragility (largest study), quality-safety correlation, cross-request leakage under continuous batching
+- 306,996 samples synthesised across 6 reports; cross-cutting findings on alignment-type non-predictivity (p=0.942), output-instability predictivity (r=0.91), Q2_K universal vulnerability threshold, 88–92% directional unsafe-flip asymmetry
+- Three shippable behavioural-screen results: RTSI calibrated (TR142), refusal fragility ≤0.94× safety-capability ratio (TR141), batch-perturbation safety floor (TR138 v2)
+- Extended Appendices: `Technical_Report_Conclusive_Phase5_Extended_Appendices.md` (744 lines)
+- Executive Whitepaper: `Technical_Report_Conclusive_Phase5_Whitepaper.md` (285 lines)
+- Note: file naming reflects the 2026-05-28 integer-clean phase rename (Phase 4 file → Phase 5 file, Phase 4.5 file → Phase 6 file). Narrative content unchanged.
+
+### Phase 6 Synthesis: Serving-State Safety Certification
+**File:** `Conclusive_Phase6.md` (1,453 lines)
+- Covers the seven executed serving-state safety reports — TR144 (Speculative Decoding × Safety / TAIS), TR145 (FP8 KV-cache single-config), TR146 (mechanistic-probe falsification, negative control), TR147 (Compile Reproducibility Index / CRI), TR148 (Judge Triangulation Protocol / JTP), TR149 (FP8 standardized batteries), TR152 (FP8 serving-state factorial)
+- Consolidates them into a **five-layer serving-state safety certification protocol**: Layer 1 measurement validity (JTP, split 1a refusal-axis / 1b composite-harm), Layer 2 behavioural screens (RTSI inherited from TR142 + TAIS), Layer 3 compile integrity (CRI), Layer 4 scale validity (TR149 1B–3B anchor; TR151 7B–72B cloud-gated), Layer 5 serving-state validity (TR152 factorial)
+- Headline deliverable: a serving-state-independent FP8 (E4M3) KV-cache certificate for 1B–4B instruction-tuned models on vLLM v0.19.1 — harmful-refusal-neutral across batch ∈ {1, 8, 32}, prefix-caching {on, off}, temperature ∈ {0.0, 0.7, 1.0} (TR152: 0 / 8,976 harmful-battery pairs discordant; FP8-interaction spread 2.99 pp inside ±3 pp), with one located footnote — a sub-1 pp Qwen-2.5 over-refusal lean on XSTest (per-family MH OR 3.878 [2.386, 6.302])
+- TR146 is load-bearing as a negative control: four mechanistic probes all fail to distinguish safe from dangerous configs, so the entire arc stays behavioural
+- Claim ladder C1–C10 (6 Supported / 2 Licensed / 2 Forbidden); whole executed substrate ran at $0 external API cost under the umbrella gate on a local Ollama judge cohort
+- Cloud-gated envelope widenings (TR150 long-context, TR151 7B–72B scale, TR153 KV-method sweep) gated on the 2026-10-24 GO/NO-GO trigger
+- Extended Appendices: `Conclusive_Phase6_Extended_Appendices.md` (1,585 lines) — per-TR appendix volume (Appendices A–G + cross-cutting X1–X4 + glossary)
+- Executive Whitepaper: `Conclusive_Phase6_Whitepaper.md` (408 lines — includes the 5-layer protocol table, Qwen 2.5 1.5B worked example, and 8-objection reviewer FAQ)
 
 ---
 
@@ -661,12 +779,20 @@ PublishReady/reports/
 │   ├── Technical_Report_137.md
 │   ├── Technical_Report_138.md
 │   ├── Technical_Report_138_v2.md
+│   ├── Technical_Report_138_Study_D_Addendum.md  ← ICML camera-ready supplement (batch-invariant kernel ablation)
 │   ├── Technical_Report_139.md
 │   ├── Technical_Report_140.md
 │   ├── Technical_Report_141.md  ← largest study (152,022 data points, 18 models)
 │   ├── Technical_Report_142_v2.md
 │   ├── Technical_Report_143.md
-│   └── Technical_Report_146.md  ← mechanistic safety probing (5,100 forward passes)
+│   └── Technical_Report_146.md  ← mechanistic safety probing (5,100 forward passes); negative control for Phase 6
+│
+├── Phase 6: Serving-State Safety Certification (TR144, TR145, TR148, TR149, TR152)
+│   ├── Technical_Report_144.md  ← TAIS / speculative decoding × safety (1,925 lines; 64,855 samples)
+│   ├── Technical_Report_145.md  ← FP8 KV-cache single-config null (1,465 lines; 24,054 records)
+│   ├── Technical_Report_148.md  ← JTP dual-axis multi-judge reliability (1,556 lines; 41,272 fresh judge rows)
+│   ├── Technical_Report_149.md  ← FP8 standardized batteries (1,303 lines; 7,578 primary + 22,734 judge)
+│   └── Technical_Report_152.md  ← FP8 serving-state factorial v2 (1,341 lines; 45,000 records, 20,754 paired)
 │
 ├── v2 Expansion Reports
 │   ├── Technical_Report_125_v2.md
@@ -679,21 +805,24 @@ PublishReady/reports/
 │   └── Technical_Report_142_v3.md
 │
 ├── Conclusive Reports
-│   ├── Technical_Report_Conclusive_108-116.md
-│   ├── Technical_Report_Conclusive_108-116_Extended_Appendices.md
-│   ├── Technical_Report_Conclusive_108-116_Whitepaper.md
-│   ├── Technical_Report_Conclusive_117-122.md
-│   ├── Technical_Report_Conclusive_117-122_Extended_Appendices.md
-│   ├── Technical_Report_Conclusive_117-122_Whitepaper.md
-│   ├── Technical_Report_Conclusive_123-133.md
-│   ├── Technical_Report_Conclusive_123-133_Extended_Appendices.md
-│   ├── Technical_Report_Conclusive_123-133_Whitepaper.md
-│   ├── Technical_Report_Conclusive_134-137.md
-│   ├── Technical_Report_Conclusive_134-137_Extended_Appendices.md
-│   ├── Technical_Report_Conclusive_134-137_Whitepaper.md
-│   ├── Technical_Report_Conclusive_138-143.md
-│   ├── Technical_Report_Conclusive_138-143_Extended_Appendices.md
-│   └── Technical_Report_Conclusive_138-143_Whitepaper.md
+│   ├── Technical_Report_Conclusive_Phase1.md
+│   ├── Technical_Report_Conclusive_Phase1_Extended_Appendices.md
+│   ├── Technical_Report_Conclusive_Phase1_Whitepaper.md
+│   ├── Technical_Report_Conclusive_Phase2.md
+│   ├── Technical_Report_Conclusive_Phase2_Extended_Appendices.md
+│   ├── Technical_Report_Conclusive_Phase2_Whitepaper.md
+│   ├── Technical_Report_Conclusive_Phase3.md
+│   ├── Technical_Report_Conclusive_Phase3_Extended_Appendices.md
+│   ├── Technical_Report_Conclusive_Phase3_Whitepaper.md
+│   ├── Technical_Report_Conclusive_Phase4.md            ← Phase 3a Synthesis (TR134-137); file renamed 2026-05-28 (was Phase 3.5)
+│   ├── Technical_Report_Conclusive_Phase4_Extended_Appendices.md
+│   ├── Technical_Report_Conclusive_Phase4_Whitepaper.md
+│   ├── Technical_Report_Conclusive_Phase5.md            ← Phase 3b Synthesis (TR138-143 attack surface); file renamed 2026-05-28 (was Phase 4)
+│   ├── Technical_Report_Conclusive_Phase5_Extended_Appendices.md
+│   ├── Technical_Report_Conclusive_Phase5_Whitepaper.md
+│   ├── Conclusive_Phase6.md                             ← Phase 6 Synthesis: serving-state safety certification (5-layer protocol; TR144-152); file renamed 2026-05-28 (was Phase 4.5)
+│   ├── Conclusive_Phase6_Extended_Appendices.md
+│   └── Conclusive_Phase6_Whitepaper.md
 │
 ├── Historical (Superseded)
 │   ├── Technical_Report_111.md
@@ -787,7 +916,7 @@ All measurements on a single fixed baseline:
 18. **Can mechanistic interpretability probes predict quantization-induced safety failure?**
     No — first-token entropy, refusal direction preservation, calibration drift, and safety-neuron error magnitude all fail to distinguish safe from dangerous configs. Safety neurons absorb 1.40x disproportionate error universally; the damage is necessary but not sufficient for behavioral failure (TR146)
 
-### Phase 4
+### Phase 5
 
 19. **Is a `torch.compile` benchmark number reproducible across software-stack bumps?**
     Not without pinning Triton minor version. On the same RTX 6000 Ada with the same model and code, a Triton 3.3.1 → 3.4.0 upgrade flips compiled prefill from −77% (fast) to 0% (neutral) and compiled decode from 80% crash to 0% crash, with Cohen's d of 15–49 on compile-vs-eager prefill contrasts. The eager arm is flat (|d|≤0.15) across versions, ruling out harness drift. Any `torch.compile` benchmark that does not report its Triton minor version is an unfalsifiable claim (TR147 v4 SS8).
@@ -801,6 +930,23 @@ All measurements on a single fixed baseline:
 22. **What combination of cache and compile mode delivers both speed and stability?**
     On dense FP16: none of the tested cells. StaticCache + default is stable but ~2% slower than eager on decode. DynamicCache + reduce-overhead is fast on prefill but crashes 80% on decode. The only 0%-crash `reduce-overhead` decode cell in the entire TR147 matrix is Ada + qwen2.5-7b-AWQ-4bit + StaticCache — 4-bit quantization accidentally stabilizes compilation (TR147 v4 SS7, SS9.0).
 
+### Phase 6
+
+23. **Is speculative decoding via typical-acceptance sampling safety-equivalent to rejection sampling?**
+    Yes — TR144's E1–E5 expansion (48,072 expansion-probe samples on top of 16,783 core paired) finds max |Cohen's h| = 0.024 across matched draft+target pairs under rejection vs typical acceptance, well below the ±0.1 null cutoff calibrated from the same expansion. TAIS (Typical-Acceptance Invariance Screen) ships as the named method; integrated into NeurIPS submission #3738 (TR144).
+
+24. **Is FP8 (E4M3) KV-cache quantization safety-neutral under realistic serving states?**
+    Yes for harmful prompts, with one located footnote on benign-edge content. TR152 v2's 45,000-record `fp8_anchored_star` factorial finds **0 / 8,976 discordant pairs** on HarmBench / JBB / StrongREJECT across 5 models × 6 contexts × 3 harmful batteries, 0 / 120 cells Holm-significant, 117 / 120 TOST-equivalent at ±3 pp, FP8-interaction spread 2.99 pp inside the band. TR149's standardized-battery replication finds 12 / 12 TOST-equivalent and cross-battery MH pooled OR 0.8065 [0.38, 1.70]. The only footprint is a sub-1 pp Qwen-2.5 over-refusal lean on XSTest (per-family MH OR 3.878 [2.386, 6.302], sign-test p ≈ 0.0004). Claims bounded to 1B–4B instruction-tuned models on vLLM v0.19.1 at batch ∈ {1, 8, 32}, prefix-caching {on, off}, temperature ∈ {0.0, 0.7, 1.0} (TR145 / TR149 / TR152).
+
+25. **Do safety-specialist judges (Llama-Guard, ShieldGemma) measure the same thing as general LLM judges (Gemma 3, Llama 3.1)?**
+    No — they measure two orthogonal axes. TR148 v2's 5-judge corpus-scale re-judging of TR145 reveals safety-specialist judges **anti-correlate** with general LLM judges across 4 large-n pairs (cross-axis κ = −0.13 to −0.26) because they label composite prompt+response harm, not response-only refusal. The Phase 6 protocol therefore splits Layer 1 into 1a refusal-axis JTP (general judges) + 1b composite-harm-axis screen (safety specialists). Single-axis judge triangulation is insufficient at the corpus scale where this finding first emerges (TR148 v2 SS4).
+
+26. **Can multi-judge triangulation be done with one cross-LLM pair?**
+    Only if that pair clears the JTP robust threshold of κ ≥ 0.70. TR148 v2's gemma3 × llama3.1 pair lands at κ = 0.6917 at n = 12,809 — 0.0083 below threshold → TRIANGULATE bucket. Downstream Phase 6 reports (TR149, TR152) therefore require multi-judge majority-vote rather than single cross-LLM sign-off. The bridge paper Layer 1a anchors on this verdict (TR148 v2).
+
+27. **Can mechanistic interpretability probes substitute for behavioural screens under serving-state perturbation?**
+    No. TR146's four probes (first-token entropy, refusal-direction cosine, calibration drift, safety-neuron error magnitude) all fail to distinguish safe from dangerous configs. Safety neurons absorb 1.40× disproportionate quantization error universally (p<0.0001), but the damage is necessary, not sufficient, for behavioral failure (regime p=0.98). TR146 is the load-bearing negative control for Phase 6 — the entire arc stays behavioural because mechanistic probing was checked first and failed (TR146).
+
 ---
 
 ## Reading Guide
@@ -810,7 +956,8 @@ All measurements on a single fixed baseline:
 2. Study **TR112_v2** and **TR114_v2** (Rust vs Python)
 3. Review Phase 2 starting with **TR123** (economics) through **TR133** (capacity planning)
 4. Review Phase 3 starting with **TR134** (quantization x safety) through **TR142** (quality-safety correlation)
-5. Read the **Conclusive Reports** for synthesis and cross-TR analysis
+5. Review Phase 6 starting with **TR148** (judge methodology / JTP dual-axis) → **TR149** (standardized batteries) → **TR152** (serving-state factorial) → **TR144** (TAIS); TR146 is the load-bearing mechanistic negative control
+6. Read the **Conclusive Reports** for synthesis and cross-TR analysis (Phase 6 main: `Conclusive_Phase6.md`)
 
 ### For Engineers
 1. **Single-agent deployment:** TR112_v2 (language choice) + TR125 (quantization)
@@ -821,20 +968,27 @@ All measurements on a single fixed baseline:
 6. **Backend safety validation:** TR136 (backend safety consistency)
 7. **Jailbreak risk assessment:** TR139 (multi-turn) + TR140 (many-shot)
 8. **AWQ/GPTQ safety:** TR134 v3 + TR142 v3 (format-specific safety evaluation)
+9. **FP8 KV-cache serving-state certification:** TR149 (standardized batteries) + TR152 (full serving-state factorial v2) — bounds for 1B–4B instruction-tuned on vLLM v0.19.1
+10. **Speculative-decoding safety:** TR144 (TAIS named method, matched draft+target Cohen's h ±0.1 null cutoff)
+11. **Judge selection for safety eval:** TR148 v2 (5-judge JTP, dual-axis methodology — choose general LLM judges for refusal-axis, safety specialists for composite-harm-axis; do not pool the two)
 
 ### For Decision Makers
-1. **Rust vs Python Decision:** `Technical_Report_Conclusive_108-116_Whitepaper.md` (language, architecture, runtime, model)
-2. **Phase 2 Whitepaper:** `Technical_Report_Conclusive_123-133_Whitepaper.md` (15KB, 6 decisions)
-3. **Phase 3 Whitepaper:** `Technical_Report_Conclusive_134-137_Whitepaper.md` (228 lines, safety decision card)
-4. **Decision Matrix:** See Phase 2 Deployment Decisions table above
-5. **Cost Analysis:** TR123 ($/token) + TR119 (energy/carbon)
+1. **Rust vs Python Decision:** `Technical_Report_Conclusive_Phase1_Whitepaper.md` (language, architecture, runtime, model)
+2. **Phase 2 Whitepaper:** `Technical_Report_Conclusive_Phase3_Whitepaper.md` (15KB, 6 decisions)
+3. **Phase 3a Whitepaper (safety tax):** `Technical_Report_Conclusive_Phase4_Whitepaper.md` (228 lines, safety decision card)
+4. **Phase 3b Whitepaper (attack surface):** `Technical_Report_Conclusive_Phase5_Whitepaper.md` (285 lines)
+5. **Serving-State Safety Certification (Phase 6):** `Conclusive_Phase6_Whitepaper.md` (408 lines — FP8 KV-cache certificate, 5-layer protocol, Qwen 2.5 1.5B worked example, 8-objection reviewer FAQ, six shippable decisions)
+6. **Decision Matrix:** See Phase 2 Deployment Decisions table above
+7. **Cost Analysis:** TR123 ($/token) + TR119 (energy/carbon)
 
 ---
 
-**Last Updated:** 2026-04-17
-**Total Reports:** 79 files (41+ completed TR versions including TR147 four-subversion benchmarking-integrity track + 3 v2 expansions + 3 v3 AWQ/GPTQ expansions + 15 conclusive/whitepaper documents + 7 historical/superseded + 3 legacy + model benchmarks)
-**Total Measurements:** ~728,000 primary measurements (see `BANTERHEARTS_MEASUREMENT_COUNT.md` for canonical reconciliation); secondary judge annotations (~80,000) and replication / second-judge rows (~70,000) are reported separately within the relevant reports
-**Quantization Formats Evaluated:** GGUF (FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, Q2_K), AWQ INT4, GPTQ INT4
-**Models Evaluated:** 18+ unique models across 10+ architecture families (360M to 14.8B parameters)
-**Software Stacks Evaluated:** PyTorch 2.8 / 2.10 / nightly; Triton 3.3.1 / 3.4.0 / 3.6.0; vLLM 0.19.x; Ollama via native runner; Docker for AWQ/GPTQ pipelines
-**Hardware:** NVIDIA RTX 4080 Laptop 12GB (primary), Colab T4 16GB (v2 expansion), RunPod RTX 6000 Ada 48GB (7B quantization + TR147 v1-v2-v4 Ada), RunPod A100-SXM4-80GB (TR147 v3 + v4 B1-B2 + TR144 expansion E1-E5), RunPod L40S 48GB (TR140 v2 controls), Docker (AWQ/GPTQ pipelines)
+**Last Updated:** 2026-05-28
+**Total Reports:** 45+ completed TR versions including the Phase 6 serving-state safety arc (TR144, TR145, TR148, TR149, TR152) + TR147 four-subversion benchmarking-integrity track + 3 v2 expansions + 3 v3 AWQ/GPTQ expansions + TR138 Study D Addendum (ICML camera-ready supplement) + 21 conclusive/whitepaper documents (7 phase groups × report / appendices / whitepaper) + 7 historical/superseded + 3 legacy + model benchmarks
+**Total Measurements:** **~1,041,000 primary + judge measurements on disk across 45+ TRs** (TR152 v2 judging completed 2026-05-28 00:06 ET; the prior "≈ ~1.04M once judging completes" projection has landed as a firm number); see `BANTERHEARTS_MEASUREMENT_COUNT.md` (2026-05-28 supplement) for canonical reconciliation with verified row counts. Prior baselines: ~906K (2026-05-27 with TR152 v2 judging pending), ~800K (2026-05-14 post-TR149), ~770K (2026-05-13 post-TR148 v2), ~728K (2026-05-08 post-TR145).
+**Quantization Formats Evaluated:** GGUF (FP16, Q8_0, Q6_K, Q5_K_M, Q4_K_M, Q3_K_S, Q2_K), AWQ INT4, GPTQ INT4, FP8 E4M3 KV-cache (vLLM v0.19.1)
+**Models Evaluated:** 20+ unique models across 10+ architecture families (360M to 14.8B parameters), including phi-3-mini-4k and llama3.2-1b added in TR152 v2
+**Software Stacks Evaluated:** PyTorch 2.8 / 2.10 / nightly; Triton 3.3.1 / 3.4.0 / 3.6.0; vLLM v0.19.1 Docker pinned (Phase 6 standard); Ollama via native runner; Docker for AWQ/GPTQ pipelines
+**Safety Judges Evaluated:** regex baseline + gemma3:12b + llama3.1:8b-instruct-q8_0 + shieldgemma:9b + llama-guard3:8b + 100-record gpt-4o calibration anchor (TR148 v2); all Phase 6 batteries gated via `--skip-openai-judge` umbrella → $0 external API cost
+**Safety Corpora Evaluated:** HarmBench-400, JailbreakBench-100, StrongREJECT-313, XSTest-450 (TR149 / TR152 standardized batteries); advbench, jailbreakbench, jailbreak_amplification, bbq_bias (Phase 3 attack surface)
+**Hardware:** NVIDIA RTX 4080 Laptop 12GB (primary; TR145 / TR149 / TR152 v1+v2 / Phase 3 attack surface), Colab T4 16GB (v2 expansion), RunPod RTX 6000 Ada 48GB (7B quantization + TR147 v1-v2-v4 Ada), RunPod A100-SXM4-80GB (TR147 v3 + v4 B1-B2 + TR144 E1-E5 expansion + 70B safety gates per DATA_INVENTORY), RunPod L40S 48GB (TR140 v2 controls), Docker (AWQ/GPTQ pipelines)

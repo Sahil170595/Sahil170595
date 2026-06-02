@@ -70,7 +70,7 @@ ONNX CPU performance **inverts** as model scales, but crossover occurs much late
 **TensorRT Perfect Scaling:**
 
 - **Tiny-gpt2:** INT8 5,424 tok/s = 1.35x faster than PyTorch
-- **GPT-2:** INT8 6,284 tok/s = 2.96x faster than PyTorch 
+- **GPT-2:** INT8 6,284 tok/s = 2.96x faster than PyTorch
 - **Improvement:** Advantage **doubles** as model scales 1,210x
 
 **Generate Mode Limitation:**

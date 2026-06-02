@@ -1130,6 +1130,7 @@ To test whether `mode="default"` (which nominally disables CUDA graph replay) co
 **Prefill performance comparison:** mode="default" achieves -54.2% prefill speedup (d = -1.25, p = 7.6 x 10^-80) vs. reduce-overhead's -53.3% (d = -1.21). The slightly better default-mode prefill suggests CUDA graph replay overhead actually *hurts* prefill. Both modes use Triton kernel fusion -- the difference is reduce-overhead adds CUDA graph capture/replay on top, which marginally slows prefill's single-pass execution.
 
 **Error trace (mode="default"):**
+
 ```
 torch/_inductor/cudagraph_trees.py, line 2457, in dealloc_current_path_weakrefs
     assert len(node.tensor_weakrefs) == len(node.stack_traces)
@@ -1545,7 +1546,7 @@ Before deploying torch.compile in production on Linux:
 
 ### 15.2 Future Work
 
-- **Phase 4 (deferred):** uvloop multi-agent concurrency testing under Linux -- tests whether compile benefits survive under concurrent request load.
+- **Phase 5 (deferred):** uvloop multi-agent concurrency testing under Linux -- tests whether compile benefits survive under concurrent request load.
 - **~~Compiled decode investigation (originally scoped as separate TR)~~ (FULLY EXHAUSTED within TR126):** v2's `mode="default"` experiment crashes. v3's StaticCache + `mode="default"` works but is 5.8x slower than eager. `reduce-overhead` + StaticCache still crashes. Three-patch prototype on `cudagraph_trees.py` proved the issue is architectural. Manual CUDA graph capture (bypassing Inductor) is the only remaining viable path -- see [huggingface/transformers#27837](https://github.com/huggingface/transformers/issues/27837) for upstream progress. (Note: TR127 in the research roadmap is assigned to Long-Context Performance Characterization, not compiled decode.)
 - **Upstream fix for cudagraph_trees.py (PARTIALLY RESOLVED):** We traced the crash to `dealloc_current_path_weakrefs()` in `torch/_inductor/cudagraph_trees.py` and filed [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557). An assertion fix is submitted as [pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562). However, prototype experiments (v3) demonstrated that the crash is **architectural, not patchable in cudagraph_trees.py alone**: disabling `_free_And_Remove_DeleterFn` + `check_memory_pool` still crashes because CUDA graph replay overwrites output tensor memory, and `DynamicCache.update()` -> `torch.cat()` creates tensors at new addresses each step. The fix must come from the model/cache layer (e.g., `StaticCache`, `cudagraph_mark_step_begin()`). See SS10.7 for full prototype results.
 - **Compiled decode threshold characterization:** The crash occurs between 64 and 128 generated tokens. A binary search experiment (80, 96, 112 tokens) could pinpoint the exact threshold where CUDA graph shape tolerances are exceeded.

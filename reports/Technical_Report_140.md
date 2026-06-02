@@ -2004,6 +2004,7 @@ The v3.0 integration consumes the following files. Every row count was verified 
 | C13 combined bundle (x3) | `research/tr140/v2_controls/results/c13_combined_bundle/` | 15,000 x 3 (each mirrors v1) | 15,000 x 3 | Bundle snapshots, not new data |
 
 **Compute reproduction:**
+
 ```bash
 # From repo root:
 python research/tr140/compute_v2_stats.py

@@ -1161,6 +1161,7 @@ Replace Amdahl's law with backend-specific models:
 ### SS20.2 VRAM Model Intercept
 
 Add a constant intercept term to capture fixed CUDA context overhead:
+
 ```
 VRAM = weight * overhead + KV + activation + intercept
 ```

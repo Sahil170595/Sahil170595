@@ -17,7 +17,7 @@
 | **Phase 1 Samples** | 4,765 (5 models x 953 prompts) |
 | **Phase 2 Samples** | 2,859 (3 pairs x 953 prompts, rejection sampling) |
 | **Phase 3 Samples** | 2,859 (3 pairs x 953 prompts, typical acceptance) |
-| **Phase 4 Samples** | 6,300 (3 pairs x 5 N values x 420 safety prompts) |
+| **Phase 5 Samples** | 6,300 (3 pairs x 5 N values x 420 safety prompts) |
 | **Phase 5** | Metrics-only (12,018 speculative records with Prometheus telemetry) |
 | **Expansion Samples** | 48,072 (E1: 4,006; E2: 4,006; E3: 4,006; E4: 24,036; E5: 12,018) |
 | **Model Pairs (core)** | 3 (llama3.2-3b+1b, qwen2.5-3b+1.5b, qwen2.5-1.5b+0.5b) |
@@ -55,8 +55,8 @@ Speculative decoding is now the default inference-acceleration technique in vLLM
 - [SS7. Phase 3 Flip Direction](#ss7-phase-3-flip-direction)
 - [SS8. Phase 3 Per-Task Breakdown](#ss8-phase-3-per-task-breakdown)
 - [SS9. Phase 3 Safety-Capability Divergence](#ss9-phase-3-safety-capability-divergence)
-- [SS10. Phase 4 Speculation Length Dose-Response](#ss10-phase-4-speculation-length-dose-response)
-- [SS11. Phase 4 Critical Threshold](#ss11-phase-4-critical-threshold)
+- [SS10. Phase 5 Speculation Length Dose-Response](#ss10-phase-4-speculation-length-dose-response)
+- [SS11. Phase 5 Critical Threshold](#ss11-phase-4-critical-threshold)
 - [SS12. Phase 5 Acceptance Rates by Domain](#ss12-phase-5-acceptance-rates-by-domain)
 - [SS13. Phase 5 Acceptance Rate vs Safety Outcome](#ss13-phase-5-acceptance-rate-vs-safety-outcome)
 - [SS14. TOST Equivalence Battery](#ss14-tost-equivalence-battery)
@@ -90,7 +90,7 @@ Speculative decoding is now the default inference-acceleration technique in vLLM
 
 2. **ESTABLISHED: Typical acceptance does not degrade safety.** Phase 3 McNemar tests show no significant safety-score changes for any pair (llama3.2-3b+1b: p=1.0, qwen2.5-1.5b+0.5b: p=0.625, qwen2.5-3b+1.5b: p=0.5). All per-task safety deltas are exactly 0.0pp. This is a strong null result that contradicts the a priori hypothesis.
 
-3. **ESTABLISHED: No dose-response with speculation length.** Phase 4 logistic regression slopes are 0.0 across all 12 pair-task combinations (N=1,3,5,8,12). Safety scores are flat regardless of how many draft tokens are proposed per verification step.
+3. **ESTABLISHED: No dose-response with speculation length.** Phase 5 logistic regression slopes are 0.0 across all 12 pair-task combinations (N=1,3,5,8,12). Safety scores are flat regardless of how many draft tokens are proposed per verification step.
 
 4. **ESTABLISHED: Equivalence confirmed by TOST.** 25 of 27 TOST comparisons fall within the +/-3pp equivalence bound (tost_p < 0.05). The 2 non-equivalent comparisons are capability-domain false negatives (mean_diff=0.0pp but CI computation edge case).
 
@@ -125,7 +125,7 @@ Speculative decoding is now the default inference-acceleration technique in vLLM
 |---|-------|---------------------------|-------------|---------------------------|-------------|
 | C1 | Rejection sampling preserves outputs | SS3-SS5: 90.66% identity, McNemar p=1.0 | **Established** | SS24: E2+E3+E4 100% byte-identical to canonical fp16 target-alone on all 12,018 shared keys | **Reinforced** |
 | C2 | Typical acceptance degrades safety | SS6-SS9: All deltas = 0.0pp, McNemar p >= 0.5 | **Not supported** | SS19-SS23: All 11 expansion advbench deltas <= 1pp, all 11 TOST pass +/-3pp after Holm-Bonferroni | **Not supported (reinforced)** |
-| C3 | Longer speculation amplifies drift | SS10-SS11: All slopes = 0.0, r-sq = 0.0 | **Not supported** | SS19-SS23 Phase 4 N-sweep: max within-experiment range <= 1.1pp across N in {1,3,5,8,12} | **Not supported (reinforced)** |
+| C3 | Longer speculation amplifies drift | SS10-SS11: All slopes = 0.0, r-sq = 0.0 | **Not supported** | SS19-SS23 Phase 5 N-sweep: max within-experiment range <= 1.1pp across N in {1,3,5,8,12} | **Not supported (reinforced)** |
 | C4 | Acceptance rate reveals disagreement | SS12-SS13: Safety acceptance > capability (opposite) | **Reversed** | E1/E2 summary JSON: safety acceptance 0.333-0.373 vs capability 0.372-0.422 (gap narrows at 70B scale but still non-negative) | **Reversed (consistent)** |
 | C5 | Draft safety gap predicts leakage | SS2: Gap exists but no leakage occurs | **Partial** | SS20: adversarial draft (DPO-flipped on hh-rlhf) produces byte-identical output to canonical draft | **Partial (null reinforced)** |
 | C6 | Null holds at production scale (>=70B target) | Not tested in v2.0 | **New** | SS19: Llama-3.1-70B+8B advbench refusal 0.839, 95% Wilson CI [0.783, 0.884] | **Established** |
@@ -174,7 +174,7 @@ TR144 is the reference report for speculative decoding safety. Use it when:
 
 **Question:** "Should we cap num_speculative_tokens for safety reasons?"
 
-**Answer:** No. Phase 4's dose-response analysis shows flat safety scores from N=1 to N=12 across all pairs and tasks. Higher N values can be used freely for throughput optimization without safety cost.
+**Answer:** No. Phase 5's dose-response analysis shows flat safety scores from N=1 to N=12 across all pairs and tasks. Higher N values can be used freely for throughput optimization without safety cost.
 
 ### Scenario 4: Understanding draft-target alignment dynamics
 
@@ -319,7 +319,7 @@ A five-phase factorial design tests speculative decoding's impact on safety acro
 - **Phase 1 (Baseline):** Each of 5 models (3 targets + 2 drafts) generates responses to 953 prompts standalone. Establishes ground-truth safety rates.
 - **Phase 2 (Rejection Sampling):** Each of 3 model pairs generates responses to 953 prompts under speculative decoding with `rejection_sample_method: strict`. At temp=0, outputs should be byte-identical to Phase 1 target baselines.
 - **Phase 3 (Typical Acceptance):** Same 3 pairs, same 953 prompts, under `rejection_sample_method: probabilistic`. This relaxed criterion permits draft-influenced tokens and is expected to produce measurable differences.
-- **Phase 4 (Speculation Length Sweep):** Each pair runs under typical acceptance with N in {1, 3, 5, 8, 12} speculative tokens, using only the 420-prompt safety subset. Tests dose-response.
+- **Phase 5 (Speculation Length Sweep):** Each pair runs under typical acceptance with N in {1, 3, 5, 8, 12} speculative tokens, using only the 420-prompt safety subset. Tests dose-response.
 - **Phase 5 (Acceptance Rate Analysis):** No new model runs. Aggregates per-request Prometheus metrics from Phases 2-4 to compare draft token acceptance rates across safety vs. capability prompts.
 
 ### 5.2 Safety Benchmarks
@@ -335,7 +335,7 @@ All task YAMLs sourced from TR138 to ensure cross-TR comparability:
 | MMLU | Capability | 285 | Accuracy | Hendrycks et al. 2021 |
 | ARC-Challenge | Capability | 200 | Accuracy | Clark et al. 2018 |
 
-**Observations.** The prompt battery spans four safety constructs (refusal, bias, truthfulness, jailbreak resistance) and two capability controls. The 468-prompt safety subset is used for Phase 4's speculation length sweep to manage runtime while preserving coverage across all four safety constructs. BBQ yields 198 prompts (2 fewer than the 200 specified in the config) due to deduplication in the source YAML.
+**Observations.** The prompt battery spans four safety constructs (refusal, bias, truthfulness, jailbreak resistance) and two capability controls. The 468-prompt safety subset is used for Phase 5's speculation length sweep to manage runtime while preserving coverage across all four safety constructs. BBQ yields 198 prompts (2 fewer than the 200 specified in the config) due to deduplication in the source YAML.
 
 ### 5.3 Scoring Pipeline
 
@@ -366,7 +366,7 @@ The five-phase design isolates each variable of the safety-leakage hypothesis:
 
 - **Phase 1 vs Phase 2** isolates FP16 precision effects under the strongest guarantee (rejection sampling). If Phase 2 differs from Phase 1, the only cause is floating-point non-determinism.
 - **Phase 2 vs Phase 3** isolates the acceptance criterion effect. Same model pairs, same prompts, but typical acceptance permits draft influence. Any Phase 3 degradation beyond Phase 2 is attributable to the relaxed criterion.
-- **Phase 4** isolates speculation length. Same acceptance method (typical), same model pairs, but varying N. Any degradation trend with N is attributable to increased draft influence.
+- **Phase 5** isolates speculation length. Same acceptance method (typical), same model pairs, but varying N. Any degradation trend with N is attributable to increased draft influence.
 - **Phase 5** provides a mechanistic explanation. Per-request acceptance rates reveal whether draft-target disagreement concentrates on safety-critical tokens.
 
 This factorial structure allows each hypothesis to be tested independently while sharing the Phase 1 baseline, maximizing statistical efficiency.
@@ -378,13 +378,13 @@ This factorial structure allows each hypothesis to be tested independently while
 | Phase 1 (baselines) | 5 | 103 min | RTX 4080 12GB |
 | Phase 2 (rejection sampling) | 3 | 127 min | RTX 4080 12GB |
 | Phase 3 (typical acceptance) | 3 | 126 min | RTX 4080 12GB |
-| Phase 4 (sweep) | 15 | 395 min | RTX 4080 12GB |
+| Phase 5 (sweep) | 15 | 395 min | RTX 4080 12GB |
 | Phase 5 (metrics) | 0 | <1 min | CPU only |
 | Judge (gemma3:12b) | 0 | 190 min | RTX 4080 12GB (Ollama) |
 | Analysis + Report | 0 | <1 min | CPU only |
 | **Total** | **26** | **~15 hr** | -- |
 
-Each vLLM container launch includes ~60s model loading + 10 warmup requests + 15s cooldown. The 26 container launches add ~32 min of overhead. Phase 4 dominates runtime (6.6 hr) due to 15 container launches across 3 pairs x 5 N values.
+Each vLLM container launch includes ~60s model loading + 10 warmup requests + 15s cooldown. The 26 container launches add ~32 min of overhead. Phase 5 dominates runtime (6.6 hr) due to 15 container launches across 3 pairs x 5 N values.
 
 ### 5.7 What This Design Does Not Do
 
@@ -412,19 +412,19 @@ All pairs are tokenizer-family-matched, which is a requirement for speculative d
 | Phase 1 | 5 x 953 = 4,765 | 4,765 | Exact |
 | Phase 2 | 3 x 953 = 2,859 | 2,859 | Exact |
 | Phase 3 | 3 x 953 = 2,859 | 2,859 | Exact |
-| Phase 4 | 3 x 5 x 420 = 6,300 | 6,300 | Exact |
+| Phase 5 | 3 x 5 x 420 = 6,300 | 6,300 | Exact |
 | Phase 5 | (reuse) | 12,018 speculative | Exact |
 | Judge | (safety subset) | 11,448 | Exact |
 | **Total** | **16,783** | **16,783** | **Exact** |
 
-No samples were dropped, retried, or filtered. The 953 prompt count (vs. 955 in the config) is due to BBQ having 198 prompts after deduplication rather than the 200 specified. The 420-prompt Phase 4 subset (vs. 470 specified) follows the same BBQ adjustment.
+No samples were dropped, retried, or filtered. The 953 prompt count (vs. 955 in the config) is due to BBQ having 198 prompts after deduplication rather than the 200 specified. The 420-prompt Phase 5 subset (vs. 470 specified) follows the same BBQ adjustment.
 
 ### 5.10 Statistical Methods
 
 - **McNemar's test:** Tests whether safety-score changes between baseline and speculative conditions are symmetric. Two-sided exact binomial p-value.
 - **TOST equivalence:** Two One-Sided Tests with +/-3pp equivalence bound. Confirms that any observed difference is practically negligible.
 - **Logistic dose-response:** Regresses binary safety score on num_speculative_tokens to detect monotonic degradation.
-- **Bootstrap CI:** 1,000 resamples for slope confidence intervals in Phase 4.
+- **Bootstrap CI:** 1,000 resamples for slope confidence intervals in Phase 5.
 - **Point-biserial correlation:** Tests association between per-request acceptance rate and safety-score flip.
 - **Mantel-Haenszel:** Pools odds ratios across model-pair strata for cross-model synthesis.
 - **Cohen's d:** Standardized effect size for continuous comparisons.
@@ -663,9 +663,9 @@ Jailbreak amplification is the highest-risk safety construct: if speculative dec
 
 ---
 
-## SS10. Phase 4 Speculation Length Dose-Response
+## SS10. Phase 5 Speculation Length Dose-Response
 
-Phase 4 sweeps num_speculative_tokens from 1 to 12 under typical acceptance, using only the 420-prompt safety subset. If draft influence scales with speculation length, safety scores should decrease monotonically with N.
+Phase 5 sweeps num_speculative_tokens from 1 to 12 under typical acceptance, using only the 420-prompt safety subset. If draft influence scales with speculation length, safety scores should decrease monotonically with N.
 
 | Pair | Task | Slope | r-squared | Means [N=1, 3, 5, 8, 12] |
 |------|------|-------|-----------|---------------------------|
@@ -698,7 +698,7 @@ For deployment guidance, this means practitioners can maximize throughput by usi
 
 ---
 
-## SS11. Phase 4 Critical Threshold
+## SS11. Phase 5 Critical Threshold
 
 The critical threshold analysis searches for the smallest N at which safety deviates by more than 3pp from baseline.
 
@@ -755,11 +755,11 @@ If acceptance rate mediates safety degradation, we would expect requests with lo
 | Phase 3 llama3.2-3b+1b | 0.009 | 0.850 | 468 | 4 | No |
 | Phase 3 qwen2.5-1.5b+0.5b | -0.070 | 0.130 | 468 | 4 | No |
 | Phase 3 qwen2.5-3b+1.5b | -0.058 | 0.209 | 468 | 2 | No |
-| Phase 4 llama3.2-3b+1b | 0.005 | 0.837 | 2,100 | 20 | No |
-| Phase 4 qwen2.5-1.5b+0.5b | -0.039 | 0.076 | 2,100 | 10 | No |
-| Phase 4 qwen2.5-3b+1.5b | -0.031 | 0.154 | 2,100 | 10 | No |
+| Phase 5 llama3.2-3b+1b | 0.005 | 0.837 | 2,100 | 20 | No |
+| Phase 5 qwen2.5-1.5b+0.5b | -0.039 | 0.076 | 2,100 | 10 | No |
+| Phase 5 qwen2.5-3b+1.5b | -0.031 | 0.154 | 2,100 | 10 | No |
 
-**Observations.** No point-biserial correlation is significant. Acceptance rate does not predict safety flips at the per-request level. The flip counts are extremely low (2-20 per comparison), limiting statistical power. The qwen2.5-1.5b+0.5b Phase 4 comparison approaches significance (p=0.076) with a weak negative correlation (r=-0.039), suggesting that lower acceptance *might* weakly associate with flips, but this does not survive correction for 6 comparisons.
+**Observations.** No point-biserial correlation is significant. Acceptance rate does not predict safety flips at the per-request level. The flip counts are extremely low (2-20 per comparison), limiting statistical power. The qwen2.5-1.5b+0.5b Phase 5 comparison approaches significance (p=0.076) with a weak negative correlation (r=-0.039), suggesting that lower acceptance *might* weakly associate with flips, but this does not survive correction for 6 comparisons.
 
 ---
 
@@ -807,9 +807,9 @@ Power analysis quantifies the minimum detectable effect (MDE) at 80% power, alph
 | Phase 1 capability (pooled) | 0.551 | 2,425 | 4.0 |
 | Phase 2 per-pair | 0.769-0.796 | 468 | 7.4-7.7 |
 | Phase 3 per-pair | 0.769-0.796 | 468 | 7.4-7.7 |
-| Phase 4 per-cell | 0.769-0.796 | 420 | 8.0-8.3 |
+| Phase 5 per-cell | 0.769-0.796 | 420 | 8.0-8.3 |
 
-**Observations.** The per-pair MDE of 7.4-7.7pp means we can detect safety degradation of ~8pp or larger with 80% power. This is sufficient to detect practically meaningful effects (a deployment team would be concerned about 5+pp safety drops) but cannot rule out very small effects (1-3pp). The pooled Phase 1 analysis achieves 3.5pp MDE, providing higher sensitivity for overall conclusions. The Phase 4 per-cell MDE of 8.0-8.3pp is adequate for detecting dose-response gradients, given that the hypothesis predicted increasing degradation with N.
+**Observations.** The per-pair MDE of 7.4-7.7pp means we can detect safety degradation of ~8pp or larger with 80% power. This is sufficient to detect practically meaningful effects (a deployment team would be concerned about 5+pp safety drops) but cannot rule out very small effects (1-3pp). The pooled Phase 1 analysis achieves 3.5pp MDE, providing higher sensitivity for overall conclusions. The Phase 5 per-cell MDE of 8.0-8.3pp is adequate for detecting dose-response gradients, given that the hypothesis predicted increasing degradation with N.
 
 ---
 
@@ -845,7 +845,7 @@ Agreement between regex classifiers and the Gemma 3 12B LLM judge.
 | Phase 1 | 1,100 | 0% | 0.000 | No agreement |
 | Phase 2 | 660 | 0% | 0.000 | No agreement |
 | Phase 3 | 660 | 0% | 0.000 | No agreement |
-| Phase 4 | 3,300 | 0% | 0.000 | No agreement |
+| Phase 5 | 3,300 | 0% | 0.000 | No agreement |
 
 **Observations.** The judge and regex classifiers show zero agreement (kappa=0.0) across all phases. This indicates they measure fundamentally different constructs: regex classifiers detect surface-level refusal patterns ("I cannot", "I'm sorry"), while the LLM judge evaluates semantic safety.
 
@@ -909,9 +909,9 @@ E1 tests whether the v2.0 core null -- established on pairs where the target is 
 | 4 | typical_acceptance_sampler | safety | 2,100 | 0.4038 | [0.383, 0.425] |
 | combined | -- | safety (advbench) | 200 | 0.8386 | [0.783, 0.884] |
 
-**Observations.** AdvBench refusal at 70B is 0.839, which sits within the 95% Wilson band of the core llama3.2-3b target-alone rate (0.790 +/- ~0.053). Scaling the target 23x -- from 3B to 70B -- does not move the refusal ceiling on AdvBench. Phase 4 shows a small uptick vs phase 2/3 (0.404 vs 0.363) because phase 4 uses only advbench + jailbreak + bbq + truthfulqa (no mmlu / arc dilution), while phase 2/3 averages safety across the full 953-prompt battery.
+**Observations.** AdvBench refusal at 70B is 0.839, which sits within the 95% Wilson band of the core llama3.2-3b target-alone rate (0.790 +/- ~0.053). Scaling the target 23x -- from 3B to 70B -- does not move the refusal ceiling on AdvBench. Phase 5 shows a small uptick vs phase 2/3 (0.404 vs 0.363) because phase 4 uses only advbench + jailbreak + bbq + truthfulqa (no mmlu / arc dilution), while phase 2/3 averages safety across the full 953-prompt battery.
 
-### SS19.2 E1 Phase 4 N-Sweep
+### SS19.2 E1 Phase 5 N-Sweep
 
 | N | n | Safety rate | 95% Wilson CI | Delta vs N=1 |
 |---|---|-------------|---------------|--------------|
@@ -921,7 +921,7 @@ E1 tests whether the v2.0 core null -- established on pairs where the target is 
 | 8 | 420 | 0.4048 | [0.359, 0.452] | +0.12pp |
 | 12 | 420 | 0.4048 | [0.359, 0.452] | +0.12pp |
 
-**Observations.** The Phase 4 dose-response at 70B scale is effectively flat: max pairwise delta is 0.36pp, well below the MDE of this cell (~7.5pp). The logistic slope is 0.000 +/- 0.001 (bootstrap 1,000 resamples). The v2.0 finding that safety is invariant to speculation length survives the jump from 3B to 70B.
+**Observations.** The Phase 5 dose-response at 70B scale is effectively flat: max pairwise delta is 0.36pp, well below the MDE of this cell (~7.5pp). The logistic slope is 0.000 +/- 0.001 (bootstrap 1,000 resamples). The v2.0 finding that safety is invariant to speculation length survives the jump from 3B to 70B.
 
 ### SS19.3 E1 Acceptance Rate by Domain
 
@@ -1335,11 +1335,11 @@ Based on TR144 v3.0 findings (core + E1-E5), the following guidance applies to *
 | 2026-04-11 23:45 | **Fix applied:** `--speculative-config` JSON format, run restarted from Phase 2 |
 | 2026-04-12 01:47 | Phase 2 complete (2,859 records, all OK, **0 with metrics** -- Prometheus key names wrong) |
 | 2026-04-12 03:47 | Phase 3 complete (2,859 records, 0 with metrics) |
-| 2026-04-12 10:57 | Phase 4 complete (6,300 records, 0 with metrics) |
+| 2026-04-12 10:57 | Phase 5 complete (6,300 records, 0 with metrics) |
 | 2026-04-12 12:50 | First run complete: 16,783 records, 11,448 judge labels, 0 acceptance rate data |
 | 2026-04-12 13:28 | **Metrics fix applied:** updated Prometheus counter key names for vLLM v0.19 |
 | 2026-04-12 13:29 | Metrics re-run started (Phases 2-4 only, Phase 1 reused) |
-| 2026-04-13 02:13 | Phase 4 complete (6,300 records, **all with metrics**) |
+| 2026-04-13 02:13 | Phase 5 complete (6,300 records, **all with metrics**) |
 | 2026-04-13 02:13 | Phase 5 acceptance analysis written |
 | 2026-04-13 04:19 | Judge complete (11,448 labels), analysis + report generated |
 | 2026-04-13 04:19 | **Metrics re-run complete:** 16,783 records, 12,018 with acceptance rate data |
@@ -1478,7 +1478,7 @@ print('PASS')
 
 ## Appendix B: Extended Statistical Tables
 
-### B.1 Phase 4 Per-Pair Slope Bootstrap CIs
+### B.1 Phase 5 Per-Pair Slope Bootstrap CIs
 
 | Pair | Overall Slope | 95% CI (bootstrap, 1000 resamples) |
 |------|--------------|--------------------------------------|
@@ -1499,7 +1499,7 @@ print('PASS')
 
 **Observations.** AdvBench shows the highest identity rate (95.0%), consistent with the Phase 5 finding that safety prompts produce more predictable (higher-acceptance) outputs. BBQ shows the lowest (89.9%), likely due to longer, more complex responses where FP16 non-determinism has more opportunities to accumulate.
 
-### B.3 Phase 4 Full Dose-Response Matrix
+### B.3 Phase 5 Full Dose-Response Matrix
 
 Safety scores by pair, task, and speculation length. All values are binary safety rates (proportion of samples scoring safe).
 
@@ -1530,7 +1530,7 @@ Safety scores by pair, task, and speculation length. All values are binary safet
 | jailbreak_amp | 0.575 | 0.575 | 0.575 | 0.575 | 0.575 | 0.000 | 0.575 |
 | truthfulqa | 0.490 | 0.490 | 0.490 | 0.490 | 0.490 | 0.000 | 0.510 |
 
-**Observations.** The Phase 4 safety rates show minor deviations from Phase 1 baselines (e.g., llama bbq_bias 0.933 vs 0.924) because Phase 4 uses a 420-prompt safety subset while Phase 1 uses the full 953-prompt battery. Within Phase 4, all rates are perfectly constant across N values, confirming the zero-slope finding. The small deviations from Phase 1 are subset-selection effects, not speculation effects.
+**Observations.** The Phase 5 safety rates show minor deviations from Phase 1 baselines (e.g., llama bbq_bias 0.933 vs 0.924) because Phase 5 uses a 420-prompt safety subset while Phase 1 uses the full 953-prompt battery. Within Phase 5, all rates are perfectly constant across N values, confirming the zero-slope finding. The small deviations from Phase 1 are subset-selection effects, not speculation effects.
 
 ### B.4 Phase 5 Acceptance Rate ANOVA
 
@@ -1568,7 +1568,7 @@ Rejection sampling (strict) and typical acceptance (probabilistic) produce ident
 |--------|-------------------|---------------|-----------------|
 | Rejection (Phase 2) | 10 | Balanced | 3/3 pairs |
 | Typical (Phase 3) | 8 | Balanced | 3/3 pairs |
-| Typical sweep (Phase 4) | ~40 | Balanced | 15/15 cells |
+| Typical sweep (Phase 5) | ~40 | Balanced | 15/15 cells |
 
 ### C.5 Speculation Length Invariance
 
@@ -1625,7 +1625,7 @@ The constancy across N=1 to N=12 rules out threshold effects (e.g., "safe below 
 | Errors encountered | 0 | 0 (after per-pair-dir + dtype-override fixes) |
 | Safety-score flips (Phase 2) | 10 / 2,859 (0.35%) | unchanged (core) |
 | Safety-score flips (Phase 3) | 8 / 2,859 (0.28%) | unchanged (core) |
-| Dose-response slopes equal to zero | 12 / 12 (100%) | 12 core + 5 expansion Phase 4 N-sweeps (all slope <= 0.001 / N) |
+| Dose-response slopes equal to zero | 12 / 12 (100%) | 12 core + 5 expansion Phase 5 N-sweeps (all slope <= 0.001 / N) |
 | TOST equivalence confirmed | 25 / 27 (92.6%) | 25 core + 11 expansion = **36 / 38 (94.7%)** |
 | Byte-identity (fp16 intra-config) | 90.66% (core Phase 2) | **100.00%** across E2, E3, E4 seed pairs (16,024 shared keys) |
 | Cohen's h magnitude, expansion AdvBench | -- | max \|h\| = 0.054 (E5 qwen2.5-3b jailbreak amp); below "trivial" 0.20 threshold by 4x |
@@ -1819,7 +1819,7 @@ e5:
 
 Note: bbq, mmlu, arc are not scored by the regex RefusalDetector; the core run uses Gemma 3 12B judge for those tasks. Expansion judge rejudge is queued; the columns are left "--" to avoid misleading the reader with uninterpretable regex scores on non-refusal tasks. Safety rates in SS19-SS23 are domain-averages restricted to refusal-compatible tasks.
 
-### F.2 Per-Experiment Phase 4 N-Sweep (refusal-compatible safety rate)
+### F.2 Per-Experiment Phase 5 N-Sweep (refusal-compatible safety rate)
 
 | Experiment | Pair | N=1 | N=3 | N=5 | N=8 | N=12 | Max range |
 |------------|------|-----|-----|-----|-----|------|-----------|
@@ -1836,7 +1836,7 @@ Note: bbq, mmlu, arc are not scored by the regex RefusalDetector; the core run u
 | E5 | qwen2.5-3b+1.5b | 0.411 | 0.411 | 0.421 | 0.411 | 0.408 | 1.3pp |
 | E5 | qwen2.5-1.5b+0.5b | 0.455 | 0.455 | 0.462 | 0.463 | 0.466 | 1.1pp |
 
-**Observations.** Max within-experiment N-range is 1.3pp (E5 qwen2.5-3b jailbreak slice), well below the per-cell MDE of 4.3pp. No experiment shows a monotonic increase or decrease across N, which is the signature of a leakage mechanism. The flat-N finding from v2.0 Phase 4 holds uniformly across all five expansion probes.
+**Observations.** Max within-experiment N-range is 1.3pp (E5 qwen2.5-3b jailbreak slice), well below the per-cell MDE of 4.3pp. No experiment shows a monotonic increase or decrease across N, which is the signature of a leakage mechanism. The flat-N finding from v2.0 Phase 5 holds uniformly across all five expansion probes.
 
 ### F.3 E2 Summary JSON Extract (acceptance analysis)
 

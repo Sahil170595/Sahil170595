@@ -121,6 +121,7 @@ This study addresses:
 ### 2.1 Test Environment
 
 **Hardware Configuration:**
+
 ```
 GPU: NVIDIA GeForce RTX 4080 12GB
 - VRAM: 12 GB GDDR6X
@@ -361,7 +362,7 @@ Ollama: v0.1.17 (dual instances, ports 11434/11435)
 
 ---
 
-##  6. Cross-Model Efficiency Analysis
+## 6. Cross-Model Efficiency Analysis
 
 ### 6.1 Model Ranking by Runtime
 
@@ -750,7 +751,7 @@ cargo run --release -- --model {model} --runs 5 --scenario chimera_homo --chimer
 - Decommission Python infrastructure
 - **Goal:** Full migration, realize $4k/year savings
 
-**Phase 4: Optimization (Weeks 13-16)**
+**Phase 5: Optimization (Weeks 13-16)**
 - Fine-tune GPU layers (test 60/80/100)
 - Test context sizes (512/1024/2048)
 - Experiment with Llama 3.1 for reasoning tasks

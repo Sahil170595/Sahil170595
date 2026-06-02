@@ -136,6 +136,7 @@ This study addresses:
 ### 2.1 Test Environment
 
 **Hardware Configuration:**
+
 ```
 GPU: NVIDIA GeForce RTX 4080 12GB
 - VRAM: 12 GB GDDR6X
@@ -157,6 +158,7 @@ Python: 3.13.0 (asyncio stock event loop)
 **Objective:** Capture micro-level event loop behavior during multi-agent streaming.
 
 **Implementation:**
+
 ```python
 class LoopLagMonitor:
     """Background task measuring event loop responsiveness"""
@@ -178,6 +180,7 @@ class LoopLagMonitor:
 **Note on Measurement:** This loop lag monitor uses `await asyncio.sleep(0)` as a **proxy for event loop responsiveness**. It measures "how long until I get scheduled again" rather than absolute event loop work time, but provides a reliable relative indicator of scheduling delays under load. The monitor itself adds minimal overhead (~0.01ms per sample).
 
 **Chunk Metrics Capture:**
+
 ```python
 async for chunk in response.aiter_bytes():
     chunk_start = time.perf_counter()
@@ -199,6 +202,7 @@ async for chunk in response.aiter_bytes():
 **Objective:** Determine if Qwen's lower efficiency is hardware-limited (PCIe saturation) or software-limited (tokenizer overhead).
 
 **GPU Metrics Collection:**
+
 ```bash
 nvidia-smi --query-gpu=timestamp,power.draw,utilization.gpu,memory.used,pcie.rx,pcie.tx \
   --format=csv -lms 100 > gpu_metrics.csv
@@ -217,6 +221,7 @@ nvidia-smi --query-gpu=timestamp,power.draw,utilization.gpu,memory.used,pcie.rx,
 **Objective:** Prove that slower token generation improves system efficiency by reducing event loop backpressure.
 
 **Implementation:**
+
 ```python
 class TokenBucket:
     def __init__(self, rate_tokens_per_sec):
@@ -636,6 +641,7 @@ The data suggests there's an optimal token rate for Python multi-agent systems:
 ### 8.2 Python Mitigation Techniques (Interim Solution)
 
 **1. Adaptive Rate Limiting (Token Bucket):**
+
 ```python
 class AdaptiveThrottler:
     def __init__(self, target_efficiency=0.87, initial_rate=70):
@@ -654,6 +660,7 @@ class AdaptiveThrottler:
 ```
 
 **2. Chunk Batching:**
+
 ```python
 async def batched_stream(response, batch_interval_ms=50):
     """Accumulate chunks for 50ms before processing"""
@@ -672,10 +679,12 @@ async def batched_stream(response, batch_interval_ms=50):
 ```
 
 **3. Event Loop Replacement (uvloop):**
+
 ```python
 import uvloop
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 ```
+
 **Expected Gain:** +20-30% event loop throughput -> reduces lag from 16ms to ~11ms -> +1-2pp efficiency
 
 ### 8.3 Rust Migration Roadmap

@@ -186,6 +186,7 @@ Ollama: Latest (November 2025)
 The Rust agent performs the following workflow (matching Python TR109):
 
 **Phase 1: Data Ingestion**
+
 ```rust
 pub async fn ingest_benchmarks(root: &Path) -> Result<BenchmarkDataset> {
     let mut dataset = BenchmarkDataset::default();
@@ -213,6 +214,7 @@ pub async fn ingest_benchmarks(root: &Path) -> Result<BenchmarkDataset> {
 2. **Report Stage:** LLM generates Technical Report 108-style documentation
 
 **Phase 3: Metrics Collection**
+
 ```rust
 pub struct AgentExecution {
     agent_type: AgentType,
@@ -255,6 +257,7 @@ pub struct LlmCallRecord {
 ### 2.4 Measurement Methodology
 
 **Timing Precision:**
+
 ```rust
 use std::time::Instant;
 
@@ -544,6 +547,7 @@ Manual inspection of generated reports from representative configurations:
 ### 7.2 Sample Report Analysis
 
 **Baseline Default Output:**
+
 ```markdown
 # Technical Report 108: Gemma3 Benchmark Analysis -- October - November 2025
 
@@ -561,6 +565,7 @@ This report details the analysis of a dataset of 101 benchmark files...
 - WARNING Slightly verbose (could be more concise)
 
 **GPU60 CTX256 TEMP0.6 Output:**
+
 ```markdown
 ## Technical Report 108: Gemma3 Benchmark Data Analysis
 
@@ -581,6 +586,7 @@ This report analyzes a dataset of 101 files...
 - WARNING Less technical depth than baseline
 
 **GPU120 CTX1024 TEMP0.6 Output:**
+
 ```markdown
 # Technical Report 108: Gemma3 Model Performance Benchmarking Analysis
 
@@ -637,6 +643,7 @@ No observable impact on output quality across 60/80/120 GPU layer configurations
 ### 8.1 Workflow Parity Validation
 
 **Python Agent (TR109) Workflow:**
+
 ```python
 class BaselineAgent(BaseAgent):
     async def run_analysis(self) -> Dict:
@@ -652,6 +659,7 @@ class BaselineAgent(BaseAgent):
 ```
 
 **Rust Agent (TR111 v2) Workflow:**
+
 ```rust
 async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<AgentExecution> {
     // Phase 1: Data ingestion
@@ -759,6 +767,7 @@ Rust provides significant **operational advantages** (deployment, resource usage
 ### 9.1 Production Configuration Recommendations
 
 **Tier 1: Resource-Constrained Environments**
+
 ```toml
 [agent.config]
 num_gpu = 60
@@ -775,6 +784,7 @@ temperature = 0.6
 **Use Cases:** Edge deployment, cost-sensitive applications, batch processing
 
 **Tier 2: Balanced Production (Recommended)**
+
 ```toml
 [agent.config]
 num_gpu = 80
@@ -791,6 +801,7 @@ temperature = 0.6
 **Use Cases:** General production, interactive applications, moderate scale
 
 **Tier 3: High-Throughput Production**
+
 ```toml
 [agent.config]
 num_gpu = 120
@@ -807,6 +818,7 @@ temperature = 0.6
 **Use Cases:** High-concurrency, large-context requirements, maximum quality
 
 **Tier 4: Baseline (Development Only)**
+
 ```toml
 [agent.config]
 # Use Ollama defaults
@@ -822,6 +834,7 @@ temperature = 0.6
 ### 9.2 Optimization Workflow
 
 **Step 1: Establish Baseline**
+
 ```bash
 # Run baseline configuration
 cargo run --release -- baseline --runs 3
@@ -840,6 +853,7 @@ cat baseline_default/data/metrics.json
 Use decision matrix from Section 9.1 based on constraints.
 
 **Step 4: Validate with A/B Testing**
+
 ```bash
 # Run baseline vs optimized
 cargo run --release -- baseline --runs 10
@@ -858,6 +872,7 @@ cargo run --release -- compare baseline_default optimized
 ### 9.3 Advanced Optimization Techniques
 
 **Technique 1: Model Warmth Management**
+
 ```rust
 // Pre-warm model with dummy inference
 async fn warm_model(client: &ClientType, config: &AgentConfig) -> Result<()> {
@@ -875,6 +890,7 @@ async fn warm_model(client: &ClientType, config: &AgentConfig) -> Result<()> {
 ```
 
 **Technique 2: Batch Processing**
+
 ```rust
 // Process multiple agents in parallel (when concurrent)
 let futures: Vec<_> = agents.into_iter()
@@ -885,6 +901,7 @@ let results = futures::future::join_all(futures).await;
 ```
 
 **Technique 3: Prompt Caching**
+
 ```rust
 // Cache common prompt components to reduce prompt eval time
 static PROMPT_CACHE: OnceCell<HashMap<String, String>> = OnceCell::new();
@@ -895,6 +912,7 @@ fn get_cached_prompt(key: &str) -> &'static str {
 ```
 
 **Technique 4: Response Streaming Optimization**
+
 ```rust
 // Process tokens as they arrive (future enhancement)
 async fn stream_process(client: &ClientType) -> Result<()> {
@@ -1099,6 +1117,7 @@ PASS **Assessed.** Throughput: High confidence (CV < 3%). TTFT: Low confidence (
 ### 11.3 Production Recommendations
 
 **Configuration:**
+
 ```toml
 # Recommended Production Config (Tier 1)
 [agent]
@@ -1178,6 +1197,7 @@ See Section 4.1 for comprehensive results table with:
 ### Appendix B: Workflow Implementation Details
 
 **Data Ingestion Function:**
+
 ```rust
 pub async fn ingest_benchmarks(root: &Path) -> Result<BenchmarkDataset> {
     let mut dataset = BenchmarkDataset::default();
@@ -1209,6 +1229,7 @@ pub async fn ingest_benchmarks(root: &Path) -> Result<BenchmarkDataset> {
 ```
 
 **Metrics Collection Structure:**
+
 ```rust
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AgentExecution {
@@ -1255,26 +1276,31 @@ pub struct AggregateMetrics {
 ### Appendix C: Statistical Formulas
 
 **Mean:**
+
 ```
 mu = (Sigma xi) / n
 ```
 
 **Standard Deviation:**
+
 ```
 sigma = sqrt[(Sigma(xi - mu)^2) / (n - 1)]
 ```
 
 **Coefficient of Variation:**
+
 ```
 CV = (sigma / mu) x 100%
 ```
 
 **Throughput:**
+
 ```
 throughput = tokens_generated / eval_duration_seconds
 ```
 
 **TTFT (Time-to-First-Token):**
+
 ```
 TTFT = load_duration + prompt_eval_duration + time_to_first_token
 ```
@@ -1306,6 +1332,7 @@ TTFT = load_duration + prompt_eval_duration + time_to_first_token
 ### Appendix E: Raw Data Availability
 
 All raw data, metrics JSON files, and generated reports available at:
+
 ```
 Demo_rust_agent/runs/tr109_rust_full/
 |-- baseline_default/

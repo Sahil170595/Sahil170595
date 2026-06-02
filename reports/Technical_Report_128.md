@@ -26,7 +26,7 @@ TR108--TR127 characterized LLM inference under controlled, single-shot condition
 
 **Phase 3 (Thermal Stability)** holds each model at ~80% of its Phase 1 saturation rate for 180 seconds under constant periodic arrivals. GPU temperature peaks at 66 degrees C --- well below the 80 degrees C throttle threshold. No thermal throttling is detected. An unexpected finding: qwen2.5-1.5b's decode throughput **increases 66% over 143 requests** (167 to 275 tok/s), while the other two models remain flat. This model-specific warmup effect --- which is not GPU clock ramp, not JIT, and not model reloading --- produces the -27.7% wall latency drift (p < 0.0001) and warrants standalone investigation.
 
-**Phase 4 (Streaming Performance)** compares batch vs stream response modes at 3 arrival rates and measures TTFT (time to first token) under load. Streaming adds **no significant wall-clock overhead** --- 0 out of 9 comparisons reach significance after Holm--Bonferroni correction. TTFT amplification reaches **29.9x** at 2.0 req/s (llama3.2-3b), which is pure queueing delay: prompt evaluation speed is unchanged, but requests wait longer in the queue before the GPU serves them. Inter-chunk latency is reported honestly as ichunk (not inter-token), acknowledging that TCP buffering batches multiple tokens per NDJSON chunk.
+**Phase 5 (Streaming Performance)** compares batch vs stream response modes at 3 arrival rates and measures TTFT (time to first token) under load. Streaming adds **no significant wall-clock overhead** --- 0 out of 9 comparisons reach significance after Holm--Bonferroni correction. TTFT amplification reaches **29.9x** at 2.0 req/s (llama3.2-3b), which is pure queueing delay: prompt evaluation speed is unchanged, but requests wait longer in the queue before the GPU serves them. Inter-chunk latency is reported honestly as ichunk (not inter-token), acknowledging that TCP buffering batches multiple tokens per NDJSON chunk.
 
 **Phase 5 (Multi-Turn Context Accumulation)** tests full vs sliding-window (last 3 turns) context strategies across 5- and 10-turn conversations. Under full context, prompt token counts grow linearly from ~35 to ~1,365 tokens over 10 turns. Sliding-window shows a suggestive reduction for llama3.2-1b at turn 9 (5.9%, d = 1.12, p = 0.042, n=8) but this would not survive Bonferroni correction across the 3 models tested (threshold = 0.017). The other two models show no benefit (0.4--0.5%, p > 0.2). More conversations are needed to draw firm conclusions about sliding-window efficacy.
 
@@ -136,8 +136,8 @@ TR128 is the production workload reference for the Banterhearts research program
 5. [M/D/1 Deviation & Queue Analysis (Phase 2)](#5-md1-deviation--queue-analysis-phase-2) --- Theory vs reality
 6. [Thermal Stability (Phase 3)](#6-thermal-stability-phase-3) --- Sustained load, drift analysis
 7. [GPU Metrics Summary](#7-gpu-metrics-summary) --- Temperature, clock, power, VRAM
-8. [Streaming Performance (Phase 4)](#8-streaming-performance-phase-4) --- TTFT amplification, stream vs batch
-9. [Inter-Chunk Latency (Phase 4)](#9-inter-chunk-latency-phase-4) --- ichunk honesty, jitter
+8. [Streaming Performance (Phase 5)](#8-streaming-performance-phase-4) --- TTFT amplification, stream vs batch
+9. [Inter-Chunk Latency (Phase 5)](#9-inter-chunk-latency-phase-4) --- ichunk honesty, jitter
 10. [Multi-Turn Degradation (Phase 5)](#10-multi-turn-degradation-phase-5) --- Per-turn latency curves
 11. [Context Management Strategies (Phase 5)](#11-context-management-strategies-phase-5) --- Full vs sliding-window
 
@@ -223,7 +223,7 @@ For NUM_PARALLEL > 1, we test the assumption that effective service rate scales 
 
 ### Multiple Comparison Correction
 
-Phase 2 performs 30 pairwise tests (3 models x 5 rates x 2 NP comparisons). Phase 4 performs 9 tests (3 models x 3 rates). The Holm--Bonferroni step-down procedure is applied within each family:
+Phase 2 performs 30 pairwise tests (3 models x 5 rates x 2 NP comparisons). Phase 5 performs 9 tests (3 models x 3 rates). The Holm--Bonferroni step-down procedure is applied within each family:
 
 1. Sort p-values ascending: p_(1) <= p_(2) <= ... <= p_(k)
 2. Reject p_(i) if p_(i) < alpha / (k - i + 1)
@@ -320,7 +320,7 @@ Use TR128 in three passes:
 
 **GPU instrumentation runs continuously.** `nvidia-smi` is polled every 1.0 second throughout all phases, recording GPU temperature, clock speed, utilization percentage, power draw, and VRAM usage. Thermal throttle detection uses a conservative threshold: temperature > 80 degrees C AND clock speed < 90% of peak simultaneously. Single temperature spikes without clock degradation are not classified as throttling.
 
-**Arrival patterns are carefully chosen per phase.** Phase 2 uses Poisson arrivals (realistic bursty traffic) to stress the queue. Phase 3 uses periodic arrivals (constant rate) to isolate thermal effects from arrival-pattern variance. Phase 4 uses Poisson arrivals again (same as Phase 2 for comparability).
+**Arrival patterns are carefully chosen per phase.** Phase 2 uses Poisson arrivals (realistic bursty traffic) to stress the queue. Phase 3 uses periodic arrivals (constant rate) to isolate thermal effects from arrival-pattern variance. Phase 5 uses Poisson arrivals again (same as Phase 2 for comparability).
 
 **Inter-chunk honesty.** We report inter-*chunk* latency (ichunk), not inter-*token* latency (ITL). TCP buffering at the OS level means each `readline()` call on the HTTP response may return a chunk containing multiple tokens. Only TTFT (first chunk) reliably corresponds to a single event (prefill completion). This is a deliberate methodological choice --- we prefer honest measurement over inflated precision claims.
 
@@ -739,7 +739,7 @@ The GPU is generating the same number of tokens (128) but **decoding 66% faster*
 | Clock range | 420--2,550 MHz |
 | Peak power | 149.3 W |
 
-**Note:** Phase 4 recorded one 81 degrees C sample (SS7), but this is outside the Phase 3 thermal stability test and likely coincides with model loading or a system-level thermal event. Phase 3 --- the dedicated thermal test --- peaked at 66 degrees C.
+**Note:** Phase 5 recorded one 81 degrees C sample (SS7), but this is outside the Phase 3 thermal stability test and likely coincides with model loading or a system-level thermal event. Phase 3 --- the dedicated thermal test --- peaked at 66 degrees C.
 
 **Observations:**
 
@@ -768,15 +768,15 @@ This section provides a cross-phase summary of GPU behavior, showing that hardwa
 
 1. **VRAM usage is stable across all phases** (4,894--6,508 MB). The range reflects different model sizes being loaded and unloaded: llama3.2-3b uses the most VRAM (~6.5 GB), llama3.2-1b uses the least (~4.9 GB). No memory leaks detected under sustained operation.
 
-2. **Phase 4 shows the highest temperature (81 degrees C)** and power (161.7 W peak). This single-sample temperature spike exceeds the 80-degree throttle threshold but does not meet the full throttle definition (temp > 80 AND clock < 90% of peak simultaneously). It is likely a transient spike during model loading or a concurrent system process.
+2. **Phase 5 shows the highest temperature (81 degrees C)** and power (161.7 W peak). This single-sample temperature spike exceeds the 80-degree throttle threshold but does not meet the full throttle definition (temp > 80 AND clock < 90% of peak simultaneously). It is likely a transient spike during model loading or a concurrent system process.
 
 3. **NP=2 and NP=4 show lower peak clocks (795 MHz) than NP=1 (2,550 MHz).** This is an artifact of nvidia-smi sampling timing relative to Ollama restart cycles, not a systematic difference in GPU behavior during inference.
 
 ---
 
-## 8. Streaming Performance (Phase 4)
+## 8. Streaming Performance (Phase 5)
 
-Phase 4 tests two questions: (1) does streaming add wall-clock overhead compared to batch mode, and (2) how does TTFT (time to first token) behave under increasing load? Three arrival rates (0.5, 1.0, 2.0 rps) are tested with Poisson arrivals, each model in both batch (`stream: false`) and stream (`stream: true`) modes.
+Phase 5 tests two questions: (1) does streaming add wall-clock overhead compared to batch mode, and (2) how does TTFT (time to first token) behave under increasing load? Three arrival rates (0.5, 1.0, 2.0 rps) are tested with Poisson arrivals, each model in both batch (`stream: false`) and stream (`stream: true`) modes.
 
 ### 8.1 Stream vs Batch Wall Latency
 
@@ -848,7 +848,7 @@ TTFT = time from request submission to the first non-empty NDJSON chunk. This re
 
 ---
 
-## 9. Inter-Chunk Latency (Phase 4)
+## 9. Inter-Chunk Latency (Phase 5)
 
 > **Caveat:** These are inter-*chunk* latencies, not inter-*token* latencies. TCP buffering means each NDJSON line read may contain tokens that were generated as a batch on the GPU. Only TTFT is a reliable client-side timing metric. Inter-chunk measurements are reported for completeness but should not be interpreted as per-token generation latency.
 
@@ -1127,7 +1127,7 @@ Cold-start events are detected when the first request per model per phase has la
 | qwen2.5-1.5b | P4 | 2,125 | 1,055 | 2.01 | **YES** |
 | qwen2.5-1.5b | P5 | 1,885 | 646 | 2.92 | **YES** |
 
-**6 cold-start events detected** (ratio > 2x), primarily in Phase 4 and Phase 5 where models are loaded fresh for streaming and multi-turn testing. The 3 warmup requests per model mitigate cold-start effects for aggregate statistics, but the first *measured* request after a phase transition sometimes captures residual loading overhead.
+**6 cold-start events detected** (ratio > 2x), primarily in Phase 5 and Phase 5 where models are loaded fresh for streaming and multi-turn testing. The 3 warmup requests per model mitigate cold-start effects for aggregate statistics, but the first *measured* request after a phase transition sometimes captures residual loading overhead.
 
 Phase 2 shows inverted ratios (first request < median rest) because Phase 2's first request arrives at the lowest rate (0.5 rps) while the median is dominated by high-rate measurements (5--10 rps) with much higher queueing delay.
 
@@ -1378,7 +1378,7 @@ python research/tr128/run.py --skip-phases
 | Phase 1 (Baseline) | `research/tr128/run_baseline.py` |
 | Phase 2 (Concurrency) | `research/tr128/run_concurrency.py` |
 | Phase 3 (Thermal) | `research/tr128/run_thermal.py` |
-| Phase 4 (Streaming) | `research/tr128/run_streaming.py` |
+| Phase 5 (Streaming) | `research/tr128/run_streaming.py` |
 | Phase 5 (Multi-Turn) | `research/tr128/run_multiturn.py` |
 | Analysis | `research/tr128/analyze.py` |
 | Report generator | `research/tr128/generate_report.py` |
@@ -1484,7 +1484,7 @@ phase3:
   prompt_tokens_low: 100
   prompt_tokens_high: 300
 
-# Phase 4: Streaming TTFT (honest measurement)
+# Phase 5: Streaming TTFT (honest measurement)
 # TTFT is reliable. Inter-chunk latency reported as ichunk (NOT inter-token).
 # 3 models x 3 rates x 2 modes x 30 req = 540 rows, ~20 min
 phase4:
@@ -1537,6 +1537,6 @@ output_dir: research/tr128/results
 5. TR127: Long-Context Performance Characterization --- context-length scaling, Ollama prefill exponents, VRAM spillover discovery. Used for cross-validation (SS12) and context scaling reference.
 6. Erlang, A.K. (1909). "The theory of probabilities and telephone conversations." *Nyt Tidsskrift for Matematik B*, 20. Foundational queueing theory applied to M/D/1 predictions in SS5.
 7. Cohen, J. (1988). *Statistical Power Analysis for the Behavioral Sciences* (2nd ed.). Hillsdale, NJ: Erlbaum. Effect size thresholds (negligible/small/medium/large) used throughout.
-8. Holm, S. (1979). "A simple sequentially rejective multiple test procedure." *Scandinavian Journal of Statistics*, 6(2), 65--70. Holm--Bonferroni correction applied to Phase 2 (30 tests) and Phase 4 (9 tests).
+8. Holm, S. (1979). "A simple sequentially rejective multiple test procedure." *Scandinavian Journal of Statistics*, 6(2), 65--70. Holm--Bonferroni correction applied to Phase 2 (30 tests) and Phase 5 (9 tests).
 
 ---

@@ -462,6 +462,7 @@ Acknowledged limitation; TR128 tests production workload patterns but on the sam
 ### 8.1 Deployment Guidance (Single-Hardware, Constrained Scope)
 
 **Best-performing in this benchmark for cost-optimized workloads:**
+
 ```
 Backend: transformers-gpu-compile
 Config:
@@ -474,6 +475,7 @@ Caveat: Tested on tiny-gpt2 (124M) only. Results may not generalize to larger mo
 ```
 
 **Best-performing in this benchmark for p50 SLA workloads:**
+
 ```
 Backend: transformers-gpu
 Config:
@@ -486,6 +488,7 @@ Caveat: Tested on tiny-gpt2 (124M) only. Results may not generalize to larger mo
 ```
 
 **Best-performing in this benchmark for multi-model flexibility:**
+
 ```
 Backend: ollama
 Config:

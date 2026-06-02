@@ -1451,6 +1451,7 @@ The following matrix summarizes recommended actions by deployment scenario:
 | **Analysis passes** | 28 |
 
 **Reproduction commands:**
+
 ```bash
 # Full run (eval + analysis + report)
 python research/tr141/run.py -v
@@ -1663,8 +1664,5 @@ This experiment was conducted on Google Colab using an NVIDIA RTX PRO 6000 Black
 15. **SmolLM2: When Smol Goes Big** (HuggingFace, 2025). Distilled alignment approach for the joint-least-fragile model.
 
 16. **StableLM 2: Stable Language Models for Diverse Applications** (Stability AI, 2024). DPO alignment approach for the joint-least-fragile model in this study.
-
-
-
 
 

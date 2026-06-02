@@ -260,6 +260,7 @@ Five representative gaming scenarios from `prompts/banter_prompts.txt`:
 ### 3.5 System Resource Utilization (q4_0)
 
 **GPU Metrics (during inference):**
+
 ```
 Utilization: 33% average, 93% peak
 Temperature: 54.7degC average, 63degC peak
@@ -268,6 +269,7 @@ Memory Used: ~6-7 GB (model + context buffers)
 ```
 
 **CPU Metrics:**
+
 ```
 Utilization: 13.9% average, 15.4% peak
 Memory: 72.1% average (system total, not LLM-specific)
@@ -823,6 +825,7 @@ START
 ### 7.4 Runtime Optimization
 
 **Pre-Loading Strategy:**
+
 ```python
 # Warmup on service start
 def warmup_model(model_name):
@@ -838,6 +841,7 @@ def warmup_model(model_name):
 ```
 
 **Context Management:**
+
 ```python
 # Minimize context resets
 class ContextualChat:
@@ -856,6 +860,7 @@ class ContextualChat:
 ```
 
 **Batching (Advanced):**
+
 ```python
 # Batch multiple requests (if Ollama supports)
 def batch_generate(model, prompts, batch_size=4):
@@ -872,6 +877,7 @@ def batch_generate(model, prompts, batch_size=4):
 ### 7.5 Caching Strategies
 
 **Response Caching:**
+
 ```python
 from functools import lru_cache
 import hashlib
@@ -901,6 +907,7 @@ class LLMCache:
 ```
 
 **Semantic Caching (Advanced):**
+
 ```python
 # Cache similar prompts (requires embedding model)
 from sentence_transformers import SentenceTransformer
@@ -924,6 +931,7 @@ class SemanticCache:
 ### 7.6 Prompt Engineering for Performance
 
 **Optimize Prompt Length:**
+
 ```python
 # BAD: Verbose prompt (slow prompt eval)
 bad_prompt = """
@@ -938,6 +946,7 @@ good_prompt = "Victory banter after difficult mission: celebratory, <100 words."
 ```
 
 **Instruction Caching:**
+
 ```python
 # Cache system instructions
 SYSTEM_PROMPT = "You are a gaming NPC. Respond with short, witty banter."
@@ -972,6 +981,7 @@ def generate_banter(scenario):
    - A/B test win rates
 
 **Monitoring Implementation:**
+
 ```python
 import time
 from dataclasses import dataclass
@@ -1049,6 +1059,7 @@ class PerformanceMonitor:
 ### 8.2 Configuration Recommendations by Use Case
 
 **Real-Time Chat/Banter (Gaming):**
+
 ```yaml
 Model: gemma3:latest
 Parameters:
@@ -1064,6 +1075,7 @@ Justification:
 ```
 
 **Story Generation (Narrative):**
+
 ```yaml
 Model: llama3.1:8b-instruct-q4_0
 Parameters:
@@ -1078,6 +1090,7 @@ Justification:
 ```
 
 **Quick Responses (UI/UX):**
+
 ```yaml
 Model: gemma3:270m
 Parameters:
@@ -1294,6 +1307,7 @@ Breakeven: ~45 days for 24/7 usage
 ### 9.5 Integration Opportunities
 
 **Game Engine Integration:**
+
 ```cpp
 // Unreal Engine 5 Plugin (Conceptual)
 class UOllamaService : public UActorComponent {
@@ -1308,6 +1322,7 @@ private:
 ```
 
 **Voice Integration:**
+
 ```python
 # Text-to-Speech Pipeline
 async def voice_banter(scenario):

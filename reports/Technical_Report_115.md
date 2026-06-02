@@ -94,6 +94,7 @@ We tested 5 Rust async runtime configurations against dual-Ollama multi-agent wo
 - **Duration:** ~8 hours of benchmark execution
 
 **Configurations Tested:**
+
 ```
 1. baseline_vs_chimera (GPU:80, Ctx:512)
 2. chimera_hetero (GPU:80/100, Ctx:512/1024)
@@ -148,6 +149,7 @@ The 96.3% peak from smol-1KB represents a **single exceptional run** (chimera_ho
 **Best Configurations by Runtime:**
 
 #### Tokio LocalSet (Winner: 93.6%)
+
 ```
 1. chimera_homo_gpu100_ctx512: 93.6% +/- 1.9pp (1.87x speedup)
    -> High GPU, low context = optimal resource balance
@@ -163,6 +165,7 @@ The 96.3% peak from smol-1KB represents a **single exceptional run** (chimera_ho
 LocalSet shows **9.6pp variance** on `gpu80_ctx1024`, indicating thread-pinning can cause **load imbalance** when tasks have heterogeneous durations. Work-stealing (tokio-default) smooths this out (1.1pp variance on same config).
 
 #### Tokio Default (92.9%)
+
 ```
 1. chimera_homo_gpu80_ctx2048: 92.9% +/- 2.1pp (1.86x speedup)
    -> Large context = more work to steal, better utilization
@@ -177,6 +180,7 @@ LocalSet shows **9.6pp variance** on `gpu80_ctx1024`, indicating thread-pinning 
 Work-stealing excels at **load balancing** but incurs **migration overhead**. LocalSet avoids migration but risks **idle threads** if tasks aren't perfectly balanced.
 
 #### Smol + Smol-1KB (92.4-92.5%)
+
 ```
 smol:
 1. chimera_homo_gpu80_ctx512: 92.4% +/- 0.7pp (1.85x speedup)
@@ -189,6 +193,7 @@ smol-1kb:
 Smol-1KB's custom `BytesStream1KB` (accumulates network chunks to 1KB before yielding) shows **identical performance** to smol's default 8KB buffering. Streaming LLM responses are **latency-bound by model generation**, not HTTP chunk size. Python's httpx uses 1KB buffers, but this provides **no advantage**.
 
 #### Async-std (50.0% -- FAILURE)
+
 ```
 All configurations: 50.0% +/- 0.0pp (1.00x speedup)
 ```
@@ -225,6 +230,7 @@ Perfect 50% efficiency = **perfect serialization**. Dual agents ran **sequential
 ### 4.1 Scheduler Architecture Impact
 
 #### Tokio Work-Stealing (Default)
+
 ```rust
 // Conceptual model
 fn schedule_task(task: Task) {
@@ -247,6 +253,7 @@ fn schedule_task(task: Task) {
 **Measured Impact:** 92.9% efficiency, 3.9pp variance
 
 #### Tokio LocalSet (Thread-Pinned)
+
 ```rust
 // Conceptual model
 fn schedule_task(task: !Send Task) {
@@ -269,6 +276,7 @@ fn schedule_task(task: !Send Task) {
 Our workload has **2 long-running agents** -- perfect for pinning. Each agent "owns" a thread, eliminating migration. Variance spike on `gpu80_ctx1024` suggests one agent finished early, leaving idle thread.
 
 #### Smol (Minimal Executor)
+
 ```rust
 // Conceptual model
 fn schedule_task(task: Task) {
@@ -293,6 +301,7 @@ Our 2-agent workload doesn't benefit from complex scheduling. Smol's simplicity 
 ### 4.2 HTTP Client & Buffering Analysis
 
 #### Reqwest's 8KB Buffering (Default)
+
 ```rust
 // Internal reqwest chunking
 impl BytesStream {
@@ -305,6 +314,7 @@ impl BytesStream {
 **Rationale:** HTTP/2 frames are typically 16KB, so 8KB aligns with half-frame reads.
 
 #### Custom 1KB Buffering (Smol-1KB)
+
 ```rust
 pub struct BytesStream1KB {
     inner: reqwest::BytesStream,
@@ -329,6 +339,7 @@ impl BytesStream1KB {
 **Hypothesis (Python):** Smaller chunks = lower TTFT because first token reaches application faster.
 
 **Reality:** LLM generation is **model-bound**, not network-bound. Example:
+
 ```
 Model generation: ~80ms per token
 Network latency:   ~1ms per chunk (8KB or 1KB)
@@ -348,6 +359,7 @@ Python's 99.25% efficiency likely stems from:
 ### 4.3 Async-std Failure Mode Analysis
 
 #### Expected Behavior (Concurrent Execution)
+
 ```
 Agent A: [====HTTP REQUEST====][Process Response]
 Agent B:      [====HTTP REQUEST====][Process Response]
@@ -356,6 +368,7 @@ Efficiency: ~95%
 ```
 
 #### Actual Behavior (Serialized Execution)
+
 ```
 Agent A: [Wait for HTTP bridge][====HTTP REQUEST====][Process]
 Agent B:                                [Wait][====HTTP====][Process]
@@ -365,6 +378,7 @@ Efficiency: 50%
 
 **Root Cause:**
 Reqwest spawns Tokio runtime internally:
+
 ```rust
 // Simplified reqwest internals
 pub fn send(&self, req: Request) -> impl Future {
@@ -377,6 +391,7 @@ pub fn send(&self, req: Request) -> impl Future {
 When called from async-std, this **blocks the async-std executor** waiting for Tokio's response. No true parallelism possible.
 
 **Fix Attempted (HTTP Bridge):**
+
 ```rust
 static TOKIO_HTTP_RUNTIME: Lazy<Runtime> = Lazy::new(|| {
     tokio::runtime::Builder::new_multi_thread()
@@ -428,6 +443,7 @@ Bridge adds **cross-runtime coordination overhead**. Async-std's executor can't 
 
 **Python's GIL Advantage:**
 Python's Global Interpreter Lock is **released during I/O operations**:
+
 ```python
 # Pseudo-code
 def http_request():
@@ -465,6 +481,7 @@ This allows **perfect I/O parallelism** without async overhead. Rust's async tas
 ### 6.2 Effect Size Analysis
 
 **Cohen's d (tokio-localset vs tokio-default):**
+
 ```
 d = (93.6 - 92.9) / sqrt((3.7^2 + 3.9^2) / 2)
 d = 0.7 / 3.8
@@ -497,6 +514,7 @@ d = 0.18  (small effect)
 Deploy **Tokio LocalSet** for production concurrent LLM workloads with **2-4 agents**. Beyond 4 agents, revert to **tokio-default** (work-stealing) to avoid load imbalance.
 
 **Configuration Guide:**
+
 ```rust
 // For 2-agent chimera (recommended)
 #[tokio::main(flavor = "current_thread")]
@@ -647,6 +665,7 @@ Untested. Expect degradation due to load imbalance -- need benchmarking at 8-16 
 **Achievement:** 93.6% (Rust) vs 99.25% (Python) = **94% of target reached**
 
 **Progress Ladder:**
+
 ```
 TR113: 78.4%  (baseline - single Ollama)
 TR114: 95.7%  (+17.3pp via dual-Ollama architecture)
@@ -675,6 +694,7 @@ See attached:
 ### B. Statistical Methods
 
 **Efficiency Calculation:**
+
 ```
 Efficiency = (Sigma Sequential_Time_i) / (Concurrent_Wall_Time x num_agents) x 100%
 
@@ -685,6 +705,7 @@ Where:
 ```
 
 **Speedup Calculation:**
+
 ```
 Speedup = (Sigma Sequential_Time_i) / Concurrent_Wall_Time
 
@@ -695,6 +716,7 @@ Reality = ~1.85x (93% efficiency)
 ### C. Code Artifacts
 
 **Runtime Feature Flags (Cargo.toml):**
+
 ```toml
 [features]
 runtime-tokio-default = ["tokio/full", "reqwest"]
@@ -705,6 +727,7 @@ runtime-smol-1kb = ["smol", "tokio/rt-multi-thread", "http-client-1kb"]
 ```
 
 **HTTP Bridge (async-std/smol):**
+
 ```rust
 static TOKIO_HTTP_RUNTIME: Lazy<Runtime> = Lazy::new(|| {
     tokio::runtime::Builder::new_multi_thread()

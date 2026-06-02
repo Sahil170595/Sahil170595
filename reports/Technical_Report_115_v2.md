@@ -153,6 +153,7 @@ This study addresses:
 ### 2.1 Test Environment
 
 **Hardware Configuration:**
+
 ```
 GPU: NVIDIA GeForce RTX 4080 Laptop
 - VRAM: 12 GB GDDR6X
@@ -189,17 +190,20 @@ Rust: 1.90.0 (stable, x86_64-pc-windows-msvc)
 **Implementation Details:**
 
 **Tokio-default:**
+
 ```rust
 #[tokio::main]
 async fn main() {
     let (result1, result2) = tokio::join!(agent_a(), agent_b());
 }
 ```
+
 - **Scheduler:** Work-stealing (tasks can migrate between threads)
 - **Characteristics:** Most mature, best ecosystem support, standard choice
 - **Theory:** Higher overhead from work-stealing, but better load balancing
 
 **Tokio-localset:**
+
 ```rust
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -210,11 +214,13 @@ async fn main() {
     }).await;
 }
 ```
+
 - **Scheduler:** Thread-pinned (!Send tasks, no migration)
 - **Characteristics:** Lower migration overhead, but risk of load imbalance
 - **Theory:** Reduced context switching -> better performance
 
 **Async-std:**
+
 ```rust
 use async_std::task;
 use once_cell::sync::Lazy;
@@ -228,12 +234,14 @@ async fn main() {
     let (result1, result2) = futures::future::join(agent_a(), agent_b()).await;
 }
 ```
+
 - **Scheduler:** Task-based (non-Tokio)
 - **HTTP Bridge:** Spawns Tokio runtime for reqwest (hard dependency)
 - **Characteristics:** Cross-runtime coordination, 2+ threads for HTTP
 - **Theory:** Alternative to Tokio ecosystem
 
 **Smol:**
+
 ```rust
 fn main() {
     smol::block_on(async {
@@ -241,6 +249,7 @@ fn main() {
     });
 }
 ```
+
 - **Scheduler:** Minimal executor (similar to async-std)
 - **Characteristics:** Smallest binary, simplest implementation
 - **Theory:** Less overhead than Tokio, but still requires Tokio bridge for HTTP
@@ -465,11 +474,13 @@ On **large context (2048 tokens)**, tokio-localset **collapses to 86.43%** (wors
 **Hypothesis 2: HTTP Client Compatibility**
 - **Test:** Inspect reqwest dependency chain
 - **Result:** FAIL Reqwest has **hard dependency** on Tokio reactor
+
   ```toml
   # reqwest/Cargo.toml
   [dependencies]
   tokio = { version = "1", features = ["net", "time"] }
   ```
+
 - **Verdict:** **ROOT CAUSE IDENTIFIED**
 
 **Hypothesis 3: Cross-Runtime Coordination Failure**
@@ -485,6 +496,7 @@ On **large context (2048 tokens)**, tokio-localset **collapses to 86.43%** (wors
 ### 5.3 Technical Explanation
 
 **Async-std Implementation:**
+
 ```rust
 use async_std::task;
 use once_cell::sync::Lazy;
@@ -521,6 +533,7 @@ async fn main() {
 7. Result: Speedup 1.0x, Efficiency 50%
 
 **Why Tokio-native doesn't have this issue:**
+
 ```rust
 #[tokio::main]
 async fn main() {
@@ -567,6 +580,7 @@ Smol runtime, despite achieving 99.87% peak efficiency (nearly perfect), experie
 **Root Cause Investigation:**
 
 From the metrics:
+
 ```json
 {
   "concurrency_speedup": 1.4560946146884854,
@@ -729,6 +743,7 @@ Thread 2 (LocalSet): |###########| Agent 2 (fast)       |-----IDLE-----|
 ```
 
 **With Work-Stealing (tokio-default):**
+
 ```
 Time ->
 Thread 1: |################| Agent 1 subtask 1 |###########| Agent 1 subtask 3
@@ -816,24 +831,28 @@ The "lost performance" is not coordination overhead, but rather **workload chara
 ### 8.3 Architectural Comparison
 
 **Python (asyncio):**
+
 ```python
 async def main():
     agent1 = asyncio.create_task(run_agent_1())
     agent2 = asyncio.create_task(run_agent_2())
     results = await asyncio.gather(agent1, agent2)
 ```
+
 - **Executor:** Single-threaded event loop
 - **Scheduler:** Cooperative (explicit yields via `await`)
 - **Overhead:** Minimal (simple task queue)
 - **Characteristics:** Lower overhead, but no true parallelism
 
 **Rust (tokio-default):**
+
 ```rust
 #[tokio::main]
 async fn main() {
     let (r1, r2) = tokio::join!(run_agent_1(), run_agent_2());
 }
 ```
+
 - **Executor:** Multi-threaded work-stealing
 - **Scheduler:** Preemptive (runtime can interrupt tasks)
 - **Overhead:** Higher (work-stealing queues, task migration)
@@ -893,6 +912,7 @@ async fn main() {
 ### 9.3 Configuration Best Practices
 
 **Optimal Ollama Configuration (from TR114_v2):**
+
 ```toml
 # Dual Ollama (recommended for multi-agent efficiency above 90%)
 [ollama1]
@@ -918,6 +938,7 @@ base_url = "http://localhost:11435"
 ```
 
 **Runtime Configuration:**
+
 ```toml
 [dependencies]
 tokio = { version = "1", features = ["full", "macros", "rt-multi-thread"] }

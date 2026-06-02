@@ -236,6 +236,7 @@ Each configuration tested with baseline (Ollama defaults) vs Chimera-optimized s
 ### 5.1 Performance Distribution
 
 **Throughput Distribution:**
+
 ```
 Min:     97.88 tok/s
 Q1:      98.43 tok/s
@@ -415,12 +416,14 @@ See `research/tr111/artifacts/tr111_v2_summary.csv` for full dataset.
 ### Appendix B: Reproducibility
 
 **Build Rust Agent:**
+
 ```bash
 cd Demo_rust_agent
 cargo build --release
 ```
 
 **Run Benchmark:**
+
 ```bash
 .\target\release\demo_rust_agent.exe \
   --model gemma3:latest \

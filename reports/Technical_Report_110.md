@@ -156,6 +156,7 @@ Tests 1 and 2 reveal a **severe performance degradation mode** at GPU=60 layer a
 
 **Why CTX=1024 Triggers 100% Contention:**
 The context size impact is non-linear due to KV cache memory requirements:
+
 ```
 KV_cache_size = 2 x num_layers x hidden_dim x context_length x sizeof(fp16)
               = 2 x 26 x 2048 x 1024 x 2 bytes
@@ -525,6 +526,7 @@ Falling below 4 GB headroom (as in GPU=60 + CTX=1024 = 4.7 GB) leaves insufficie
 Test 8's 32.7-second TTFT (heterogeneous, 60+80) is worse than Test 2's 31.7 seconds (homogeneous, 60+60) despite identical memory pressure. This reveals **allocation order effects**:
 
 **Homogeneous (Test 2):**
+
 ```
 Agent 1: 3.5 GB at address 0x000000000
 Agent 2: 3.5 GB at address 0x0E0000000 (contiguous)
@@ -532,6 +534,7 @@ Agent 2: 3.5 GB at address 0x0E0000000 (contiguous)
 ```
 
 **Heterogeneous (Test 8):**
+
 ```
 Agent 1: 3.2 GB at address 0x000000000
 Agent 2: 4.2 GB at address 0x0C8000000
@@ -542,6 +545,7 @@ Agent 2: 4.2 GB at address 0x0C8000000
 The 0.2 GB gap is too small for reuse but prevents contiguous allocation for Agent 2, forcing an extra eviction cycle (+1.2 seconds overhead).
 
 **Design Rule:** When deploying heterogeneous agents, **launch larger agent first** to minimize fragmentation:
+
 ```python
 # GOOD: Larger agent allocates first
 await asyncio.gather(
@@ -693,6 +697,7 @@ This explains why TR108's optimal CTX=1024 differs from TR110's optimal CTX=2048
 Temperature impacts throughput minimally in single-agent scenarios (TR108: <2% variance). In concurrent systems, temperature has a **2nd-order effect** through generation length variance:
 
 **Variance Propagation:**
+
 ```
 Generation_length_variance = f(temperature^2)
 Idle_time = max(agent_durations) - min(agent_durations)
@@ -778,6 +783,7 @@ The transition sharpness (from 5% -> 93% contention over just 1 GB increase) ind
 ### 7.1 Deployment Playbook by Goal
 
 **Goal: Maximum Throughput**
+
 ```yaml
 scenario: chimera_homo
 agent_config:
@@ -791,6 +797,7 @@ expected_performance:
 ```
 
 **Goal: Lowest Latency**
+
 ```yaml
 scenario: chimera_homo
 agent_config:
@@ -805,6 +812,7 @@ expected_performance:
 ```
 
 **Goal: Baseline Compatibility**
+
 ```yaml
 scenario: baseline_vs_chimera
 baseline_agent: default_ollama
@@ -834,6 +842,7 @@ expected_performance:
 ### 7.3 Continuous Optimization
 
 **CI/CD Integration Example:**
+
 ```python
 # Test suite for concurrent agents
 def test_concurrent_efficiency():
@@ -981,34 +990,43 @@ This positions Banterhearts as a robust foundation for real-time AI content pipe
 ### B.1 Core Performance Metrics
 
 **Concurrency Speedup:**
+
 ```
 speedup = sequential_estimated_time / concurrent_wall_time
 ```
+
 Where:
 - `sequential_estimated_time` = sum of individual agent durations
 - `concurrent_wall_time` = wall-clock time for parallel execution
 
 **Parallel Efficiency:**
+
 ```
 efficiency = (speedup / num_agents) x 100%
 ```
+
 For 2-agent systems, perfect efficiency = 100% at 2.0x speedup.
 
 **TTFT Delta:**
+
 ```
 ttft_delta = chimera_ttft - baseline_ttft
 ```
+
 Positive values indicate Chimera is slower; negative = faster.
 
 **Throughput Delta:**
+
 ```
 tp_delta = chimera_throughput - baseline_throughput
 ```
+
 Measured in tokens/second.
 
 ### B.2 Resource Metrics
 
 **VRAM Per Agent (Estimated):**
+
 ```
 vram_per_agent = model_base_size + (num_ctx x hidden_dim x 2 x fp16_size) + gpu_layer_overhead
                 = 1.6 GB + (num_ctx x 2048 x 2 x 2 bytes) + (num_gpu x 50 MB)
@@ -1020,16 +1038,20 @@ vram_per_agent = model_base_size + (num_ctx x hidden_dim x 2 x fp16_size) + gpu_
 ### B.3 Statistical Metrics
 
 **Coefficient of Variation (CV):**
+
 ```
 cv = (std_dev / mean) x 100%
 ```
+
 Used to assess run-to-run consistency.
 
 **95% Confidence Interval:**
+
 ```
 CI = mean +/- (1.96 x std_err)
 std_err = std_dev / sqrt(n)
 ```
+
 For n=5 runs, provides reliability bounds.
 
 ---
@@ -1047,9 +1069,11 @@ For n=5 runs, provides reliability bounds.
 We do not assume equal variances between baseline and Chimera runs due to observed heteroscedasticity in TTFT measurements (baseline sigma=2,500ms vs Chimera sigma=150ms in TR109).
 
 **Effect Size Calculation:**
+
 ```
 Cohen's d = (mean_chimera - mean_baseline) / pooled_std_dev
 ```
+
 Thresholds: small (0.2), medium (0.5), large (0.8)
 
 ### C.2 Hypothesis Testing Results
@@ -1107,6 +1131,7 @@ Thresholds: small (0.2), medium (0.5), large (0.8)
 ### E.1 Artifact Locations
 
 **Test Results:**
+
 ```
 banterhearts/demo_multiagent/comprehensive_test_results/
 |-- phase_1_test_001/ ... phase_1_test_018/
@@ -1116,6 +1141,7 @@ banterhearts/demo_multiagent/comprehensive_test_results/
 ```
 
 **Individual Run Structure:**
+
 ```
 phase_X_test_YYY/
 |-- run_1/ ... run_5/
@@ -1130,11 +1156,13 @@ phase_X_test_YYY/
 ### E.2 Execution Command
 
 **Full Test Suite:**
+
 ```bash
 python banterhearts/demo_multiagent/run_comprehensive_tests.py
 ```
 
 **Single Scenario:**
+
 ```bash
 python -m banterhearts.demo_multiagent.run_multiagent_demo \
   --scenario chimera_homo \
@@ -1148,18 +1176,21 @@ python -m banterhearts.demo_multiagent.run_multiagent_demo \
 ### E.3 Prompt Specifications
 
 **DataCollector Agent Prompt (350+/-50 tokens):**
+
 ```
 Analyze the following benchmark CSV data and generate a comprehensive technical report...
 [Detailed instructions for data ingestion, aggregation, statistical analysis]
 ```
 
 **Insight Agent Prompt (450+/-80 tokens):**
+
 ```
 Based on the aggregated benchmark data, provide deep technical insights...
 [Instructions for pattern recognition, performance analysis, optimization recommendations]
 ```
 
 **Generation Prompt (600+/-100 tokens):**
+
 ```
 Synthesize the collected data and insights into a publication-quality markdown report...
 [Formatting guidelines, citation requirements, technical depth expectations]
@@ -1262,6 +1293,7 @@ To reproduce results:
 ### G.2 Complete Test Matrix
 
 **Phase 1 (18 tests):**
+
 ```python
 scenarios = ["baseline_vs_chimera", "chimera_hetero", "chimera_homo"]
 gpu_layers = [60, 80, 120]
@@ -1275,6 +1307,7 @@ for scenario in scenarios:
 ```
 
 **Phase 2 (9 tests):**
+
 ```python
 scenario = "chimera_homo"
 gpu_layers = 80  # best from Phase 1
@@ -1287,6 +1320,7 @@ for ctx in contexts:
 ```
 
 **Phase 3 (3 tests):**
+
 ```python
 # Validation runs for top configs
 configs = [

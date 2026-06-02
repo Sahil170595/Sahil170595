@@ -42,7 +42,7 @@ TR108--TR128 characterized LLM inference under single-request and open-loop arri
 
 **Think-time sweep** (Phase 3, N=4): Inter-request delays improve per-request throughput (each individual LLM call returns faster due to reduced contention) but reduce sustained system throughput due to duty-cycle loss. At think=2000ms, per-request throughput recovers to near-baseline (eta >= 0.98), but agents spend 60--69% of their time idle. The practical implication: natural agent processing time (reasoning, tool calls) between requests is beneficial for per-request latency, but adding artificial delays is counterproductive for total system throughput.
 
-**Key findings:** (1) Total system throughput plateaus at N=2 with <3% gain from N=2 to N=8. (2) Amdahl's Law with s = 0.39--0.54 predicts scaling with R-squared > 0.97. (3) Think-time improves per-request throughput but reduces sustained throughput --- a trade-off, not a free lunch. (4) Fairness is excellent (Jain's index >= 0.997 at N=8). (5) Heterogeneous model assignments show throughput differences, though Phase 4 confounds prevent isolating model-switching overhead.
+**Key findings:** (1) Total system throughput plateaus at N=2 with <3% gain from N=2 to N=8. (2) Amdahl's Law with s = 0.39--0.54 predicts scaling with R-squared > 0.97. (3) Think-time improves per-request throughput but reduces sustained throughput --- a trade-off, not a free lunch. (4) Fairness is excellent (Jain's index >= 0.997 at N=8). (5) Heterogeneous model assignments show throughput differences, though Phase 5 confounds prevent isolating model-switching overhead.
 
 ---
 
@@ -65,13 +65,13 @@ This has immediate implications for multi-agent system design: on consumer hardw
 7. **Think-time is a trade-off, not a free lunch**: Inter-request delays of 100ms improve sustained total throughput by 2--45% (model-dependent), but delays of 2000ms reduce sustained throughput by 2--14% despite near-perfect per-request efficiency.
 8. **qwen2.5-1.5b anomaly**: This model shows a dramatic 45% sustained throughput improvement at think=100ms (175.7 -> 254.1 tok/s total), possibly related to the unexplained 66% decode throughput increase under sustained load observed in TR128.
 9. **GPU tok/s is constant across N**: GPU-side decode throughput (~207/162/114 tok/s) remains flat regardless of N, confirming that contention manifests as queue wait, not decode slowdown.
-10. **Phase 4 confounded**: homo_1b (233.9 tok/s) outperformed Phase 2 N=4 (187.0 tok/s) by 25%, but Ollama restart, warmup sequence, and thermal state changes prevent attributing this to OLLAMA_MAX_LOADED_MODELS alone.
+10. **Phase 5 confounded**: homo_1b (233.9 tok/s) outperformed Phase 2 N=4 (187.0 tok/s) by 25%, but Ollama restart, warmup sequence, and thermal state changes prevent attributing this to OLLAMA_MAX_LOADED_MODELS alone.
 
 ### Key Decisions for Multi-Agent Design
 
 1. **Agent count**: Total system throughput plateaus by N=2. Adding agents beyond N=3 wastes resources.
 2. **Think-time**: Inter-request delays improve per-request throughput but reduce sustained system throughput due to duty-cycle loss. Do not add artificial delays.
-3. **Model heterogeneity**: Prefer homogeneous assignments. Phase 4 confounds prevent isolating model-switching overhead, but the conservative default is same-model-per-GPU.
+3. **Model heterogeneity**: Prefer homogeneous assignments. Phase 5 confounds prevent isolating model-switching overhead, but the conservative default is same-model-per-GPU.
 4. **Scaling prediction**: Use eta(N) = 1 / (s + (1-s)*N) with per-model s from SS5 to predict throughput at untested N.
 5. **Capacity planning**: With average s = 0.46, max speedup is 2.2x. Budget 2 agents per GPU for optimal throughput/latency trade-off.
 
@@ -255,7 +255,7 @@ TR128's open-loop results (e.g., TTFT amplification at 2.0 req/s) cannot directl
 | qwen2.5-1.5b | qwen2.5:1.5b | 1.5B | Qwen-2.5 | ~1.5 GB |
 | llama3.2-3b | llama3.2:3b | 3.2B | LLaMA-3.2 | ~2.4 GB |
 
-All models fit comfortably in 12 GB VRAM individually. Together they require ~5.2 GB (Phase 4 with OLLAMA_MAX_LOADED_MODELS=3), leaving ~6.8 GB headroom.
+All models fit comfortably in 12 GB VRAM individually. Together they require ~5.2 GB (Phase 5 with OLLAMA_MAX_LOADED_MODELS=3), leaving ~6.8 GB headroom.
 
 **Why these models?** They span a 2.7x parameter range (1.2B to 3.2B), use two architectures (LLaMA, Qwen), and are the same models tested in TR128 --- enabling direct cross-validation. All are small enough to avoid VRAM pressure, isolating GPU compute as the bottleneck.
 
@@ -284,7 +284,7 @@ Each agent runs an independent closed loop:
 | 4. Heterogeneous | N=4, mixed model assignments | 4 configs | 480 | Model switching overhead |
 | **Total** | | | **5,310** | |
 
-**Phase transitions:** 5-second cooldown between configurations within a phase. The cooldown allows Ollama's internal state (connection pools, request queues) to drain and prevents one configuration's tail latency from bleeding into the next. Before Phase 4, Ollama is restarted with `OLLAMA_MAX_LOADED_MODELS=3` and all 3 models are warmed up (3 requests each). The restart is necessary because OLLAMA_MAX_LOADED_MODELS can only be set at Ollama startup on Windows.
+**Phase transitions:** 5-second cooldown between configurations within a phase. The cooldown allows Ollama's internal state (connection pools, request queues) to drain and prevents one configuration's tail latency from bleeding into the next. Before Phase 5, Ollama is restarted with `OLLAMA_MAX_LOADED_MODELS=3` and all 3 models are warmed up (3 requests each). The restart is necessary because OLLAMA_MAX_LOADED_MODELS can only be set at Ollama startup on Windows.
 
 **Ordering within Phase 2:** Configurations are run in ascending N order (N=1, 2, 3, ..., 8) for each model, and models are cycled in a fixed order (llama3.2-1b, qwen2.5-1.5b, llama3.2-3b). This creates 24 sequential configurations. The fixed ordering means temporal effects (GPU warming, OS state changes) are confounded with N and model --- but the effect sizes are so large (Cohen's d > 15) that temporal drift cannot explain the results.
 
@@ -561,7 +561,7 @@ The near-perfect fairness (J >= 0.997) holds under TR129's specific conditions. 
 
 1. **Priority scheduling:** If Ollama or the backend implements request priorities (e.g., premium users get higher priority), fairness would decrease proportionally to the priority skew.
 2. **Variable prompt lengths:** TR129 uses 100--300 token prompts (2:1 range). If one agent sends 50-token prompts and another sends 4,000-token prompts, the long-prompt agent's requests would dominate GPU time during prompt evaluation, potentially starving short-prompt agents.
-3. **Model switching:** In heterogeneous configurations, model loading/unloading could create bursts of latency for agents whose model was evicted. This was partially tested in Phase 4 but confounded.
+3. **Model switching:** In heterogeneous configurations, model loading/unloading could create bursts of latency for agents whose model was evicted. This was partially tested in Phase 5 but confounded.
 4. **Memory pressure:** If VRAM fills (e.g., with 7B+ models or long contexts), OOM-triggered eviction could selectively delay some agents. TR127 showed VRAM spillover causes non-linear latency degradation.
 
 **The practical takeaway:** Monitor Jain's index in production. If it drops below 0.99 (indicating >1% throughput variance across agents), investigate whether one of the above factors is creating systematic unfairness.
@@ -737,7 +737,7 @@ The magnitude of this effect differs dramatically by model:
 
 ## SS9: Heterogeneous Model Analysis
 
-Phase 4 tests N=4 agents with mixed model assignments, using OLLAMA_MAX_LOADED_MODELS=3 to pre-load all models into VRAM simultaneously (~5.2 GB total, within 12 GB budget).
+Phase 5 tests N=4 agents with mixed model assignments, using OLLAMA_MAX_LOADED_MODELS=3 to pre-load all models into VRAM simultaneously (~5.2 GB total, within 12 GB budget).
 
 ### 9.1 Configuration Summary
 
@@ -774,7 +774,7 @@ How does total throughput break down by model in mixed configurations? This matt
 - The 1b agents get higher throughput because the model decodes faster per token, even in a mixed environment.
 
 **mixed_size (2x 1b + 2x 3b):** Total 178.0 tok/s
-- This is the lowest total throughput among Phase 4 configs.
+- This is the lowest total throughput among Phase 5 configs.
 - The 3b model's longer decode time means the GPU spends more time per token on 3b requests, reducing the total token production rate.
 - The 1b agents are "held back" by sharing the GPU with the slower 3b agents.
 
@@ -794,15 +794,15 @@ How does total throughput break down by model in mixed configurations? This matt
 
 ### 10.1 The Comparison
 
-Compares homo_1b (Phase 4, with OLLAMA_MAX_LOADED_MODELS=3) vs N=4 llama3.2-1b (Phase 2, default config):
+Compares homo_1b (Phase 5, with OLLAMA_MAX_LOADED_MODELS=3) vs N=4 llama3.2-1b (Phase 2, default config):
 
-| Metric | Phase 2 (N=4, default) | Phase 4 (homo_1b, MAX_LOADED=3) |
+| Metric | Phase 2 (N=4, default) | Phase 5 (homo_1b, MAX_LOADED=3) |
 |--------|------------------------|----------------------------------|
 | Mean eff. tok/s | 46.8 | 58.5 |
 | 95% CI | [45.6, 47.9] | [57.2, 59.8] |
 | N samples | 120 | 120 |
 
-- **Difference:** +25.1% (Phase 4 faster)
+- **Difference:** +25.1% (Phase 5 faster)
 - **t-statistic:** -13.58
 - **p-value:** < 0.0001
 - **Cohen's d:** -1.75 (large effect)
@@ -811,11 +811,11 @@ Compares homo_1b (Phase 4, with OLLAMA_MAX_LOADED_MODELS=3) vs N=4 llama3.2-1b (
 
 **This comparison has several confounds that prevent attributing the 25% improvement to OLLAMA_MAX_LOADED_MODELS alone:**
 
-1. **Ollama restart:** Phase 4 begins with a fresh Ollama instance (restarted to set OLLAMA_MAX_LOADED_MODELS=3). Phase 2 runs on the original instance that has been serving requests for ~5 minutes. A fresh Ollama instance may have different memory allocation patterns, cleaner internal state, or different CUDA graph caches.
+1. **Ollama restart:** Phase 5 begins with a fresh Ollama instance (restarted to set OLLAMA_MAX_LOADED_MODELS=3). Phase 2 runs on the original instance that has been serving requests for ~5 minutes. A fresh Ollama instance may have different memory allocation patterns, cleaner internal state, or different CUDA graph caches.
 
-2. **Temporal ordering:** Phase 4 runs ~60 minutes into the experiment (after Phases 1--3). GPU thermal state, system memory fragmentation, and OS scheduler state may differ. However, we saw no thermal throttling in TR128 (peak 66C), so thermal effects are unlikely.
+2. **Temporal ordering:** Phase 5 runs ~60 minutes into the experiment (after Phases 1--3). GPU thermal state, system memory fragmentation, and OS scheduler state may differ. However, we saw no thermal throttling in TR128 (peak 66C), so thermal effects are unlikely.
 
-3. **Warmup sequence:** Phase 4 warms all 3 models (3 requests each) before starting. Phase 2 warms only the target model. The all-model warmup may pre-populate GPU caches or CUDA contexts differently.
+3. **Warmup sequence:** Phase 5 warms all 3 models (3 requests each) before starting. Phase 2 warms only the target model. The all-model warmup may pre-populate GPU caches or CUDA contexts differently.
 
 4. **MAX_LOADED_MODELS itself:** With 3 models loaded in VRAM, Ollama may make different memory allocation decisions (e.g., fixed VRAM partitioning vs dynamic allocation). This could improve or degrade performance depending on the model.
 
@@ -840,9 +840,9 @@ To isolate the MAX_LOADED_MODELS effect, a follow-up experiment should:
 | Phase 1 (Baseline) | 6,505 | 6,509 | 1.6 | Stable: single model loaded |
 | Phase 2 (Scaling) | 3,101 | 6,514 | 1,319 | High variance: model cycling across 24 configs |
 | Phase 3 (Think-Time) | 4,181 | 4,920 | 778 | Moderate: single model with variable load |
-| Phase 4 (Heterogeneous) | 6,525 | 6,528 | 3.4 | Stable: all 3 models loaded simultaneously |
+| Phase 5 (Heterogeneous) | 6,525 | 6,528 | 3.4 | Stable: all 3 models loaded simultaneously |
 
-**Observation --- VRAM is NOT the bottleneck:** Peak VRAM usage (6,528 MB) is only 51% of the 12 GB budget. Even with all 3 models loaded in Phase 4, there is 5.6 GB of headroom. The throughput plateau observed in SS4 is caused by GPU compute serialization, not memory pressure. This confirms that for models in this size range (1--3B), VRAM is not a constraint for multi-agent operation. Larger models (7B+) or longer contexts would change this picture (see TR127 for VRAM-limited scaling).
+**Observation --- VRAM is NOT the bottleneck:** Peak VRAM usage (6,528 MB) is only 51% of the 12 GB budget. Even with all 3 models loaded in Phase 5, there is 5.6 GB of headroom. The throughput plateau observed in SS4 is caused by GPU compute serialization, not memory pressure. This confirms that for models in this size range (1--3B), VRAM is not a constraint for multi-agent operation. Larger models (7B+) or longer contexts would change this picture (see TR127 for VRAM-limited scaling).
 
 **Observation --- Phase 2 VRAM variance:** The high std (1,319 MB) reflects model cycling. Ollama loads and unloads models as the 24 configurations cycle through 3 different models at 8 N-levels each. The VRAM fluctuation does not affect performance because each configuration runs for ~30 seconds, long enough for VRAM to stabilize.
 
@@ -855,11 +855,11 @@ GPU temperature across the ~90-minute experiment:
 | Phase 1 (Baseline) | ~10 min | 55--60degC | Light load (N=1, sequential) |
 | Phase 2 (Scaling) | ~40 min | 58--66degC | Sustained heavy load (N=1--8) |
 | Phase 3 (Think-Time) | ~25 min | 60--65degC | Moderate load (N=4 with idle periods) |
-| Phase 4 (Heterogeneous) | ~15 min | 62--66degC | Heavy load (N=4, multi-model) |
+| Phase 5 (Heterogeneous) | ~15 min | 62--66degC | Heavy load (N=4, multi-model) |
 
 **Observation --- no thermal throttling:** Peak temperature (66degC) is well below the RTX 4080 Laptop's thermal throttle point (~83--87degC). This confirms TR128's finding that sustained inference workloads on this GPU do not trigger thermal management. The ~8degC temperature increase from Phase 1 to Phase 2/4 reflects the transition from intermittent (N=1) to continuous (N >= 2) GPU utilization.
 
-**Observation --- temperature does not explain Phase 4's 25% speedup:** Phase 4 runs at 62--66degC, similar to late Phase 2 (also 62--66degC). If anything, higher temperature would slightly *reduce* clock speed (thermal headroom), not increase it. The Phase 4 anomaly (SS10) must have a different explanation.
+**Observation --- temperature does not explain Phase 5's 25% speedup:** Phase 5 runs at 62--66degC, similar to late Phase 2 (also 62--66degC). If anything, higher temperature would slightly *reduce* clock speed (thermal headroom), not increase it. The Phase 5 anomaly (SS10) must have a different explanation.
 
 **Implication:** Thermal throttling is not a concern for multi-agent deployments on this hardware with models in the 1--3B range. Larger models or longer sustained runs might approach thermal limits --- TR122 characterized the thermal profile in detail.
 
@@ -985,9 +985,9 @@ Compared first 5 requests vs remaining requests for each agent-phase combination
 | Phase 3 | llama3.2-1b | 480 | 1 | 0.2% | Clean |
 | Phase 3 | llama3.2-3b | 480 | 119 | 24.8% | See note below |
 | Phase 3 | qwen2.5-1.5b | 480 | 82 | 17.1% | See note below |
-| Phase 4 | llama3.2-1b | 300 | 6 | 2.0% | Acceptable |
-| Phase 4 | llama3.2-3b | 90 | 0 | 0.0% | Clean |
-| Phase 4 | qwen2.5-1.5b | 90 | 7 | 7.8% | Moderate |
+| Phase 5 | llama3.2-1b | 300 | 6 | 2.0% | Acceptable |
+| Phase 5 | llama3.2-3b | 90 | 0 | 0.0% | Clean |
+| Phase 5 | qwen2.5-1.5b | 90 | 7 | 7.8% | Moderate |
 
 **Phase 3 outlier rates explained:** The 17--25% outlier rates for llama3.2-3b and qwen2.5-1.5b in Phase 3 are **not a data quality concern** --- they are an artifact of applying IQR across a deliberately heterogeneous dataset. Phase 3 sweeps think-time from 0 to 2000ms, creating a multimodal distribution: requests at think=0ms have throughput ~39 tok/s while requests at think=2000ms have throughput ~97 tok/s. The IQR method flags the lower-throughput think=0ms samples as outliers relative to the overall distribution. A proper analysis (as in SS7) stratifies by think-time.
 
@@ -1012,7 +1012,7 @@ Compared first 5 requests vs remaining requests for each agent-phase combination
 | Phase 1 | qwen2.5-1.5b | -5.20 | 30.32 | No (p < 0.001) |
 | Phase 2 | All models | 1.89--2.41 | 3.38--6.12 | No (p < 0.001) |
 | Phase 3 | All models | 0.60--1.12 | -0.91 to -0.48 | No (p < 0.001) |
-| Phase 4 | All models | 0.29--2.56 | -0.25 to 11.00 | No (p < 0.001) |
+| Phase 5 | All models | 0.29--2.56 | -0.25 to 11.00 | No (p < 0.001) |
 
 **Observation --- most distributions are non-normal:** Phase 2 shows positive skew (right tail from scheduling outliers), Phase 1 shows negative skew (left tail from occasional fast requests). Phase 1 qwen2.5-1.5b has extreme kurtosis (30.32), indicating heavy tails from rare extreme values. The non-normality justifies using bootstrap or rank-based methods for future work, though the large sample sizes (n >= 30) ensure t-test robustness via CLT.
 
@@ -1123,7 +1123,7 @@ TR129 provides a systematic characterization of closed-loop multi-agent LLM infe
 
 **Q3: How does think-time change the picture?** Think-time improves per-request throughput (less contention per call) but reduces sustained throughput (duty-cycle loss). The trade-off is net negative for artificial delays, but agents with natural processing time between requests benefit from reduced per-call latency. qwen2.5-1.5b shows a model-specific anomaly where even 100ms of think-time yields 45% sustained throughput improvement.
 
-**Q4: Does model heterogeneity affect scaling?** Phase 4 results are confounded and cannot isolate model-switching overhead. The conservative recommendation is homogeneous assignment.
+**Q4: Does model heterogeneity affect scaling?** Phase 5 results are confounded and cannot isolate model-switching overhead. The conservative recommendation is homogeneous assignment.
 
 **Q5: What is the serial fraction?** s = 0.39--0.54 (Amdahl's Law, R-squared 0.97--0.99). The serial fraction is highest for the smallest model (overhead-dominated) and lowest for the largest (compute-dominated). Average s = 0.46, yielding a theoretical maximum speedup of 2.2x.
 
@@ -1163,7 +1163,7 @@ To prevent over-generalization, we explicitly state what TR129's data cannot sup
 2. **Amdahl's Law provides actionable bounds.** The serial fraction s gives a theoretical ceiling on total system throughput (1/s times single-agent).
 3. **Fairness is maintained.** Jain's index >= 0.997 at N=8. No agent starvation.
 4. **Think-time is a trade-off, not a free lunch.** Per-request improvement comes at the cost of sustained throughput.
-5. **Heterogeneous results are confounded.** Cannot isolate model-switching overhead from Phase 4 experimental design.
+5. **Heterogeneous results are confounded.** Cannot isolate model-switching overhead from Phase 5 experimental design.
 6. **Closed-loop differs from open-loop.** TR128's open-loop results cannot predict closed-loop behavior because closed-loop bounds max concurrency to N.
 
 ### 16.3 The One-Number Summary
@@ -1204,7 +1204,7 @@ Based on TR129 results, for a single RTX 4080 Laptop GPU (12 GB) with Ollama:
 
 Use homogeneous agents (same model per GPU). If mixed models are required:
 - Pre-load all models with `OLLAMA_MAX_LOADED_MODELS=<count>`
-- Expect potential throughput differences, but Phase 4 confounds prevent quantifying the overhead
+- Expect potential throughput differences, but Phase 5 confounds prevent quantifying the overhead
 - Budget conservatively: assume mixed configs perform 10--20% worse than homogeneous
 
 ### 17.3 Think-Time Strategy
@@ -1275,7 +1275,7 @@ Track these metrics in production:
 5. **Ollama-specific.** Results depend on Ollama's scheduler and continuous batching. Other backends (vLLM, TGI, TensorRT-LLM) may scale differently, especially those designed for high-concurrency serving with PagedAttention.
 6. **Windows only.** OLLAMA_MAX_LOADED_MODELS behavior and GPU scheduling may differ on Linux (see TR126 for cross-platform comparison).
 7. **Synthetic prompts.** Real agent prompts may have different length distributions and content characteristics.
-8. **Phase 4 confounded.** Heterogeneous and model-switching results are confounded by experimental design. Cannot isolate MAX_LOADED_MODELS effect.
+8. **Phase 5 confounded.** Heterogeneous and model-switching results are confounded by experimental design. Cannot isolate MAX_LOADED_MODELS effect.
 
 ### 18.2 What Would Change on Different Hardware?
 
@@ -1298,7 +1298,7 @@ TR129's results are specific to the RTX 4080 Laptop (12 GB, 256 GB/s bandwidth).
 1. **TR130 (GPU Profiling):** Use NVIDIA Nsight to profile the GPU during N-agent operation, identifying the physical source of the serial fraction (kernel launch overhead? memory bus contention? scheduler serialization?). The residual analysis (SS5.4) provides specific hypotheses to test.
 2. **vLLM/TGI comparison:** Test the same N-agent scaling with backends designed for high-concurrency serving. If vLLM's PagedAttention and continuous batching yield lower serial fractions, this has direct deployment implications. Specifically: does the Amdahl model still hold, or does true batch decode break the single-serial-fraction assumption?
 3. **Variable request sizes:** Test with realistic agent workload distributions (short tool calls mixed with long context updates) to see if request size variability changes the scaling picture. The current uniform 100--300 token prompts may underestimate contention effects from size heterogeneity.
-4. **Controlled Phase 4 redo:** Re-run the heterogeneous experiment with proper controls (same Ollama instance, same warmup, only model assignment varied) to isolate model-switching overhead. This is the lowest-hanging fruit for follow-up work.
+4. **Controlled Phase 5 redo:** Re-run the heterogeneous experiment with proper controls (same Ollama instance, same warmup, only model assignment varied) to isolate model-switching overhead. This is the lowest-hanging fruit for follow-up work.
 5. **Long-context multi-agent:** Combine TR127's context-length sweep with TR129's N-agent scaling. At 16K+ context, VRAM pressure (TR127) and multi-agent contention (TR129) interact in ways neither study captures alone.
 6. **qwen2.5-1.5b anomaly investigation:** Profile the GQA memory access pattern at think=0 vs think=100ms to confirm or reject the memory bank conflict hypothesis (SS7.7).
 

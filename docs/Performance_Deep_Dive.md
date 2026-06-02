@@ -155,7 +155,7 @@ This report presents a comprehensive analysis of quantization strategies and ker
 
 **Benchmark Configuration:**
 - Operation: Linear layer + GELU activation
-- Implementations: 
+- Implementations:
   - Baseline: Sequential linear → GELU
   - Fused: Single kernel combining both operations
 
@@ -228,6 +228,7 @@ This report presents a comprehensive analysis of quantization strategies and ker
 ### 5.1 Recommended Stack
 
 **For Maximum Performance:**
+
 ```python
 # Quantization
 - Use INT8 via bitsandbytes for zero-accuracy-loss compression

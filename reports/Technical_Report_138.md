@@ -15,7 +15,7 @@
 | **Phase 1 Samples** | 17,154 |
 | **Phase 2 Samples** | 5,616 |
 | **Phase 3 Samples** | 5,940 |
-| **Phase 4 Samples** | 2,700 |
+| **Phase 5 Samples** | 2,700 |
 
 ---
 
@@ -30,7 +30,7 @@ The contribution here is narrow and defensible:
 That is the core contribution. The strongest evidence comes from the combination of:
 
 - **Phase 1:** safety-versus-capability asymmetry under controlled vLLM batch sweeps
-- **Phase 4:** explicit prompt-list true batching, which tests whether the effect survives without request-arrival timing confounds
+- **Phase 5:** explicit prompt-list true batching, which tests whether the effect survives without request-arrival timing confounds
 
 The report is deliberately more cautious on two other axes:
 
@@ -61,7 +61,7 @@ The report keeps those boundaries explicit so the contribution claim stays defen
 - **Phase 1:** paired comparisons versus `batch=1`
 - **Phase 2:** paired comparisons across `solo`, `benign`, `adversarial`, and `safety`
 - **Phase 3:** two-way ANOVA for `quantization x concurrency`
-- **Phase 4:** paired comparison between true batching and synchronized-dispatch references
+- **Phase 5:** paired comparison between true batching and synchronized-dispatch references
 - **Holm-Bonferroni** correction for multiple testing
 - **TOST equivalence** at `+/-3pp`
 - **Bootstrap / confidence intervals** where emitted by the generated analysis
@@ -78,11 +78,11 @@ The report keeps those boundaries explicit so the contribution claim stays defen
 
 ## 1. Abstract
 
-This report presents results from TR138, a 31,410-sample experiment testing whether batch-induced output non-determinism in GPU inference disproportionately degrades safety compared to capability. We evaluate 3 instruction-tuned models across two families (Llama 3.2, Qwen 2.5) using controlled vLLM batching (Phase 1-2), Ollama quantized serving under concurrent load (Phase 3), and a compact true-batching validation on explicit vLLM prompt lists (Phase 4).
+This report presents results from TR138, a 31,410-sample experiment testing whether batch-induced output non-determinism in GPU inference disproportionately degrades safety compared to capability. We evaluate 3 instruction-tuned models across two families (Llama 3.2, Qwen 2.5) using controlled vLLM batching (Phase 1-2), Ollama quantized serving under concurrent load (Phase 3), and a compact true-batching validation on explicit vLLM prompt lists (Phase 5).
 
 The main result is that **batch-induced changes are not safety-neutral**. In Phase 1, safety outputs flip at **0.5%** while capability outputs flip at **0.1%**, a **3.6x differential**. The dominant direction is **refusal -> compliance** (**69.0%** of classified flips), meaning the instability is not just harmless wording drift: when classification changes, it more often weakens refusal behavior than strengthens it.
 
-The most important methodological result is Phase 4. Explicit prompt-list true batching still produces **0.8%** safety flips and retains **99.4% agreement** with the synchronized-dispatch signal. This indicates the core safety effect is not merely a scheduler artifact.
+The most important methodological result is Phase 5. Explicit prompt-list true batching still produces **0.8%** safety flips and retains **99.4% agreement** with the synchronized-dispatch signal. This indicates the core safety effect is not merely a scheduler artifact.
 
 Phase 2 is much weaker. The co-batching design is now methodologically coherent, but the empirical differences between `solo`, `benign`, `adversarial`, and `safety` neighbors are small and not statistically convincing in the present sample. Phase 3 shows a separate result: **quantization matters, concurrency does not**. That finding is useful operationally, but it should not be folded back into the batching claim.
 
@@ -134,7 +134,7 @@ The defensible conclusion is:
 
 1. **Batching changes safety behavior more than capability behavior.** Phase 1 safety flips are 0.5% versus 0.1% for capability, a 3.6x differential.
 2. **The unsafe direction dominates.** Refusal -> compliance accounts for 69.0% of classified safety flips.
-3. **The signal survives explicit true batching.** Phase 4 reports 0.8% safety flips under prompt-list batching, with 99.4% agreement to the synchronized-dispatch signal.
+3. **The signal survives explicit true batching.** Phase 5 reports 0.8% safety flips under prompt-list batching, with 99.4% agreement to the synchronized-dispatch signal.
 4. **Co-batching interference is not established.** Phase 2 effects are small, inconsistent, and non-significant.
 5. **Quantization is the real Phase 3 story.** Quantization is significant; concurrency and the interaction term are effectively null.
 6. **Batching is a real but bounded safety tax.** Most outputs remain stable, but the unstable subset is disproportionately safety-relevant.
@@ -145,7 +145,7 @@ The defensible conclusion is:
 |--------|--------|----------|--------|
 | Safety-capability asymmetry detected | Phase 1 flip ratio | 3.6x | PASS |
 | Unsafe directionality detected | Refusal -> compliance share | 69.0% | PASS |
-| True-batch confirmation | Phase 4 flip agreement | 99.4% | PASS |
+| True-batch confirmation | Phase 5 flip agreement | 99.4% | PASS |
 | Co-batch interference established | Phase 2 pairwise tests | Not established | MIXED / NO CLEAR EFFECT |
 | Concurrency hazard established | Phase 3 concurrency ANOVA | p = 1.0000 | REFUTED |
 
@@ -166,10 +166,10 @@ The defensible conclusion is:
 |-------|---------------|--------|
 | Batch-induced changes are safety-neutral | Safety flips exceed capability flips by 3.6x | **REFUTED** |
 | Batching mostly causes harmless wording drift | 69.0% of flips are refusal -> compliance | **REFUTED** |
-| Phase 1 is only a scheduler artifact | Phase 4 true batching retains the signal | **REFUTED** |
+| Phase 1 is only a scheduler artifact | Phase 5 true batching retains the signal | **REFUTED** |
 | Adversarial co-batching clearly harms nearby safety | Phase 2 deltas are small and non-significant | **NOT ESTABLISHED** |
 | Quantization x concurrency interaction is a major combined effect | Interaction p = 1.0000 | **REFUTED** |
-| Batch size is operationally safety-relevant | Phase 1 + Phase 4 jointly support this | **VALIDATED** |
+| Batch size is operationally safety-relevant | Phase 1 + Phase 5 jointly support this | **VALIDATED** |
 
 ### Key decisions for practitioners
 
@@ -177,7 +177,7 @@ The defensible conclusion is:
 2. **Do not assume `temperature=0` eliminates deployment-time safety variance.**
 3. **Treat batching and quantization as distinct safety axes.**
 4. **Do not use TR138 to claim strong co-batching interference.**
-5. **Use Phase 4 as the strongest external-facing evidence in this report.**
+5. **Use Phase 5 as the strongest external-facing evidence in this report.**
 
 ### When to use this report
 
@@ -185,7 +185,7 @@ The defensible conclusion is:
 Use TR138 to answer: no. On this setup it also changes safety behavior.
 
 **Scenario 2: "Does the effect survive true batching?"**  
-Use Phase 4. That is the cleanest mechanism test in the report.
+Use Phase 5. That is the cleanest mechanism test in the report.
 
 **Scenario 3: "Should I worry more about concurrency or quantization?"**  
 Use Phase 3. Quantization matters; concurrency alone does not in this setup.
@@ -236,7 +236,7 @@ For TR138, strong evidence requires all of the following:
 - **A directionally concerning pattern:** changes should lean toward weaker refusal behavior rather than symmetric noise
 - **A mechanism check:** the effect should survive a cleaner batching implementation, not only synchronized request timing
 
-This is why Phase 1 and Phase 4 matter most. Phase 1 gives the asymmetry and directionality. Phase 4 attacks the strongest alternative explanation.
+This is why Phase 1 and Phase 5 matter most. Phase 1 gives the asymmetry and directionality. Phase 5 attacks the strongest alternative explanation.
 
 ### 4.3 What this report does not try to prove
 
@@ -279,7 +279,7 @@ Each phase exists to answer a different version of the same question.
 - **Phase 1** asks whether batch size changes safety behavior more than capability behavior.
 - **Phase 2** asks whether the identity of neighboring prompts matters beyond batch size alone.
 - **Phase 3** asks whether quantized low-precision serving is sensitive to concurrent load.
-- **Phase 4** asks whether the Phase 1 signal survives a cleaner true-batching mechanism.
+- **Phase 5** asks whether the Phase 1 signal survives a cleaner true-batching mechanism.
 
 This structure matters because otherwise the report would mix scheduler timing, neighbor effects, quantization effects, and tensor batching into one claim. The four-phase design is what makes the conclusions separable.
 
@@ -288,7 +288,7 @@ This structure matters because otherwise the report would mix scheduler timing, 
 - **Phase 1 (vLLM):** Synchronized request groups force exact in-flight batch sizes.
 - **Phase 2 (vLLM):** One target prompt is evaluated under four conditions: `solo`, `benign`, `adversarial`, and `safety` co-batches.
 - **Phase 3 (Ollama):** Concurrent API load is used as a separate proxy axis. It measures quantization x concurrency, not true batching.
-- **Phase 4 (vLLM):** A single completions call receives a prompt list, giving explicit true batching without cross-request arrival timing effects.
+- **Phase 5 (vLLM):** A single completions call receives a prompt list, giving explicit true batching without cross-request arrival timing effects.
 
 ### 5.3 Why the safety-capability control arm matters
 
@@ -332,14 +332,14 @@ The exact executed scope for this run was:
 | Phase 1 | All task YAMLs | `953` prompts per model (`468` safety + `485` capability) | `3 models x 6 batch sizes` | `3 x 953 x 6` | `17,154` |
 | Phase 2 | Safety tasks only | `468` targets per model | `3 models x 4 conditions` | `3 x 468 x 4` | `5,616` |
 | Phase 3 | AdvBench + jailbreak subset | `220` prompts per model / quant / concurrency cell | `3 models x 3 quants x 3 concurrency levels` | `3 x 220 x 3 x 3` | `5,940` |
-| Phase 4 | Reduced all-task subset | `450` prompts per model / batch size (`250` safety + `200` capability) | `2 models x 3 batch sizes` | `2 x 450 x 3` | `2,700` |
+| Phase 5 | Reduced all-task subset | `450` prompts per model / batch size (`250` safety + `200` capability) | `2 models x 3 batch sizes` | `2 x 450 x 3` | `2,700` |
 
 The task-level prompt counts that actually executed were:
 
 - Phase 1: AdvBench `100`, jailbreak amplification `120`, BBQ `198`, TruthfulQA `50`, MMLU `285`, ARC-Challenge `200`
 - Phase 2: AdvBench `100`, jailbreak amplification `120`, BBQ `198`, TruthfulQA `50`
 - Phase 3: AdvBench `100`, jailbreak amplification `120`
-- Phase 4: AdvBench `60`, jailbreak amplification `80`, BBQ `80`, TruthfulQA `30`, MMLU `100`, ARC-Challenge `100`
+- Phase 5: AdvBench `60`, jailbreak amplification `80`, BBQ `80`, TruthfulQA `30`, MMLU `100`, ARC-Challenge `100`
 
 This is one place where artifact discipline matters. Earlier shorthand rounded BBQ to `200`, but the run artifacts for TR138 contain `198` executable BBQ rows. The prompt totals above are therefore the source of truth.
 
@@ -352,7 +352,7 @@ The four phases generate rows in materially different ways. That difference is t
 | Phase 1 | vLLM `/v1/completions` with exact synchronized dispatch groups | One prompt evaluated under a forced in-flight dispatch batch of size `1,2,4,8,16,32` | Tail-padding filler outputs when the last group is short | Tests batch-size sensitivity while keeping the dispatch group exact |
 | Phase 2 | vLLM `/v1/completions` with one target plus fillers | One target prompt under one condition: `solo`, `benign`, `adversarial`, or `safety` | All filler responses | Isolates whether neighbor identity changes the target outcome |
 | Phase 3 | Ollama `/api/generate` under semaphore-limited concurrency | One safety prompt under one `quant x concurrency` cell | Nothing besides failed rows | Measures continuous-flow concurrent load, not tensor batching |
-| Phase 4 | Single vLLM `/v1/completions` call with a prompt list | One prompt from an explicit true prompt-list batch | Tail-padding filler outputs when the prompt list is short | Removes cross-request arrival timing and tests the cleaner batching mechanism |
+| Phase 5 | Single vLLM `/v1/completions` call with a prompt list | One prompt from an explicit true prompt-list batch | Tail-padding filler outputs when the prompt list is short | Removes cross-request arrival timing and tests the cleaner batching mechanism |
 
 The most important execution details are easy to miss but central to interpretation:
 
@@ -360,7 +360,7 @@ The most important execution details are easy to miss but central to interpretat
 - **Phase 2** records only the target response; fillers exist only to create the co-batch context.
 - **Phase 2** also counterbalances target position across conditions, so neighbor condition is not confounded with a fixed slot.
 - **Phase 3** is intentionally continuous-flow. The next request starts when a slot opens; it is not a true batch.
-- **Phase 4** sends a prompt list in one completion call and maps returned `choice.index` values back onto retained prompts. That is why it is the mechanism check for the core batching claim.
+- **Phase 5** sends a prompt list in one completion call and maps returned `choice.index` values back onto retained prompts. That is why it is the mechanism check for the core batching claim.
 
 ### 5.7 Row schema, scoring, and judge pipeline
 
@@ -373,7 +373,7 @@ Every retained row in `samples.jsonl` contains enough information to reconstruct
   - Phase 1 / 4: `batch_size`, `dispatch_batch_size`, `tail_padded`
   - Phase 2: `condition`, `co_batch_condition`, `filler_count`, `target_position`
   - Phase 3: `quant`, `concurrency`, `eval_ms`, `submit_time_s`
-  - Phase 4 only: `batch_mode=true_prompt_list`, `true_batching=true`, `analyzed_in_batch`
+  - Phase 5 only: `batch_mode=true_prompt_list`, `true_batching=true`, `analyzed_in_batch`
 
 The scoring path in `research/tr138/analyze.py` is task-specific rather than one global classifier:
 
@@ -408,12 +408,12 @@ The mapping from raw rows to claims is:
 
 | Report question | Row-level comparison | Aggregate output | Artifact key | Resulting claim |
 |-----------------|----------------------|------------------|--------------|-----------------|
-| Do batched outputs differ from `batch=1`? | Match Phase 1 or Phase 4 rows on `(model, sample_id)` and compare text identity | output identity / changed-output rate | `phase1.output_identity`, `phase4.output_identity` | Batching is not byte-invariant |
+| Do batched outputs differ from `batch=1`? | Match Phase 1 or Phase 5 rows on `(model, sample_id)` and compare text identity | output identity / changed-output rate | `phase1.output_identity`, `phase4.output_identity` | Batching is not byte-invariant |
 | Are score changes safety-skewed? | Compare matched non-baseline rows against the same prompt at `batch=1` | safety vs capability flip counts and ratios | `phase1.flip_rates`, `phase4.flip_rates` | Safety is more fragile than capability |
 | Are the flips directionally concerning? | Restrict to refusal tasks whose score changed | refusal -> compliance vs compliance -> refusal counts | `phase1.flip_direction_breakdown` | The dominant direction is unsafe |
 | Do neighbors matter beyond batch size? | Match Phase 2 rows on `(model, sample_id)` across `solo`, `benign`, `adversarial`, `safety` | condition means and paired tests | `phase2.condition_scores`, `phase2.pairwise_comparisons` | Large co-batch interference is not established |
 | Is Phase 3 a concurrency story or a quantization story? | Group Phase 3 rows by `(model, quant, concurrency)` | two-way ANOVA and slope tables | `phase3.anova`, `phase3.slopes` | Quantization matters; concurrency does not |
-| Does the signal survive explicit batching? | Compare Phase 4 rows against Phase 4 `batch=1` and against the synchronized-dispatch signal | true-batch flip rate and flip agreement | `phase4.flip_rates`, `phase4.phase1_alignment` | The core signal survives true batching |
+| Does the signal survive explicit batching? | Compare Phase 5 rows against Phase 5 `batch=1` and against the synchronized-dispatch signal | true-batch flip rate and flip agreement | `phase4.flip_rates`, `phase4.phase1_alignment` | The core signal survives true batching |
 | Are effects practically small or large? | Use score vectors from each phase | TOST and power analysis | `tost_equivalence`, `power_analysis` | Effects are real but small in absolute terms |
 | How trustworthy is the heuristic scoring stack? | Join safety rows with `judge_labels.jsonl` by full record key | kappa and agreement | `judge_agreement` | Judge support is weak and directional only |
 
@@ -421,7 +421,7 @@ The mapping from raw rows to claims is:
 
 ## 6. Models & Configuration
 
-| Model | Family | Params | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Backend |
+| Model | Family | Params | Phase 1 | Phase 2 | Phase 3 | Phase 5 | Backend |
 |-------|--------|--------|---------|---------|---------|---------|---------|
 | llama3.2-1b | llama | 1236M | Yes | Yes | Yes | No | vLLM FP16, Ollama Q8/Q4/Q2 |
 | llama3.2-3b | llama | 3213M | Yes | Yes | Yes | Yes | vLLM FP16, Ollama Q8/Q4/Q2, vLLM true-batch |
@@ -430,7 +430,7 @@ The mapping from raw rows to claims is:
 **Phase 1 tasks:** AdvBench (100), Jailbreak (120), BBQ (198), TruthfulQA (50), MMLU (285), ARC-Challenge (200) = 953 prompts
 **Phase 2 tasks:** AdvBench (100), Jailbreak (120), BBQ (198), TruthfulQA (50) = 468 safety prompts
 **Phase 3 tasks:** AdvBench (100), Jailbreak (120) = 220 safety prompts
-**Phase 4 tasks:** Reduced subset = 450 prompts (250 safety + 200 capability)
+**Phase 5 tasks:** Reduced subset = 450 prompts (250 safety + 200 capability)
 
 ### 6.1 Why these models
 
@@ -550,7 +550,7 @@ What it does not establish on its own:
 - that the same magnitude will appear on larger models or other hardware
 - that every safety domain is equally vulnerable
 
-That is exactly why Phase 4 exists. Phase 1 gives the primary signal; Phase 4 tests whether the signal survives a cleaner mechanism check.
+That is exactly why Phase 5 exists. Phase 1 gives the primary signal; Phase 5 tests whether the signal survives a cleaner mechanism check.
 
 ---
 
@@ -701,7 +701,7 @@ This distinction matters because overclaiming here would weaken the flagship res
 | quantization | 34.960 | high | 1980 |
 | concurrency | 0.000 | low | 1980 |
 
-### 10.2 Phase 4 True-Batching Validation
+### 10.2 Phase 5 True-Batching Validation
 
 Explicit prompt-list true batching produces an overall safety flip rate of **0.8%**.
 Mean flip-agreement with Phase 1 synchronized dispatch is **99.4%**, which indicates how much of the original signal survives without request-arrival timing effects.
@@ -780,7 +780,7 @@ TOST addresses the practical question instead:
 
 That bound is appropriate here for three reasons:
 
-1. The observed Phase 1 and Phase 4 safety shifts are sub-1 percentage point.
+1. The observed Phase 1 and Phase 5 safety shifts are sub-1 percentage point.
 2. A 3pp shift would already be operationally meaningful for many refusal-style deployments.
 3. The bound remains much smaller than the quantization-induced safety movement seen elsewhere in the Banterhearts safety line.
 
@@ -791,7 +791,7 @@ That bound is appropriate here for three reasons:
 | Phase 1 | `batch=1` vs other batch sizes | 10 | 10 | Large absolute batch penalties are ruled out |
 | Phase 2 | `solo` vs `adversarial` | 3 | 3 | Large co-batch interference is ruled out |
 | Phase 3 | concurrency contrasts within quant level | 7 | 18 | Mixed and only weakly informative |
-| Phase 4 | true-batch vs `batch=1` | 3 | 4 | Large true-batch penalties are mostly ruled out |
+| Phase 5 | true-batch vs `batch=1` | 3 | 4 | Large true-batch penalties are mostly ruled out |
 
 ### 11.3 What TOST changes about the Phase 1 claim
 
@@ -811,11 +811,11 @@ That ratio is meaningful, but the TOST results show that absolute movement is st
 
 That is a stronger and more defensible claim than either extreme.
 
-### 11.4 Phase 2 and Phase 4 implications
+### 11.4 Phase 2 and Phase 5 implications
 
 For Phase 2, all three `solo_vs_adversarial` model-level TOST tests are equivalent. This matters because it sharply limits what can be said about adversarial neighbor effects. TR138 does not support a claim that adversarial co-batching creates a large practical drop in refusal behavior.
 
-For Phase 4, three of four explicit true-batching comparisons are also equivalent. That does not weaken the mechanism result. It simply means the true-batching subset supports this narrower conclusion:
+For Phase 5, three of four explicit true-batching comparisons are also equivalent. That does not weaken the mechanism result. It simply means the true-batching subset supports this narrower conclusion:
 
 - true batching reproduces the direction of the Phase 1 signal
 - the true-batching penalty remains small in absolute terms
@@ -851,7 +851,7 @@ Power is a major interpretive constraint in TR138 because the main batch-related
 | Phase 1 | Capability flip rate (aggregate) | 8,730 capability rows | 2.1 | Adequate for modest aggregate shifts |
 | Phase 2 | Safety score by condition | 5,616 rows | 2.3 | Good for moderate co-batch effects |
 | Phase 3 | Safety score grid | 5,940 rows | 2.0 | Good for large quant effects, weak for tiny concurrency effects |
-| Phase 4 | True-batch validation | 2,700 rows | 3.5 | Useful as a mechanism check, not a high-power effect-size study |
+| Phase 5 | True-batch validation | 2,700 rows | 3.5 | Useful as a mechanism check, not a high-power effect-size study |
 
 ### 12.2 What is well powered
 
@@ -860,7 +860,7 @@ TR138 is well powered for:
 - aggregate Phase 1 rate comparisons
 - ruling out large Phase 2 co-batch effects
 - detecting the large Phase 3 quantization effect
-- establishing that Phase 4 is not hiding a very large true-batch penalty
+- establishing that Phase 5 is not hiding a very large true-batch penalty
 
 This is why the report can say with confidence that Phase 3 is mainly a quantization result and that Phase 2 does not contain a large interference effect.
 
@@ -870,7 +870,7 @@ TR138 is not strongly powered for:
 
 - per-batch-size disproportionality tests in Phase 1
 - very small condition deltas inside Phase 2
-- model-by-model true-batching effects in Phase 4
+- model-by-model true-batching effects in Phase 5
 - per-jailbreak slope interpretation
 - prompt-level correlation analysis
 
@@ -883,7 +883,7 @@ Use the power analysis as a filter:
 - strong claims should come from aggregate direction, replication across phases, and large-effect axes
 - weak claims should not be upgraded just because they are interesting
 
-That is why the report treats Phase 1 plus Phase 4 as the core evidence, Phase 2 as negative or weak evidence, and Phase 3 as an auxiliary concurrency study dominated by quantization.
+That is why the report treats Phase 1 plus Phase 5 as the core evidence, Phase 2 as negative or weak evidence, and Phase 3 as an auxiliary concurrency study dominated by quantization.
 
 ---
 
@@ -969,7 +969,7 @@ Latency supports the report in three ways:
 - it shows that safety prompts occupy a different runtime regime from capability prompts
 - it shows that flipped rows cluster among slower rows
 
-But latency does not prove the exact numerical cause of the safety effect. It is supporting evidence, not the core causal test. The core causal evidence remains Phase 1 plus Phase 4.
+But latency does not prove the exact numerical cause of the safety effect. It is supporting evidence, not the core causal test. The core causal evidence remains Phase 1 plus Phase 5.
 
 ---
 
@@ -984,7 +984,7 @@ The judge layer is one of the most important credibility constraints in TR138. I
 | Phase 1 batch sizes | 0.119 to 0.131 | 69.8% to 70.2% | Low agreement quality |
 | Phase 2 co-batch conditions | 0.118 to 0.132 | 69.8% to 70.5% | Low agreement quality |
 | Phase 3 quant levels | 0.110 to 0.251 | 62.2% to 94.4% | Highly unstable across quant levels |
-| Phase 4 true batching | 0.093 to 0.095 | 78.6% to 78.9% | Better raw agreement, still poor kappa |
+| Phase 5 true batching | 0.093 to 0.095 | 78.6% to 78.9% | Better raw agreement, still poor kappa |
 
 The central fact here is not the raw agreement percentage. It is the kappa.
 
@@ -1198,7 +1198,7 @@ It is a "batching changes the system into a slightly different safety regime, wi
 
 That failure shape is harder to reason about than a simple threshold. A threshold can be avoided. A diffuse low-rate perturbation requires monitoring, targeted validation, and stack-matched evaluation.
 
-This is another reason Phase 4 matters. In a threshold-style story, the reduced Phase 4 subset would need to identify the exact cliff. It does not. Instead, it confirms the weaker but more realistic conclusion: true batching preserves the same general sparse-failure shape seen in Phase 1.
+This is another reason Phase 5 matters. In a threshold-style story, the reduced Phase 5 subset would need to identify the exact cliff. It does not. Instead, it confirms the weaker but more realistic conclusion: true batching preserves the same general sparse-failure shape seen in Phase 1.
 
 ---
 
@@ -1352,13 +1352,13 @@ What it does show is that the older framework was incomplete. Batch policy belon
 
 The report is strongest when its limitations are explicit rather than hidden. The main ones are below.
 
-1. **Rare-event regime.** The core Phase 1 and Phase 4 effects are real but small in absolute terms. That limits per-cell significance and threshold-style inference.
+1. **Rare-event regime.** The core Phase 1 and Phase 5 effects are real but small in absolute terms. That limits per-cell significance and threshold-style inference.
 
 2. **Greedy decoding only.** All phases use temperature `0.0`. This isolates numerical instability, but the result applies most directly to deterministic serving rather than sampled generation.
 
 3. **Single hardware environment.** All results come from one RTX 4080 Laptop GPU in a Windows + WSL2 + Docker workflow. Datacenter GPUs may change both the runtime profile and the numerical profile.
 
-4. **Phase 1 is still scheduler-mediated.** Phase 4 addresses this directly, but only on a reduced subset and only for two models.
+4. **Phase 1 is still scheduler-mediated.** Phase 5 addresses this directly, but only on a reduced subset and only for two models.
 
 5. **Phase 3 is not true batching.** It is quantization under concurrent load. The report treats it that way, but the distinction still matters for external interpretation.
 
@@ -1381,7 +1381,7 @@ These limitations weaken ambitious claims. They do not erase the central contrib
 The central contribution survives because it is replicated in the two phases that matter most:
 
 - Phase 1 shows the safety-skewed perturbation under controlled dispatch batching.
-- Phase 4 shows the same general direction under explicit true batching.
+- Phase 5 shows the same general direction under explicit true batching.
 
 That is enough to make batching a real safety variable, even if it is not yet enough to define a universal quantitative law.
 
@@ -1401,7 +1401,7 @@ No. The aggregate safety flip rate is about `0.5%` versus `0.1%` for capability,
 
 **RQ3: Is the main result just a request-scheduler artifact?**
 
-Not entirely. Phase 4 preserves the direction of the effect under explicit prompt-list true batching, though again at a small absolute rate.
+Not entirely. Phase 5 preserves the direction of the effect under explicit prompt-list true batching, though again at a small absolute rate.
 
 **RQ4: Does adversarial co-batching create a strong interference effect?**
 
@@ -1521,9 +1521,9 @@ TR138 is strongest when it drives concrete next steps rather than generic cautio
 
 | Horizon | Follow-up | Why it follows from TR138 |
 |---------|-----------|---------------------------|
-| Immediate | Manually review every behavior-changing safety row from Phase 1 and Phase 4 | The flip set is small enough to audit completely, and judge kappa is too weak to treat the automated labels as final |
+| Immediate | Manually review every behavior-changing safety row from Phase 1 and Phase 5 | The flip set is small enough to audit completely, and judge kappa is too weak to treat the automated labels as final |
 | Immediate | Add stack-matched batch validation to deployment gates | The report establishes that batch condition itself is safety-relevant |
-| Near-term | Replicate Phase 4 on a larger model and one datacenter-class GPU | The main remaining external-validity question is hardware and scale |
+| Near-term | Replicate Phase 5 on a larger model and one datacenter-class GPU | The main remaining external-validity question is hardware and scale |
 | Near-term | Run deterministic-kernel or deterministic-backend A/B tests | This is the cleanest mechanism test for whether the flips are truly numerical in origin |
 | Near-term | Re-run Phase 2 with stronger filler families and backend instrumentation | The current negative result narrows the claim but leaves open smaller neighbor effects |
 | Medium-term | Build a persistent flip registry across reports | TR138 shows that rare but high-value flip rows are the right objects for cross-report comparison |
@@ -1534,7 +1534,7 @@ The best follow-up to TR138 is not "more of the same at bigger scale." It is a m
 
 The highest-value next study would:
 
-1. keep the true-batching Phase 4 path
+1. keep the true-batching Phase 5 path
 2. add human adjudication on every flipped or disagreement row
 3. compare one deterministic kernel path against the current production-like path
 4. replicate on a larger model family or datacenter GPU
@@ -1627,7 +1627,7 @@ After a rerun, the minimum sanity checks are:
 2. `tr138_analysis.json` exists before report generation
 3. `judge_labels.jsonl` reaches `21,480` rows for a full judge pass
 4. Phase 1 aggregate safety flip rate remains near the reported `0.5%`
-5. Phase 4 aggregate true-batch safety flip rate remains near the reported `0.8%`
+5. Phase 5 aggregate true-batch safety flip rate remains near the reported `0.8%`
 6. Phase 3 continues to show quantization significance with null concurrency and interaction terms
 
 ---
@@ -1678,7 +1678,7 @@ Where report prose and generated summaries differ in emphasis, the artifact wins
 | 1 | One prompt evaluated under one exact dispatch batch size | `batch_size`, `dispatch_batch_size`, `tail_padded` | `(model, task_name, sample_id)` against Phase 1 `batch=1` |
 | 2 | One target prompt evaluated under one neighbor condition | `condition`, `co_batch_condition`, `filler_count`, `target_position` | `(model, task_name, sample_id)` across conditions |
 | 3 | One safety prompt evaluated under one `quant x concurrency` cell | `quant`, `concurrency`, `eval_ms`, `submit_time_s` | `(model, task_name, sample_id, quant, concurrency)` |
-| 4 | One prompt evaluated inside one explicit prompt-list batch | `batch_size`, `dispatch_batch_size`, `tail_padded`, `batch_mode`, `true_batching`, `analyzed_in_batch` | `(model, task_name, sample_id)` against Phase 4 `batch=1` and Phase 1 counterparts |
+| 4 | One prompt evaluated inside one explicit prompt-list batch | `batch_size`, `dispatch_batch_size`, `tail_padded`, `batch_mode`, `true_batching`, `analyzed_in_batch` | `(model, task_name, sample_id)` against Phase 5 `batch=1` and Phase 1 counterparts |
 
 This matters because TR138 uses different comparison logic in different phases. The report is only coherent if the reader keeps the unit of comparison aligned to the phase design.
 
@@ -1716,14 +1716,14 @@ The judge does not replace the main analysis labels. That separation is a design
 
 This table is useful because it combines the output-identity story and the safety-asymmetry story in one place. Byte-level instability is common relative to score changes; score changes are the rare but safety-relevant subset.
 
-### B.2 Phase 4 true-batch validation
+### B.2 Phase 5 true-batch validation
 
 | True batch size | Byte-identical (%) | Safety score changes | Capability score changes | Safety flip rate | Capability flip rate | Flip ratio |
 |----------------|--------------------|----------------------|--------------------------|------------------|----------------------|------------|
 | 4 | 91.22 | 4 | 1 | 0.0080 | 0.0025 | 3.2 |
 | 8 | 92.44 | 4 | 0 | 0.0080 | 0.0000 | inf |
 
-### B.3 Phase 4 alignment with synchronized-dispatch signal
+### B.3 Phase 5 alignment with synchronized-dispatch signal
 
 | Model | True batch size | Paired rows | Flip agreement (%) | Score agreement (%) |
 |------|------------------|-------------|--------------------|---------------------|
@@ -1732,7 +1732,7 @@ This table is useful because it combines the output-identity story and the safet
 | qwen2.5-1.5b | 4 | 450 | 99.11 | 99.11 |
 | qwen2.5-1.5b | 8 | 450 | 99.11 | 99.11 |
 
-This is the most important appendix table in the report. It shows why Phase 4 is best read as a mechanism confirmation rather than as a second independent giant sweep.
+This is the most important appendix table in the report. It shows why Phase 5 is best read as a mechanism confirmation rather than as a second independent giant sweep.
 
 ---
 
@@ -1758,7 +1758,7 @@ This appendix is not an exhaustive dump of every generated row. It records the t
 
 This is the cleanest short proof that Phase 3 is a quantization story rather than a concurrency story.
 
-### C.3 Phase 4 true-batch statistical tests
+### C.3 Phase 5 true-batch statistical tests
 
 | Model | True batch size | Chi-squared p | Fisher p | Odds ratio | Significant (uncorrected) |
 |------|------------------|---------------|----------|------------|---------------------------|
@@ -1767,7 +1767,7 @@ This is the cleanest short proof that Phase 3 is a quantization story rather tha
 | qwen2.5-1.5b | 4 | 0.4318 | 0.6326 | 1.8808 | No |
 | qwen2.5-1.5b | 8 | 0.3706 | 1.0000 | 2.4108 | No |
 
-The absence of strong per-cell significance is consistent with the rare-event nature of the main signal. It does not negate the value of Phase 4 as a direction-preserving mechanism check.
+The absence of strong per-cell significance is consistent with the rare-event nature of the main signal. It does not negate the value of Phase 5 as a direction-preserving mechanism check.
 
 ---
 

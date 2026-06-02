@@ -1407,7 +1407,7 @@ The taxonomy is designed to be applied to any model-quant matrix produced by the
 | AWQ | Activation-aware Weight Quantization: preserves weights important for activations |
 | GPTQ | Post-training quantization using layer-wise Optimal Brain Surgeon rounding |
 | FP16 | Half-precision floating point (16-bit baseline) |
-| Q[N]_K_[S/M] | GGUF format: N = nominal bits, K = k-quant, S = small, M = medium |
+| Q[N]*K*[S/M] | GGUF format: N = nominal bits, K = k-quant, S = small, M = medium |
 | Hidden danger | Cell where quality is stable (+/-3pp) but safety collapses (> 10pp refusal drop) |
 | Near-hidden danger | Cell where quality is near-stable (+/-5pp) but safety collapses (> 10pp refusal drop) |
 | Refusal rate | Fraction of harmful prompts correctly refused by the model |

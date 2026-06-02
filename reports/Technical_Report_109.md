@@ -170,6 +170,7 @@ Ollama Version: Latest (as of Oct 2025)
 Test whether Technical Report 108's optimal configuration for Gemma3:latest transfers to agent workflows.
 
 **Technical Report 108 Optimal Configuration:**
+
 ```
 Model: gemma3:latest
 num_gpu: 999 (full offload)
@@ -222,6 +223,7 @@ All cross-section comparisons in this report normalize to the **process-isolatio
 ### 4.1 Sweep Design
 
 **Parameter Grid:**
+
 ```
 num_gpu:     [60, 80, 120]
 num_ctx:     [256, 512, 1024]
@@ -343,6 +345,7 @@ With sigma=0.25 tok/s for baseline and sigma=0.18 tok/s for Chimera, the -0.22 t
 - Structured output requirements
 
 **Optimal Context Size:**
+
 ```
 Single Inference (TR108): 4096 tokens (optimal)
 Agent Workflow (TR109): 512-1024 tokens (optimal)
@@ -370,6 +373,7 @@ Large contexts add evaluation overhead without benefit.
 - Cold start penalties
 
 **Optimal GPU Layers:**
+
 ```
 Single Inference (TR108): 999 layers (full offload)
 Agent Workflow (TR109): 60-80 layers (partial offload)
@@ -400,6 +404,7 @@ while maintaining throughput for multi-step tasks.
 - Balance between coherence and diversity
 
 **Optimal Temperature:**
+
 ```
 Single Inference (TR108): 0.4 (balanced)
 Agent Workflow (TR109): 0.6-0.8 (higher creativity)
@@ -454,6 +459,7 @@ Model warmth benefits were **negated** by:
 4. **Top-p/Top-k:** Fine-tune for output diversity
 
 **Recommended Approach:**
+
 ```python
 # Phase 1: Context size sweep (256, 512, 1024, 2048)
 # Measure: TTFT, throughput, quality
@@ -467,7 +473,7 @@ Model warmth benefits were **negated** by:
 # Measure: Quality scores, creativity
 # Select: Balance quality and diversity
 
-# Phase 4: Statistical validation (>=3 runs)
+# Phase 5: Statistical validation (>=3 runs)
 # Confirm: Performance gains replicate
 ```
 
@@ -491,6 +497,7 @@ Model warmth benefits were **negated** by:
 - **Calculate 95% confidence intervals:** Statistical significance
 
 **Example:**
+
 ```
 Configuration: num_gpu=60, num_ctx=512, temp=0.8
 Runs: 5
@@ -529,6 +536,7 @@ TTFT: 465 +/- 45 ms (95% CI: [420, 510])
 ### 8.1 Agent Workflow Deployment
 
 **Recommended Configuration (Gemma3:latest):**
+
 ```python
 chimera_agent_config = {
     "num_gpu": 60,        # Partial offload for fast load
@@ -568,6 +576,7 @@ chimera_agent_config = {
 ### 8.3 Continuous Optimization
 
 **CI/CD Integration:**
+
 ```yaml
 # Example: GitHub Actions workflow
 agent_performance_test:
@@ -697,6 +706,7 @@ Overall Quality = 0.35 x Technical Depth + 0.25 x Data Analysis + 0.20 x Structu
 - **Citations (20%):** References to source data ensure traceability and credibility
 
 **Technical Depth Scoring:**
+
 ```python
 technical_keywords = [
     'performance', 'throughput', 'latency', 'optimization', 'benchmark',
@@ -711,6 +721,7 @@ def calculate_technical_depth(content):
 ```
 
 **Data Analysis Scoring:**
+
 ```python
 analysis_indicators = [
     'table', 'chart', 'graph', 'metric', 'statistic', 'average', 'median',
@@ -725,6 +736,7 @@ def calculate_data_analysis_score(content):
 ```
 
 **Structure Scoring:**
+
 ```python
 structure_elements = [
     r'^#\s+.*',      # Main title
@@ -804,6 +816,7 @@ All statistical comparisons use **Welch's two-sample t-test** (unequal variances
 ### Appendix F: Reproducibility Notes
 
 **Environment Setup:**
+
 ```bash
 # Required software versions
 ollama version: 0.1.40+

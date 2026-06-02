@@ -148,6 +148,7 @@ While Technical Report 109 (Python) and Technical Report 111 (Rust) establish in
 ### 3.2 Throughput Distribution
 
 **Python Distribution:**
+
 ```
 Q1:  98.87 tok/s
 Q2:  99.19 tok/s (median)
@@ -156,6 +157,7 @@ IQR: 0.42 tok/s
 ```
 
 **Rust Distribution:**
+
 ```
 Q1:  98.43 tok/s
 Q2:  98.88 tok/s (median)
@@ -410,6 +412,7 @@ The 2.7x TTFT difference suggests **different measurement methodology** or **imp
 **Recommendation:** Use both languages strategically
 
 **Pattern 1: Language-per-Service**
+
 ```
 +-------------+     +--------------+     +-------------+
 |   Rust      |---->|   Python     |---->|   Rust      |
@@ -419,12 +422,14 @@ The 2.7x TTFT difference suggests **different measurement methodology** or **imp
 ```
 
 **Pattern 2: Canary Deployment**
+
 ```
 95% traffic --> Rust (proven stable)
  5% traffic --> Python (testing new optimizations)
 ```
 
 **Pattern 3: Workload Routing**
+
 ```
 Latency-sensitive --> Python (better TTFT)
 Batch processing  --> Rust (better consistency)
@@ -479,6 +484,7 @@ chimera_config = {
 ### 8.3 Monitoring Strategy
 
 **Rust Metrics:**
+
 ```
 Yes Throughput stddev (should stay < 0.5%)
 Yes Memory usage (should be stable)
@@ -487,6 +493,7 @@ Yes Error rate (should be near zero)
 ```
 
 **Python Metrics:**
+
 ```
 Yes Peak throughput (track maximum achieved)
 Yes TTFT improvements (validate optimization)

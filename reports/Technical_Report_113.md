@@ -177,6 +177,7 @@ The best baseline_vs_chimera configuration (GPU=120, CTX=512, TEMP=0.6) achieved
    - **Rust (TR113):** Both agents shared a single Ollama instance (port 11434), forcing resource contention at the server level even with tokio's async coordination.
 
 2. **VRAM Allocation Contention:**
+
    ```
    Python (Dual Ollama):
    - Agent 1 (baseline): 3.5 GB on instance 1
@@ -403,6 +404,7 @@ This is **unexpected** for identical agent configurations. Python's homogeneous 
 #### Issue 1: Single Ollama Instance Serialization
 
 **Python (TR110):** Dual Ollama instances (ports 11434/11435) allow **true parallel model loading**:
+
 ```
 Agent 1 -> Ollama Instance 1 (3.5 GB VRAM)
 Agent 2 -> Ollama Instance 2 (4.2 GB VRAM)
@@ -410,6 +412,7 @@ Total: 7.7 GB, zero contention
 ```
 
 **Rust (TR113):** Single Ollama instance forces **sequential handoff**:
+
 ```
 Agent 1 -> Ollama Instance (allocates 3.5 GB)
 Agent 2 -> Waits for Agent 1's prompt eval, then allocates 4.2 GB
@@ -421,6 +424,7 @@ Result: +6-10s TTFT penalty
 #### Issue 2: Tokio Work-Stealing Overhead
 
 Tokio's work-stealing scheduler adds **2-5ms per task switch** when agents compete for HTTP client resources. With 50-100 generation cycles per agent:
+
 ```
 Overhead = 50 cycles x 2ms x 2 agents = 200ms cumulative
 ```
@@ -481,11 +485,13 @@ If deploying Rust multi-agent for non-throughput reasons:
    - **Expected Gain:** +15-18pp efficiency (reaching ~97% to match Python)
 
 2. **Reduce Reqwest Buffer Size:**
+
    ```rust
    let client = Client::builder()
        .buffer_size(1024) // Down from default 8192
        .build()?;
    ```
+
    - **Expected Gain:** +3-5pp efficiency
 
 3. **Use TEMP=0.6 for Homogeneous Agents:**
@@ -493,11 +499,13 @@ If deploying Rust multi-agent for non-throughput reasons:
    - **Expected Gain:** +8-14pp efficiency vs TEMP=0.8
 
 4. **Pin Tokio Workers to Physical Cores:**
+
    ```rust
    tokio::runtime::Builder::new_multi_thread()
        .worker_threads(num_cpus::get_physical())
        .build()
    ```
+
    - **Expected Gain:** +2-3pp efficiency from reduced context switching
 
 **Combined Potential:** Implementing all four optimizations could bring Rust to **90-95% efficiency**, closing the gap with Python.

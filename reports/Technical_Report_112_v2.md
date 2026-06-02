@@ -133,6 +133,7 @@ This study addresses:
 ### 2.1 Hardware Configuration
 
 **Identical Test Environment:**
+
 ```
 GPU: NVIDIA GeForce RTX 4080 Laptop
 - VRAM: 12 GB GDDR6X
@@ -190,6 +191,7 @@ Model: gemma3:latest (Q4_K_M, 4.3B parameters)
 ### 2.3 Test Execution Protocol
 
 **Python Agent Execution:**
+
 ```bash
 # Fresh process isolation
 ollama stop all && sleep 2
@@ -199,6 +201,7 @@ python banterhearts/demo_agent/run_demo.py --runs 3
 ```
 
 **Rust Agent Execution:**
+
 ```bash
 # Fresh process isolation
 ollama stop all && sleep 2
@@ -245,6 +248,7 @@ cargo run --release -- --runs 3
 ### 3.1 Code Structure Comparison
 
 **Python Agent (TR109):**
+
 ```python
 class BaselineAgent(BaseAgent):
     async def run_analysis(self) -> Dict:
@@ -265,6 +269,7 @@ class BaselineAgent(BaseAgent):
 ```
 
 **Rust Agent (TR111_v2):**
+
 ```rust
 async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<AgentExecution> {
     let repo_root = repository_root();
@@ -312,6 +317,7 @@ async fn run_agent_once(client: &ClientType, config: &AgentConfig) -> Result<Age
 ### 3.3 HTTP Client Comparison
 
 **Python (httpx):**
+
 ```python
 async with httpx.AsyncClient(timeout=300) as client:
     response = await client.post(
@@ -322,6 +328,7 @@ async with httpx.AsyncClient(timeout=300) as client:
 ```
 
 **Rust (reqwest):**
+
 ```rust
 let client = reqwest::Client::new();
 let response = client
@@ -367,6 +374,7 @@ response.json::<OllamaResponse>().await?
 ### 4.2 Throughput Distribution Analysis
 
 **Rust Distribution (19 configs):**
+
 ```
 Q1:  114.02 tok/s
 Q2:  114.51 tok/s (median)
@@ -377,6 +385,7 @@ CV:   0.24% (exceptional consistency)
 ```
 
 **Python Distribution (18 configs):**
+
 ```
 Q1:  98.87 tok/s
 Q2:  99.19 tok/s (median)
@@ -696,16 +705,19 @@ CV:   ~2.0% (good consistency)
 ### 8.4 Deployment Complexity
 
 **Rust Deployment:**
+
 ```dockerfile
 FROM scratch
 COPY target/release/demo_rust_agent /agent
 ENTRYPOINT ["/agent"]
 ```
+
 - Single static binary
 - No runtime dependencies
 - ~20 MB container image
 
 **Python Deployment:**
+
 ```dockerfile
 FROM python:3.11-slim
 COPY requirements.txt .
@@ -713,6 +725,7 @@ RUN pip install -r requirements.txt
 COPY banterhearts/ /app/
 ENTRYPOINT ["python", "-m", "banterhearts.demo_agent.run_demo"]
 ```
+
 - Python runtime required
 - Multiple dependencies (httpx, asyncio, pydantic)
 - ~200-300 MB container image
@@ -744,6 +757,7 @@ ENTRYPOINT ["python", "-m", "banterhearts.demo_agent.run_demo"]
 ### 9.2 Optimal Configuration Identification
 
 **Rust Best Config (Tier 1):**
+
 ```toml
 num_gpu = 60
 num_ctx = 256
@@ -757,6 +771,7 @@ Expected Performance:
 ```
 
 **Python Best Config (Tier 1):**
+
 ```python
 chimera_config = {
     "num_gpu": 60,
@@ -865,34 +880,42 @@ Expected Performance:
 ### 10.3 Hybrid Deployment Strategies
 
 **Pattern 1: Development/Production Split**
+
 ```
 Development: Python (fast iteration)
      down (when stable)
 Production: Rust (performance + reliability)
 ```
+
 **Benefit:** Best of both worlds - fast development, reliable production
 
 **Pattern 2: Workload-Based Routing**
+
 ```
 Latency-critical requests -> Rust (58% faster TTFT)
 Batch processing -> Rust (15% faster throughput)
 Experimental features -> Python (fast iteration)
 ```
+
 **Benefit:** Optimize per-workload characteristics
 
 **Pattern 3: Canary Deployment**
+
 ```
 95% traffic -> Rust (proven stable, 15% faster)
 5% traffic -> Python (testing new optimizations)
 ```
+
 **Benefit:** Safe rollout of new configurations
 
 **Pattern 4: Multi-Region Strategy**
+
 ```
 Primary Region: Rust (high traffic, cost-sensitive)
 Development Region: Python (experimentation)
 Edge Locations: Rust (resource-constrained)
 ```
+
 **Benefit:** Right tool for each environment
 
 ---
@@ -1033,6 +1056,7 @@ Edge Locations: Rust (resource-constrained)
 ### 12.1 Rust Production Deployment
 
 **Recommended Configuration:**
+
 ```rust
 // Cargo.toml
 [profile.release]
@@ -1067,6 +1091,7 @@ OllamaOptions {
 ### 12.2 Python Production Deployment
 
 **Recommended Configuration:**
+
 ```python
 # Chimera config from TR109
 chimera_config = {
@@ -1098,22 +1123,26 @@ TIMEOUT = 300
 ### 12.3 Migration Strategy (Python -> Rust)
 
 **Phase 1: Canary Deployment (Weeks 1-2)**
+
 ```
 [ 5% traffic ] -> Rust agent (validation)
 [95% traffic ] -> Python agent (baseline)
 ```
+
 **Success Criteria:**
 - Rust throughput > Python throughput
 - Rust error rate < 0.1%
 - Rust TTFT p95 < 1s
 
 **Phase 2: Progressive Rollout (Weeks 3-6)**
+
 ```
 Week 3: 25% traffic -> Rust
 Week 4: 50% traffic -> Rust
 Week 5: 75% traffic -> Rust
 Week 6: 95% traffic -> Rust
 ```
+
 **Monitoring:**
 - Real-time throughput comparison
 - TTFT percentiles (p50, p95, p99)
@@ -1121,10 +1150,12 @@ Week 6: 95% traffic -> Rust
 - Memory usage trends
 
 **Phase 3: Full Migration (Weeks 7-8)**
+
 ```
 [100% traffic] -> Rust agent
 [ Python warm standby for 2 months ]
 ```
+
 **Validation:**
 - Cost savings realized ($120/month)
 - Performance improvements confirmed (+15% throughput)
@@ -1140,6 +1171,7 @@ Week 6: 95% traffic -> Rust
 ### 12.4 Monitoring & Alerting
 
 **Rust Agent Monitoring:**
+
 ```yaml
 metrics:
   - throughput_tokens_per_sec
@@ -1160,6 +1192,7 @@ metrics:
 ```
 
 **Python Agent Monitoring:**
+
 ```yaml
 metrics:
   - throughput_tokens_per_sec
@@ -1312,21 +1345,25 @@ This report completes the Chimera optimization suite:
 ### Appendix B: Statistical Methods
 
 **Mean:**
+
 ```
 mu = (Sigma xi) / n
 ```
 
 **Standard Deviation:**
+
 ```
 sigma = sqrt[(Sigma(xi - mu)^2) / (n - 1)]
 ```
 
 **Coefficient of Variation:**
+
 ```
 CV = (sigma / mu) x 100%
 ```
 
 **Cohen's d (Effect Size):**
+
 ```
 d = (mu1 - mu2) / pooled_stddev
 ```

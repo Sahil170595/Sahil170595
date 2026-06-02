@@ -120,6 +120,7 @@ This study addresses:
 ### 2.1 Test Environment
 
 **Hardware Configuration:**
+
 ```
 GPU: NVIDIA GeForce RTX 4080 Laptop
 - VRAM: 12 GB GDDR6X
@@ -461,18 +462,21 @@ If Rust maintained its single-agent advantage in multi-agent, we'd expect ~110-1
 ### 5.3 Architectural Differences
 
 **Python (asyncio) Architecture:**
+
 ```python
 async def run_multi_agent():
     agent1_task = asyncio.create_task(run_agent_1())
     agent2_task = asyncio.create_task(run_agent_2())
     results = await asyncio.gather(agent1_task, agent2_task)
 ```
+
 - **Single-threaded event loop**
 - **Cooperative multitasking** (explicit yields)
 - **GIL release during I/O** (no contention)
 - **Minimal context switching overhead**
 
 **Rust (Tokio) Architecture:**
+
 ```rust
 async fn run_multi_agent() -> Result<(AgentResult, AgentResult)> {
     let agent1_future = run_agent_1();
@@ -480,6 +484,7 @@ async fn run_multi_agent() -> Result<(AgentResult, AgentResult)> {
     tokio::join!(agent1_future, agent2_future)
 }
 ```
+
 - **Multi-threaded work-stealing scheduler**
 - **True parallelism** (tasks can run on different threads)
 - **Task migration overhead** (work-stealing between threads)
@@ -554,6 +559,7 @@ Both languages experience **substantial degradation** in multi-agent scenarios (
 **Evidence 2: HTTP Client Async Model Differences**
 
 **Python (httpx):**
+
 ```python
 async with httpx.AsyncClient() as client:
     response = await client.post(url, json=data)
@@ -562,6 +568,7 @@ async with httpx.AsyncClient() as client:
 ```
 
 **Rust (reqwest):**
+
 ```rust
 let client = reqwest::Client::new();
 let response = client.post(url).json(&data).send().await?;
@@ -639,6 +646,7 @@ Multi-agent coordination overhead exists (~1-2%), but is **not the primary drive
 - **Ecosystem richness:** More libraries, easier integration
 
 **Optimal Strategy: Hybrid Architecture**
+
 ```
 +---------------------------------------------+
 | Python Orchestrator (FastAPI)              |
@@ -671,6 +679,7 @@ Multi-agent coordination overhead exists (~1-2%), but is **not the primary drive
 ### 7.1 Recommended Production Configs
 
 **Tier 1: Maximum Efficiency (Chimera Hetero)**
+
 ```toml
 # Agent A
 [agent_a]
@@ -696,6 +705,7 @@ contention_risk = "Very Low" (0/5 runs)
 **Use Case:** Maximum performance, cost-insensitive
 
 **Tier 2: Balanced (Chimera Homo - High Context)**
+
 ```toml
 # Both Agents
 [agents]
@@ -714,6 +724,7 @@ contention_risk = "Very Low"
 **Use Case:** Production standard, good balance of performance and resource usage
 
 **Tier 3: Resource-Constrained (Baseline vs Chimera)**
+
 ```toml
 # Agent A (Baseline)
 [agent_a]
@@ -939,7 +950,7 @@ contention_risk = "Very Low"
 - Decommission Python infrastructure
 - **Goal:** Full migration, realize cost savings
 
-**Phase 4: Hybrid Evolution (Months 9-12+)**
+**Phase 5: Hybrid Evolution (Months 9-12+)**
 - **Option A:** Stay with Rust multi-agent (lower TCO, proven)
 - **Option B:** Evolve to hybrid (Python orchestrator + Rust workers)
   - Refactor Rust multi-agent -> Rust single-agent workers
@@ -1190,28 +1201,33 @@ contention_risk = "Very Low"
 ### Appendix C: Statistical Formulas
 
 **Concurrency Speedup:**
+
 ```
 speedup = sequential_estimated_time / concurrent_wall_time
 where sequential_estimated_time = agent1_time + agent2_time
 ```
 
 **Parallel Efficiency:**
+
 ```
 efficiency = (speedup / num_agents) x 100%
 where num_agents = 2
 ```
 
 **Coefficient of Variation:**
+
 ```
 CV = (stddev / mean) x 100%
 ```
 
 **Throughput Delta:**
+
 ```
 throughput_delta = collector_throughput - insight_throughput (tok/s)
 ```
 
 **Resource Contention Detection:**
+
 ```
 contention = (agent_ttft > baseline_ttft + 3000ms)
 ```
