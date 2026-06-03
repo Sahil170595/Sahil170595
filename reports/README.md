@@ -36,15 +36,15 @@ Full detail: [Technical_Report_147.md](Technical_Report_147.md), SS8.1–SS8.7.
 
 Single-agent and multi-agent performance analysis, Rust vs Python cross-language evaluation, ONNX/TensorRT backend exploration, cost/energy analysis, the compile paradox root-cause audit, model scaling study, and resource profiling.
 
-### Phase 2: Deployment Framework (TR123-TR133)
-**11 technical reports. ~62,000+ measurements.**
+### Phase 3: Deployment Framework (TR123-TR133)
+**11 technical reports. ~105,945 primary measurements (per `BANTERHEARTS_MEASUREMENT_COUNT.md`).**
 
 KV-cache economics, quality baselines, quantization decision matrix, Linux/Triton compile validation, long-context characterization, production workload analysis, N-agent scaling laws, serving stack comparison, GPU kernel profiling (host + in-container), and a predictive capacity planner shipped as the `chimeraforge plan` CLI.
 
-### Phase 3: Safety Alignment (TR134-TR143, TR146) + v2/v3 Expansions
-**11 technical reports + 3 v2 expansion reports + 3 v3 AWQ/GPTQ cross-method reports. ~440,000+ data points.**
+### Phase 4: Safety Core (TR134-TR137) + Phase 5: Attack Surface (TR138-TR143, TR146) + v2/v3 Expansions
+**Phase 4:** TR134–TR137 (~74,254; TR137 synthesis IS TR134+135+136 — do not double-count). **Phase 5:** TR138–TR143 synthesized in Conclusive_Phase5 (306,996 evaluated samples). Plus v2/v3 AWQ/GPTQ expansions.
 
-Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 152,022 data points), quality-safety correlation, cross-request safety leakage under continuous batching (TR143), and mechanistic safety probing under quantization (TR146: safety neurons absorb 1.39x disproportionate quantization error).
+Alignment robustness under quantization, multi-agent concurrency safety, cross-backend safety consistency, the safety tax synthesis, batch inference safety under non-determinism (+ strengthened-evidence revision), multi-turn jailbreak susceptibility under quantization, many-shot and long-context jailbreak, cross-architecture refusal fragility (largest study: 18 models, 10+ families, 127,224 records v3.1), quality-safety correlation, cross-request safety leakage under continuous batching (TR143), and mechanistic safety probing under quantization (TR146: safety neurons absorb 1.39x disproportionate quantization error).
 
 The v3 expansion (TR125 v3, TR134 v3, TR142 v3) extends the evaluation matrix from GGUF k-quants to include AWQ and GPTQ 4-bit formats across 6 models, adding 11 new model-quant cells, 18,568 AWQ/GPTQ primary samples, and 5,148 AWQ/GPTQ judge annotations. A second-judge robustness check (Claude Sonnet 4, 11,470 rows) validates consistency across the full matrix.
 
@@ -60,8 +60,16 @@ Five-layer serving-state safety certification protocol synthesised across specul
 
 Headline deliverable: a serving-state-independent FP8 (E4M3) KV-cache certificate for 1B–4B instruction-tuned models on vLLM v0.19.1 — harmful-refusal-neutral across batch ∈ {1, 8, 32}, prefix-caching {on, off}, and temperature ∈ {0.0, 0.7, 1.0} (TR152: **0 / 8,976 harmful-battery pairs discordant**; FP8-interaction spread 2.99 pp inside the ±3 pp band), with one located footnote — a sub-1 pp Qwen-2.5 over-refusal lean on the XSTest benign-edge battery (per-family Mantel–Haenszel OR 3.878 [2.386, 6.302]). The TR146 negative control is load-bearing: four mechanistic probes (first-token entropy, refusal-direction cosine, calibration drift, safety-neuron error magnitude) all fail to distinguish safe from dangerous configs, so the entire arc stays behavioural. Whole executed substrate ran at **$0 external API cost** under the umbrella gate on a local Ollama judge cohort. Cloud-gated envelope widenings (TR150 long-context, TR151 7B–72B scale, TR153 KV-method sweep) are gated on the 2026-10-24 GO/NO-GO trigger.
 
+### Phase 7: Mitigation Turn (TR155, TR160, TR163) — MVP Pilots Only
+
+Per `EXPERIMENTS_STATUS.md` 2026-05-28: **0/3 paper-grade deliverables.** TR155 (936 + 2,808 judge, kvpress), TR163 (offline LOOCV over TR142 RTSI table), TR160 (built, not run).
+
+### Serving-Stack Expansion: TR164 — In Flight
+
+SGLang + precision-controlled expansion of TR130–TR132; V1 active since 2026-05-31 (`research/tr164/results/20260531_120428_552237/`).
+
 ### Conclusive Reports
-**18 synthesis documents spanning all phases.**
+**21 synthesis documents spanning Phases 1–6** (6 phase groups × main + extended appendices + whitepaper).
 
 Six conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR138-TR143, and Phase 6 / TR144-TR152), six extended appendices volumes, and six executive whitepapers — providing decision guidance with artifact provenance. The Phase 6 trilogy consolidates the seven executed serving-state safety reports into a single five-layer certification protocol.
 
@@ -118,7 +126,7 @@ Six conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR13
 | **TR138 v2** | Batch Safety — Strengthened-Evidence Revision | 7,257 | Complete | Audit layer confirms 59.1% unsafe flip direction; replication yields 1.68% safety vs 0.42% capability flip rate |
 | **TR139** | Multi-Turn Jailbreak Under Quantization | 48,425 | Complete | All 8 strategy ANOVAs reject quant-independence (p < 1e-4); qwen2.5-1.5b/Q2_K/attention_shift reaches 100% ASR |
 | **TR140** | Many-Shot & Long-Context Jailbreak Under Quantization | 30,000 | Complete | Llama immune above Q3_K_M; Q2_K universal vulnerability threshold; message array format 92% vs 0% faux dialogue |
-| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 152,022 | Complete (v3.1) | 18 models, 10+ families; 0.94x safety/capability ratio (near parity); alignment type not predictive (p=0.942); output instability predicts fragility (r=0.91) |
+| **TR141** | Cross-Architecture Refusal Fragility Under Batch Perturbation | 127,224 (v3.1) | Complete (v3.1) | 18 models, 10+ families; 0.94x safety/capability ratio (near parity); alignment type not predictive (p=0.942); output instability predicts fragility (r=0.91) |
 | **TR142** | Quality-Safety Correlation Under Quantization | 51 cells; 41,895 quality + 48,603 safety + 21,096 judge (v3: GGUF+AWQ+GPTQ) | Complete (v3) | Simpson's paradox extends to AWQ/GPTQ; RTSI mitigator calibrated with LOOCV (recall=1.0) across all 51 cells; behavioral screen is the only viable pre-deployment check |
 | **TR143** | Cross-Request Safety Leakage Under Continuous Batching | 14,250 | Complete (v2.0) | Aggregate composition effect not significant; directional asymmetry IS significant — 88-92% of flips trend unsafe (p=0.006) |
 | **TR146** | Mechanistic Safety Probing Under Quantization | 5,100 forward passes | Complete | Safety neurons absorb 1.40x disproportionate quant error (p<0.0001), but none of 4 mechanistic probes distinguish safe from dangerous configs; behavioral screens (RTSI) remain the only viable pre-deployment check |
@@ -203,7 +211,7 @@ Six conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR13
 
 ## Phase 2 Deployment Decisions
 
-Six shippable decisions backed by ~62,000 measurements:
+Six shippable decisions backed by ~105,945 primary measurements (Phase 3, per `BANTERHEARTS_MEASUREMENT_COUNT.md`):
 
 1. **Single-agent:** Ollama Q4_K_M (highest throughput per dollar)
 2. **Multi-agent (N>=4):** vLLM FP16 (2.25x advantage from continuous batching)
@@ -553,7 +561,7 @@ Six shippable decisions backed by ~62,000 measurements:
 
 #### TR152: FP8 Serving-State Factorial (v2)
 **File:** `Technical_Report_152.md` (1,341 lines — supersedes v1 pilot's 348 lines; matches TR148/TR149 gold-standard template depth)
-- **v2 local expansion run `20260526_232600`**: 45,000 primary records, 20,754 matched FP16-vs-FP8 pairs across 5 models × `fp8_anchored_star` 14-cell star × 4 batteries (XSTest uncapped to 450, harmful at 100); sampling complete 2026-05-27 13:59; judge step adds ~135,000 judge-label rows when complete
+- **v2 local expansion run `20260526_232600`**: 45,000 primary records, 20,754 matched FP16-vs-FP8 pairs across 5 models × `fp8_anchored_star` 14-cell star × 4 batteries (XSTest uncapped to 450, harmful at 100); judging completed 2026-05-28 00:06 ET — 135,000 judge-label rows on disk
 - Models: qwen2.5-1.5b-instruct, qwen2.5-3b-instruct, llama3.2-1b-instruct (new in v2), llama3.2-3b-instruct, phi-3-mini-4k-instruct (new in v2)
 - Hardware: RTX 4080 Laptop 12GB, $0 external cost, 28.7 h end-to-end
 - Bridge paper Layer 5: folds FP8 KV-cache + batch + prefix-caching + speculative-decoding + temperature axes into one factorial (12 of 14 cells per model runnable; 2 speculative-decoding cells fail uniformly on vLLM v0.19.1 argparse — **v1's "cloud-gated by VRAM" attribution retracted**)
@@ -782,7 +790,7 @@ PublishReady/reports/
 │   ├── Technical_Report_138_Study_D_Addendum.md  ← ICML camera-ready supplement (batch-invariant kernel ablation)
 │   ├── Technical_Report_139.md
 │   ├── Technical_Report_140.md
-│   ├── Technical_Report_141.md  ← largest study (152,022 data points, 18 models)
+│   ├── Technical_Report_141.md  ← largest study (127,224 records v3.1, 18 models)
 │   ├── Technical_Report_142_v2.md
 │   ├── Technical_Report_143.md
 │   └── Technical_Report_146.md  ← mechanistic safety probing (5,100 forward passes); negative control for Phase 6
