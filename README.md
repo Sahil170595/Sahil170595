@@ -210,7 +210,7 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 |:--------|:------------|
 | [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI. 6 predictive models, 292 tests. |
 | [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 15 published models — 11 quantized AWQ/GPTQ checkpoints (Llama 3.2, Qwen 2.5) and 4 custom GPT-2 scaling-law training runs. |
-| [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | Triaged upstream PR — torch.compile autoregressive decode failure with growing KV-cache tensors. Traced into cudagraph_trees deallocation. |
+| [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Merged into PyTorch Inductor** ([squash `be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), 2026-06-04) — hardened cudagraph_trees deallocation against diagnostic-metadata divergence; approved by jansel (Inductor maintainer). |
 
 ---
 
