@@ -105,7 +105,7 @@ Six conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR13
 | **TR123** | KV-Cache Production Economics | 900 | Complete | Best cost $0.013/1M tokens; cached decode 2-8x cheaper |
 | **TR124** | Quality & Accuracy Baseline | 24,990 | Complete | Backend choice does not affect quality (0/7 ANOVA significant) |
 | **TR125** | Quantization Decision Matrix | 41,895 quality across 51 model-quant variants (v3: 9 formats incl. AWQ/GPTQ) | Complete (v3) | Q4_K_M remains GGUF default; AWQ matches on 4/5 models, GPTQ on 5/6; Q2_K universally unacceptable |
-| **TR126** | Docker/Linux + Triton Validation | 25,400 | Complete | Compile paradox resolved: 24-60% prefill speedup on Linux; crashes decode |
+| **TR126** | Docker/Linux + Triton Validation | 25,400 | Complete (decode crash fixed upstream 2026-06) | Compile paradox resolved: 24-60% prefill speedup on Linux; decode crashed on stock PyTorch, now fixed upstream by #184102 (in review), validated on real decode; #175562 landed |
 | **TR127** | Long-Context Characterization | 1,144 | Complete | VRAM spillover (25-105x cliffs), not quadratic attention, is the bottleneck |
 | **TR128** | Production Workloads | 3,172 | Complete | NUM_PARALLEL is a no-op (0/30 significant); M/D/1 deviates 20.4x |
 | **TR129** | N-Agent Scaling Laws | 5,310 | Complete | Amdahl s=0.39-0.54; throughput plateaus at N=2 |
@@ -621,8 +621,25 @@ Six shippable decisions backed by ~105,945 primary measurements (Phase 3, per `B
 #### TR126: Docker/Linux + Triton Validation
 **File:** `Technical_Report_126.md`
 - Compile paradox resolved: 24-60% prefill speedup on Linux with Inductor+Triton
-- Decode compile crashes 100% of the time in all tested modes
+- Decode compile crashes 100% of the time in all tested modes (on stock PyTorch)
 - PyTorch bug discovered and reported upstream (pytorch/pytorch#175557, PR #175562)
+
+**Update (2026-06-05):** The compiled-decode crash is fixable from PyTorch internals
+after all. PR #175562 (assertion relaxation in `dealloc_current_path_weakrefs`) landed
+in PyTorch main on 2026-06-04 (commit `be90a1495310`); it is a defensive cleanup and
+does not by itself fix the decode crash. The decode fix is jansel's PR #184102
+(Fixes #175557), which preserves/clones cudagraph-pool-aliased inputs before the
+dealloc frees them. We validated #184102 on a real `gpt2` `reduce-overhead` decode
+(128 tokens, growing KV cache) on two torch builds: baseline crashes at the first
+decode step, #184102 completes all tokens with cudagraphs still active. It also held
+across 7 synthetic feedback topologies. One coverage gap remains (synthetic, source-
+verified): when a compiled function splits into multiple cudagraph partitions and a
+top-level input consumed only by a later partition is fed back from the pool, #184102
+still crashes; we reported this. No real model has been shown to hit this topology, so
+practical blast radius is unproven / likely small. #184102 is under active maintainer
+review (eellison), not merged. So the earlier "decode is an unpatchable dead end"
+framing is superseded: the never-free approach fails, but input-preservation patches
+it. Validation gist: https://gist.github.com/Sahil170595/062d40cb18e2b2e27e99c1efbfa3ccdb
 
 #### TR127: Long-Context Performance Characterization
 **File:** `Technical_Report_127.md`
@@ -887,7 +904,7 @@ All measurements on a single fixed baseline:
    Q4_K_M — recommended default across tested models, at most -4.1pp accuracy loss, 30-67% cost savings (TR125)
 
 7. **Does torch.compile help?**
-   Prefill only, Linux only, 24-60% speedup; decode crashes 100% of the time (TR126)
+   Prefill only, Linux only, 24-60% speedup; decode crashed 100% of the time on stock PyTorch, now fixed upstream by #184102 (in review), validated on real decode; #175562 landed (TR126)
 
 8. **What limits long-context performance?**
    VRAM spillover, not quadratic attention — 25-105x latency cliffs at capacity (TR127)

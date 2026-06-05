@@ -50,9 +50,9 @@ Key findings:
 - **Compiled decode provides no speedup even when it works:** Phase 2 baseline at `max_new_tokens=64` has 1,890 successful compiled decode measurements, but compilation is 2.2% *slower* than eager (d = 0.026, not significant). Compilation benefits are prefill-specific.
 - **CUDA graph crash is length-dependent:** Compiled decode works at 64 tokens (Phase 2) but crashes at 128 tokens (Phase 3). The crash threshold lies between 64 and 128 generated tokens.
 - **`mode="default"` does not fix compiled decode:** PyTorch 2.8's Inductor invokes CUDA graph trees internally regardless of the `mode` parameter, causing identical crashes on autoregressive decode. No torch.compile mode enables compiled decode.
-- **Compiled decode crash is architectural, not a patchable bug:** Prototype experiments (v3) demonstrated that disabling `_free_And_Remove_DeleterFn` + `check_memory_pool` + the assertion still crashes -- CUDA graph replay overwrites output tensor memory, and `DynamicCache.update()` -> `torch.cat()` is fundamentally incompatible. The fix must come from the model/cache layer (`StaticCache`, `cudagraph_mark_step_begin()`), not PyTorch internals. Issue [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557) filed, assertion fix [pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562) submitted.
+- **Compiled decode crash is patchable from PyTorch internals (CORRECTED 2026-06-05):** v1-v3 concluded the crash was "architectural, not patchable" and that the fix "must come from the model/cache layer." That conclusion held only for the v3 "never free" approach tested here (disabling `_free_And_Remove_DeleterFn` + `check_memory_pool` + the assertion still crashes). The opposite approach -- preserving/cloning the cudagraph-pool-aliased inputs *before* the dealloc frees them -- does patch it from PyTorch internals. PR [pytorch/pytorch#184102](https://github.com/pytorch/pytorch/pull/184102) (jansel, Fixes #175557) implements this and was validated on a real gpt2 decode (128 tokens, cudagraphs stay active). Issue [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557) filed; assertion fix [pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562) landed in main (2026-06-04). See the dated Update in SS10.9.
 - **Bug persists on PyTorch 2.10 (NGC 26.01):** Full Phase 3 rerun on PyTorch 2.10.0a0 (CUDA 13.1, Triton 3.6.0) with PR #175562 pre-applied: compiled prefill works (-42.4%, d = -0.761), compiled decode crashes 100%. The 4,522-measurement rerun confirms this is not a PyTorch 2.8-specific regression -- the `dealloc_current_path_weakrefs` bug exists in the latest NGC release.
-- **StaticCache enables compiled decode but 5.8x slower:** Replacing `DynamicCache` with `StaticCache` + `torch.compile(model.forward, mode="default")` produces the first successful compiled decode in this research program. But without CUDA graph replay, compilation overhead per decode step exceeds kernel optimization benefit (3,588 ms vs 622 ms eager). `reduce-overhead` + StaticCache still crashes. Compiled decode is a dead end on PyTorch 2.10 / transformers 5.2.0.
+- **StaticCache enables compiled decode but 5.8x slower:** Replacing `DynamicCache` with `StaticCache` + `torch.compile(model.forward, mode="default")` produces the first successful compiled decode in this research program. But without CUDA graph replay, compilation overhead per decode step exceeds kernel optimization benefit (3,588 ms vs 622 ms eager). `reduce-overhead` + StaticCache still crashes. The model-layer path is a dead end on PyTorch 2.10 / transformers 5.2.0; however, the PyTorch-internals path (#184102) does work for `reduce-overhead` decode on patched PyTorch (CORRECTED 2026-06-05, SS10.9).
 - **All pairwise comparisons survive multiple-testing correction:** 5/5 Phase 3 pairwise tests survive both Bonferroni (alpha = 0.01) and Holm step-down correction. The smallest p-value (3.67 x 10^-3 for Ollama vs compile prefill) clears the Bonferroni threshold.
 
 ---
@@ -76,8 +76,8 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 9. **Scale crossover validated by ANOVA interaction:** F(8,1608) = 453.1, p < 10^-16, eta^2 = 0.107 for the backend x model interaction term. Backend rankings depend on model scale -- not a confound, but a real structural effect.
 10. **Compiled decode is neutral even when it works:** Phase 2 baseline (max_new_tokens=64): 1,890 compiled decode measurements succeed but show +2.2% overhead vs eager (not significant). Compilation is a prefill-only optimization.
 11. **`mode="default"` does not rescue compiled decode:** Experiment confirms PyTorch 2.8 Inductor uses CUDA graph trees internally regardless of mode setting. Compiled decode crashes on all modes tested.
-12. **Bug persists on PyTorch 2.10:** Full Phase 3 rerun (4,522 measurements) on NGC 26.01 (PyTorch 2.10.0a0, CUDA 13.1, Triton 3.6.0) with PR #175562 pre-applied: compiled prefill works (-42.4%), compiled decode crashes 100%. The `dealloc_current_path_weakrefs` bug is architectural, not version-specific (SS10.6).
-13. **StaticCache is necessary but not sufficient:** `StaticCache` + `mode="default"` enables compiled decode (first success in this program) but is 5.8x slower than eager due to per-step compilation overhead. `reduce-overhead` + StaticCache still crashes. The standard `torch.compile` + `.generate()` path cannot deliver compiled decode speedups today (SS10.8).
+12. **Bug persists on PyTorch 2.10:** Full Phase 3 rerun (4,522 measurements) on NGC 26.01 (PyTorch 2.10.0a0, CUDA 13.1, Triton 3.6.0) with PR #175562 pre-applied: compiled prefill works (-42.4%), compiled decode crashes 100% on stock PyTorch. The crash is not version-specific (SS10.6). NOTE (2026-06-05): the crash IS patchable from PyTorch internals via #184102 -- see SS10.9.
+13. **StaticCache is necessary but not sufficient:** `StaticCache` + `mode="default"` enables compiled decode (first success in this program) but is 5.8x slower than eager due to per-step compilation overhead. `reduce-overhead` + StaticCache still crashes. The standard `torch.compile` + `.generate()` path cannot deliver compiled decode speedups via the model-layer fix today (SS10.8); the PyTorch-internals fix #184102 does (SS10.9).
 
 ### Key Decisions
 
@@ -87,7 +87,7 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 - **Never deploy torch.compile with `reduce-overhead` for autoregressive decode.** It will crash on every model tested.
 - **Windows torch.compile is not a valid benchmark.** All prior TR results using `-compile` on Windows reflect `aot_eager` overhead, not compilation benefit.
 - **`dynamic=True` is not free.** Phase 2 (`dynamic=True`) shows ~85% higher compiled latency than Phase 3 (`dynamic=False`) on gpt2-100m. For small models (< 200M), prefer `dynamic=False` with input bucketing to avoid this overhead.
-- **Decode recommendation strengthened:** The "use Ollama for decode" recommendation is now supported by five lines of evidence: (1) `reduce-overhead` crashes on decode at 128 tokens, (2) `mode="default"` also crashes (PyTorch 2.8/2.10 Inductor uses CUDA graph trees internally), (3) even when compiled decode works (64 tokens, Phase 2), it provides no speedup (+2.2%), (4) patching `cudagraph_trees.py` (3 patches deep) confirmed the crash is architectural not patchable, and (5) StaticCache + `mode="default"` enables decode but is 5.8x *slower* than eager. Every viable compiled decode path has been exhausted. Compiled decode is not viable for production.
+- **Decode recommendation (on stock PyTorch as tested):** The "use Ollama for decode" recommendation is supported by five lines of evidence: (1) `reduce-overhead` crashes on decode at 128 tokens, (2) `mode="default"` also crashes (PyTorch 2.8/2.10 Inductor uses CUDA graph trees internally), (3) even when compiled decode works (64 tokens, Phase 2), it provides no speedup (+2.2%), (4) the v3 "never free" patch of `cudagraph_trees.py` (3 patches deep) failed, and (5) StaticCache + `mode="default"` enables decode but is 5.8x *slower* than eager. CORRECTION (2026-06-05): line (4) does NOT generalize to "the crash is unpatchable from PyTorch internals." The opposite approach (input preservation, #184102) patches it and was validated on real decode (SS10.9). On STOCK PyTorch as tested here, Ollama/eager remains the correct decode recommendation; on a PyTorch carrying #184102, `reduce-overhead` compiled decode runs.
 
 ### Claim Validation
 
@@ -95,7 +95,7 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 |---|-------|---------------|--------|
 | 1 | Compile paradox is artifact of Windows aot_eager | Phase 2: -40.0% speedup on Linux, all scenarios significant (SS5) | **Demonstrated** |
 | 2 | Real Triton delivers consistent prefill speedups | Phase 2: 6/6 scenarios, 6/6 models show compile helps (SS5) | **Demonstrated** |
-| 3 | `reduce-overhead` breaks autoregressive decode | Phase 3: 100% crash rate on kv_decode/e2e_kv compiled (SS9) | **Demonstrated** |
+| 3 | `reduce-overhead` breaks autoregressive decode on stock PyTorch | Phase 3: 100% crash rate on kv_decode/e2e_kv compiled (SS9). CORRECTED 2026-06-05: holds for stock PyTorch only; fixed upstream by #184102 (in review), validated on real gpt2 decode (128 tokens) -- SS10.9 | **Demonstrated (stock PyTorch); fixed upstream by #184102** |
 | 4 | Backend rankings are mode-dependent | Phase 3: compile wins prefill, Ollama wins decode (SS8-SS9) | **Demonstrated** |
 | 5 | Ollama decode is faster than eager HF | Phase 3: 7x speedup, d = 2.38, p < 10^-209 (SS9) | **Demonstrated** |
 | 6 | Model scale inverts prefill winner | Phase 3: small models -> compile wins; large -> Ollama wins (SS9). TOST confirms 1.5B tie at epsilon=1ms (p=0.001, SS9.2) | **Demonstrated** |
@@ -106,7 +106,7 @@ No. The paradox was an artifact of the Windows `aot_eager` fallback. With real I
 | 11 | CUDA graph crash is length-dependent | Phase 2 @ 64 tokens: 1,890 OK; Phase 3 @ 128 tokens: 100% crash (SS10.1) | **Demonstrated** |
 | 12 | `mode="default"` does not fix decode crash | mode="default" experiment: identical CUDAGraphs crash via Inductor graph trees (SS10.5) | **Demonstrated** |
 | 13 | All comparisons survive multiple-testing correction | 5/5 tests pass Bonferroni (alpha=0.01) and Holm step-down (SS9.5) | **Demonstrated** |
-| 14 | Crash root cause is architectural (CUDA graphs + dynamic KV cache) | v3 prototype: patching `dealloc_current_path_weakrefs()` + `check_memory_pool` still crashes via `get_non_cudagraph_inps`. `torch.cat` in `DynamicCache.update` is fundamentally incompatible with CUDA graph replay (SS10.7). Assertion fix PR [#175562](https://github.com/pytorch/pytorch/pull/175562) is valid but separate. | **Validated (architectural)** |
+| 14 | Crash is patchable from PyTorch internals via input preservation | CORRECTED 2026-06-05. Prior status "Validated (architectural)" held only for the v3 "never free" approach (patching `dealloc_current_path_weakrefs()` + `check_memory_pool` still crashes via `get_non_cudagraph_inps`, SS10.7). The OPPOSITE approach -- preserve/clone cudagraph-pool-aliased inputs before dealloc -- works: PR [#184102](https://github.com/pytorch/pytorch/pull/184102) (`_preserve_inputs_that_alias_current_path`, Fixes #175557) completes 128-token gpt2 decode with cudagraphs active. Assertion fix PR [#175562](https://github.com/pytorch/pytorch/pull/175562) landed in main. One synthetic multi-partition gap remains in #184102 (reported); #184102 under maintainer review (SS10.9). | **Superseded -> patchable from PyTorch internals (#184102, in review)** |
 | 15 | Bug persists across PyTorch versions (2.8 -> 2.10) | Full Phase 3 rerun on PyTorch 2.10.0a0 (NGC 26.01, CUDA 13.1, Triton 3.6.0): 4,522 measurements, compiled decode 100% crash, identical root cause (SS10.6) | **Demonstrated** |
 | 16 | StaticCache enables but does not accelerate compiled decode | `mode="default"` + StaticCache: decode works but 5.8x slower (3,588 ms vs 622 ms). `reduce-overhead` + StaticCache: still crashes. Known upstream issue [huggingface/transformers#27837](https://github.com/huggingface/transformers/issues/27837) (SS10.8) | **Demonstrated** |
 
@@ -1294,7 +1294,91 @@ Compiled decode is **5.8x slower** than eager. The Triton kernel compilation ove
 
 **Existing upstream work:** HuggingFace [#27837](https://github.com/huggingface/transformers/issues/27837) ("torch CUDA graphs with HF generate") has been open since January 2024, explicitly identifying DynamicCache as the blocker. HuggingFace maintainers have confirmed that `StaticCache` is the intended solution ([#37908](https://github.com/huggingface/transformers/issues/37908)), and working examples exist for manual CUDA graph capture with StaticCache ([blog reference](https://xenshinu.github.io/cuda_graph/)). However, seamless integration into `.generate()` with `reduce-overhead` mode remains unresolved as of PyTorch 2.10 / transformers 5.2.0.
 
-**Conclusion:** Compiled decode is a solved problem in theory (StaticCache + manual CUDA graph capture) but broken in practice through the standard `torch.compile` + `.generate()` path. The fix requires either: (a) PyTorch's Inductor to handle StaticCache's static memory layout correctly under `reduce-overhead`, or (b) transformers to implement manual CUDA graph capture in `.generate()` bypassing Inductor's graph tree machinery entirely. Neither is available today. The recommendation remains: **use eager for decode, or use Ollama.**
+**Conclusion:** Compiled decode is a solved problem in theory (StaticCache + manual CUDA graph capture) but broken in practice through the standard `torch.compile` + `.generate()` path. The fix requires either: (a) PyTorch's Inductor to handle StaticCache's static memory layout correctly under `reduce-overhead`, or (b) transformers to implement manual CUDA graph capture in `.generate()` bypassing Inductor's graph tree machinery entirely. Neither is available today. The recommendation remains: **use eager for decode, or use Ollama.** (Superseded for the PyTorch-internals path -- see SS10.9.)
+
+### 10.9 Update (2026-06-05): Upstream Resolution
+
+This subsection records the upstream resolution of the compiled-decode crash. It
+supersedes the forward-looking conclusion in SS10.7-SS10.8 that the crash was
+"architectural, not patchable from PyTorch internals." All measurement data in
+SS10.1-SS10.8 is unchanged; only the conclusion about patchability changes.
+
+**What SS10.7 got wrong, and why.** SS10.7 tested a "never free" sledgehammer:
+disable `_free_And_Remove_DeleterFn` + `check_memory_pool` + the assertion. That
+approach still crashes (via `get_non_cudagraph_inps`), which led to the conclusion
+that the crash could only be fixed at the model/cache layer. The architectural
+claim was correct ONLY for that sledgehammer. The correct fix is the opposite
+direction: preserve/clone the cudagraph-pool-aliased inputs BEFORE the dealloc
+frees them.
+
+**PR #184102 fixes the crash from PyTorch internals.** [pytorch/pytorch#184102](https://github.com/pytorch/pytorch/pull/184102)
+(jansel, "Fix cudagraph handoff across compiled calls", Fixes #175557) adds
+`_preserve_inputs_that_alias_current_path`, which clones the aliased inputs ahead
+of the free. This patches the crash inside `cudagraph_trees.py` -- contradicting
+SS10.7's "must come from the model/cache layer" conclusion.
+
+**Validated on a REAL decode, not just synthetic.** Env: Docker, RTX 4080 Laptop,
+two torch builds -- NGC pytorch:26.01 (torch 2.10.0a0, triton 3.6.0) and pip
+nightly torch 2.12.0.dev20260408 (triton 3.7.0, current main). Each PR's diff was
+hand-applied to the installed torch (pure-Python change, no rebuild). Workload:
+stock `gpt2`, `mode="reduce-overhead"`, `past_key_values` fed back each step,
+128 tokens -- faithful to this report's `_kv_decode`.
+
+| Build | Baseline (stock) | With #184102 |
+|-------|------------------|--------------|
+| torch 2.10.0a0 (NGC 26.01) | Crash at first decode step ("CUDAGraphs ... overwritten") | All 128 tokens complete; cudagraphs stay active |
+| torch 2.12.0.dev (nightly = main) | Crash at first decode step | All 128 tokens complete; cudagraphs stay active |
+
+The dynamic-shape recording warning fires under #184102, confirming cudagraphs
+stay active (not an eager fallback). The fix also held across 7 synthetic feedback
+topologies (simple, no-mark, strided, cross-call, graph-break, graph_partition x2):
+baseline crashes all, #184102 fixes all.
+
+**#175562 (this report's assertion fix) LANDED in PyTorch main.** Squash commit
+`be90a1495310`, 2026-06-04 (author Sahil170595, committer PyTorch MergeBot). It
+replaces the hard assertion in `dealloc_current_path_weakrefs` with a warning
+(defensive consistency with the sibling `outputs_weakrefs` handling). It is a small
+cleanup and does NOT itself fix the decode crash. The GitHub PR page shows "Closed"
+rather than a green "Merged" badge because the mergebot lands by pushing the
+squashed commit directly to main; the commit is in main.
+
+**One coverage gap found in #184102 (synthetic, reported).** When a compiled
+function splits into multiple cudagraph partitions and a top-level input consumed
+only by a LATER partition is fed back from the pool, #184102 still crashes. Each
+partition is cudagraphified independently and dispatched through its own `_run`
+with only its input slice; `_preserve` clones only the current partition's inputs,
+while `dealloc` frees the whole path, so the later-partition input is freed before
+it can be cloned (confirmed by instrumenting `_preserve`: every call sees
+`n_inputs=1`). Surgically isolated: feed back the FIRST-partition input -> PASS;
+feed back the LATER-partition input -> CRASH. Reproduces on both torch 2.10 and
+2.12 nightly. CAVEAT: the partition split was forced SYNTHETICALLY via a DeviceCopy
+boundary (`.to('cpu').to('cuda')`); NO real model has been shown to hit this
+topology (the real gpt2 decode does not), so the practical blast radius is unproven
+and likely small. vmoens' alternative PR [#176295](https://github.com/pytorch/pytorch/pull/176295)
+catches this case by raising a clear "please .clone()" error for partitioned calls.
+#184102 is not broken -- it fixes every other case tested; this is one
+incompleteness.
+
+**Status: #184102 is under active maintainer review, NOT merged (as of 2026-06-05).**
+eellison (core cudagraph_trees author) reviewed it: (a) it should probably be
+opt-in because it is potentially a lot of copies; (b) it needs to interact with
+cached outputs. So the upstream decode fix is in progress, not finalized.
+
+**Artifacts.** Full validation (FINDING.md + 3 probe scripts + 4 run logs):
+[gist](https://gist.github.com/Sahil170595/062d40cb18e2b2e27e99c1efbfa3ccdb).
+Endorsement comment on #184102 (real-decode + topology validation, links the gist):
+[#184102 comment](https://github.com/pytorch/pytorch/pull/184102#issuecomment-4635948508).
+Related: #154824 (broader umbrella: cudagraph tree may release input nodes during
+replay) remains open; #175557 (this report's autoregressive-decode crash) is what
+#184102 Fixes.
+
+**Net correction.** The crash is NOT "unpatchable from PyTorch internals." The
+report's measurements stand: on STOCK PyTorch 2.8/2.10 as tested here, compiled
+`reduce-overhead` decode crashes 100%, and the model-layer paths (StaticCache,
+`mode="default"`) remain slow or crashing. What changed is the forward-looking
+conclusion: a PyTorch-internals fix (input preservation, #184102) does exist, is
+validated on a real 128-token decode across two torch versions, and is under
+maintainer review.
 
 ---
 
@@ -1547,8 +1631,8 @@ Before deploying torch.compile in production on Linux:
 ### 15.2 Future Work
 
 - **Phase 5 (deferred):** uvloop multi-agent concurrency testing under Linux -- tests whether compile benefits survive under concurrent request load.
-- **~~Compiled decode investigation (originally scoped as separate TR)~~ (FULLY EXHAUSTED within TR126):** v2's `mode="default"` experiment crashes. v3's StaticCache + `mode="default"` works but is 5.8x slower than eager. `reduce-overhead` + StaticCache still crashes. Three-patch prototype on `cudagraph_trees.py` proved the issue is architectural. Manual CUDA graph capture (bypassing Inductor) is the only remaining viable path -- see [huggingface/transformers#27837](https://github.com/huggingface/transformers/issues/27837) for upstream progress. (Note: TR127 in the research roadmap is assigned to Long-Context Performance Characterization, not compiled decode.)
-- **Upstream fix for cudagraph_trees.py (PARTIALLY RESOLVED):** We traced the crash to `dealloc_current_path_weakrefs()` in `torch/_inductor/cudagraph_trees.py` and filed [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557). An assertion fix is submitted as [pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562). However, prototype experiments (v3) demonstrated that the crash is **architectural, not patchable in cudagraph_trees.py alone**: disabling `_free_And_Remove_DeleterFn` + `check_memory_pool` still crashes because CUDA graph replay overwrites output tensor memory, and `DynamicCache.update()` -> `torch.cat()` creates tensors at new addresses each step. The fix must come from the model/cache layer (e.g., `StaticCache`, `cudagraph_mark_step_begin()`). See SS10.7 for full prototype results.
+- **~~Compiled decode investigation (originally scoped as separate TR)~~ (FULLY EXHAUSTED within TR126):** v2's `mode="default"` experiment crashes. v3's StaticCache + `mode="default"` works but is 5.8x slower than eager. `reduce-overhead` + StaticCache still crashes. Three-patch "never free" prototype on `cudagraph_trees.py` proved only that the never-free direction fails. (CORRECTED 2026-06-05: the *opposite* approach -- preserving/cloning cudagraph-pool-aliased inputs before dealloc, PR [#184102](https://github.com/pytorch/pytorch/pull/184102), in review -- patches the crash entirely in `cudagraph_trees.py` and runs `reduce-overhead` compiled decode to completion on a real gpt2, validated. Manual capture is NOT the only path. See SS10.9.) Upstream progress: [huggingface/transformers#27837](https://github.com/huggingface/transformers/issues/27837). (Note: TR127 in the research roadmap is assigned to Long-Context Performance Characterization, not compiled decode.)
+- **Upstream fix for cudagraph_trees.py (RESOLVED UPSTREAM, fix in review):** We traced the crash to `dealloc_current_path_weakrefs()` in `torch/_inductor/cudagraph_trees.py` and filed [pytorch/pytorch#175557](https://github.com/pytorch/pytorch/issues/175557). The assertion cleanup [pytorch/pytorch#175562](https://github.com/pytorch/pytorch/pull/175562) **landed in main** (2026-06-04). Prototype experiments (v3) showed that disabling `_free_And_Remove_DeleterFn` + `check_memory_pool` (a "never free" approach) still crashes -- but that only ruled out the never-free direction. **CORRECTED 2026-06-05:** the original conclusion that the crash is "not patchable in cudagraph_trees.py alone / fix must come from the model/cache layer" was WRONG. The opposite approach works: PR [#184102](https://github.com/pytorch/pytorch/pull/184102) (jansel, Fixes #175557) preserves/clones the cudagraph-pool-aliased inputs *before* the dealloc frees them, patching the crash entirely in `cudagraph_trees.py`. We validated it on a real gpt2 `reduce-overhead` decode (128 tokens) and 7 synthetic topologies; one synthetic multi-partition gap was found and reported upstream; #184102 is under maintainer review. See SS10.7 (prototype) and SS10.9 (resolution).
 - **Compiled decode threshold characterization:** The crash occurs between 64 and 128 generated tokens. A binary search experiment (80, 96, 112 tokens) could pinpoint the exact threshold where CUDA graph shape tolerances are exceeded.
 - **Cross-GPU validation:** Replicate on A100/H_100 to test whether findings generalize beyond consumer GPUs.
 - **Bare-metal Linux:** Remove Docker/WSL2 layer for a true Linux baseline.
