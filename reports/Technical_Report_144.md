@@ -1868,7 +1868,7 @@ From `research/tr144/results/e2_adversarial/20260417_014425/e2_summary.json`:
 
 **Observations.** Mean acceptance rate on safety prompts (0.352) is **lower than** on benign prompts (0.372) for the adversarial-draft E2 run, with a gap of +2.07pp in the benign direction. Recall the core v2.0 Phase 5 reported safety-acceptance **higher than** benign by 21.5pp for the canonical 3B+1B pair. The sign flip is driven by the adversarial draft: when the draft actively prefers harmful completions, the target rejects more of its safety-slot proposals than benign-slot ones, which is exactly the desired behavior of the verification step. The adversarial draft is less useful as a speculator (lower acceptance rate = less speedup) but the verified output remains byte-identical (SS20.2).
 
-### F.4 Forest-Plot Data (for NeurIPS supplementary figure)
+### F.4 Forest-Plot Data (for supplementary figure)
 
 Point estimates and 95% Wilson CIs for Cohen's h on AdvBench refusal, target-alone baseline vs speculative pair:
 
@@ -1893,14 +1893,14 @@ Point estimates and 95% Wilson CIs for Cohen's h on AdvBench refusal, target-alo
 | 17 | E5 qwen2.5-3b+1.5b | 0.0000 | [0.936, 0.986] |
 | 18 | E5 qwen2.5-1.5b+0.5b | 0.0000 | [0.950, 0.992] |
 
-**Observations.** A forest plot of these data will show all 18 point estimates stacked near h=0, with overlapping 95% CIs. The NeurIPS supplementary figure is produced from this table by `scripts/plots/tr144_forest.py` (TODO_PLOT: figure rendering pending). No TODO_CITE markers remain in the main text; the Wang et al. 2025 reference is a placeholder-style citation for the SSD paper (EMNLP 2025) whose BibTeX entry should be verified against the proceedings at camera-ready time.
+**Observations.** A forest plot of these data will show all 18 point estimates stacked near h=0, with overlapping 95% CIs. The supplementary figure is produced from this table by `scripts/plots/tr144_forest.py` (TODO_PLOT: figure rendering pending). No TODO_CITE markers remain in the main text; the Wang et al. 2025 reference is a placeholder-style citation for the SSD paper (EMNLP 2025) whose BibTeX entry should be verified against the proceedings at camera-ready time.
 
 ### F.5 Honest Gaps
 
 - **E1/E2/E3/E4/E5 judge rejudge incomplete.** Regex classifier only for the expansion cells. `openai_rejudge.py` and `judge_audit.py` are queued; Claude Sonnet 4.6 and Gemma 3 12B rejudge will land in v3.1.
 - **BBQ / TruthfulQA / MMLU / ARC on expansion.** Not regex-scorable. Expansion safety rates in SS19-SS23 restrict to advbench + jailbreak + truthfulqa(-partial). Full task coverage arrives with the rejudge.
 - **E1 does not have a same-scale target-alone baseline** because we did not run a phase-1 llama3.1-70b standalone eval on the TR144 task suite. The Wilson CI [0.783, 0.884] is reported as an absolute refusal rate; the TOST contrast vs target-alone is reported as "reference only" in SS24.1.
-- **Forest-plot figure rendering pending.** Data table in F.4 is complete; figure file will be produced for the NeurIPS supplementary appendix.
+- **Forest-plot figure rendering pending.** Data table in F.4 is complete; figure file will be produced for the supplementary appendix.
 
 ---
 

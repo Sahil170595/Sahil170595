@@ -1627,7 +1627,7 @@ The following table maps each v2 control to the specific reviewer objection from
 
 The v2 controls close most but not all of the v1 reviewer objections. The remaining gaps, in priority order:
 
-1. **Shot ordering was not actually varied.** C12 ran only a "default" bucket. A proper C12v2 would test at least 3 orderings at matched N on 2 models x 2 quants = 1,200 rows. Low compute cost; should be done before NeurIPS.
+1. **Shot ordering was not actually varied.** C12 ran only a "default" bucket. A proper C12v2 would test at least 3 orderings at matched N on 2 models x 2 quants = 1,200 rows. Low compute cost; should be done before the next external submission round.
 
 2. **phi3.5-mini has only N=256 data.** C8 is the first and only TR140 run on phi3.5-mini, and it is catastrophic (89-98% ASR across all quants). A full phi3.5-mini shot-count sweep (6 quants x 5 shots x 2 formats x 50 behaviors = 3,000 rows) would settle whether phi3.5-mini is broken at all N or whether its Q8_0 baseline is simply elevated. This is the highest-priority v2.1 experiment.
 

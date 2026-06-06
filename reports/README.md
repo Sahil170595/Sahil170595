@@ -144,7 +144,7 @@ Six conclusive reports (TR108-TR116, TR117-TR122, TR123-TR133, TR134-TR137, TR13
 
 | Report | Title | Samples | Status | Key Finding |
 |--------|-------|---------|--------|-------------|
-| **TR144** | Speculative Decoding × Safety / TAIS | 16,783 core + 48,072 E1–E5 expansion = 64,855 total | Complete | Typical-Acceptance Invariance Screen (TAIS) named method; max |Cohen's h| = 0.024 across matched draft+target pairs under rejection vs typical acceptance; null cutoff |h| < 0.1 calibrated; integrated into NeurIPS submission #3738 |
+| **TR144** | Speculative Decoding × Safety / TAIS | 16,783 core + 48,072 E1–E5 expansion = 64,855 total | Complete | Typical-Acceptance Invariance Screen (TAIS) named method; max |Cohen's h| = 0.024 across matched draft+target pairs under rejection vs typical acceptance; null cutoff |h| < 0.1 calibrated; integrated into the program's external safety submission |
 | **TR145** | FP8 KV-Cache Single-Config Safety | 24,054 records (P1–P5); 13,724 judge-labelled (gemma3:12b, κ=0.43, 0 errors) | Complete | Across-the-board null: Phase 2 McNemar all 3 models p≥0.31, Phase 3 ctx×KV ANOVA p≥0.54, Phase 4 batch×KV ANOVA p≥0.98, Phase 5 turn-5 paired McNemar 1B p=0.22 / 3B p=1.0; MH pooled OR safety=1.05 [0.90, 1.23]; bound claims to "no detectable FP8 effect under tested conditions" |
 | **TR148** | Multi-Judge Reliability / JTP Dual-Axis | 13,724 records × 5 judges = 41,272 fresh judge-label rows (regex + gemma3:12b + llama3.1:8b + shieldgemma:9b + llama-guard3:8b + 100-record gpt-4o calibration anchor) | Complete (v2, 1,556 lines) | TRIANGULATE verdict gemma3 × llama3.1 κ = 0.6917 at n=12,809, 0.0083 below JTP robust threshold; **dual-axis finding**: safety-specialist judges anti-correlate with general LLM judges (κ = −0.13 to −0.26) because they measure composite prompt+response harm, not response-only refusal; bridge paper Layer 1 splits 1a refusal-axis vs 1b composite-harm-axis |
 | **TR149** | FP8 KV-Cache on Standardized Safety Batteries | 7,578 primary + 22,734 judge across 3 models × 4 batteries (HarmBench-400, JBB-100, StrongREJECT-313, XSTest-450) × 2 KV-cache dtypes | Complete (1,303 lines) | TR145 null replicates on the literature-canonical batteries: cross-battery MH pooled OR 0.8065 [0.38, 1.70], **0 / 12 cells Holm-significant**, **12 / 12 TOST-equivalent at ±3pp**; cross-corpus judge κ 0.83 (vs TR145's 0.69) confirms triangulate verdict is corpus-specific; first run under `--skip-openai-judge` umbrella gate ($0 external cost) |
@@ -336,9 +336,9 @@ Six shippable decisions backed by ~105,945 primary measurements (Phase 3, per `B
 
 - **Safety judges measure two orthogonal axes, not one noisy axis.** Adding safety-specialist judges (shieldgemma:9b + llama-guard3:8b) at corpus scale reveals they **anti-correlate** with general LLM judges across 4 large-n pairs (cross-axis κ = −0.13 to −0.26) because they measure composite prompt+response harm, not response-only refusal. The bridge paper Layer 1 now splits the safety-specialist axis as an orthogonal screen (Layer 1b), not a fifth column of the refusal-axis JTP (Layer 1a). This is a methodological contribution that emerged only at TR148 v2's 5-judge scale (TR148 v2 SS4).
 
-- **Typical-acceptance speculative decoding is safety-invariant under matched draft+target pairs.** TR144's E1–E5 expansion (48,072 expansion-probe samples on top of the 16,783-sample core) finds max |Cohen's h| = 0.024 across rejection sampling vs typical acceptance — well below the ±0.1 null cutoff calibrated from the same expansion. TAIS named method (Typical-Acceptance Invariance Screen) ships as the Phase 6 Layer 2 behavioural complement to RTSI; integrated into NeurIPS submission #3738 (TR144).
+- **Typical-acceptance speculative decoding is safety-invariant under matched draft+target pairs.** TR144's E1–E5 expansion (48,072 expansion-probe samples on top of the 16,783-sample core) finds max |Cohen's h| = 0.024 across rejection sampling vs typical acceptance — well below the ±0.1 null cutoff calibrated from the same expansion. TAIS named method (Typical-Acceptance Invariance Screen) ships as the Phase 6 Layer 2 behavioural complement to RTSI; integrated into the program's external safety submission (TR144).
 
-- **The whole locally-runnable arc ran at $0 external API cost.** TR145 + TR146 + TR148 + TR149 + TR152 + TR144 expansion all under the `--skip-openai-judge` umbrella gate on a local Ollama judge cohort (regex + gemma3:12b + llama3.1:8b + shieldgemma:9b + llama-guard3:8b). No adversarial-prompt content sent to any external API. Cloud-gated envelope widenings (TR150 long-context, TR151 7B–72B scale, TR153 KV-method sweep) wait on the 2026-10-24 GO/NO-GO trigger (Anthropic Fellowship + NeurIPS-acceptance signal).
+- **The whole locally-runnable arc ran at $0 external API cost.** TR145 + TR146 + TR148 + TR149 + TR152 + TR144 expansion all under the `--skip-openai-judge` umbrella gate on a local Ollama judge cohort (regex + gemma3:12b + llama3.1:8b + shieldgemma:9b + llama-guard3:8b). No adversarial-prompt content sent to any external API. Cloud-gated envelope widenings (TR150 long-context, TR151 7B–72B scale, TR153 KV-method sweep) wait on the 2026-10-24 GO/NO-GO trigger (Anthropic Fellowship + external acceptance signal).
 
 ---
 
@@ -530,7 +530,7 @@ Six shippable decisions backed by ~105,945 primary measurements (Phase 3, per `B
 - Hardware: RunPod A100-SXM4-80GB for the E1–E5 expansion; RTX 4080 Laptop for core paired runs
 - Named method: **TAIS** (Typical-Acceptance Invariance Screen) — matched-pairs Cohen's h ±0.1 null cutoff calibrated from expansion max observed 0.024
 - Verdict: speculative decoding via rejection sampling vs typical acceptance under matched draft+target pairs is safety-invariant
-- Integrated into NeurIPS 2026 E&D Track submission #3738 (TAIS paper, under blind review; notification 2026-09-24 AoE)
+- Integrated into the program's external safety submission (TAIS paper, submission status withheld)
 
 #### TR145: FP8 KV-Cache Single-Config Safety
 **File:** `Technical_Report_145.md` (1,465 lines)
@@ -548,7 +548,7 @@ Six shippable decisions backed by ~105,945 primary measurements (Phase 3, per `B
 - TRIANGULATE verdict: gemma3 × llama3.1 cross-LLM κ = 0.6917, n=12,809 paired records, 0.0083 below JTP robust threshold of 0.70 → downstream Phase 6 TRs require multi-judge majority-vote
 - **Dual-axis finding (SS4):** safety-specialist judges anti-correlate with general LLM judges (cross-axis κ = −0.13 to −0.26 across 4 large-n pairs) because they measure composite prompt+response harm, not response-only refusal
 - Bridge paper Layer 1 splits: 1a refusal-axis JTP (general judges) + 1b composite-harm-axis screen (safety specialists)
-- Integrated into NeurIPS 2026 E&D Track submission #3724 (JTP paper) + bridge-paper Layer 1 anchor
+- Integrated into the program's external safety submission (JTP paper) + bridge-paper Layer 1 anchor
 
 #### TR149: FP8 KV-Cache on Standardized Safety Batteries
 **File:** `Technical_Report_149.md` (1,303 lines)
@@ -958,7 +958,7 @@ All measurements on a single fixed baseline:
 ### Phase 6
 
 23. **Is speculative decoding via typical-acceptance sampling safety-equivalent to rejection sampling?**
-    Yes — TR144's E1–E5 expansion (48,072 expansion-probe samples on top of 16,783 core paired) finds max |Cohen's h| = 0.024 across matched draft+target pairs under rejection vs typical acceptance, well below the ±0.1 null cutoff calibrated from the same expansion. TAIS (Typical-Acceptance Invariance Screen) ships as the named method; integrated into NeurIPS submission #3738 (TR144).
+    Yes — TR144's E1–E5 expansion (48,072 expansion-probe samples on top of 16,783 core paired) finds max |Cohen's h| = 0.024 across matched draft+target pairs under rejection vs typical acceptance, well below the ±0.1 null cutoff calibrated from the same expansion. TAIS (Typical-Acceptance Invariance Screen) ships as the named method; integrated into the program's external safety submission (TR144).
 
 24. **Is FP8 (E4M3) KV-cache quantization safety-neutral under realistic serving states?**
     Yes for harmful prompts, with one located footnote on benign-edge content. TR152 v2's 45,000-record `fp8_anchored_star` factorial finds **0 / 8,976 discordant pairs** on HarmBench / JBB / StrongREJECT across 5 models × 6 contexts × 3 harmful batteries, 0 / 120 cells Holm-significant, 117 / 120 TOST-equivalent at ±3 pp, FP8-interaction spread 2.99 pp inside the band. TR149's standardized-battery replication finds 12 / 12 TOST-equivalent and cross-battery MH pooled OR 0.8065 [0.38, 1.70]. The only footprint is a sub-1 pp Qwen-2.5 over-refusal lean on XSTest (per-family MH OR 3.878 [2.386, 6.302], sign-test p ≈ 0.0004). Claims bounded to 1B–4B instruction-tuned models on vLLM v0.19.1 at batch ∈ {1, 8, 32}, prefix-caching {on, off}, temperature ∈ {0.0, 0.7, 1.0} (TR145 / TR149 / TR152).

@@ -920,7 +920,7 @@ Pearson r measures linear association; Spearman rho measures monotonic associati
 | Full quant range including Q2_K | No -- driven by extreme | **Yes** -- robust to outliers |
 | Moderate quant range (Q5_K_M-Q8_0) | Acceptable -- no extreme points | Acceptable |
 | Reporting to practitioners | Report both | **Emphasize rho for decisions** |
-| Reporting to NeurIPS reviewers | Report both with explicit caveat about divergence | Report both |
+| Reporting to external reviewers | Report both with explicit caveat about divergence | Report both |
 | Identifying which quality metric couples with safety | **Yes** -- useful for direction | **Better** -- avoids inflated strength |
 
 > Pearson correlations overstate quality-safety coupling on 4 of 6 models. Spearman rank correlations show weaker monotonic association, except on qwen2.5-1.5b where the coupling is genuinely monotonic. Report both metrics; do not rely on Pearson alone. BERTScore shows larger Pearson-Spearman gaps than coherence, making coherence the more reliable quality proxy.
@@ -968,7 +968,7 @@ The pooled judge-based correlation for BERTScore x refusal is +0.508, compared t
 **Observations.**
 
 - The choice between regex and judge does not change the Simpson's paradox finding (sign reversals persist) but does affect the magnitude of the pooled correlation.
-- For the NeurIPS paper, both instruments should be reported, with the caveat that Mistral's regex refusal rates are unreliable as a standalone safety metric.
+- For the downstream paper, both instruments should be reported, with the caveat that Mistral's regex refusal rates are unreliable as a standalone safety metric.
 
 ### SS13.3 Within-Model Judge Correlations
 
@@ -986,7 +986,7 @@ The judge-based safety metrics provide an alternative lens on the quality-safety
 
 The pooled judge-based correlations are generally weaker than regex-based correlations because the judge instrument produces less extreme deltas. When refusal rates are measured at 90%+ across all quant levels (as with the judge on Mistral), the delta between quant levels shrinks, attenuating the correlation.
 
-### SS13.4 Implications for the NeurIPS Paper
+### SS13.4 Implications for the Downstream Paper
 
 The regex-judge divergence has two implications for the paper:
 

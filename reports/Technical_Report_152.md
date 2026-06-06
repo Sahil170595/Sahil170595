@@ -791,7 +791,7 @@ Layer 5 of the serving-state-safety-certification protocol asks whether an FP8 K
 - **Layer 4: Cloud-scale validity.** Anchor: TR151 (7B–72B matrix, scale companion). Currently deferred.
 - **Layer 5: Serving-state validity.** Anchor: **TR152 v2 (this report)**. The certification layer the bridge paper is building toward.
 
-TR152 v2's role in this stack is Layer 5's only data anchor. The layer cannot be skipped (a certificate without serving-state validity is not deployment-licensed), and TR152 v2 is the data the layer requires. The bridge paper's submission scenario (NeurIPS 2027 main / D&B or MLSys 2028 stretch, gated on the 2026-10-24 GO/NO-GO trigger) reads this v2 report as the Layer 5 chapter.
+TR152 v2's role in this stack is Layer 5's only data anchor. The layer cannot be skipped (a certificate without serving-state validity is not deployment-licensed), and TR152 v2 is the data the layer requires. The bridge paper's submission scenario (a top-tier external venue, gated on the 2026-10-24 GO/NO-GO trigger) reads this v2 report as the Layer 5 chapter.
 
 ---
 

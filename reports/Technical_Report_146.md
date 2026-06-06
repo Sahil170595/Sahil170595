@@ -128,7 +128,7 @@ The most important non-result is that none of the four mechanistic probes can di
 - [SS6. Phase 3: Calibration Drift](#ss6-phase-3-calibration-drift)
 - [SS7. Phase 5: Safety Neuron Quantization Error](#ss7-phase-4-safety-neuron-quantization-error)
 - [SS8. Cross-Phase Synthesis](#ss8-cross-phase-synthesis)
-- [SS9. Implications for RTSI and the NeurIPS Paper](#ss9-implications-for-rtsi-and-the-neurips-paper)
+- [SS9. Implications for RTSI and the Downstream Paper](#ss9-implications-for-rtsi-and-the-downstream-paper)
 - [SS10. Conclusions](#ss10-conclusions)
 - [SS11. Limitations and Follow-Up](#ss11-limitations-and-follow-up)
 - [SS12. Reproducibility](#ss12-reproducibility)
@@ -587,7 +587,7 @@ To complete the synthesis, we compute pairwise correlations among all mechanisti
 
 ---
 
-## SS9. Implications for RTSI and the NeurIPS Paper
+## SS9. Implications for RTSI and the Downstream Paper
 
 ### SS9.1 What TR146 Adds to the Paper
 
