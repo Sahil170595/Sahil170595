@@ -759,7 +759,7 @@ The v2 campaign is pre-registered with a new contract at `research/tr163/v2/publ
 
 ### 22.4 Compute envelope
 
-The v2 campaign's compute envelope is Fellowship-gated. The primary sampling requires GPU access at the 7B–13B model-family scale across the 8-quant matrix; the judge sampling requires Anthropic and OpenAI Batch API access at ~75K records per judge. The Banterhearts program's standing rule is that adversarial-corpus sampling against OpenAI requires the Researcher Access Program umbrella; the v2 campaign cannot fire on OpenAI without the umbrella. The v2 campaign is therefore conditional on either (a) Anthropic Fellowship cover or (b) post-NeurIPS-accept credentials.
+The v2 campaign's compute envelope is Fellowship-gated. The primary sampling requires GPU access at the 7B–13B model-family scale across the 8-quant matrix; the judge sampling requires Anthropic and OpenAI Batch API access at ~75K records per judge. The Banterhearts program's standing rule is that adversarial-corpus sampling against OpenAI requires the Researcher Access Program umbrella; the v2 campaign cannot fire on OpenAI without the umbrella. The v2 campaign is therefore conditional on either (a) Anthropic Fellowship cover or (b) post-acceptance institutional credentials.
 
 ### 22.5 Estimated wall-clock
 
@@ -789,11 +789,11 @@ The Phase 7 lane's main-track contribution is conditional on at least one of the
 
 The bridge paper at `papers/serving_state_safety_certification/` is the program's planned consolidation of the four screens (RTSI, JTP, TAIS, CRI) into a layered serving-state safety certification protocol. The bridge paper's Layer 6 is the mitigation/defense layer; its content is sourced from the Phase 7 expansions. TR163 v2 is the bridge paper's Layer 6 anchor for the configuration-routing defense modality.
 
-The bridge paper's Stage 2 launch (the certification-protocol chapter that builds on the four-screen Stage 1) gates on the 2026-10-24 GO/NO-GO trigger. The trigger is conditional on (a) Anthropic Fellowship landing and (b) at least one NeurIPS 2026 E&D acceptance. If both conditions clear, the Stage 2 launch fires and the TR163 v2 substrate is the load-bearing anchor for the bridge paper's mitigation chapter. If neither condition clears, the Stage 2 launch is deferred and the TR163 v2 substrate stays in the run-dir at workshop-pilot depth.
+The bridge paper's Stage 2 launch (the certification-protocol chapter that builds on the four-screen Stage 1) gates on the 2026-10-24 GO/NO-GO trigger. The trigger is conditional on (a) Anthropic Fellowship landing and (b) at least one main-conference acceptance from the program's current submission round. If both conditions clear, the Stage 2 launch fires and the TR163 v2 substrate is the load-bearing anchor for the bridge paper's mitigation chapter. If neither condition clears, the Stage 2 launch is deferred and the TR163 v2 substrate stays in the run-dir at workshop-pilot depth.
 
 ### 23.3 The standalone-defense-note option
 
-A standalone defense note based on the TR163 v2 substrate is an alternative to the bridge-paper Layer 6 anchor. The standalone note would be a single TR163 v2 paper, sized appropriately for a 6–8 page workshop or short conference venue (NeurIPS workshops, SoLaR, MLSys 2027 workshop). The standalone note's contribution would be the configuration-routing defense itself, framed as a new entry in the mitigation literature alongside SSD, Q-resafe, and Q-realign. The publication contract's `paper_slug` field leaves the choice between standalone-note and bridge-paper-section explicitly undecided; the choice will be made post-substrate-land based on which framing best serves the available venue.
+A standalone defense note based on the TR163 v2 substrate is an alternative to the bridge-paper Layer 6 anchor. The standalone note would be a single TR163 v2 paper, sized appropriately for a 6–8 page short-paper venue in the safety or systems space. The standalone note's contribution would be the configuration-routing defense itself, framed as a new entry in the mitigation literature alongside SSD, Q-resafe, and Q-realign. The publication contract's `paper_slug` field leaves the choice between standalone-note and bridge-paper-section explicitly undecided; the choice will be made post-substrate-land based on which framing best serves the available venue.
 
 > Phase 7's first deliverable is structurally TR163 v2. The bridge-paper-anchor and standalone-note options are both alive; the choice depends on which venue offers the best fit for the substrate.
 
