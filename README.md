@@ -273,17 +273,14 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 *Preprint — cs.LG, cs.CR*
 [![arXiv](https://img.shields.io/badge/arXiv-2606.10154-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2606.10154)
 
-### 2023
+---
 
-**Digital Currency Price Prediction using Machine Learning**
-*IJRASET 11(9): 338–355* — Sep 2023
-[![DOI](https://img.shields.io/badge/DOI-10.22214%2Fijraset.2023.55647-blue?style=flat)](https://doi.org/10.22214/ijraset.2023.55647)
+## Earlier Research (2022–2023)
 
-### 2022
+**Medical AI Imaging — Multi-Phase Clinical Pipeline**
+Led a 4-person engineering + clinical team (3 engineers, 1 physician) across a 5-institution program (state government, city university, dental hospital, 2 engineering colleges) building TensorFlow/Keras pipelines over clinical imaging — dental (POC) → retinal (Phase 2) → EEG (Phase 4+). Stack: LSTM + attention multi-classification, W&B experiment tracking, SHAP interpretability, pinned-memory CPU↔GPU transfer optimization.
 
-**Machine Learning Based Car Damage Identification**
-*JETIR 9(10)* — Oct 2022
-[![PDF](https://img.shields.io/badge/Paper-JETIR%20(2022)-brightgreen?style=flat)](https://www.jetir.org/papers/JETIR2210195.pdf)
+Registered work: **Copyright L-122721/2023**.
 
 ---
 
