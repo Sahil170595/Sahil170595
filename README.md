@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **48 technical reports. 1,000,000+ empirical measurements. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.** Everything measured, everything reproducible.
+I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **50 technical reports. 1,100,000+ empirical measurements. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.** Everything measured, everything reproducible.
 
 ---
 
@@ -21,7 +21,7 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-3. **Empirical safety research** — 48 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned, and the program's first mitigation now recovers 76% of the quantization refusal gap. One paper accepted at the ICML 2026 Workshop on Hypothesis Testing; five under review at a top ML venue.
+3. **Empirical safety research** — 50 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned, and the program's first mitigation now recovers 76% of the quantization refusal gap. One paper accepted at the ICML 2026 Workshop on Hypothesis Testing; five under review at a top ML venue.
 
 ---
 
@@ -32,11 +32,11 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 ```mermaid
 graph TD
     BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 99%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
-    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>48 reports · 1M+ measurements"]
+    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>50 reports · 1.1M+ measurements"]
     CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>6 predictive models · 292 tests<br/>Python + Rust harnesses"]
     MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
     CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
-    BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 48 reports · 5 live demos"]
+    BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 50 reports · 5 live demos"]
     EC["<b>Echo</b><br/>Channel adapters for Chimera<br/>Slack · Discord · Telegram · WhatsApp · Email<br/>5 adapters · 68 tests"]
     JC["<b>JARVIS Console</b><br/>Next.js 15 operator UI<br/>React 19 · Radix · Framer Motion<br/>Chat · approvals · session telemetry"]
     WY["<b>ProjectWyvern</b><br/>Constitutional aerial autonomy<br/>MAVSDK · MAVLink · ROS 2 · PX4/ArduPilot<br/>Mission validation · cryptographic replay"]
@@ -102,7 +102,7 @@ Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chim
 - 6 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required)
 - Dual-language benchmarking harnesses (Python + Rust)
 - 292 tests
-- Operationalizes findings from 48 technical reports into deployment decisions
+- Operationalizes findings from 50 technical reports into deployment decisions
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
@@ -140,7 +140,7 @@ The autonomy plane in the Chimera ecosystem. Sits between the Chimera control pl
 
 ## Research Program
 
-**48 technical reports (TR 108–TR 163). 1,000,000+ empirical measurements. 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.**
+**50 technical reports (TR 108–TR 164). 1,100,000+ empirical measurements. 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.**
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
@@ -211,6 +211,7 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 | [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI. 6 predictive models, 292 tests. |
 | [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 15 published models — 11 quantized AWQ/GPTQ checkpoints (Llama 3.2, Qwen 2.5) and 4 custom GPT-2 scaling-law training runs. |
 | [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Merged into PyTorch Inductor** ([squash `be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), 2026-06-04) — hardened cudagraph_trees deallocation against diagnostic-metadata divergence; approved by jansel (Inductor maintainer). |
+| [**PyTorch PR #184102 (validation)**](https://github.com/pytorch/pytorch/pull/184102) | Multi-version, cross-scenario validation of jansel's `cudagraph_trees` handoff fix (NGC torch 2.10 + 2.12 nightly; single/multi-partition + cross-call + strided feedback); surfaced an uncovered later-partition `graph_partition` edge case. [Validation gist](https://gist.github.com/Sahil170595/062d40cb18e2b2e27e99c1efbfa3ccdb). |
 
 ---
 
@@ -267,6 +268,10 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 **A Paired Testing Protocol for Batch-Conditioned Refusal Robustness in LLM Serving**
 *Accepted — ICML 2026 Workshop on Hypothesis Testing*
 [![arXiv](https://img.shields.io/badge/arXiv-2605.27763-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2605.27763)
+
+**Quality Is Not a Safety Proxy Under Quantization**
+*Preprint — cs.LG, cs.CR*
+[![arXiv](https://img.shields.io/badge/arXiv-2606.10154-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2606.10154)
 
 ### 2023
 
