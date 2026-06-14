@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **50 technical reports. 1,100,000+ empirical measurements. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.** Everything measured, everything reproducible.
+I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **50 technical reports. ~1.1M decision-grade measurements** (curated from ~10⁹ profiler samples). **1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.** Everything measured, everything reproducible.
 
 ---
 
@@ -26,6 +26,8 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 ---
 
 ## The Chimera Ecosystem
+
+**Founder & Lead ML Architect · Sep 2025 – Present · New York, USA**
 
 **9 repositories. 15+ services. 5 languages. One obsession: make AI systems that are fast, safe, and honest.**
 
@@ -61,6 +63,8 @@ graph TD
     style JC fill:#1a1a2e,stroke:#533483,color:#fff
     style WY fill:#1a1a2e,stroke:#e94560,color:#fff
 ```
+
+> **Repo visibility — private by design:** Banterpacks, Banterhearts, and Muse Protocol are the research lab. They hold in-flight studies, unpublished safety data, and the substrate for the NeurIPS submissions and ICML workshop paper. Keeping them closed is a deliberate research-strategy choice — public release would surrender the priority window on unpublished work to anyone with more compute. Read access on request via the [Reach Me](#reach-me) links for serious inquiries (research collaborators, PhD advisors, hiring teams under NDA). Chimeraforge, Chimeradroid, Banterblogs, Echo, JARVIS Console, and ProjectWyvern are public.
 
 ---
 
@@ -140,7 +144,7 @@ The autonomy plane in the Chimera ecosystem. Sits between the Chimera control pl
 
 ## Research Program
 
-**50 technical reports (TR 108–TR 164). 1,100,000+ empirical measurements. 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.**
+**50 technical reports (TR 108–TR 164). ~1.1M decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.**
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
@@ -156,7 +160,7 @@ Quantified the **safety tax of inference optimization** across 4 model families:
 
 Key finding: **backend matters more than numerical precision for safety.** A 23pp safety drop traced to chat template divergence, not FP16 vs Q4 arithmetic.
 
-**First mitigation (TR163):** After a program of pure measurement, RTSI-gated routing now recovers **76%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing (out-of-sample LOOCV ROC-AUC **0.84**) — the move from measuring the problem to defending against it.
+**First mitigation (TR163):** After a program of pure measurement, RTSI-gated routing now recovers **76.17%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing (LOOCV ROC-AUC **0.8445**, validated via repeated LOOCV re-tests across the [QuantSafe Certifier](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) buildout; the companion [arXiv preprint](https://arxiv.org/abs/2606.10154) reports the same intervention under a recall framing) — the move from measuring the problem to defending against it.
 
 ### Inference Systems & GPU Kernel Profiling | ~35,000 measurements
 
@@ -185,6 +189,7 @@ Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottle
 ## Recent Shipped Work
 
 ### GhostEye Inc. — Founding Engineer (AI/ML)
+*Dec 2025 – Mar 2026 · New York, USA*
 
 Built a **security awareness training platform in 90 days** as a founding engineer. Multi-channel delivery across web, Slack, Teams, SMS/RCS, WhatsApp, Telegram, voice, and email.
 
@@ -195,6 +200,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 - 5000+ tests across ~20 services
 
 ### Attunica, LLC — Co-Founder & Lead ML Architect
+*Oct 2025 – Present · New York, USA*
 
 Multi-service clinical AI platform for psychotherapy training and research workflows.
 
@@ -246,19 +252,6 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 | **Frontend UI** | Application frontend snapshot | <img src="https://github.com/user-attachments/assets/35c6439a-7ddd-4021-8d90-5518213db4af" width="360" alt="Frontend UI"> | —|
 | **Performance** | Throughput/latency view | <img src="https://github.com/user-attachments/assets/4d067d29-4d61-47bc-bae9-b0d859f03a50" width="360" alt="Performance"> | —|
 | **Banterpacks Demo** | Live demo still | <img src="https://github.com/user-attachments/assets/7685a091-274a-4ce5-ab43-7fcec213caa2" width="360" alt="Banterpacks Demo"> | [YouTube Demo](https://youtu.be/IPbwLB_sZ9I) |
-
----
-
-## Other Projects
-
-| Project | Description |
-|:--------|:------------|
-| **CCPhotosearchBot** | Serverless AWS bot for natural-language photo search using Rekognition + OpenSearch. |
-| **LumaChat** | JavaFX desktop chat client with AI assistant, secure auth, and MongoDB persistence. |
-| **DLProject** | Anomaly detection on MVTec-AD using Anomalib (PatchCore, FastFlow, STFPM) with AUROC evaluations. |
-| **MaidMind** | Modular AI assistant with scoped memory and task-based agent logic. |
-| **Aion / CodeMind** | Autonomous Python interpreter evolving via multi-agent LLM patch collaboration. |
-| **RAG_Vidquest** | Lecture-video QA system using retrieval-augmented generation and multimodal search. |
 
 ---
 
