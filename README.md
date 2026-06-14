@@ -34,7 +34,7 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 ```mermaid
 graph TD
     BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 99%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
-    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>50 reports · 1.1M+ measurements"]
+    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>50 reports · ~1.1M measurements"]
     CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>6 predictive models · 292 tests<br/>Python + Rust harnesses"]
     MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
     CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
@@ -64,7 +64,7 @@ graph TD
     style WY fill:#1a1a2e,stroke:#e94560,color:#fff
 ```
 
-> **Repo visibility — private by design:** Banterpacks, Banterhearts, and Muse Protocol are the research lab. They hold in-flight studies, unpublished safety data, and the substrate for the NeurIPS submissions and ICML workshop paper. Keeping them closed is a deliberate research-strategy choice — public release would surrender the priority window on unpublished work to anyone with more compute. Read access on request via the [Reach Me](#reach-me) links for serious inquiries (research collaborators, PhD advisors, hiring teams under NDA). Chimeraforge, Chimeradroid, Banterblogs, Echo, JARVIS Console, and ProjectWyvern are public.
+> **Repo visibility — private by design:** Banterpacks, Banterhearts, and Muse Protocol are the private research substrate. They hold in-flight studies, unpublished safety data, and the corpus the workshop paper and submissions referenced above were drawn from. Keeping them closed is a deliberate research-strategy choice — public release would surrender the priority window on unpublished work to anyone with more compute. Read access on request via the [Reach Me](#reach-me) links for serious inquiries (research collaborators, PhD advisors, hiring teams under NDA). Public surfaces: [Chimeraforge](https://github.com/Sahil170595/Chimeraforge), [Chimeradroid](https://github.com/Sahil170595/Chimeradroid), [Banterblogs](https://github.com/Sahil170595/Banterblogs), [Echo](https://github.com/Sahil170595/Echo), [JARVIS Console](https://github.com/Sahil170595/jarvis-console), and [ProjectWyvern](https://github.com/Sahil170595/ProjectWyvern).
 
 ---
 
@@ -89,7 +89,7 @@ graph TD
 - **Capability-aware backend dispatching** — Ollama, HuggingFace Transformers, ONNX Runtime, TensorRT. The system picks the right backend for the job.
 - **Compile+quantize pipeline** with latency/accuracy guardrails
 - **Thompson Sampling auto-optimizer** for configuration discovery
-- **GPU monitoring** —100ms power polling, thermal safety, VRAM fragmentation tracking via pynvml
+- **GPU monitoring** — 100ms power polling, thermal safety, VRAM fragmentation tracking via pynvml
 - **TensorRT engine building**, ONNX model export, torch.compile with Inductor backend
 - **KV-cache analysis** — theoretical + empirical measurement, CUDA graph crash reproduction
 
@@ -160,7 +160,7 @@ Quantified the **safety tax of inference optimization** across 4 model families:
 
 Key finding: **backend matters more than numerical precision for safety.** A 23pp safety drop traced to chat template divergence, not FP16 vs Q4 arithmetic.
 
-**First mitigation (TR163):** After a program of pure measurement, RTSI-gated routing now recovers **76.17%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing (LOOCV ROC-AUC **0.8445**, validated via repeated LOOCV re-tests across the [QuantSafe Certifier](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) buildout; the companion [arXiv preprint](https://arxiv.org/abs/2606.10154) reports the same intervention under a recall framing) — the move from measuring the problem to defending against it.
+**First mitigation (TR163):** After a program of pure measurement, RTSI-gated routing recovers **~76%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing (LOOCV ROC-AUC **0.84**, validated across LOOCV passes during the [QuantSafe Certifier](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) buildout; the companion [arXiv preprint](https://arxiv.org/abs/2606.10154) reports the same intervention under a recall framing — 10/10 hidden-danger configs routed, Wilson 95% CI lower-bound 0.72) — the move from measuring the problem to defending against it.
 
 ### Inference Systems & GPU Kernel Profiling | ~35,000 measurements
 
