@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **50 technical reports. ~1.1M decision-grade measurements** (curated from ~10⁹ profiler samples). **1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.** Everything measured, everything reproducible.
+I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **53 technical reports. ~1.3M decision-grade measurements** (curated from ~10⁹ profiler samples). **1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.** Everything measured, everything reproducible.
 
 ---
 
@@ -21,7 +21,7 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-3. **Empirical safety research** — 50 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned, and the program's first mitigation now recovers 76% of the quantization refusal gap. One paper accepted at the ICML 2026 Workshop on Hypothesis Testing; five under review at a top ML venue.
+3. **Empirical safety research** — 53 technical reports measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned, and the program's first mitigation now recovers 76% of the quantization refusal gap. One paper accepted at the ICML 2026 Workshop on Hypothesis Testing; five under review at a top ML venue.
 
 ---
 
@@ -34,11 +34,11 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 ```mermaid
 graph TD
     BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 99%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
-    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>50 reports · ~1.1M measurements"]
+    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>53 reports · ~1.3M measurements"]
     CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>6 predictive models · 292 tests<br/>Python + Rust harnesses"]
     MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
     CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
-    BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 50 reports · 5 live demos"]
+    BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 53 reports · 5 live demos"]
     EC["<b>Echo</b><br/>Channel adapters for Chimera<br/>Slack · Discord · Telegram · WhatsApp · Email<br/>5 adapters · 68 tests"]
     JC["<b>JARVIS Console</b><br/>Next.js 15 operator UI<br/>React 19 · Radix · Framer Motion<br/>Chat · approvals · session telemetry"]
     WY["<b>ProjectWyvern</b><br/>Constitutional aerial autonomy<br/>MAVSDK · MAVLink · ROS 2 · PX4/ArduPilot<br/>Mission validation · cryptographic replay"]
@@ -106,7 +106,7 @@ Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chim
 - 6 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required)
 - Dual-language benchmarking harnesses (Python + Rust)
 - 292 tests
-- Operationalizes findings from 50 technical reports into deployment decisions
+- Operationalizes findings from 53 technical reports into deployment decisions
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
@@ -144,7 +144,7 @@ The autonomy plane in the Chimera ecosystem. Sits between the Chimera control pl
 
 ## Research Program
 
-**50 technical reports (TR 108–TR 164). ~1.1M decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.**
+**53 technical reports (TR 108–TR 168). ~1.3M decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.**
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
