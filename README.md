@@ -32,36 +32,59 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 **Adaptive constitutional engine: 15+ services, 1,500+ tests, Rust alignment runtime. One obsession: make AI systems that are fast, safe, and honest.**
 
 ```mermaid
-graph TD
-    BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 99%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
-    BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>53 reports · ~1.3M measurements"]
-    CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>7 predictive models · 323 tests<br/>Opt-in safety gate · Python + Rust harnesses"]
-    MP["<b>Muse Protocol</b><br/>6-agent publication stack<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
-    CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
-    BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 53 reports · 5 live demos"]
-    EC["<b>Echo</b><br/>Channel adapters for Chimera<br/>Slack · Discord · Telegram · WhatsApp · Email<br/>5 adapters · 68 tests"]
-    JC["<b>JARVIS Console</b><br/>Next.js 15 operator UI<br/>React 19 · Radix · Framer Motion<br/>Chat · approvals · session telemetry"]
-    WY["<b>ProjectWyvern</b><br/>Constitutional aerial autonomy<br/>MAVSDK · MAVLink · ROS 2 · PX4/ArduPilot<br/>Mission validation · cryptographic replay"]
+%%{init: {'theme':'base', 'themeVariables': {'background':'#0a0a14', 'primaryColor':'#1a1a2e', 'primaryTextColor':'#ffffff', 'lineColor':'#9a9a9a', 'fontFamily':'sans-serif'}, 'flowchart': {'curve':'basis', 'nodeSpacing': 70, 'rankSpacing': 110, 'htmlLabels': true}}}%%
+flowchart LR
 
-    BP -->|optimized backends| BH
-    BH -->|findings| CF
-    BP -->|telemetry + debate outcomes| MP
-    MP -->|episodes| BB
-    BP -->|streaming + voice| CD
-    BH -->|GPU configs| BP
-    BP -->|JARVIS gateway| EC
-    BP -->|operator surface| JC
-    BP -->|policy + approvals| WY
+    subgraph OBSERVE ["OBSERVE & LEARN"]
+        direction TB
+        MP["<b>Muse Protocol</b><br/>System-wide observability<br/>6-agent pipeline<br/>ClickHouse · confidence scoring"]
+        BH["<b>Banterhearts</b><br/>Research + training<br/>53 reports · 1.3M+ measurements<br/>vLLM · SGLang · TGI · TensorRT-LLM"]
+        JC["<b>JARVIS Console</b><br/>Vision into the system<br/>Operator control surface<br/>Next.js 15 · React 19"]
+    end
 
-    style BP fill:#1a1a2e,stroke:#e94560,color:#fff
-    style BH fill:#1a1a2e,stroke:#0f3460,color:#fff
-    style CF fill:#1a1a2e,stroke:#16213e,color:#fff
-    style MP fill:#1a1a2e,stroke:#533483,color:#fff
-    style CD fill:#1a1a2e,stroke:#e94560,color:#fff
-    style BB fill:#1a1a2e,stroke:#0f3460,color:#fff
-    style EC fill:#1a1a2e,stroke:#16213e,color:#fff
-    style JC fill:#1a1a2e,stroke:#533483,color:#fff
-    style WY fill:#1a1a2e,stroke:#e94560,color:#fff
+    subgraph BUILD ["BUILD & GOVERN"]
+        direction TB
+        CF["<b>Chimeraforge</b><br/>CLI + model packaging<br/>7 predictive models · 323 tests<br/>Opt-in refusal-data safety gate"]
+        BP["<b>BANTERPACKS</b><br/><b>Adaptive constitutional runtime</b><br/>Rust · 7 crates · ZK proofs<br/>JARVIS gateway · distillation loop"]
+        RG["<b>Runtime Gateway</b><br/>Policy · routing<br/>Synchronization · event ingestion"]
+    end
+
+    subgraph PRODUCTS ["PRODUCTS & INTERFACES"]
+        direction TB
+        EC["<b>Echo</b><br/>5 channel adapters<br/>Slack · Discord · Telegram · WhatsApp · Email"]
+        BB["<b>Banterblogs</b><br/>Publication stack<br/>Next.js 16 · Vercel<br/>266 episodes · 53 reports"]
+        CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
+        WY["<b>ProjectWyvern</b><br/>Constitutional aerial autonomy<br/>MAVSDK · MAVLink · ROS 2 · PX4/ArduPilot"]
+    end
+
+    MP ==>|scored insights| BH
+    BH -->|CLI surface| CF
+    BH ==>|model + policy updates| BP
+    CF ==>|validated artifacts| BP
+    BP ==>|controls| RG
+    RG --> EC
+    RG --> BB
+    RG --> CD
+    RG --> WY
+    MP <-.->|telemetry + alerts| BP
+    BH -.->|research vision| JC
+    BP -.->|runtime vision| JC
+
+    classDef observ fill:#1a1a2e,stroke:#52b788,stroke-width:3px,color:#fff,rx:8,ry:8
+    classDef research fill:#1a1a2e,stroke:#4cc9f0,stroke-width:3px,color:#fff,rx:8,ry:8
+    classDef console fill:#1a1a2e,stroke:#52b788,stroke-width:3px,color:#fff,rx:8,ry:8
+    classDef tool fill:#1a1a2e,stroke:#a259ff,stroke-width:2px,color:#fff,rx:8,ry:8
+    classDef core fill:#1a1a2e,stroke:#ff3366,stroke-width:5px,color:#fff,rx:8,ry:8
+    classDef gateway fill:#1a1a2e,stroke:#c0c0c0,stroke-width:3px,color:#fff,rx:8,ry:8
+    classDef product fill:#1a1a2e,stroke:#a259ff,stroke-width:2px,color:#fff,rx:8,ry:8
+
+    class MP observ
+    class BH research
+    class JC console
+    class CF tool
+    class BP core
+    class RG gateway
+    class EC,BB,CD,WY product
 ```
 
 > **Repo visibility — private by design:** Banterpacks, Banterhearts, and Muse Protocol are the private research substrate. They hold in-flight studies, unpublished safety data, and the corpus the workshop paper and submissions referenced above were drawn from. Keeping them closed is a deliberate research-strategy choice — public release would surrender the priority window on unpublished work to anyone with more compute. Read access on request via the [Reach Me](#reach-me) links for serious inquiries (research collaborators, PhD advisors, hiring teams under NDA). Public surfaces: [Chimeraforge](https://github.com/Sahil170595/Chimeraforge), [Chimeradroid](https://github.com/Sahil170595/Chimeradroid), [Banterblogs](https://github.com/Sahil170595/Banterblogs), [Echo](https://github.com/Sahil170595/Echo), [JARVIS Console](https://github.com/Sahil170595/jarvis-console), and [ProjectWyvern](https://github.com/Sahil170595/ProjectWyvern).
