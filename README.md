@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build constitutional AI systems, optimize LLM inference down to the kernel level, and run a solo research program that has overturned 3 hypotheses so far. **53 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports). ~1.3M decision-grade measurements** (curated from ~10⁹ profiler samples). **1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.** Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
+Methodology built in the public **Chimera adaptive constitutional engine** — 15+ services, Rust alignment runtime, **53 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / ~1.3M decision-grade measurements** (curated from ~10⁹ profiler samples), **3 overturned hypotheses**, **1 ICML 2026 workshop paper accepted + 5 NeurIPS 2026 submissions** — and applied at production scale at **GhostEye** (security training platform shipped in 90 days; 80–400x deepfake latency reduction), **Attunica** (HIPAA-aligned clinical AI; BAAs across Anthropic + AWS), **16 Hugging Face models**, and **Chimeraforge** (PyPI capacity-planning CLI, 323 tests). Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
 
 ---
 
@@ -25,18 +25,18 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 ---
 
-## The Chimera Ecosystem
+## Chimera
 
 **Founder & Lead ML Architect · Sep 2025 – Present · New York, USA**
 
-**9 repositories. 15+ services. 5 languages. One obsession: make AI systems that are fast, safe, and honest.**
+**Adaptive constitutional engine: 15+ services, 1,500+ tests, Rust alignment runtime. One obsession: make AI systems that are fast, safe, and honest.**
 
 ```mermaid
 graph TD
     BP["<b>Banterpacks</b><br/>Constitutional debate engine<br/>Fast-path router &lt;10ms @ 99%<br/>Rust runtime · 7 crates · ZK proofs<br/>JARVIS gateway · RLAIF pipeline"]
     BH["<b>Banterhearts</b><br/>Research + inference platform<br/>Ollama · vLLM · TensorRT · ONNX dispatching<br/>Compile+quantize · GPU monitoring<br/>53 reports · ~1.3M measurements"]
-    CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>7 predictive models · 323 tests<br/>Python + Rust harnesses"]
-    MP["<b>Muse Protocol</b><br/>6-agent content pipeline<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
+    CF["<b>Chimeraforge</b><br/>PyPI capacity-planning CLI<br/>7 predictive models · 323 tests<br/>Opt-in safety gate · Python + Rust harnesses"]
+    MP["<b>Muse Protocol</b><br/>6-agent publication stack<br/>ClickHouse · confidence scoring<br/>Auto i18n (DE/ZH/HI)"]
     CD["<b>Chimeradroid</b><br/>Unity/C# · Android + XR<br/>WebSocket · voice · CRDT sync"]
     BB["<b>Banterblogs</b><br/>Next.js 16 · Vercel<br/>266 episodes · 53 reports · 5 live demos"]
     EC["<b>Echo</b><br/>Channel adapters for Chimera<br/>Slack · Discord · Telegram · WhatsApp · Email<br/>5 adapters · 68 tests"]
@@ -68,7 +68,7 @@ graph TD
 
 ---
 
-## Banterpacks — Constitutional AI Runtime
+## Banterpacks — Adaptive Constitutional Engine
 
 **The core.** Everything else in the ecosystem feeds into or out of this.
 
@@ -76,7 +76,7 @@ graph TD
 - **Fast-Path Router (TDD002):** Embedding-based cosine similarity routing. 99% of queries resolved in <10ms without touching the debate engine.
 - **Rust Alignment Runtime (TDD005):** 7 crates. BFT consensus, Ed25519 provenance chains, zero-knowledge proofs via Pedersen commitments on Ristretto255, CRDT sync for cross-device state.
 - **RLAIF Pipeline:** Debate outcomes generate DPO training pairs that continuously refine the router's alignment centroid. The system improves itself.
-- **JARVIS Gateway:** Unified AI assistant with chat (turn-based state machine), voice (Whisper STT, TTS, wake word, barge-in), tool execution with human-in-the-loop approval, WebSocket streaming, and durable workflows.
+- **JARVIS Gateway:** Unified AI assistant with chat (turn-based state machine), voice (Whisper STT, TTS), graph memory backed by **PostgreSQL/pgvector** (~40-table cutover from aiosqlite on a dual-dialect SQLAlchemy 2.0 async engine, unified under Alembic), tool execution with human-in-the-loop approval, WebSocket streaming, durable workflows, and a **React/Next.js** operator console.
 
 > *The alignment layer doesn't just steer the model. It proves it steered correctly.*
 
@@ -103,7 +103,7 @@ graph TD
 
 Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chimeraforge`
 
-- 7 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required) — including an **opt-in safety gate sourced from TR142/TR146 refusal data**
+- 7 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required) — including an **opt-in safety gate sourced from refusal data**
 - Dual-language benchmarking harnesses (Python + Rust)
 - 323 tests
 - Operationalizes findings from 53 technical reports into deployment decisions
@@ -195,8 +195,8 @@ Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottle
 
 Built a **security awareness training platform in 90 days** as a founding engineer. Multi-channel delivery across web, Slack, Teams, SMS/RCS, WhatsApp, Telegram, voice, and email.
 
-- Phishing email generation pipeline on **self-hosted 70B LLMs** with **domain-specific LoRA/QLoRA adapters** trained on a 1M+ email corpus
-- Reduced **deepfake phishing simulation** latency from **40s to 100--450ms** (80--400x improvement)
+- Phishing email generation pipeline on **self-hosted 70B LLMs** with **domain-specific LoRA/QLoRA adapters** trained with **DeepSpeed** on a 1M+ email corpus
+- Reduced **deepfake phishing simulation** latency from **40s to 100–450ms** (80–400x improvement) via a multi-agent WebRTC pipeline (video render agent + voice agent); range reflects per-call workload depth
 - Input guardrails across all APIs and agents with adversarial attempt logging
 - **5 specialized PR-review agents** distilled from ~2,500 comments across ~1,000 PRs
 - 5000+ tests across ~20 services
@@ -216,7 +216,7 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 
 | Project | Description |
 |:--------|:------------|
-| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI. 7 predictive models (including opt-in safety gate from TR142/TR146 refusal data), 323 tests. |
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI. 7 predictive models (including opt-in safety gate from refusal data), 323 tests. |
 | [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 16 published models — 11 quantized AWQ/GPTQ checkpoints (Llama 3.2, Qwen 2.5), 4 custom GPT-2 scaling-law training runs, and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (ModernBERT-base binary refusal classifier, **97.73% accuracy / 0.9773 F1** on XSTest, beats lexicon baseline by ~45pp). |
 | [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | Live HF Space operationalizing the RTSI research arc end-to-end: 4-delta refusal screen (entropy / prefix variation / length), ModernBERT semantic cross-check, multi-judge safety stack (Qwen3Guard + Granite Guardian), constitutional debate (Qwen3-8B + Phi-4-mini + SmolLM3-3B) for contested cases, **Ed25519-signed certificates** verified against a pinned issuer key. **ROC AUC 0.8445 (LOOCV)**; HIGH-risk routing recovers **76.17%** of refusal-rate gaps affecting only **20%** of configs. Build Small Hackathon submission (≤32B catalog ceiling). |
 | [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Merged into PyTorch Inductor** ([squash `be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), 2026-06-04) — hardened cudagraph_trees deallocation against diagnostic-metadata divergence; approved by jansel (Inductor maintainer). |
@@ -226,15 +226,21 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 
 ## Tech Stack
 
-**Languages:** Python, TypeScript, Rust, C#, SQL, C++, Java
+**Languages:** Python, TypeScript, Rust, C#, SQL, C++
+
+**ML/AI:** PyTorch, TensorFlow/Keras, Transformers, DeepSpeed, Accelerate, Ray, RAG, LangGraph, LangSmith, MCP
+
+**Web Frameworks:** FastAPI, Next.js, React
+
+**Inference & Serving:** vLLM, SGLang, TGI, TensorRT-LLM, llama.cpp (GGUF), continuous batching, KV-cache optimization, speculative decoding
 
 **GPU & Compilation:** CUDA, Triton, TensorRT, FlashAttention, ONNX Runtime, torch.compile, Nsight Systems / Nsight Compute, quantization (GPTQ, AWQ, INT4/INT8)
 
-**Inference & Serving:** vLLM, TGI, Ollama, llama.cpp (GGUF), continuous batching, KV-cache optimization
+**Post-Training:** LoRA/QLoRA, RLHF, RLAIF, DPO/ORPO/KTO, GRPO-family RL, policy optimization, PRM/ORM routing, WARM judges
 
-**Frameworks:** FastAPI, Next.js, PyTorch, Transformers, PEFT, Ray, DeepSpeed, LangGraph, LangSmith, LiveKit
+**Data & Analysis:** PostgreSQL, DynamoDB, Redis, ClickHouse, Qdrant, SciPy, SHAP
 
-**Infra:** AWS (Lambda, S3, DynamoDB, SQS, IAM), Docker, Kubernetes, Vercel, ClickHouse, Redis, PostgreSQL, MinIO
+**Cloud & Deployment:** AWS, Azure, Docker, Kubernetes, Vercel
 
 **Monitoring:** Prometheus, Grafana, Datadog, OpenTelemetry, pynvml, MLflow, W&B
 
