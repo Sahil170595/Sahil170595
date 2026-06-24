@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-Methodology built in the public **Chimera adaptive constitutional engine** — 15+ services, Rust alignment runtime, **53 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / ~1.3M decision-grade measurements** (curated from ~10⁹ profiler samples), **3 overturned hypotheses**, **1 ICML 2026 workshop paper accepted + 5 NeurIPS 2026 submissions** — and applied at production scale at **GhostEye** (security training platform shipped in 90 days; 80–400x deepfake latency reduction), **Attunica** (HIPAA-aligned clinical AI; BAAs across Anthropic + AWS), **16 Hugging Face models**, and **Chimeraforge** (PyPI capacity-planning CLI, 323 tests). Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
+Methodology built in the public **Chimera adaptive constitutional engine** — 15+ services, Rust alignment runtime, **54 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / ~1.3M decision-grade measurements** (curated from ~10⁹ profiler samples), **3 overturned hypotheses**, **1 ICML 2026 workshop paper accepted + 5 NeurIPS 2026 submissions** — and applied at production scale at **GhostEye** (security training platform shipped in 90 days; 80–400x deepfake latency reduction), **Attunica** (HIPAA-aligned clinical AI; BAAs across Anthropic + AWS), **16 Hugging Face models**, and **Chimeraforge** (PyPI capacity-planning CLI, 3k+ downloads, 318 tests). Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
 
 ---
 
@@ -21,7 +21,7 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-3. **Empirical safety research** — 53 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned, and the program's first mitigation now recovers 76% of the quantization refusal gap. One paper accepted at the ICML 2026 Workshop on Hypothesis Testing; five under review at a top ML venue.
+3. **Empirical safety research** — 54 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three major hypotheses overturned, and the program's first mitigation now recovers 76% of the quantization refusal gap. One paper accepted at the ICML 2026 Workshop on Hypothesis Testing; five under review at a top ML venue.
 
 ---
 
@@ -74,10 +74,10 @@ I work across the full stack of AI systems — from CUDA kernels and Triton comp
 
 Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chimeraforge`
 
-- 7 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required) — including an **opt-in safety gate sourced from refusal data**
+- 7 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required) — including an **opt-in safety gate sourced from refusal data** (v0.3.0) plus a live **`chimeraforge safety` refusal-screen command** against running Ollama models (v0.4.0)
 - Dual-language benchmarking harnesses (Python + Rust)
-- 323 tests
-- Operationalizes findings from 53 technical reports into deployment decisions
+- 318 tests (Python 3.10–3.14 CI matrix)
+- Operationalizes findings from 54 technical reports into deployment decisions
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
@@ -115,7 +115,7 @@ The autonomy plane in the Chimera ecosystem. Sits between the Chimera control pl
 
 ## Research Program
 
-**53 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–TR 168). ~1.3M decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.**
+**54 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–TR 168). ~1.3M decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under review at a top ML venue.**
 
 **Audit path:** every TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports) — count, read, diff. No site, no slides, no PDF wall. The folder is the source of truth.
 
@@ -187,7 +187,7 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 
 | Project | Description |
 |:--------|:------------|
-| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI. 7 predictive models (including opt-in safety gate from refusal data), 323 tests. |
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI (v0.4.1, 3k+ downloads). 7 predictive models including opt-in safety gate (v0.3.0) + live `chimeraforge safety` refusal-screen command against running Ollama models (v0.4.0). 318 tests, Python 3.10–3.14 CI matrix. |
 | [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 16 published models — 11 quantized AWQ/GPTQ checkpoints (Llama 3.2, Qwen 2.5), 4 custom GPT-2 scaling-law training runs, and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (ModernBERT-base binary refusal classifier, **97.73% accuracy / 0.9773 F1** on XSTest, beats lexicon baseline by ~45pp). |
 | [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | Live HF Space operationalizing the RTSI research arc end-to-end: 4-delta refusal screen (entropy / prefix variation / length), ModernBERT semantic cross-check, multi-judge safety stack (Qwen3Guard + Granite Guardian), constitutional debate (Qwen3-8B + Phi-4-mini + SmolLM3-3B) for contested cases, **Ed25519-signed certificates** verified against a pinned issuer key. **ROC AUC 0.8445 (LOOCV)**; HIGH-risk routing recovers **76.17%** of refusal-rate gaps affecting only **20%** of configs. Build Small Hackathon submission (≤32B catalog ceiling). |
 | [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Merged into PyTorch Inductor** ([squash `be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), 2026-06-04) — hardened cudagraph_trees deallocation against diagnostic-metadata divergence; approved by jansel (Inductor maintainer). |
