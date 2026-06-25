@@ -231,16 +231,18 @@ The TR164 substrate is now a two-layer artifact: the per-run sweep manifests and
 
 Each backend run lands under `research/tr164/results/<run_id>/` with a stable schema: `manifest.json` (config snapshot, seed, hardware signature), `analysis.json` (per-cell parallel efficiency, speedup vs N=1, P95 latency multiplier, P50 TTFT), `cells/` (per-cell raw JSONL of token-level traces), and `report.md` (the auto-generated run report that never lands in `PublishReady/` per project convention).
 
-| Backend | Run ID | Hardware | Models | Cells | analysis.json size |
+> **Corrected 2026-06-24.** An earlier draft of this table carried placeholder values (hardware "H100 SXM5", cell counts 120/120/48/48, run IDs `20260530_v1_local` / `20260605_vllm_cloud`, models "TinyLlama-1.1B / Qwen2.5-3B", and "TBD per analyze.py extension" sizes) that disagreed with the entire rest of this document. The values below are the real run directories and substrate facts grounded in `research/tr164/TR164_DATA_LINEAGE.md` (re-verified on disk 2026-06-24).
+
+| Backend | Run dir (`research/tr164/results/`) | Hardware | Models | Cells | metrics.csv rows |
 | --- | --- | --- | --- | --- | --- |
-| V1 pytorch_direct | `20260530_v1_local` | RTX 4080 Laptop (PCIe, 12 GB) | TinyLlama-1.1B, Qwen2.5-1.5B, Qwen2.5-3B | 120 | TBD per analyze.py extension |
-| V2 TGI | `20260604_tgi_local` | RTX 4080 Laptop (PCIe, 12 GB) | TinyLlama-1.1B, Qwen2.5-1.5B, Qwen2.5-3B | 120 | TBD per analyze.py extension |
-| V2 vLLM | `20260605_vllm_cloud` | H100 SXM5 (2.0 TB/s HBM3) | Qwen2.5-7B | 48 | TBD per analyze.py extension |
-| V2 SGLang | `20260605_sglang_cloud` | H100 SXM5 (2.0 TB/s HBM3) | Qwen2.5-7B | 48 | TBD per analyze.py extension |
+| V1 pytorch_direct | `20260531_120428_552237` | RTX 4080 Laptop (PCIe, 12 GB) | llama3.2-1b, qwen2.5-1.5b, llama3.2-3b | 360 | 21,159 |
+| V2 TGI local_core | `20260605_192757_415750` | RTX 4080 Laptop (PCIe, 12 GB) | llama3.2-1b, qwen2.5-1.5b, llama3.2-3b | 360 | 26,784 |
+| V2 vLLM cloud_core | `20260605_210337_450607` | A100 80GB PCIe (1.5 TB/s HBM) | Qwen2.5-7B-Instruct | 144 | 15,120 |
+| V2 SGLang cloud_core | `20260605_212557_266597` | A100 80GB SXM (2.0 TB/s HBM) | Qwen2.5-7B-Instruct | 144 | 15,120 |
 
-**Observations.** The per-backend trees are hardware-stratified by design: the V1 trio and TGI share the RTX 4080 Laptop substrate (PCIe, 1.5 TB/s effective), while vLLM and SGLang share the H100 SXM5 cloud substrate (HBM3, 2.0 TB/s). This stratification is what licenses the Comparison A (TGI vs V1) join as hardware-matched and forces the Comparison B (vLLM vs SGLang) join to carry the bandwidth-adjustment caveat.
+**Observations.** The per-backend trees are hardware-stratified by design: the V1 trio and TGI share the RTX 4080 Laptop substrate (PCIe), while vLLM and SGLang share the A100 80GB cloud substrate but on *different* SKUs — vLLM on PCIe (≈1.5 TB/s HBM), SGLang on SXM (≈2.0 TB/s HBM). This stratification is what licenses the Comparison A (TGI vs V1) join as hardware-matched and forces the Comparison B (vLLM vs SGLang) join to carry the 0.75 bandwidth-adjustment caveat. The row counts here (21,159 / 26,784 / 15,120 / 15,120) reconcile to the row with the `BANTERHEARTS_MEASUREMENT_COUNT.md` 2026-06-05 / 2026-06-05-late supplements; the V2 aggregate is 648 cells and 57,024 rows.
 
-> The per-run `analysis.json` files are necessary but not sufficient: any cross-backend claim has to be derived from a paired join across these files, which is what the synthesis layer in 6.4 supplies.
+> The per-run `analysis.json` files are necessary but not sufficient: any cross-backend claim has to be derived from a paired join across these files, which is what the synthesis layer in 6.4 supplies. The corrected run-dir column above is the audit anchor — a reviewer can `wc -l` each `metrics.csv` minus its header and recover the exact row count cited.
 
 ### 6.2 Configuration and dispatch substrate
 
@@ -1019,7 +1021,7 @@ The V2 ⊕ TR165 pair is the substrate the bridge paper will draw from, with V2 
 
 ## 22. References
 
-This section lists the artifacts and external sources load-bearing for TR164 V2. Every internal reference is a path inside this repository; every external reference is either an open-source upstream issue, a vendor documentation surface, or a public PEP. Citations to blind-review-active venues are deliberately omitted per substrate hygiene policy; where a forward-looking external venue would otherwise be named, the generic equivalent is used.
+This section lists the artifacts and external sources load-bearing for TR164 V2. Every internal reference is a path inside this repository; every external reference is either an open-source upstream issue, a vendor documentation surface, or a public PEP. Citations to active external-review venues are deliberately omitted per substrate hygiene policy; where a forward-looking external venue would otherwise be named, the generic equivalent is used.
 
 ### 22.1 Banterhearts internal references
 
@@ -1053,7 +1055,7 @@ The internal substrate is organized along three axes: the serving-stack arc (TR1
 | EXT-5 | `vllm-project/vllm#44703` | Upstream issue surfaced during V2 vLLM cloud_core wave |
 | EXT-6 | `sgl-project/sglang#27406` | Upstream issue: missing distro dep in SGLang vendor image, motivating the NATIVE Python launcher fallback used in INT-5 |
 
-**Observations.** External references are restricted to open-source upstream issues, public vendor documentation, and a single PEP; no blind-review-active venue is cited.
+**Observations.** External references are restricted to open-source upstream issues, public vendor documentation, and a single PEP; no active external-review venue is cited.
 
 > The fact that two of the four backend integrations (EXT-5, EXT-6) generated upstream open-source issues during a single 72-hour V2 dispatch wave is itself a substrate observation: the four-backend matched-cell-shape framing exercises the serving stacks hard enough to surface real bugs, which is the operational reproducibility contribution the V2 wave was designed to land.
 
@@ -1210,3 +1212,39 @@ This appendix enumerates the cell-shape coordinates for the three V2 backend run
 ### 25.4 Aggregate
 
 The three V2 substrate runs sum to 648 cells (144 + 144 + 360) and 57,024 `metrics.csv` rows (15,120 + 15,120 + 26,784), with ok_rate 1.0 across every cell of every backend. The deferred Ollama V2 fifth-backend dispatch and the cloud_full N=32-on-all-backends extension are not represented in these tables and remain queued for V2 wave 2 per Section 2.
+
+---
+
+## Data Reconciliation & Cross-Version Lineage (2026-06-24)
+
+> **Status of this draft: SUPERSEDED / FROZEN wave-1 artifact.** This V2 report froze the cross-backend wave-1 characterization. The promotable matched-hardware deliverable is **`research/tr164/DRAFT_Technical_Report_164_V3.md`** (the 5-model A100-PCIe head-to-head that retires V2's bandwidth caveat by construction). The analytic and served-validation layers built on top of V2 live in the Serving Stack Physics (SSP) post-hoc substrate (`papers/serving_stack_physics/`). Read this V2 draft for the H1 dispatcher-swap result and the V2-wave-1 substrate facts; read V3 and the SSP submission for everything that extends or re-interprets it. The single canonical run-dir → version → finding map is **`research/tr164/TR164_DATA_LINEAGE.md`**.
+
+**This version's exact provenance.** V2 wave 1 is three run directories under `research/tr164/results/`, every count re-verified on disk 2026-06-24 (`wc -l` on `metrics.csv` minus a 1-line header):
+
+| Run dir | Backend | Hardware | Primary rows | Counted? |
+|---|---|---|---:|---|
+| `20260605_210337_450607` | vLLM cloud_core | A100 80GB PCIe | 15,120 | Yes (2026-06-05-late supplement) |
+| `20260605_212557_266597` | SGLang cloud_core | A100 80GB SXM | 15,120 | Yes (2026-06-05-late supplement) |
+| `20260605_192757_415750` | TGI local_core | RTX 4080 Laptop | 26,784 | Yes (2026-06-05-late supplement) |
+
+V2 aggregate = **648 cells, 57,024 metric rows, ok_rate 1.0** — matching the measurement doc's 2026-06-05-late `+57,024` increment to the row. Body and appendices (15,120 + 15,120 + 26,784 = 57,024 / 648 cells) are internally consistent. The cross-run synthesis (`cross_run_analysis.json`) is derived-only — it joins these already-counted rows and adds **0** new measurements.
+
+**Hardware.** V2 is cross-hardware by design: vLLM on A100 80GB PCIe (`20260605_210337`), SGLang on A100 80GB SXM (`20260605_212557`, forced onto an SXM-only pod after the vendor-image `distro` fallback), TGI on the local RTX 4080 Laptop (`20260605_192757`). This SXM/PCIe split is the load-bearing V2 caveat — the 0.75 bandwidth adjustment (§3.4, §8) — and the reason V3 was re-run on matched A100 80GB PCIe to retire it (V3 §4.2–§4.3, §14). (Data-hygiene footnote: the vLLM run's `runpod_logs/remote_status.txt` nvidia-smi reads `A100-SXM4-80GB`, not matching the PCIe label; treated as a stray capture, not a correction — see `TR164_DATA_LINEAGE.md` §1a.)
+
+**Place in the TR164 arc.** V2 sits between the V1 boundary discovery and the V3 matched-hardware deliverable. **V1** (`20260531_120428_552237`, 21,159 rows) discovered the uniform `pytorch_direct` parallel-efficiency breakdown at N=2 across all 24 model×workload×phase combos. **V2 (this report)** swaps the execution surface and shows TGI eliminates that collapse (N=2 efficiency stays >0.65; the six V1 hang cells run clean), while surfacing its own limitation — the vLLM-vs-SGLang comparison is hardware-confounded (SXM/PCIe, 0.75 bandwidth caveat). **V3** (`20260612_204254_036590` vLLM + `20260612_212816_266127` SGLang, **189,000 rows** across the 5-model grid) retires that caveat by construction on identical A100-PCIe and reframes the engine delta as a workload-conditional sign flip — retiring V2's Qwen-7B-only / V1-trio-only generalization caveats. The **Matched-SGLang refill** (`20260613_055519_963364`, **3,780 rows**) is the only newly-counted closed-loop substrate in the 2026-06-24 supplement; it patched a row-level HTTP-400 mass (Mistral tokenizer overflow) that cell-completion gating missed.
+
+**Work done after V2 that extends or re-interprets it (SSP post-hoc physics layer).** V2 is descriptive — it characterizes *where* the breakdown moves. The post-hoc layer asks *why*, and bounds it:
+
+- **V4 static-amortization η(B) model** (`results/modal_amortization`, **1,143 rows**) — the analytic successor to V2/§3.6's descriptive breakdown-boundary regression: a one-parameter rational efficiency law η(B)=(1+r)/(1+Br), r=Ck/W, that predicts the amortization knee from architecture alone (zero-param Ck/W orders finite knees at ρ≈0.84). Methodology: `methodology/TR_static_ckw_model.md`, `TR_roofline_mechanism.md`, `TR_extension_probes.md`.
+- **Marginal-decode + streaming true-decode closure audits** (`vllm_decode_timed_closure`, **252 rows**; `mlsys_closure` is derived, 0 new) — defend the decode interpretation against a "your throughput includes prefill" attack: Ck/W rank survives prefill-in-window (streaming finite ρ=0.886; magnitude tightens 2.022→1.322 on the clean-decode surface). Methodology: `TR_mlsys_closure.md`.
+- **Cross-family weight-axis matrix** (`weight_axis_decode`, **708 rows**) — isolates the W lever V2's single-model grids could not move; pooled cross-family ρ=0.8142 across Qwen/Mistral/Gemma3, with the Gemma3 4B→12B inversion mechanistically explained (blocks any "larger always knees later" universal). Methodology: `TR_weight_axis_matrix.md`.
+- **70B confirmation** (`modal_amortization_70b_confirm`, **40 rows**; broad sweep `modal_amortization_70b`, **31 rows**) — 70B knee ~1.8× later than 8B supports W-ordering (TP=2 aggregate-bandwidth confound flagged). Methodology: `TR_extension_probes.md`.
+- **Served-ceiling check** (`modal_closed_loop`, **68 rows**; compact SGLang `v5/results/sglang_served`, **12 rows**) — validates static-as-upper-bound: served ≤ static 26/26 distinct-traffic + 8/8 SGLang. Methodology: `TR_served_validation.md`.
+- **Live Modal policy-cap validation** (`policy_replay/modal_policy_validation`, **8 rows**) — turns the knee table into a deployable batch-cap operator policy. NOT-verified for a dedicated methodology `TR_*.md` (closest is `TR_served_validation.md`); the offline replay rollups (`policy_replay_cells.csv` 1,407, `final_policy_validation` 24) are derived re-analysis, 0 new.
+- **TR170 kernel-reproducibility pilot** (`research/tr170/results`, **555 rows**) — a *separate TR number*, not a TR164 substrate: noise-floor (3) + tritonbench sweep across Triton 3.3.1/3.4.0/3.6.0 (184×3). The kernel-level companion to TR164's serving-level physics and the landing spot for the `dram__bytes` instrumentation the V4 probes request. Pilot-grade, not paper-grade; NOT-verified for a TR164 methodology `TR_*.md`.
+
+**V2 → V5 arc provenance note.** This report is the *closed-loop concurrency characterization* (V1→V3): what serving backends do to the N=2 breakdown under matched cell shapes. The post-hoc physics layer (V4 static η(B) model, V5 weight-axis + served validation, closure audits, policy cap) is a *different question* — offline static-batch amortization and its transfer to served ceilings — built on top of V2's findings, not folded into V2's substrate. The two layers share an evidence arc but not a measurement granularity: V2 counts closed-loop per-request rows; V4 counts static-batch per-request `results.csv` rows (the 672-cell view is a presentation count, not a primary-row collision).
+
+**Cross-references.** Methodology TRs under `research/tr164/methodology/`: `TR_closed_loop_boundary.md` (this report's §4 backbone), `TR_nogil_ablation.md` (TR165 GIL falsification — H2_partial: GIL contributing not sole cause), `TR_static_ckw_model.md`, `TR_roofline_mechanism.md`, `TR_weight_axis_matrix.md`, `TR_extension_probes.md`, `TR_served_validation.md`, `TR_mlsys_closure.md`. Index: `methodology/TR164_METHODOLOGY_INDEX.md`. The SSP submission (a full-depth systems venue / TMLR submission) consumes this V2 substrate as its §4 closed-loop layer; its audited §4 figure of 274,707 metric rows decomposes as V1 21,159 + V2 (26,784 + 15,120 + 15,120) + V3 (94,500 + 94,500) + Matched-SGLang refill 3,780 + TR165 nogil 3,744 (≈268K already counted under prior supplements; only the 3,780 refill is newly counted).
+
+**Measurement-count cross-reference.** The body's earlier `~1,119,000` figure (Section 24 manifest) is the 2026-06-05-late snapshot. The current program headline is **~1,348,000 primary + judge measurements across 49+ unique TR numbers** (`BANTERHEARTS_MEASUREMENT_COUNT.md`, 2026-06-24 supplement). The SSP post-hoc increment over the 2026-06-13 baseline is **+6,597** (6,042 TR164 SSP-substrate + 555 TR170); the full 2026-06-24 supplement is **+11,781**, also folding in the 5,184-row TR165 GIL-control arms surfaced by the cross-version reconciliation. The only newly-counted closed-loop leg is the 3,780-row Matched-SGLang refill. V2's 57,024 rows were already counted on 2026-06-05-late and are not re-added.

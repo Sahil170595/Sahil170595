@@ -725,7 +725,7 @@ One confound is documented and excluded: Mistral × long_prefill_8k is tokenizer
 
 ## 22. References
 
-This section lists the artifacts and external sources load-bearing for TR164 V3. Every internal reference is a path inside this repository; every external reference is an open-source upstream surface, a vendor documentation page, or a public PEP. Citations to blind-review-active venues are deliberately omitted per substrate hygiene policy; where a forward-looking external venue would otherwise be named, the generic equivalent is used.
+This section lists the artifacts and external sources load-bearing for TR164 V3. Every internal reference is a path inside this repository; every external reference is an open-source upstream surface, a vendor documentation page, or a public PEP. Citations to active external-review venues are deliberately omitted per substrate hygiene policy; where a forward-looking external venue would otherwise be named, the generic equivalent is used.
 
 ### 24.1 Banterhearts internal references
 
@@ -760,7 +760,7 @@ The internal substrate is organized along three axes: the TR164 lineage (V1 pyto
 | EXT-5 | NVIDIA CUDA forward-compatibility (`cuda-compat-13-0`) documentation | The 580.159 forward-compat libs that bridged the SGLang pod's 575.57 host driver to the cu130 torch stack |
 | EXT-6 | PEP 779 — Criteria for supported status for free-threaded Python | Defines the Python 3.14t no-GIL build path exercised in companion TR165 (INT-3) |
 
-**Observations.** External references are restricted to open-source vendor documentation, two tokenizer-library surfaces, an NVIDIA forward-compatibility page, and a single PEP; no blind-review-active venue is cited. EXT-3 and EXT-4 are load-bearing in a way the other external references are not — they are the two tokenizer surfaces whose 1.162 token-count ratio is the entire root cause of the Mistral × long_prefill_8k document-and-exclude decision.
+**Observations.** External references are restricted to open-source vendor documentation, two tokenizer-library surfaces, an NVIDIA forward-compatibility page, and a single PEP; no active external-review venue is cited. EXT-3 and EXT-4 are load-bearing in a way the other external references are not — they are the two tokenizer surfaces whose 1.162 token-count ratio is the entire root cause of the Mistral × long_prefill_8k document-and-exclude decision.
 
 > The two tokenizer references (EXT-3, EXT-4) carry more interpretive weight than the rest of the external set combined, because the asymmetry between them is the one cross-backend confound V3 could not engineer away. The NVIDIA forward-compatibility reference (EXT-5) is the second-heaviest, because the `cuda-compat-13-0` bridge it documents is the load-bearing clause of the SGLang working pin in Appendix A. Together the external references map one-to-one onto the two caveats — the tokenizer asymmetry and the environment arc — that the body of this report spends the most prose disciplining.
 
@@ -911,3 +911,52 @@ The spread is large enough that the two granularities must not be conflated. For
 > The two granularities are not redundant; they answer different questions and the workload spread within a single model is larger than the model-size gradient across models. That ordering — workload effect dominant, model-size effect secondary — is the load-bearing reason the report's headline is "workload-shaped boundary" and not "model-size-shaped boundary," and it is only legible once the per-cell joint of this appendix is placed next to the model-marginal of Section 10.
 
 ---
+
+## Data Reconciliation & Cross-Version Lineage (2026-06-24)
+
+This section was appended **2026-06-24**, eleven days after the V3 draft was finalized (2026-06-13). It does not alter any V3 number above; it reconciles V3's provenance against the canonical lineage map (`research/tr164/TR164_DATA_LINEAGE.md`) and the measurement-count supplement (`BANTERHEARTS_MEASUREMENT_COUNT.md`, 2026-06-24), and it records the post-V3 work that extends or re-interprets the V3 substrate so this report does not read as a dead end. This is a **temporal artifact** — substrate added after the draft froze — not a correction; every count cited above was independently re-verified on disk 2026-06-24 and matches.
+
+### V3 provenance, to the row
+
+V3's two run directories carry **94,500 primary metric rows each** (`provenance.rows_per_backend`, 900 cells, `ok_rate` = 1.0), aggregate **189,000**, matching the measurement doc's 2026-06-13 supplement to the row:
+
+| Run dir | Backend | Primary rows | Counted | Lineage version |
+|---|---|---|---|---|
+| `results/20260612_204254_036590` | vLLM 0.10.2, A100 80GB PCIe | 94,500 | Yes (2026-06-13) | V3 |
+| `results/20260612_212816_266127` | SGLang 0.5.12.post1, A100 80GB PCIe (merged master incl. refill) | 94,500 | Yes (2026-06-13) | V3 |
+| `results/20260613_055519_963364` | Matched SGLang refill (Mistral × long_prefill_8k, ctx 11264) | 3,780 | Yes (2026-06-24 — only newly-counted closed-loop leg) | V3 |
+| `results/20260612_212816_266127_BACKUP_preRefill` | Byte-identical pre-refill duplicate | 0 | **No (excluded double-count guard)** | V3 |
+
+The 3,780 refill rows are the **only** genuinely-new closed-loop rows in the SSP submission's audited §4 closed-loop figure of **274,707 metric rows / 2,994 cells**; the V3 grids (189,000) and the rest decompose from supplements already counted (V1 21,159 + V2 TGI/vLLM/SGLang 26,784+15,120+15,120 + V3 94,500+94,500 + refill 3,780 + TR165 nogil 3,744 = 274,707; ok-row 274,703, the 4 non_ok from a TGI HTTP-424). The `_BACKUP_preRefill` directory carries the 3,780 http_400 Mistral rows and is byte-identical to the counted master, so it is excluded from the headline to prevent a double-count.
+
+**Hardware.** V3 retires the V2 hardware confound by matching: both vLLM (`20260612_204254`) and SGLang (`20260612_212816`), plus the SGLang refill (`20260613_055519`), ran on the **same A100 80GB PCIe SKU**.
+
+### V3's place in the arc (what came before, what V3 discovered, what came after)
+
+V3 is the third closed-loop leg: **V1** (`pytorch_direct`, run `20260531_120428_552237`, 21,159 rows) established the uniform N=2 breakdown; **V2** (TGI `20260605_192757_415750` 26,784, vLLM `20260605_210337_450607` 15,120, SGLang `20260605_212557_266597` 15,120) showed continuous batching eliminates it but left a bandwidth-confounded engine comparison; **V3** retired that confound by construction on matched A100 80GB PCIe and delivered the workload-conditional sign flip. After V3, the program shifted from *describing* the boundary to *predicting* it (V4/V5/post-hoc, below).
+
+### Post-V3 work that extends or re-interprets V3 (each with its run-dir and one-line finding)
+
+The following substrate was built after this draft froze and underwrites the downstream SSP submission. Each is scoped to what bears on V3's closed-loop result; counts are re-verified on disk 2026-06-24 (`TR164_DATA_LINEAGE.md` §1, §4):
+
+- **Static-batch amortization model** η(B) = (1+r)/(1+Br), r = Ck/W — `results/modal_amortization` (1,143 rows, incl. the 672-cell `full_xmodel_672` static grid). Explains the *mechanism* under V1–V3's descriptive boundary: the breakdown is bandwidth-amortization, knee predictable from architecture alone; zero-param Ck/W orders finite knees at ρ≈0.84.
+- **Marginal-decode + streaming true-decode closure audits** — `vllm_decode_timed_closure` (252 rows; RAWEST `decode_timed_batch_measurements.csv`) plus the derived (excluded) `mlsys_closure` marginal-decode view. Defend the decode interpretation against a "throughput includes prefill" attack: Ck/W rank survives prefill-in-window (streaming finite ρ=0.886; magnitude tightens 2.022 → 1.322 on the clean-decode surface).
+- **Cross-family weight-axis decode matrix** — `weight_axis_decode` (708 rows; RAWEST `weight_axis_decode_replicates.csv`). Isolates the W axis across Qwen/Mistral/Gemma3; pooled cross-family ρ=0.8142, with the Gemma3 4B→12B inversion mechanistically explained (blocks any "larger model always later knee" universal).
+- **70B confirmation** — `results/modal_amortization_70b_confirm` (40 rows; RAWEST `confirm_ctx32k_*/replicates.csv`) plus broad sweep `results/modal_amortization_70b` (31 rows). 70B knee ~1.8× later than 8B, supporting the W-ordering (TP=2 aggregate-bandwidth confound flagged).
+- **Served-ceiling check** — `results/modal_closed_loop` (68 rows) + compact SGLang `v5/results/sglang_served` (12 rows, 8 ok cells). Validates static-as-upper-bound: served ≤ static on 26/26 distinct-traffic configs and 8/8 SGLang cells; shared-prefix is an approximate ceiling.
+- **Policy-cap validation** — `policy_replay/modal_policy_validation` (8 live Modal rows: `diag_pcdiag2`, `rescue32k_pc32k1`, `tmlr_pctmlr1`). Operationalizes the knee table into a deployable batch-cap policy; the per-policy `policy_validation_rows.csv` expansions and `policy_replay_cells.csv` (1,407) are derived re-analysis and excluded from the headline.
+- **TR170 kernel-reproducibility pilot** — `research/tr170/results` (555 rows: 3 noise-floor + 184×3 tritonbench sweep across Triton 3.3.1/3.4.0/3.6.0). Drops one level below V3's serving-level physics to kernel reproducibility; pilot-grade, not paper-grade, and a separate TR number.
+
+Methodology references for the above live in `research/tr164/methodology/` (`TR_static_ckw_model.md`, `TR_roofline_mechanism.md`, `TR_extension_probes.md`, `TR_mlsys_closure.md`, `TR_weight_axis_matrix.md`, `TR_served_validation.md`, `TR_closed_loop_boundary.md` for the closed-loop grids; indexed by `TR164_METHODOLOGY_INDEX.md`). The live-Modal policy validation and TR170 have **no dedicated `TR_*.md`** and are marked NOT-verified for the methodology-TR column in the lineage map.
+
+### Pointer back into the report body
+
+- **§17 (SS11) / §20 (SS14) lineage:** the V3 closed-loop substrate did not end at the head-to-head. It was extended by the V4 static-batch amortization model η(B)=(1+r)/(1+Br), the V5 predictor + served validation, the 708-row weight-axis decode matrix, the 252-row marginal-decode/streaming true-decode closure audits, the 70B confirmation, the 12-row compact SGLang served-ceiling check, the 8-row policy-cap replay + live Modal validation, and the 555-row TR170 kernel-repro pilot. V3 is a load-bearing closed-loop leg of an ongoing arc, not a terminus.
+- **§20 (SS14) Future Work item 3 ("scale and breadth — extend beyond 14B"):** now **PARTIALLY DISCHARGED** by the 70B confirmation (`results/modal_amortization_70b_confirm`, 40 rows + broad `results/modal_amortization_70b`, 31 rows). The 70B knee lands ~1.8× later than 8B, supporting the W-ordering across the >14B gap — with the TP=2 aggregate-bandwidth confound explicitly flagged, so the scale caveat is reduced, not eliminated. The four-backend / TGI+Ollama breadth half of that item remains open.
+- **§6 (SS6) / §18 (SS12) validity check on the parallel-efficiency definition:** the streaming true-decode closure audit (`vllm_decode_timed_closure`, 252 rows) is a downstream validity check on exactly the kind of throughput/efficiency definition this report rests on — it confirms the discriminating Ck/W rank survives isolating true steady-state decode (prefill removed from the window), so the V3 efficiency-retention readings are not an artifact of prefill being folded into the throughput numerator.
+
+### Measurement-count and freeze lineage (traceable, leak-safe)
+
+For traceability: V3's **189,000 closed-loop primary rows** are already in the program headline (counted 2026-06-13); the post-V3 SSP substrate adds **6,042 new primary rows** (3,780 refill + 1,143 static grid + 708 weight-axis + 252 streaming closure + 40+31 70B + 68 closed-loop diag + 12 SGLang served + 8 policy), and **TR170 adds 555** (SSP increment +6,597); the full 2026-06-24 supplement is **+11,781**, also folding in the 5,184-row TR165 GIL-control arms surfaced by the cross-version reconciliation, taking the program to ~1,348,000 across 49+ TR numbers (`BANTERHEARTS_MEASUREMENT_COUNT.md`, 2026-06-24). The downstream paper — referred to generically as the **SSP submission** to a full-depth systems/safety venue, with no venue named and no gating language tied to a review outcome — was frozen on branch `codex/ssp-tmlr-compress` at commits **`d58bfc44`** (submission snapshot + TR170 pilot) and **`5b7a5736`** (froze the submitted package). The naive failure mode this guards against is adding the SSP §4 headline (274,707) to the program total; ~268K of those rows were already counted, and only the 3,780 refill is new within that figure (`TR164_DATA_LINEAGE.md` §2, §5).
+
+> The honest reading of this appendix is that V3 finalized as the matched-SKU closed-loop capstone on 2026-06-13 and then became the *empirical floor* for a predictive layer the draft itself did not contain. The static Ck/W model, the closure audits, the weight-axis matrix, the 70B confirmation, the served-ceiling and policy-cap validations, and the TR170 kernel pilot all sit downstream of the 189,000 closed-loop rows this report narrates — they explain, defend, and partially extend its boundary result without rewriting a single V3 number. State of confidence: every run-dir and row count here is observed from `TR164_DATA_LINEAGE.md` (re-verified on disk 2026-06-24) and `BANTERHEARTS_MEASUREMENT_COUNT.md`; the methodology-TR mapping for the live-Modal policy validation and TR170 is marked NOT-verified (no dedicated `TR_*.md`).
