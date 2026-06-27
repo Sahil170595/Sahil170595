@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-Methodology built in the public **Chimera adaptive constitutional engine** — 15+ services, Rust alignment runtime, **54 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / ~1.3M decision-grade measurements** (curated from ~10⁹ profiler samples), **3 overturned hypotheses**, **1 ICML 2026 workshop paper accepted + 5 NeurIPS 2026 submissions under review**, and **2 merged upstream PRs** ([PyTorch #175562](https://github.com/pytorch/pytorch/pull/175562), [Ollama #16669](https://github.com/ollama/ollama/pull/16669)) — and applied at production scale at **GhostEye** (security training platform shipped in 90 days; 80–400x deepfake latency reduction), **Attunica** (HIPAA-aligned clinical AI; BAAs across Anthropic + AWS), **16 Hugging Face models**, and **Chimeraforge** (PyPI capacity-planning CLI, v0.5.0, 3k+ downloads, 376 tests). Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
+Methodology built in the public **Chimera adaptive constitutional engine** — 15+ services, Rust alignment runtime, **54 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / ~1.3M decision-grade measurements** (curated from ~10⁹ profiler samples), **3 overturned hypotheses**, **1 ICML 2026 workshop paper accepted + 5 NeurIPS 2026 submissions under review**, and **2 merged upstream PRs** ([PyTorch #175562](https://github.com/pytorch/pytorch/pull/175562), [Ollama #16669](https://github.com/ollama/ollama/pull/16669)) — and applied at production scale at **GhostEye** (security training platform shipped in 90 days; 80–400x deepfake latency reduction), **Attunica** (HIPAA-aligned clinical AI; BAAs across Anthropic + AWS), **16 Hugging Face models**, **Chimeraforge** (PyPI capacity-planning CLI, v0.5.0, 3k+ downloads), and **[quantfit](https://pypi.org/project/quantfit/)** (PyPI safety-tax CLI: quantize an LLM and check it still refuses what it should, v0.1.0). Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
 
 ---
 
@@ -27,7 +27,7 @@ Full-stack: CUDA kernels and Triton compilation up through multi-agent runtimes,
 
 **Founder & Lead ML Architect · Sep 2025 – Present · New York, USA**
 
-**Adaptive constitutional engine: 15+ services, 1,500+ tests, Rust alignment runtime. One obsession: make AI systems that are fast, safe, and honest.**
+**Adaptive constitutional engine. Rust alignment runtime. One obsession: make AI systems that are fast, safe, and honest.**
 
 <p align="center">
   <img src="./chimera_v3_d2.svg" alt="Chimera ecosystem architecture — observe & learn / build & govern / products & interfaces" width="100%" />
@@ -74,7 +74,7 @@ Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chim
 
 - 7 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required) — including an **opt-in safety gate sourced from refusal data** (v0.3.0), a live **`chimeraforge safety` refusal-screen command** against running Ollama models (v0.4.0), and a **model-agnostic planner with measure-on-demand** (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two planner correctness bugs)
 - Dual-language benchmarking harnesses (Python + Rust)
-- 376 tests (Python 3.10–3.14 CI matrix)
+- Python 3.10–3.14 CI matrix with trusted-publishing on tag push
 - Operationalizes findings from 54 technical reports into deployment decisions
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
@@ -91,7 +91,7 @@ Unity/C# JARVIS client for Android and Android XR. WebSocket streaming, voice in
 
 ## Echo — Channel Adapters
 
-The messaging bridge between external platforms and the JARVIS gateway. **5 adapters** (Slack Socket Mode, Discord Gateway, Telegram long-poll, WhatsApp Cloud API webhooks, SMTP/IMAP email) and **68 tests**. Each adapter is a thin HTTP relay — no intelligence, just platform-specific formatting. All cognition lives in JARVIS.
+The messaging bridge between external platforms and the JARVIS gateway. **5 adapters** (Slack Socket Mode, Discord Gateway, Telegram long-poll, WhatsApp Cloud API webhooks, SMTP/IMAP email). Each adapter is a thin HTTP relay — no intelligence, just platform-specific formatting. All cognition lives in JARVIS.
 
 ---
 
@@ -189,7 +189,8 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 
 | Project | Description |
 |:--------|:------------|
-| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI (v0.5.0, 3k+ downloads). 7 predictive models + opt-in safety gate (v0.3.0) + live `chimeraforge safety` refusal-screen command (v0.4.0) + model-agnostic planner with measure-on-demand (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two named planner correctness bugs — linear throughput scaling across GPU replicas, `cost_per_1m_tok` no longer N× understated). 376 tests, Python 3.10–3.14 CI matrix. |
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI (v0.5.0, 3k+ downloads). 7 predictive models + opt-in safety gate (v0.3.0) + live `chimeraforge safety` refusal-screen command (v0.4.0) + model-agnostic planner with measure-on-demand (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two named planner correctness bugs — linear throughput scaling across GPU replicas, `cost_per_1m_tok` no longer N× understated). Python 3.10–3.14 CI matrix. |
+| [**quantfit**](https://pypi.org/project/quantfit/) | PyPI **safety-tax CLI** (v0.1.0, released 2026-06-27, Apache-2.0). *"Quantize an LLM and check it still refuses what it should."* 3-tier GPU-aware capacity preflight (in-GPU / CPU-offload / refuse, reads HF metadata without downloading — refuses BEFORE the 30GB download); SOTA method matrix on one `llm-compressor` backend (AWQ / GPTQ / SmoothQuant / FP8 / RTN × W4A16/W8A8/W4A8/FP8/NVFP4/MXFP4) plus GGUF backend (Q2_K..Q8_0 + IQ-quants); one frozen calibration spec across methods so they're comparable; **`verify-safety`** command runs RTSI-style refusal-preservation checks on quantized output. Ships the research program's third-axis mitigation as a deployable CLI primitive. Docker image, CI. |
 | [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 16 published models — 11 quantized AWQ/GPTQ checkpoints (Llama 3.2, Qwen 2.5), 4 custom GPT-2 scaling-law training runs, and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (ModernBERT-base binary refusal classifier, **97.73% accuracy / 0.9773 F1** on XSTest, beats lexicon baseline by ~45pp). |
 | [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | Live HF Space operationalizing the RTSI research arc end-to-end: 4-delta refusal screen (entropy / prefix variation / length), ModernBERT semantic cross-check, multi-judge safety stack (Qwen3Guard + Granite Guardian), constitutional debate (Qwen3-8B + Phi-4-mini + SmolLM3-3B) for contested cases, **Ed25519-signed certificates** verified against a pinned issuer key. **ROC AUC 0.8445 (LOOCV)**; HIGH-risk routing recovers **76.17%** of refusal-rate gaps affecting only **20%** of configs. Build Small Hackathon submission (≤32B catalog ceiling). |
 | [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Merged into PyTorch Inductor** ([squash `be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), 2026-06-04) — hardened cudagraph_trees deallocation against diagnostic-metadata divergence; approved by jansel (Inductor maintainer). |
