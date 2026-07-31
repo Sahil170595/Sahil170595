@@ -29,6 +29,18 @@ Full detail: [Technical_Report_147.md](Technical_Report_147.md), SS8.1–SS8.7.
 
 ---
 
+## System Reports (cross-repo research mirrors)
+
+A separate series from the TR line: condensed PublishReady mirrors of research papers whose
+canonical artifacts live in sibling repos. Numbered `system_report_NNN.md`, independent of TR
+numbering.
+
+| Report | Title | Source repo | Evidence | Status |
+|--------|-------|-------------|----------|--------|
+| **SR-001** | [A Safe Prototype Is Not a Safety Direction](system_report_001.md) — one-class response-safety centroid audit (FLMSec @ NeurIPS 2026 submission) | Banterpacks | 7 schema-v3 artifacts, 794 result rows, 24 gated primary AUC cells, 308K bootstrap/calibration draws over 210,373 responses, 4 encoders | Complete (v3.0 definitive full-depth, 1,237 lines: H0–H6 hypotheses/falsifiers ledger, SS1–SS15 with per-cell narratives, Holm 7/12 + TOST 4/12 + correlation matrix, C1–C4 battery, Appendices A–M incl. extended stat tables and full sensitivity data; scored 61/100 vs TR148/TR146 at v2, every finding + depth ask since executed; 6 errata self-documented in SS11.3) — **publication hold until FLMSec decisions** (double-blind) |
+
+---
+
 ## Research Program Overview
 
 ### Phase 1: Foundation (TR108-TR122)
