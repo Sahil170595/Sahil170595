@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-Methodology built in the public **Chimera adaptive constitutional engine** — 15+ services, Rust alignment runtime, **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.34M+ decision-grade measurements** (curated from ~10⁹ profiler samples), **3 overturned hypotheses**, **1 ICML 2026 workshop paper accepted + further submissions under review at a top ML venue**, and **4 merged upstream PRs** ([vLLM #45207](https://github.com/vllm-project/vllm/pull/45207), [PyTorch #175562](https://github.com/pytorch/pytorch/pull/175562), [Ollama #16669](https://github.com/ollama/ollama/pull/16669), [Triton #10819](https://github.com/triton-lang/triton/pull/10819)) — plus a **final rank of #26 of 1,221 participants (top 2.1%)** in the [ICML 2026 Agent Reproducibility Challenge](https://github.com/Sahil170595/icml2026-paper-reproductions) (48 papers reproduced agentically, 3 published claims falsified) — and applied at production scale at **GhostEye** (security training platform shipped in 90 days; 80–400x deepfake latency reduction), **Attunica** (HIPAA-aligned clinical AI; BAAs across Anthropic + AWS), **22 Hugging Face models**, **Chimeraforge** (PyPI capacity-planning CLI, v0.12.3, 558 tests, 8.5K+ downloads), and **[quantfit](https://pypi.org/project/quantfit/)** (PyPI safety-tax CLI: quantize an LLM and check it still refuses what it should, v0.6.1). Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
+Methodology built in the public **Chimera adaptive constitutional engine** — 15+ services, Rust alignment runtime, **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.34M+ decision-grade measurements** (curated from ~10⁹ profiler samples), **3 overturned hypotheses**, **1 ICML 2026 workshop paper accepted + 8 more under peer review**, and **4 merged upstream PRs** ([vLLM #45207](https://github.com/vllm-project/vllm/pull/45207), [PyTorch #175562](https://github.com/pytorch/pytorch/pull/175562), [Ollama #16669](https://github.com/ollama/ollama/pull/16669), [Triton #10819](https://github.com/triton-lang/triton/pull/10819)) — plus a **final rank of #26 of 1,221 participants (top 2.1%)** in the [ICML 2026 Agent Reproducibility Challenge](https://github.com/Sahil170595/icml2026-paper-reproductions) (48 papers reproduced agentically, 3 published claims falsified) — and applied at production scale at **GhostEye** (security training platform shipped in 90 days; 80–400x deepfake latency reduction), **Attunica** (clinical AI platform for psychotherapy training; first-customer release live on AWS ECS + Bedrock; BAAs across Anthropic + AWS), **23 Hugging Face models**, **Chimeraforge** (PyPI capacity-planning CLI and MCP server, v0.30.10, 1,571 tests, 24K+ downloads), and **[quantfit](https://pypi.org/project/quantfit/)** (PyPI safety-tax CLI: quantize an LLM and check it still refuses what it should, v0.12.16, 12K+ downloads). Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
 
 ---
 
@@ -19,7 +19,7 @@ Full-stack: CUDA kernels and Triton compilation up through multi-agent runtimes,
 
 2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-3. **Empirical safety research** — 55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three hypotheses overturned. RTSI-gated routing recovers 76% of the quantization refusal gap. One paper accepted at ICML 2026 Hypothesis Testing workshop; five under peer review.
+3. **Empirical safety research** — 55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three hypotheses overturned. RTSI-gated routing recovers 76% of the quantization refusal gap. One paper accepted at ICML 2026 Hypothesis Testing workshop; eight under peer review.
 
 ---
 
@@ -80,7 +80,7 @@ Independent, from-scratch reproductions of ICML 2026 submissions, produced by an
 
 Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chimeraforge`
 
-- 7 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required) — including an **opt-in safety gate sourced from refusal data** (v0.3.0), a live **`chimeraforge safety` refusal-screen command** against running Ollama models (v0.4.0), and a **model-agnostic planner with measure-on-demand** (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two planner correctness bugs), plus **continuous batching + TTFT/TPOT latency modeling + Pareto planning** (v0.6.0), and **v0.7–v0.12**: registry expansion, energy/power cost modeling, a **KV-cache quantization planner**, tensor/pipeline-parallel planning, and an **MCP server**, live on the official MCP Registry (v0.12.3, 558 tests)
+- 7 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required) — including an **opt-in safety gate sourced from refusal data** (v0.3.0), a live **`chimeraforge safety` refusal-screen command** against running Ollama models (v0.4.0), and a **model-agnostic planner with measure-on-demand** (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two planner correctness bugs), plus **continuous batching + TTFT/TPOT latency modeling + Pareto planning** (v0.6.0), and **v0.7–v0.12**: registry expansion, energy/power cost modeling, a **KV-cache quantization planner**, tensor/pipeline-parallel planning, and an **MCP server**, live on the official MCP Registry, plus **v0.13–v0.30**: a `validate` prediction-vs-measured falsification audit, prefix-cache-aware prefill, duty-cycle cost, partial CPU offload, AWQ/GPTQ on vLLM/SGLang/TGI, multi-LoRA sizing, `workload` profiles derived from real traffic, heterogeneous fleets (`plan --fleet`), shareable plan briefs (`--report`), and a 0.30.x correctness pass on provenance labels and launch-command quoting (v0.30.10, 1,571 tests)
 - Dual-language benchmarking harnesses (Python + Rust)
 - Python 3.10–3.14 CI matrix with trusted-publishing on tag push
 - Operationalizes findings from 55 technical reports into deployment decisions
@@ -119,7 +119,7 @@ The autonomy plane in the Chimera ecosystem. Sits between the Chimera control pl
 
 ## Research Program
 
-**55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–167). 1.34M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 5 under peer review.**
+**55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–167). 1.34M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 8 under peer review.**
 
 **Audit path:** every TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports) — count, read, diff. No site, no slides, no PDF wall. The folder is the source of truth.
 
@@ -171,7 +171,20 @@ Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottle
 
 ## Recent Shipped Work
 
-### GhostEye Inc. — Founding Engineer (AI/ML)
+### Attunica, LLC · Co-Founder & Head of Engineering
+*Oct 2025 – Present · New York, USA*
+
+Clinical AI platform for psychotherapy training: social-work students run sessions with voice-and-avatar AI clients, and instructors assess them. NYU Silver MSW pilot; HIPAA BAAs executed across Anthropic and AWS. I architected and solo-built the platform core and lead a PM and two engineers.
+
+- **First-customer release live on AWS** (Sep 2026): backend, frontend, LiveKit agent, and evaluation services on ECS, with Aurora PostgreSQL 18 and Bedrock; the deployed evaluator was accepted only after an audited Bedrock canary
+- Real-time sessions on **LiveKit + Gemini Live + Anam** avatars, with Deepgram producing the canonical transcript and recorded sessions under revocable consent
+- **Five-criterion formative evaluation** that separates "no evidence" from "scored zero", plus an **instructor human-assessment lifecycle** (immutable submit, receipted release) with the rubric blocked from automation
+- **Consent-gated research layer:** optional, granular, versioned consent with immutable decision evidence and revocation; collection stays off until activated
+- Instructor authoring with PDF/DOCX source ingestion: hash-bound uploads, macro and external-link rejection, source text treated as untrusted input
+- Every change passes an exact-base validator with append-only admission, so a PR cannot weaken the checks that approve it
+- **Article 31 documentation product** for clinicians (v0.5.1 on ECS): release-gated deploys, on-device Whisper dictation, browser-only PDF extraction, psychotherapy-note authorship enforced end to end
+
+### GhostEye Inc. (YC S25) · Founding Engineer (AI/ML), first hire
 *Dec 2025 – Mar 2026 · New York, USA*
 
 Built a **security awareness training platform in 90 days** as a founding engineer. Multi-channel delivery across web, Slack, Teams, SMS/RCS, WhatsApp, Telegram, voice, and email.
@@ -181,16 +194,6 @@ Built a **security awareness training platform in 90 days** as a founding engine
 - Input guardrails across all APIs and agents with adversarial attempt logging
 - **5 specialized PR-review agents** distilled from ~2,500 comments across ~1,000 PRs
 - 5000+ tests across ~20 services
-
-### Attunica, LLC — Co-Founder & Lead ML Architect
-*Oct 2025 – Present · New York, USA*
-
-Multi-service clinical AI platform for psychotherapy training and research workflows.
-
-- Real-time streaming agent via **LiveKit SDK** + **Google Gemini Realtime API** for low-latency WebRTC voice/avatar sessions
-- Versioned persona engine, instructor workflows, and **Claude-powered** clinical evaluation service
-- Tiered consent, pattern-based PII scrubbing, research exports, and **HIPAA BAAs executed** across Anthropic and AWS
-
 ---
 
 ## Open Source
@@ -198,9 +201,9 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 | Project | Description |
 |:--------|:------------|
 | [**icml2026-paper-reproductions**](https://github.com/Sahil170595/icml2026-paper-reproductions) | **ICML 2026 Agent Reproducibility Challenge — final rank #26 of 1,221 (top 2.1%), 297 pts.** 48 papers reproduced from their equations (not their code), CPU-deterministic, acceptance/falsification rules pre-registered per claim; 249 official claims judged by the challenge’s independent referee: 118 verified, **3 published claims falsified**. MIT; per-paper evidence in-repo. |
-| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI (v0.12.3, 558 tests, 8.5K+ downloads; 0.6 adds continuous batching + TTFT/TPOT modeling + Pareto planning; **0.7–0.12** add registry expansion, energy/power cost modeling, a **KV-cache quantization planner**, tensor/pipeline-parallel planning, and an **MCP server**, live on the official MCP Registry). 7 predictive models + opt-in safety gate (v0.3.0) + live `chimeraforge safety` refusal-screen command (v0.4.0) + model-agnostic planner with measure-on-demand (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two named planner correctness bugs — linear throughput scaling across GPU replicas, `cost_per_1m_tok` no longer N× understated). Python 3.10–3.14 CI matrix. |
-| [**quantfit**](https://pypi.org/project/quantfit/) | PyPI **safety-tax CLI** (v0.6.1, Apache-2.0, 1,294 tests). *"Quantize an LLM and check it still refuses what it should."* 3-tier GPU-aware capacity preflight (in-GPU / CPU-offload / refuse, reads HF metadata without downloading — refuses BEFORE the 30GB download); SOTA method matrix on one `llm-compressor` backend (AWQ / GPTQ / SmoothQuant / FP8 / RTN × W4A16/W8A8/W4A8/FP8/NVFP4/MXFP4) plus GGUF backend (Q2_K..Q8_0 + IQ-quants); one frozen calibration spec across methods so they're comparable; **QSR spec v0** — a versioned quantization-safety measurement protocol with Wilson-CI-bounded, never-absolute verdicts; **`verify-safety`** command runs RTSI-style refusal-preservation checks on quantized output. Ships the research program's third-axis mitigation as a deployable CLI primitive. Docker image, CI. |
-| [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 22 published models — 11 AWQ/GPTQ 4-bit checkpoints (Llama 3.2, Qwen 2.5, Mistral 7B, Phi-2), **6 FP8-Dynamic releases** (Llama 3.2, Qwen 2.5, Mistral 7B, and Gemma 2 — tagged TR171), 4 custom GPT-2 scaling-law training runs, and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (ModernBERT-base binary refusal classifier, **97.73% accuracy / 0.9773 F1** on XSTest, beats lexicon baseline by ~45pp). |
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI and MCP server (v0.30.10, 1,571 tests, 24K+ downloads; 0.6 adds continuous batching + TTFT/TPOT modeling + Pareto planning; **0.7–0.12** add registry expansion, energy/power cost modeling, a **KV-cache quantization planner**, tensor/pipeline-parallel planning, and an **MCP server**, live on the official MCP Registry; **0.13–0.30** add a `validate` falsification audit, prefix-cache and CPU-offload modeling, AWQ/GPTQ on vLLM/SGLang/TGI, multi-LoRA sizing, traffic-derived workload profiles, and heterogeneous fleet planning). 7 predictive models + opt-in safety gate (v0.3.0) + live `chimeraforge safety` refusal-screen command (v0.4.0) + model-agnostic planner with measure-on-demand (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two named planner correctness bugs — linear throughput scaling across GPU replicas, `cost_per_1m_tok` no longer N× understated). Python 3.10–3.14 CI matrix. |
+| [**quantfit**](https://pypi.org/project/quantfit/) | PyPI **safety-tax CLI** (v0.12.16, Apache-2.0, 1,369 tests, 12K+ downloads). *"Quantize an LLM and check it still refuses what it should."* 3-tier GPU-aware capacity preflight (in-GPU / CPU-offload / refuse, reads HF metadata without downloading — refuses BEFORE the 30GB download); SOTA method matrix on one `llm-compressor` backend (AWQ / GPTQ / SmoothQuant / FP8 / RTN × W4A16/W8A8/W4A8/FP8/NVFP4/MXFP4) plus GGUF backend (Q2_K..Q8_0 + IQ-quants); one frozen calibration spec across methods so they're comparable; **QSR spec v0** — a versioned quantization-safety measurement protocol with Wilson-CI-bounded, never-absolute verdicts; **`verify-safety`** command runs RTSI-style refusal-preservation checks on quantized output. Ships the research program's third-axis mitigation as a deployable CLI primitive. Since 0.7: `verify-safety --junit` release-gate output, a judge measured and then replaced (0.9), a sensitivity control that now passes, and no-detection verdicts that print their resolution floor instead of a bare zero. Docker image, CI. |
+| [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 23 published models — 11 AWQ/GPTQ 4-bit checkpoints (Llama 3.2, Qwen 2.5, Mistral 7B, Phi-2), **6 FP8-Dynamic releases** (Llama 3.2, Qwen 2.5, Mistral 7B, and Gemma 2 — tagged TR171), 4 custom GPT-2 scaling-law training runs, a [pre-registered Dr.GRPO LoRA on MedMCQA](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora), and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (ModernBERT-base binary refusal classifier, **97.73% accuracy / 0.9773 F1** on XSTest, beats lexicon baseline by ~45pp). |
 | [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | HF Space operationalizing the RTSI research arc end-to-end: 4-delta refusal screen (entropy / prefix variation / length), ModernBERT semantic cross-check, multi-judge safety stack (Qwen3Guard + Granite Guardian), constitutional debate (Qwen3-8B + Phi-4-mini + SmolLM3-3B) for contested cases, **Ed25519-signed certificates** verified against a pinned issuer key. **ROC AUC 0.8445 (LOOCV)**; HIGH-risk routing recovers **76.17%** of refusal-rate gaps affecting only **20%** of configs. Build Small Hackathon submission (≤32B catalog ceiling). |
 | [**vLLM PR #45207**](https://github.com/vllm-project/vllm/pull/45207) | **Merged into vLLM** ([`55da232`](https://github.com/vllm-project/vllm/commit/55da232db6963613d34229dfd257236e6f3c8097), 2026-07-07, approved by maintainer benchislett) — fixed a KV-cache page-size unification crash on **hybrid Mamba/attention models** at engine init: pad the Mamba page via `page_size_padded` instead of the no-op `block_size` scaling; surfaced by a speculative-decoding drafter carrying FP8 KV. Regression test added. Fixes [#43626](https://github.com/vllm-project/vllm/issues/43626). |
 | [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Merged into PyTorch Inductor** ([squash `be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), 2026-06-04) — hardened cudagraph_trees deallocation against diagnostic-metadata divergence; approved by jansel (Inductor maintainer). |
@@ -226,7 +229,7 @@ Multi-service clinical AI platform for psychotherapy training and research workf
 
 **Data & Analysis:** PostgreSQL, DynamoDB, Redis, ClickHouse, Qdrant, SciPy, SHAP
 
-**Cloud & Deployment:** AWS, Azure, Docker, Kubernetes, Vercel
+**Cloud & Deployment:** AWS (ECS, Bedrock, Aurora), Azure, Docker, Kubernetes, Vercel
 
 **Monitoring:** Prometheus, Grafana, Datadog, OpenTelemetry, pynvml, MLflow, W&B
 
