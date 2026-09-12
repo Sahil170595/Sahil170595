@@ -4,10 +4,10 @@
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/sahilkadadekar) [![PyPI](https://img.shields.io/badge/PyPI-chimeraforge-3775A9?style=flat&logo=pypi)](https://pypi.org/project/chimeraforge/) [![YouTube](https://img.shields.io/badge/YouTube-Demo-FF0000?style=flat&logo=youtube)](https://youtu.be/IPbwLB_sZ9I)
 
-**Featured:** [Latent Space AI in Action Talk — Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
+**Featured:** [Latent Space AI in Action Talk, Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-Methodology built in the public **Chimera adaptive constitutional engine** — 15+ services, Rust alignment runtime, **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.34M+ decision-grade measurements** (curated from ~10⁹ profiler samples), **3 overturned hypotheses**, **1 ICML 2026 workshop paper accepted + 8 more under peer review**, and **4 merged upstream PRs** ([vLLM #45207](https://github.com/vllm-project/vllm/pull/45207), [PyTorch #175562](https://github.com/pytorch/pytorch/pull/175562), [Ollama #16669](https://github.com/ollama/ollama/pull/16669), [Triton #10819](https://github.com/triton-lang/triton/pull/10819)) — plus a **final rank of #26 of 1,221 participants (top 2.1%)** in the [ICML 2026 Agent Reproducibility Challenge](https://github.com/Sahil170595/icml2026-paper-reproductions) (48 papers reproduced agentically, 3 published claims falsified) — and applied at production scale at **GhostEye** (security training platform shipped in 90 days; 80–400x deepfake latency reduction), **Attunica** (clinical AI platform for psychotherapy training; first-customer release live on AWS ECS + Bedrock; BAAs across Anthropic + AWS), **23 Hugging Face models**, **Chimeraforge** (PyPI capacity-planning CLI and MCP server, v0.30.10, 1,571 tests, 24K+ downloads), and **[quantfit](https://pypi.org/project/quantfit/)** (PyPI safety-tax CLI: quantize an LLM and check it still refuses what it should, v0.12.16, 12K+ downloads). Everything measured, everything reproducible — [count the markdown files yourself](https://github.com/Sahil170595/Sahil170595/tree/main/reports).
+I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.34M+ measurements**, **1 ICML 2026 workshop paper accepted + 8 under peer review**, fixes landed in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **37K+ downloads**.
 
 ---
 
@@ -15,19 +15,19 @@ Methodology built in the public **Chimera adaptive constitutional engine** — 1
 
 Full-stack: CUDA kernels and Triton compilation up through multi-agent runtimes, alignment architectures, and production platforms. Three pillars:
 
-1. **Inference optimization** — vLLM, TGI, Ollama, TensorRT, torch.compile, FlashAttention, quantization sweeps, Nsight Systems kernel profiling. I don't guess where the bottleneck is. I trace it.
+1. **Inference optimization:** vLLM, TGI, Ollama, TensorRT, torch.compile, FlashAttention, quantization sweeps, Nsight Systems kernel profiling. I don't guess where the bottleneck is. I trace it.
 
-2. **Constitutional AI** — debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
+2. **Constitutional AI:** debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
 
-3. **Empirical safety research** — 55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) measuring what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision. Findings backed by TOST equivalence testing, effect-size analysis, and Holm-Bonferroni correction. Three hypotheses overturned. RTSI-gated routing recovers 76% of the quantization refusal gap. One paper accepted at ICML 2026 Hypothesis Testing workshop; eight under peer review.
+3. **Empirical safety research:** what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision, tested with TOST equivalence, effect sizes, and Holm-Bonferroni correction. RTSI-gated routing recovers 76% of the quantization refusal gap.
 
 ---
 
-## ICML 2026 Agent Reproducibility Challenge — sister repo
+## ICML 2026 Agent Reproducibility Challenge (sister repo)
 
 **[icml2026-paper-reproductions](https://github.com/Sahil170595/icml2026-paper-reproductions)** · Final: **rank #26 of 1,221 participants (top 2.1%)** · **48 papers** · 249 official claims judged: **118 verified, 3 published claims falsified** · 297 pts · verdicts frozen 2026-08-02.
 
-Independent, from-scratch reproductions of ICML 2026 submissions, produced by an agentic pipeline and judged claim-by-claim by the challenge’s independent referee. Acceptance and falsification rules are pre-registered before each run; producers cannot publish their own bundles, and reviewers cannot repair what they judge. Every reproduction ships its per-paper evidence — [methodology](https://github.com/Sahil170595/icml2026-paper-reproductions/blob/main/METHODOLOGY.md) · [frozen leaderboard](https://icml-2026-agent-repro-challenge.static.hf.space/leaderboard.html).
+Independent, from-scratch reproductions of ICML 2026 submissions, produced by an agentic pipeline and judged claim by claim by the challenge's independent referee. Acceptance and falsification rules are pre-registered before each run; producers cannot publish their own bundles, and reviewers cannot repair what they judge. Every reproduction ships its per-paper evidence: [methodology](https://github.com/Sahil170595/icml2026-paper-reproductions/blob/main/METHODOLOGY.md) · [frozen leaderboard](https://icml-2026-agent-repro-challenge.static.hf.space/leaderboard.html).
 
 ---
 
@@ -41,91 +41,39 @@ Independent, from-scratch reproductions of ICML 2026 submissions, produced by an
   <a href="https://chimeraforge.vercel.app"><img src="./assets/chimeraforge-landing.gif" alt="Chimeraforge landing page: a live 3D map of the Chimera ecosystem, with the constitutional core as a black hole and the nine systems in orbit" width="100%" /></a>
 </p>
 
-<p align="center">
-  <img src="./chimera_v3_d2.svg" alt="Chimera ecosystem architecture — observe & learn / build & govern / products & interfaces" width="100%" />
-</p>
+| Component | What it does |
+|:----------|:-------------|
+| **Banterpacks** (core) | Multi-model constitutional debate with heat-based escalation and 3 consensus algorithms; an embedding fast-path router that resolves 99% of queries in under 10ms; a 7-crate Rust alignment runtime (BFT consensus, Ed25519 provenance, Pedersen-commitment ZK proofs on Ristretto255, CRDT sync); an RLAIF loop that turns debate outcomes into DPO pairs. |
+| **JARVIS Gateway** | Chat, voice (Whisper STT, TTS), PostgreSQL/pgvector graph memory, human-in-the-loop tool approval, WebSocket streaming, and durable workflows. |
+| **Banterhearts** (research substrate) | The measurement and paper engine: multi-backend evaluation and serving harnesses (Transformers, Ollama, ONNX, vLLM, SGLang, TGI), per-sample JSONL provenance, pre-registered runs held to frozen gates, disagreement-aware judge triangulation, fail-closed analyzers, and frozen-byte paper packages with anonymous reviewer artifacts. |
+| [**Chimeraforge**](https://github.com/Sahil170595/Chimeraforge) | Capacity-planning CLI and MCP server that ships the research as deployment decisions (below). |
+| [**Chimeradroid**](https://github.com/Sahil170595/Chimeradroid) | Unity/C# JARVIS client for Android and Android XR that talks straight to a local laptop GPU, no cloud. |
+| [**Echo**](https://github.com/Sahil170595/Echo) | 5 channel adapters (Slack, Discord, Telegram, WhatsApp, email) as thin relays into JARVIS. |
+| [**JARVIS Console**](https://github.com/Sahil170595/jarvis-console) | Next.js 15 + React 19 operator UI: chat, tool approvals, session telemetry, live agent state. |
+| [**ProjectWyvern**](https://github.com/Sahil170595/ProjectWyvern) | Constitutional aerial autonomy between Chimera policy and PX4/ArduPilot: mission validation, command arbitration, replayable mission archives. AI assists planning; it never bypasses deterministic safety. |
+| [**Banterblogs**](https://github.com/Sahil170595/Banterblogs) | Write-ups from the research program. |
 
-**Public verification surfaces:** [Chimeraforge](https://github.com/Sahil170595/Chimeraforge) · [Chimeradroid](https://github.com/Sahil170595/Chimeradroid) · [Banterblogs](https://github.com/Sahil170595/Banterblogs) · [Echo](https://github.com/Sahil170595/Echo) · [JARVIS Console](https://github.com/Sahil170595/jarvis-console) · [ProjectWyvern](https://github.com/Sahil170595/ProjectWyvern). Research substrate (Banterpacks, Banterhearts, Muse Protocol) is private during the publication window — read access on request via [Reach Me](#reach-me).
-
----
-
-## Banterpacks — Adaptive Constitutional Engine
-
-**The core.** Everything else in the ecosystem feeds into or out of this.
-
-- **Constitutional Debate Engine (TDD001):** Multi-model debate with heat-based escalation and 3 consensus algorithms. Constitutional principles as first-class constraints, not afterthoughts.
-- **Fast-Path Router (TDD002):** Embedding-based cosine similarity routing. 99% of queries resolved in <10ms without touching the debate engine.
-- **Rust Alignment Runtime (TDD005):** 7 crates. BFT consensus, Ed25519 provenance chains, zero-knowledge proofs via Pedersen commitments on Ristretto255, CRDT sync for cross-device state.
-- **RLAIF Pipeline:** Debate outcomes generate DPO training pairs that continuously refine the router's alignment centroid. The system improves itself.
-- **JARVIS Gateway:** Unified AI assistant with chat (turn-based state machine), voice (Whisper STT, TTS), graph memory backed by **PostgreSQL/pgvector** (~40-table cutover from aiosqlite on a dual-dialect SQLAlchemy 2.0 async engine, unified under Alembic), tool execution with human-in-the-loop approval, WebSocket streaming, durable workflows, and a **React/Next.js** operator console.
-
-> *The alignment layer doesn't just steer the model. It proves it steered correctly.*
+Banterpacks, Banterhearts, and Muse Protocol are private during the publication window; read access on request via [Reach Me](#reach-me).
 
 ---
 
-## Banterhearts — Research & Inference Platform
+## Chimeraforge: Capacity Planning CLI
 
-**The measurement engine.** Every claim in the research program comes from code running here.
+**The tool that ships the research.** `pip install chimeraforge` · [PyPI](https://pypi.org/project/chimeraforge/) · [changelog](https://github.com/Sahil170595/Chimeraforge/blob/main/CHANGELOG.md)
 
-- **Capability-aware backend dispatching** — Ollama, HuggingFace Transformers, ONNX Runtime, TensorRT. The system picks the right backend for the job.
-- **Compile+quantize pipeline** with latency/accuracy guardrails
-- **Thompson Sampling auto-optimizer** for configuration discovery
-- **GPU monitoring** — 100ms power polling, thermal safety, VRAM fragmentation tracking via pynvml
-- **TensorRT engine building**, ONNX model export, torch.compile with Inductor backend
-- **KV-cache analysis** — theoretical + empirical measurement, CUDA graph crash reproduction
-
-> *If you can't measure it, you can't optimize it. If you can't reproduce the measurement, you didn't measure it.*
-
----
-
-## Chimeraforge — Capacity Planning CLI
-
-**The tool that ships the research.**
-
-Published on [PyPI](https://pypi.org/project/chimeraforge/) —`pip install chimeraforge`
-
-- 7 predictive models (R² > 0.85 throughput, > 0.96 VRAM, <1s runtime, zero GPU required) — including an **opt-in safety gate sourced from refusal data** (v0.3.0), a live **`chimeraforge safety` refusal-screen command** against running Ollama models (v0.4.0), and a **model-agnostic planner with measure-on-demand** (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two planner correctness bugs), plus **continuous batching + TTFT/TPOT latency modeling + Pareto planning** (v0.6.0), and **v0.7–v0.12**: registry expansion, energy/power cost modeling, a **KV-cache quantization planner**, tensor/pipeline-parallel planning, and an **MCP server**, live on the official MCP Registry, plus **v0.13–v0.30**: a `validate` prediction-vs-measured falsification audit, prefix-cache-aware prefill, duty-cycle cost, partial CPU offload, AWQ/GPTQ on vLLM/SGLang/TGI, multi-LoRA sizing, `workload` profiles derived from real traffic, heterogeneous fleets (`plan --fleet`), shareable plan briefs (`--report`), and a 0.30.x correctness pass on provenance labels and launch-command quoting (v0.30.10, 1,571 tests)
-- Dual-language benchmarking harnesses (Python + Rust)
-- Python 3.10–3.14 CI matrix with trusted-publishing on tag push
-- Operationalizes findings from 55 technical reports into deployment decisions
+- Plans model × quantization × backend × GPU/TP/PP deployments, including heterogeneous fleets, against VRAM, TTFT/TPOT, throughput, KV-cache and CPU offload, prefix caching, multi-LoRA, cost, and energy; emits vLLM, TGI, SGLang, and Ollama launch commands
+- Every number carries a provenance label (measured, extrapolated, derived, estimated, or unknown), and `validate` audits predictions against measurements
+- 13-command CLI, Python API, and MCP server on the official MCP Registry; v0.30.10, 1,571 tests, 24K+ downloads
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
 ---
 
-## Chimeradroid — Android & XR Client
-
-Unity/C# JARVIS client for Android and Android XR. WebSocket streaming, voice interface, tool approval UI, CRDT cross-device sync, session handoff. Runs on Android XR headsets for embodied agent work. Phone talks directly to your local laptop GPU — no cloud dependency.
-
-> *The ecosystem runs everywhere, not just on a dev machine.*
-
----
-
-## Echo — Channel Adapters
-
-The messaging bridge between external platforms and the JARVIS gateway. **5 adapters** (Slack Socket Mode, Discord Gateway, Telegram long-poll, WhatsApp Cloud API webhooks, SMTP/IMAP email). Each adapter is a thin HTTP relay — no intelligence, just platform-specific formatting. All cognition lives in JARVIS.
-
----
-
-## JARVIS Console — Operator UI
-
-Next.js 15 + React 19 operator surface for JARVIS. Radix primitives, Framer Motion, Tailwind. Chat, tool-approval workflows, session telemetry, and live agent state.
-
----
-
-## ProjectWyvern — Constitutional Aerial Autonomy
-
-The autonomy plane in the Chimera ecosystem. Sits between the Chimera control plane (identity, policy, operator approvals) and the flight controller (PX4/ArduPilot via MAVSDK/MAVLink/ROS 2). Owns mission validation, command arbitration, telemetry normalization, and cryptographically replayable mission archives.
-
-> *AI assists planning. It never bypasses deterministic safety or operator authority.*
-
----
-
 ## Research Program
 
-**55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–167). 1.34M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned. 1 ICML 2026 workshop paper accepted + 8 under peer review.**
+**55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–167). 1.34M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned.**
 
-**Audit path:** every TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports) — count, read, diff. No site, no slides, no PDF wall. The folder is the source of truth.
+**Audit path:** every TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports). Count, read, diff. No site, no slides, no PDF wall. The folder is the source of truth.
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
@@ -141,7 +89,7 @@ Quantified the **safety tax of inference optimization** across 4 model families:
 
 Key finding: **backend matters more than numerical precision for safety.** A 23pp safety drop traced to chat template divergence, not FP16 vs Q4 arithmetic.
 
-**First mitigation (TR163):** RTSI-gated routing recovers **~76%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing. LOOCV ROC-AUC **0.84**, validated across LOOCV passes during the [QuantSafe Certifier](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) buildout; companion [arXiv preprint](https://arxiv.org/abs/2606.10154) routes 10/10 hidden-danger configs, Wilson 95% CI lower-bound 0.72.
+**First mitigation (TR163):** RTSI-gated routing recovers **~76%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing. LOOCV ROC-AUC **0.84**, validated across LOOCV passes during the [QuantSafe Certifier](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) buildout; the companion [arXiv preprint](https://arxiv.org/abs/2606.10154) routes 10/10 hidden-danger configs, Wilson 95% CI lower bound 0.72.
 
 ### Inference Systems & GPU Kernel Profiling | ~35,000 measurements
 
@@ -154,7 +102,7 @@ Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottle
 | Throughput at N=8 | **2.25x** |
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" width="600" alt="Nsight Compute profiling — Chimera engine on RTX 4080" />
+  <img src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" width="600" alt="Nsight Compute profiling of the Chimera engine on an RTX 4080" />
 </p>
 
 <sup>*Nsight Compute trace from the kernel-profiling pass that produced the measurements above.*</sup>
@@ -163,13 +111,13 @@ Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottle
 
 - Multi-agent scaling follows **Amdahl's Law** (R² > 0.97), throughput plateaus at N=2
 - **Q4_K_M** is the universal quantization sweet spot (30–67% cost savings)
-- **VRAM spillover** causes 25–105x latency cliffs — the real context-length bottleneck, not quadratic attention
+- **VRAM spillover** causes 25–105x latency cliffs, the real context-length bottleneck, not quadratic attention
 
 ### Hypotheses Overturned
 
-1. **M/D/1 queueing theory** — deviates 20.4x from observed behavior (TR 128)
-2. **NUM_PARALLEL enables concurrent GPU inference** — confirmed no-op, 0/30 tests significant (TR 128)
-3. **Serving stack is the scaling bottleneck** — GPU memory bandwidth physics dominates; PyTorch Direct degrades worse than Ollama (TR 131)
+1. **M/D/1 queueing theory:** deviates 20.4x from observed behavior (TR 128)
+2. **NUM_PARALLEL enables concurrent GPU inference:** confirmed no-op, 0/30 tests significant (TR 128)
+3. **Serving stack is the scaling bottleneck:** GPU memory bandwidth physics dominates; PyTorch Direct degrades worse than Ollama (TR 131)
 
 ---
 
@@ -203,23 +151,21 @@ Built a **security awareness training platform in 90 days** as a founding engine
 - Reduced **deepfake phishing simulation** latency from **40s to 100–450ms** (80–400x improvement) via a multi-agent WebRTC pipeline (video render agent + voice agent); range reflects per-call workload depth
 - Input guardrails across all APIs and agents with adversarial attempt logging
 - **5 specialized PR-review agents** distilled from ~2,500 comments across ~1,000 PRs
-- 5000+ tests across ~20 services
+
 ---
 
 ## Open Source
 
 | Project | Description |
 |:--------|:------------|
-| [**icml2026-paper-reproductions**](https://github.com/Sahil170595/icml2026-paper-reproductions) | **ICML 2026 Agent Reproducibility Challenge — final rank #26 of 1,221 (top 2.1%), 297 pts.** 48 papers reproduced from their equations (not their code), CPU-deterministic, acceptance/falsification rules pre-registered per claim; 249 official claims judged by the challenge’s independent referee: 118 verified, **3 published claims falsified**. MIT; per-paper evidence in-repo. |
-| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | PyPI capacity-planning CLI and MCP server (v0.30.10, 1,571 tests, 24K+ downloads; 0.6 adds continuous batching + TTFT/TPOT modeling + Pareto planning; **0.7–0.12** add registry expansion, energy/power cost modeling, a **KV-cache quantization planner**, tensor/pipeline-parallel planning, and an **MCP server**, live on the official MCP Registry; **0.13–0.30** add a `validate` falsification audit, prefix-cache and CPU-offload modeling, AWQ/GPTQ on vLLM/SGLang/TGI, multi-LoRA sizing, traffic-derived workload profiles, and heterogeneous fleet planning). 7 predictive models + opt-in safety gate (v0.3.0) + live `chimeraforge safety` refusal-screen command (v0.4.0) + model-agnostic planner with measure-on-demand (v0.5.0: `plan --model <id>` accepts any registry/Ollama/HF model, plus `suggest`/`catalog`/`measure` commands; fixes two named planner correctness bugs — linear throughput scaling across GPU replicas, `cost_per_1m_tok` no longer N× understated). Python 3.10–3.14 CI matrix. |
-| [**quantfit**](https://pypi.org/project/quantfit/) | PyPI **safety-tax CLI** (v0.12.16, Apache-2.0, 1,369 tests, 12K+ downloads). *"Quantize an LLM and check it still refuses what it should."* 3-tier GPU-aware capacity preflight (in-GPU / CPU-offload / refuse, reads HF metadata without downloading — refuses BEFORE the 30GB download); SOTA method matrix on one `llm-compressor` backend (AWQ / GPTQ / SmoothQuant / FP8 / RTN × W4A16/W8A8/W4A8/FP8/NVFP4/MXFP4) plus GGUF backend (Q2_K..Q8_0 + IQ-quants); one frozen calibration spec across methods so they're comparable; **QSR spec v0** — a versioned quantization-safety measurement protocol with Wilson-CI-bounded, never-absolute verdicts; **`verify-safety`** command runs RTSI-style refusal-preservation checks on quantized output. Ships the research program's third-axis mitigation as a deployable CLI primitive. Since 0.7: `verify-safety --junit` release-gate output, a judge measured and then replaced (0.9), a sensitivity control that now passes, and no-detection verdicts that print their resolution floor instead of a bare zero. Docker image, CI. |
-| [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 23 published models — 11 AWQ/GPTQ 4-bit checkpoints (Llama 3.2, Qwen 2.5, Mistral 7B, Phi-2), **6 FP8-Dynamic releases** (Llama 3.2, Qwen 2.5, Mistral 7B, and Gemma 2 — tagged TR171), 4 custom GPT-2 scaling-law training runs, a [pre-registered Dr.GRPO LoRA on MedMCQA](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora), and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (ModernBERT-base binary refusal classifier, **97.73% accuracy / 0.9773 F1** on XSTest, beats lexicon baseline by ~45pp). |
-| [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | HF Space operationalizing the RTSI research arc end-to-end: 4-delta refusal screen (entropy / prefix variation / length), ModernBERT semantic cross-check, multi-judge safety stack (Qwen3Guard + Granite Guardian), constitutional debate (Qwen3-8B + Phi-4-mini + SmolLM3-3B) for contested cases, **Ed25519-signed certificates** verified against a pinned issuer key. **ROC AUC 0.8445 (LOOCV)**; HIGH-risk routing recovers **76.17%** of refusal-rate gaps affecting only **20%** of configs. Build Small Hackathon submission (≤32B catalog ceiling). |
-| [**vLLM PR #45207**](https://github.com/vllm-project/vllm/pull/45207) | **Merged into vLLM** ([`55da232`](https://github.com/vllm-project/vllm/commit/55da232db6963613d34229dfd257236e6f3c8097), 2026-07-07, approved by maintainer benchislett) — fixed a KV-cache page-size unification crash on **hybrid Mamba/attention models** at engine init: pad the Mamba page via `page_size_padded` instead of the no-op `block_size` scaling; surfaced by a speculative-decoding drafter carrying FP8 KV. Regression test added. Fixes [#43626](https://github.com/vllm-project/vllm/issues/43626). |
-| [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Merged into PyTorch Inductor** ([squash `be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), 2026-06-04) — hardened cudagraph_trees deallocation against diagnostic-metadata divergence; approved by jansel (Inductor maintainer). |
-| [**PyTorch PR #184102 (validation)**](https://github.com/pytorch/pytorch/pull/184102) | Multi-version, cross-scenario validation of jansel's `cudagraph_trees` handoff fix (NGC torch 2.10 + 2.12 nightly; single/multi-partition + cross-call + strided feedback); surfaced an uncovered later-partition `graph_partition` edge case. [Validation gist](https://gist.github.com/Sahil170595/062d40cb18e2b2e27e99c1efbfa3ccdb). |
-| [**Ollama PR #16669**](https://github.com/ollama/ollama/pull/16669) | **Merged into Ollama** (2026-06-22, approved by maintainer dhiltgen) — root-caused two distinct enumeration bugs causing inverted iGPU/dGPU Vulkan classification on Windows hybrid graphics (Intel iGPU + NVIDIA dGPU): (i) native-probe stderr contaminating the UMA map with cross-ordered devices, (ii) Windows Vulkan refinement bailing on count mismatch when raw `vkEnumeratePhysicalDevices` returns a superset. Fix yields **~9× inference speedup** (3.8s → 0.8s) on Intel RaptorLake-S + RTX 4080 Laptop. Regression tests for both failure modes; independent second-hardware confirmation (RTX 5070 Blackwell). Fixes [#16667](https://github.com/ollama/ollama/issues/16667). |
-| [**Triton PR #10819**](https://github.com/triton-lang/triton/pull/10819) | **Merged into Triton** (2026-07-08, approved by maintainer peterbell10, `b92dc43`) — fixed a `tl.flip` compile-time crash on the documented default `dim=None`: the bounds-check assert ran before `dim=None` resolved to the last axis; resolve the dim first, added `dim=None` test coverage. Fixes [#10790](https://github.com/triton-lang/triton/issues/10790). |
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | Capacity-planning CLI and MCP server (details above). v0.30.10, 1,571 tests, 24K+ downloads. |
+| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec, with a GPU-aware preflight that refuses before a 30GB download. **QSR spec v0** release gate: Wilson-bounded verdicts that print their resolution floor instead of a bare zero, with JUnit output for CI. v0.12.16, Apache-2.0, 1,369 tests, 12K+ downloads. |
+| [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 23 models: 11 AWQ/GPTQ 4-bit checkpoints, **6 FP8-Dynamic releases** (tagged TR171), 4 GPT-2 scaling-law runs, a [pre-registered Dr.GRPO LoRA on MedMCQA](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora), and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (**97.73%** accuracy on XSTest, ~45pp above a lexicon baseline). |
+| [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | HF Space that turns the RTSI research into a certificate: refusal screen, ModernBERT cross-check, Qwen3Guard + Granite Guardian judges, constitutional debate for contested cases, and **Ed25519-signed certificates**. LOOCV ROC AUC **0.8445**; routing the riskiest **20%** of configs recovers **76.17%** of refusal-rate gaps. |
+| [**vLLM PR #45207**](https://github.com/vllm-project/vllm/pull/45207) | **Merged** ([`55da232`](https://github.com/vllm-project/vllm/commit/55da232db6963613d34229dfd257236e6f3c8097), approved by benchislett): fixed a KV-cache page-size unification crash on **hybrid Mamba/attention models** by padding the Mamba page via `page_size_padded`. Regression test added. Fixes [#43626](https://github.com/vllm-project/vllm/issues/43626). |
+| [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Landed** in PyTorch Inductor ([`be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), approved by jansel): hardened cudagraph_trees deallocation against diagnostic-metadata divergence. Also validated jansel's follow-up fix [#184102](https://github.com/pytorch/pytorch/pull/184102) across torch 2.10 and 2.12 nightly ([gist](https://gist.github.com/Sahil170595/062d40cb18e2b2e27e99c1efbfa3ccdb)). |
+| [**Ollama PR #16669**](https://github.com/ollama/ollama/pull/16669) | **Merged** (approved by dhiltgen): root-caused two Vulkan enumeration bugs that inverted iGPU/dGPU classification on Windows hybrid graphics; **~9× faster inference** (3.8s to 0.8s), confirmed on a second machine. Fixes [#16667](https://github.com/ollama/ollama/issues/16667). |
+| [**Triton PR #10819**](https://github.com/triton-lang/triton/pull/10819) | **Merged** (`b92dc43`, approved by peterbell10): fixed a `tl.flip` compile-time crash on the documented default `dim=None`, with test coverage. Fixes [#10790](https://github.com/triton-lang/triton/issues/10790). |
 
 ---
 
@@ -255,7 +201,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 ### 2026
 
 **A Paired Testing Protocol for Batch-Conditioned Refusal Robustness in LLM Serving**
-*Accepted — ICML 2026 Workshop on Hypothesis Testing*
+*Accepted, ICML 2026 Workshop on Hypothesis Testing*
 [![arXiv](https://img.shields.io/badge/arXiv-2605.27763-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2605.27763)
 
 **Quality Is Not a Safety Proxy Under Quantization: The Refusal Template Stability Index**
@@ -266,12 +212,14 @@ Built a **security awareness training platform in 90 days** as a founding engine
 *Preprint*
 [![arXiv](https://img.shields.io/badge/arXiv-2606.25097-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2606.25097)
 
+*8 more under double-blind review; titles withheld until decisions.*
+
 ---
 
 ## Earlier Research (2022–2023)
 
-**Medical AI Imaging — Multi-Phase Clinical Pipeline**
-Led a 4-person engineering + clinical team (3 engineers, 1 physician) across a 5-institution program (state government, city university, dental hospital, 2 engineering colleges) building TensorFlow/Keras pipelines over clinical imaging — dental (POC) → retinal (Phase 2) → EEG (Phase 4+). Stack: LSTM + attention multi-classification, W&B experiment tracking, SHAP interpretability, pinned-memory CPU↔GPU transfer optimization.
+**Medical AI Imaging: Multi-Phase Clinical Pipeline**
+Led a 4-person engineering + clinical team (3 engineers, 1 physician) across a 5-institution program (state government, city university, dental hospital, 2 engineering colleges) building TensorFlow/Keras pipelines over clinical imaging: dental (POC) → retinal (Phase 2) → EEG (Phase 4+). Stack: LSTM + attention multi-classification, W&B experiment tracking, SHAP interpretability, pinned-memory CPU↔GPU transfer optimization.
 
 Registered work: **Copyright L-122721/2023**.
 
@@ -285,9 +233,8 @@ Registered work: **Copyright L-122721/2023**.
 
 <div align="center">
 
-> *"The first principle is that you must not fool yourself — and you are the easiest person to fool."*
+> *"The first principle is that you must not fool yourself, and you are the easiest person to fool."*
 >
-> — Richard Feynman
+> Richard Feynman
 
 </div>
-
