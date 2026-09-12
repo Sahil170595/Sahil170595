@@ -180,6 +180,12 @@ Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottle
 
 Clinical AI platform for psychotherapy training: social-work students run sessions with voice-and-avatar AI clients, and instructors assess them. NYU Silver MSW pilot; HIPAA BAAs executed across Anthropic and AWS. I architected and solo-built the platform core and lead a PM and two engineers.
 
+<p align="center">
+  <img src="./attunica-demo.gif" alt="Attunica walkthrough: a Student signs in, chooses recording consent, practices live with an AI client avatar and receives rubric-scored formative feedback; an Instructor reviews Modules" width="100%" />
+</p>
+
+<sup>*Walkthrough recorded on a local stack with synthetic practice data.*</sup>
+
 - **First-customer release live on AWS** (Sep 2026): backend, frontend, LiveKit agent, and evaluation services on ECS, with Aurora PostgreSQL 18 and Bedrock; the deployed evaluator was accepted only after an audited Bedrock canary
 - Real-time sessions on **LiveKit + Gemini Live + Anam** avatars, with Deepgram producing the canonical transcript and recorded sessions under revocable consent
 - **Five-criterion formative evaluation** that separates "no evidence" from "scored zero", plus an **instructor human-assessment lifecycle** (immutable submit, receipted release) with the rubric blocked from automation
