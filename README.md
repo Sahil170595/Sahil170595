@@ -38,6 +38,10 @@ Independent, from-scratch reproductions of ICML 2026 submissions, produced by an
 **Adaptive constitutional engine. Rust alignment runtime. One obsession: make AI systems that are fast, safe, and honest.**
 
 <p align="center">
+  <a href="https://chimeraforge.vercel.app"><img src="./assets/chimeraforge-landing.gif" alt="Chimeraforge landing page: a live 3D map of the Chimera ecosystem, with the constitutional core as a black hole and the nine systems in orbit" width="100%" /></a>
+</p>
+
+<p align="center">
   <img src="./chimera_v3_d2.svg" alt="Chimera ecosystem architecture — observe & learn / build & govern / products & interfaces" width="100%" />
 </p>
 
