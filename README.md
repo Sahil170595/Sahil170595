@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk, Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.34M+ measurements**, **1 ICML 2026 workshop paper accepted + 8 under peer review**, fixes landed in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **37K+ downloads**.
+I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.46M+ measurements**, **1 ICML 2026 workshop paper accepted + 8 under peer review**, fixes landed in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **37K+ downloads**.
 
 ---
 
@@ -71,7 +71,7 @@ Banterpacks, Banterhearts, and Muse Protocol are private during the publication 
 
 ## Research Program
 
-**55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–167). 1.34M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned.**
+**55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–167). 1.46M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned.**
 
 **Audit path:** every TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports). Count, read, diff. No site, no slides, no PDF wall. The folder is the source of truth.
 
