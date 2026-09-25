@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk, Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.46M+ measurements**, **1 ICML 2026 workshop paper accepted + 8 under peer review**, fixes landed in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **37K+ downloads**.
+I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.46M+ measurements**, **1 ICML 2026 workshop paper accepted + 5 under peer review**, fixes landed in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **41K+ downloads**.
 
 ---
 
@@ -63,7 +63,7 @@ Banterpacks, Banterhearts, and Muse Protocol are private during the publication 
 
 - Plans model × quantization × backend × GPU/TP/PP deployments, including heterogeneous fleets, against VRAM, TTFT/TPOT, throughput, KV-cache and CPU offload, prefix caching, multi-LoRA, cost, and energy; emits vLLM, TGI, SGLang, and Ollama launch commands
 - Every number carries a provenance label (measured, extrapolated, derived, estimated, or unknown), and `validate` audits predictions against measurements
-- 13-command CLI, Python API, and MCP server on the official MCP Registry; v0.30.10, 1,571 tests, 24K+ downloads
+- 13-command CLI, Python API, and MCP server on the official MCP Registry; 28K+ downloads
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
@@ -158,8 +158,8 @@ Built a **security awareness training platform in 90 days** as a founding engine
 
 | Project | Description |
 |:--------|:------------|
-| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | Capacity-planning CLI and MCP server (details above). v0.30.10, 1,571 tests, 24K+ downloads. |
-| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec, with a GPU-aware preflight that refuses before a 30GB download. **QSR spec v0** release gate: Wilson-bounded verdicts that print their resolution floor instead of a bare zero, with JUnit output for CI. v0.12.16, Apache-2.0, 1,369 tests, 12K+ downloads. |
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | Capacity-planning CLI and MCP server (details above). 28K+ downloads. |
+| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec, with a GPU-aware preflight that refuses before a 30GB download. **QSR spec v0** release gate: Wilson-bounded verdicts that print their resolution floor instead of a bare zero, with JUnit output for CI. Apache-2.0, 13K+ downloads. |
 | [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 23 models: 11 AWQ/GPTQ 4-bit checkpoints, **6 FP8-Dynamic releases** (tagged TR171), 4 GPT-2 scaling-law runs, a [pre-registered Dr.GRPO LoRA on MedMCQA](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora), and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (**97.73%** accuracy on XSTest, ~45pp above a lexicon baseline). |
 | [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | HF Space that turns the RTSI research into a certificate: refusal screen, ModernBERT cross-check, Qwen3Guard + Granite Guardian judges, constitutional debate for contested cases, and **Ed25519-signed certificates**. LOOCV ROC AUC **0.8445**; routing the riskiest **20%** of configs recovers **76.17%** of refusal-rate gaps. |
 | [**vLLM PR #45207**](https://github.com/vllm-project/vllm/pull/45207) | **Merged** ([`55da232`](https://github.com/vllm-project/vllm/commit/55da232db6963613d34229dfd257236e6f3c8097), approved by benchislett): fixed a KV-cache page-size unification crash on **hybrid Mamba/attention models** by padding the Mamba page via `page_size_padded`. Regression test added. Fixes [#43626](https://github.com/vllm-project/vllm/issues/43626). |
@@ -212,7 +212,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 *Preprint*
 [![arXiv](https://img.shields.io/badge/arXiv-2606.25097-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2606.25097)
 
-*8 more under double-blind review; titles withheld until decisions.*
+*5 more under double-blind review; titles withheld until decisions.*
 
 ---
 
