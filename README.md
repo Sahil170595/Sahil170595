@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk, Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) / 1.46M+ measurements**, **1 ICML 2026 workshop paper accepted + 5 under peer review**, fixes landed in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **41K+ downloads**.
+I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026) + 3 under peer review**, five merged fixes in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **46K+ downloads**.
 
 ---
 
@@ -63,7 +63,7 @@ Banterpacks, Banterhearts, and Muse Protocol are private during the publication 
 
 - Plans model × quantization × backend × GPU/TP/PP deployments, including heterogeneous fleets, against VRAM, TTFT/TPOT, throughput, KV-cache and CPU offload, prefix caching, multi-LoRA, cost, and energy; emits vLLM, TGI, SGLang, and Ollama launch commands
 - Every number carries a provenance label (measured, extrapolated, derived, estimated, or unknown), and `validate` audits predictions against measurements
-- 13-command CLI, Python API, and MCP server on the official MCP Registry; 28K+ downloads
+- 13-command CLI, Python API, and MCP server on the official MCP Registry; 31K+ downloads
 
 > *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
@@ -71,9 +71,9 @@ Banterpacks, Banterhearts, and Muse Protocol are private during the publication 
 
 ## Research Program
 
-**55 [technical reports](https://github.com/Sahil170595/Sahil170595/tree/main/reports) (TR 108–167). 1.46M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned.**
+**55 technical reports, 47 of them public (TR 108–149, 152, 163–165, 167). 1.46M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned.**
 
-**Audit path:** every TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports). Count, read, diff. No site, no slides, no PDF wall. The folder is the source of truth.
+**Audit path:** every public TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports). Count, read, diff. No site, no slides, no PDF wall. The folder is the source of truth.
 
 Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
 
@@ -123,10 +123,10 @@ Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottle
 
 ## Recent Shipped Work
 
-### Attunica, LLC · Co-Founder & Head of Engineering
+### [Attunica](https://attunica.ai), LLC · Co-Founder & Head of Engineering
 *Oct 2025 – Present · New York, USA*
 
-Clinical AI platform for psychotherapy training: social-work students run sessions with voice-and-avatar AI clients, and instructors assess them. NYU Silver MSW pilot; HIPAA BAAs executed across Anthropic and AWS. I architected and solo-built the platform core and lead a PM and two engineers.
+Clinical AI platform for psychotherapy training: social-work students run sessions with voice-and-avatar AI clients, and instructors assess them. Live in 2 pilots: the NYU Silver MSW program and a 120-therapist clinic; HIPAA BAAs executed across Anthropic and AWS. I architected and solo-built the platform core and lead a PM and two engineers.
 
 <p align="center">
   <img src="./attunica-demo.gif" alt="Attunica walkthrough: a Student signs in, chooses recording consent, practices live with an AI client avatar and receives rubric-scored formative feedback; an Instructor reviews Modules" width="100%" />
@@ -147,6 +147,7 @@ Clinical AI platform for psychotherapy training: social-work students run sessio
 
 Built a **security awareness training platform in 90 days** as a founding engineer. Multi-channel delivery across web, Slack, Teams, SMS/RCS, WhatsApp, Telegram, voice, and email.
 
+- Shipped to **5 enterprise pilots**; caching and summarization cut **LLM costs 30–80%** across all agents
 - Phishing email generation pipeline on **self-hosted 70B LLMs** with **domain-specific LoRA/QLoRA adapters** trained with **DeepSpeed** on a 1M+ email corpus
 - Reduced **deepfake phishing simulation** latency from **40s to 100–450ms** (80–400x improvement) via a multi-agent WebRTC pipeline (video render agent + voice agent); range reflects per-call workload depth
 - Input guardrails across all APIs and agents with adversarial attempt logging
@@ -158,12 +159,13 @@ Built a **security awareness training platform in 90 days** as a founding engine
 
 | Project | Description |
 |:--------|:------------|
-| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | Capacity-planning CLI and MCP server (details above). 28K+ downloads. |
-| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec, with a GPU-aware preflight that refuses before a 30GB download. **QSR spec v0** release gate: Wilson-bounded verdicts that print their resolution floor instead of a bare zero, with JUnit output for CI. Apache-2.0, 13K+ downloads. |
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | Capacity-planning CLI and MCP server (details above). 31K+ downloads. |
+| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec, with a GPU-aware preflight that refuses before a 30GB download. **QSR spec v0** release gate: Wilson-bounded verdicts that print their resolution floor instead of a bare zero, with JUnit output for CI. Apache-2.0, 14K+ downloads. |
 | [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 23 models: 11 AWQ/GPTQ 4-bit checkpoints, **6 FP8-Dynamic releases** (tagged TR171), 4 GPT-2 scaling-law runs, a [pre-registered Dr.GRPO LoRA on MedMCQA](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora), and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (**97.73%** accuracy on XSTest, ~45pp above a lexicon baseline). |
 | [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | HF Space that turns the RTSI research into a certificate: refusal screen, ModernBERT cross-check, Qwen3Guard + Granite Guardian judges, constitutional debate for contested cases, and **Ed25519-signed certificates**. LOOCV ROC AUC **0.8445**; routing the riskiest **20%** of configs recovers **76.17%** of refusal-rate gaps. |
 | [**vLLM PR #45207**](https://github.com/vllm-project/vllm/pull/45207) | **Merged** ([`55da232`](https://github.com/vllm-project/vllm/commit/55da232db6963613d34229dfd257236e6f3c8097), approved by benchislett): fixed a KV-cache page-size unification crash on **hybrid Mamba/attention models** by padding the Mamba page via `page_size_padded`. Regression test added. Fixes [#43626](https://github.com/vllm-project/vllm/issues/43626). |
 | [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Landed** in PyTorch Inductor ([`be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), approved by jansel): hardened cudagraph_trees deallocation against diagnostic-metadata divergence. Also validated jansel's follow-up fix [#184102](https://github.com/pytorch/pytorch/pull/184102) across torch 2.10 and 2.12 nightly ([gist](https://gist.github.com/Sahil170595/062d40cb18e2b2e27e99c1efbfa3ccdb)). |
+| [**PyTorch PR #190555**](https://github.com/pytorch/pytorch/pull/190555) | **Landed** in PyTorch Inductor ([`0b96f88`](https://github.com/pytorch/pytorch/commit/0b96f8816c9211cee58cefece07e49ad59fd3658), approved by jansel): split cross-device extern kernels out of CUDA-graph partitions, which were capturing CPU storage and failing memory-pool checks; same-device kernels stay graph-eligible, with regressions for custom ops, multi-output ops, `index_put`, and SDPA dropout. |
 | [**Ollama PR #16669**](https://github.com/ollama/ollama/pull/16669) | **Merged** (approved by dhiltgen): root-caused two Vulkan enumeration bugs that inverted iGPU/dGPU classification on Windows hybrid graphics; **~9× faster inference** (3.8s to 0.8s), confirmed on a second machine. Fixes [#16667](https://github.com/ollama/ollama/issues/16667). |
 | [**Triton PR #10819**](https://github.com/triton-lang/triton/pull/10819) | **Merged** (`b92dc43`, approved by peterbell10): fixed a `tl.flip` compile-time crash on the documented default `dim=None`, with test coverage. Fixes [#10790](https://github.com/triton-lang/triton/issues/10790). |
 
@@ -212,7 +214,11 @@ Built a **security awareness training platform in 90 days** as a founding engine
 *Preprint*
 [![arXiv](https://img.shields.io/badge/arXiv-2606.25097-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2606.25097)
 
-*5 more under double-blind review; titles withheld until decisions.*
+*3 more under double-blind review; titles withheld until decisions.*
+
+### Reviewing
+
+NeurIPS 2026 workshops: RTCA program committee (5 reviews), JUDGe (3), FLMSec (2). Ethics reviewer for the NeurIPS 2026 main track and the Evaluations & Datasets track.
 
 ---
 
