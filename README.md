@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk, Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026) + 3 under peer review**, five merged fixes in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **46K+ downloads**.
+I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026) + 1 under peer review**, five merged fixes in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **46K+ downloads**.
 
 ---
 
@@ -169,7 +169,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 *Preprint*
 [![arXiv](https://img.shields.io/badge/arXiv-2606.25097-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2606.25097)
 
-*3 more under double-blind review; titles withheld until decisions.*
+*1 more under double-blind review; title withheld until the decision.*
 
 ### Reviewing
 
