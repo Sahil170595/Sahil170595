@@ -11,18 +11,6 @@ I build and harden AI systems where failure is expensive. I'm Co-Founder and Hea
 
 ---
 
-## What I Build
-
-Full-stack: CUDA kernels and Triton compilation up through multi-agent runtimes, alignment architectures, and production platforms. Three pillars:
-
-1. **Inference optimization:** vLLM, TGI, Ollama, TensorRT, torch.compile, FlashAttention, quantization sweeps, Nsight Systems kernel profiling. I don't guess where the bottleneck is. I trace it.
-
-2. **Constitutional AI:** debate engines, alignment runtimes in Rust with zero-knowledge proofs, embedding-based routers, RLAIF loops that generate their own training data. AI that governs itself.
-
-3. **Empirical safety research:** what actually happens to safety when you quantize, batch, swap backends, scale concurrency, or change KV-cache precision, tested with TOST equivalence, effect sizes, and Holm-Bonferroni correction. RTSI-gated routing recovers 76% of the quantization refusal gap.
-
----
-
 ## ICML 2026 Agent Reproducibility Challenge (sister repo)
 
 **[icml2026-paper-reproductions](https://github.com/Sahil170595/icml2026-paper-reproductions)** · Final: **rank #26 of 1,221 participants (top 2.1%)** · **48 papers** · 249 official claims judged: **118 verified, 3 published claims falsified** · 297 pts · verdicts frozen 2026-08-02.
@@ -35,25 +23,20 @@ Independent, from-scratch reproductions of ICML 2026 submissions, produced by an
 
 **Founder & Lead ML Architect · Sep 2025 – Present · New York, USA**
 
-**Adaptive constitutional engine. Rust alignment runtime. One obsession: make AI systems that are fast, safe, and honest.**
-
 <p align="center">
   <a href="https://chimeraforge.vercel.app"><img src="./assets/chimeraforge-landing.gif" alt="Chimeraforge landing page: a live 3D map of the Chimera ecosystem, with the constitutional core as a black hole and the nine systems in orbit" width="100%" /></a>
 </p>
 
 | Component | What it does |
 |:----------|:-------------|
-| **Banterpacks** (core) | Multi-model constitutional debate with heat-based escalation and 3 consensus algorithms; an embedding fast-path router that resolves 99% of queries in under 10ms; a 7-crate Rust alignment runtime (BFT consensus, Ed25519 provenance, Pedersen-commitment ZK proofs on Ristretto255, CRDT sync); an RLAIF loop that turns debate outcomes into DPO pairs. |
-| **JARVIS Gateway** | Chat, voice (Whisper STT, TTS), PostgreSQL/pgvector graph memory, human-in-the-loop tool approval, WebSocket streaming, and durable workflows. |
+| **Banterpacks** (core) | Multi-model constitutional debate with heat-based escalation and 3 consensus algorithms; a calibrated fast-path router with debate fallback, canaries, and rollback (its original one-class safe-centroid design failed across 3 corpora and 4 encoders, AUC 0.358–0.545, traced to topic confounding, and was replaced by a supervised safe-minus-unsafe direction); a 7-crate Rust alignment runtime (BFT consensus, Ed25519 provenance, Pedersen-commitment ZK proofs on Ristretto255, CRDT sync); an RLAIF loop that turns debate outcomes into DPO pairs. |
 | **Banterhearts** (research substrate) | The measurement and paper engine: multi-backend evaluation and serving harnesses (Transformers, Ollama, ONNX, vLLM, SGLang, TGI), per-sample JSONL provenance, pre-registered runs held to frozen gates, disagreement-aware judge triangulation, fail-closed analyzers, and frozen-byte paper packages with anonymous reviewer artifacts. |
+| **JARVIS** ([Console](https://github.com/Sahil170595/jarvis-console)) | Gateway with chat, voice (Whisper STT, TTS), PostgreSQL/pgvector graph memory, human-in-the-loop tool approval, WebSocket streaming, and durable workflows; Next.js 15 + React 19 operator console with live agent state. |
 | [**Chimeraforge**](https://github.com/Sahil170595/Chimeraforge) | Capacity-planning CLI and MCP server that ships the research as deployment decisions (below). |
-| [**Chimeradroid**](https://github.com/Sahil170595/Chimeradroid) | Unity/C# JARVIS client for Android and Android XR that talks straight to a local laptop GPU, no cloud. |
-| [**Echo**](https://github.com/Sahil170595/Echo) | 5 channel adapters (Slack, Discord, Telegram, WhatsApp, email) as thin relays into JARVIS. |
-| [**JARVIS Console**](https://github.com/Sahil170595/jarvis-console) | Next.js 15 + React 19 operator UI: chat, tool approvals, session telemetry, live agent state. |
-| [**ProjectWyvern**](https://github.com/Sahil170595/ProjectWyvern) | Constitutional aerial autonomy between Chimera policy and PX4/ArduPilot: mission validation, command arbitration, replayable mission archives. AI assists planning; it never bypasses deterministic safety. |
-| [**Banterblogs**](https://github.com/Sahil170595/Banterblogs) | Write-ups from the research program. |
 
-Banterpacks, Banterhearts, and Muse Protocol are private during the publication window; read access on request via [Reach Me](#reach-me).
+Also: [Chimeradroid](https://github.com/Sahil170595/Chimeradroid) (Unity/C# JARVIS client for Android and Android XR), [Echo](https://github.com/Sahil170595/Echo) (Slack, Discord, Telegram, WhatsApp, and email relays), [ProjectWyvern](https://github.com/Sahil170595/ProjectWyvern) (constitutional drone-autonomy layer over PX4/ArduPilot, in simulation), and [Banterblogs](https://github.com/Sahil170595/Banterblogs) (write-ups).
+
+Banterpacks, Banterhearts, and Muse Protocol are private during the publication window; read access on request via [LinkedIn](https://www.linkedin.com/in/sahilkadadekar).
 
 ---
 
@@ -64,8 +47,6 @@ Banterpacks, Banterhearts, and Muse Protocol are private during the publication 
 - Plans model × quantization × backend × GPU/TP/PP deployments, including heterogeneous fleets, against VRAM, TTFT/TPOT, throughput, KV-cache and CPU offload, prefix caching, multi-LoRA, cost, and energy; emits vLLM, TGI, SGLang, and Ollama launch commands
 - Every number carries a provenance label (measured, extrapolated, derived, estimated, or unknown), and `validate` audits predictions against measurements
 - 13-command CLI, Python API, and MCP server on the official MCP Registry; 31K+ downloads
-
-> *Research that stays in a PDF is a hobby. Research that ships as a CLI is engineering.*
 
 ---
 
@@ -91,33 +72,21 @@ Key finding: **backend matters more than numerical precision for safety.** A 23p
 
 **First mitigation (TR163):** RTSI-gated routing recovers **~76%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing. LOOCV ROC-AUC **0.84**, validated across LOOCV passes during the [QuantSafe Certifier](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) buildout; the companion [arXiv preprint](https://arxiv.org/abs/2606.10154) routes 10/10 hidden-danger configs, Wilson 95% CI lower bound 0.72.
 
-### Inference Systems & GPU Kernel Profiling | ~35,000 measurements
+### Post-Training
 
-Proved via **Nsight Systems** kernel tracing that the multi-agent scaling bottleneck is **GPU memory bandwidth physics**, not serving software. Continuous batching (vLLM/TGI) amortizes this:
+Objectives matched to evidence shape: paired debate preferences → DPO/ORPO, unpaired constitutional verdicts → KTO, verifiable rewards → Dr.GRPO/RLOO/REINFORCE++, all behind shared eval and promotion gates. In a [pre-registered Dr.GRPO RLVR run](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora) (Qwen2.5-1.5B, MedMCQA), a null result turned out to be an environment failure: **76% of rollout groups had zero reward variance**. Changing only the prompt gained **+8.8pp held-out pass@1** (p=0.0003), with late rollout collapse reported alongside.
 
-| Metric | Improvement |
-|--------|-------------|
-| Kernel count reduction | **80%** |
-| Memory bandwidth reduction | **79–83%** |
-| Throughput at N=8 | **2.25x** |
+### Inference Systems & Scaling | ~68,000 measurements
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/c1c378d1-089f-4941-a8df-edea5f620608" width="600" alt="Nsight Compute profiling of the Chimera engine on an RTX 4080" />
-</p>
-
-<sup>*Nsight Compute trace from the kernel-profiling pass that produced the measurements above.*</sup>
-
-### Scaling Laws & Capacity Planning | ~33,000 measurements
-
-- Multi-agent scaling follows **Amdahl's Law** (R² > 0.97), throughput plateaus at N=2
-- **Q4_K_M** is the universal quantization sweet spot (30–67% cost savings)
-- **VRAM spillover** causes 25–105x latency cliffs, the real context-length bottleneck, not quadratic attention
+- Nsight Systems tracing showed the multi-agent scaling limit is **GPU memory bandwidth**, not serving software; continuous batching (vLLM/TGI) cut kernel count **80%** and memory traffic **79–83%**, for **2.25x** throughput at N=8
+- Multi-agent scaling follows **Amdahl's Law** (R² > 0.97), with throughput plateauing at N=2; **VRAM spillover** causes 25–105x latency cliffs, the real context-length bottleneck
+- **Q4_K_M** was the best cost/quality trade-off across the tested models (30–67% cost savings)
 
 ### Hypotheses Overturned
 
 1. **M/D/1 queueing theory:** deviates 20.4x from observed behavior (TR 128)
 2. **NUM_PARALLEL enables concurrent GPU inference:** confirmed no-op, 0/30 tests significant (TR 128)
-3. **Serving stack is the scaling bottleneck:** GPU memory bandwidth physics dominates; PyTorch Direct degrades worse than Ollama (TR 131)
+3. **Serving stack is the scaling bottleneck:** GPU memory bandwidth dominates; PyTorch Direct degrades worse than Ollama (TR 131)
 
 ---
 
@@ -137,7 +106,7 @@ Clinical AI platform for psychotherapy training: social-work students run sessio
 - **First-customer release live on AWS** (Sep 2026): backend, frontend, LiveKit agent, and evaluation services on ECS, with Aurora PostgreSQL 18 and Bedrock; the deployed evaluator was accepted only after an audited Bedrock canary
 - Real-time sessions on **LiveKit + Gemini Live + Anam** avatars, with Deepgram producing the canonical transcript and recorded sessions under revocable consent
 - **Five-criterion formative evaluation** that separates "no evidence" from "scored zero", plus an **instructor human-assessment lifecycle** (immutable submit, receipted release) with the rubric blocked from automation
-- **Consent-gated research layer:** optional, granular, versioned consent with immutable decision evidence and revocation; collection stays off until activated
+- **Judge-validity benchmark** (40 fixtures, held-out scenarios, bias probes) for three-sample median judging: debiasing moved leniency from **+0.81** to within **0.13** anchors of zero (held-out weighted kappa **0.66** vs **0.05** null; model-written key), and showed that sample disagreement alone misses large errors
 - Instructor authoring with PDF/DOCX source ingestion: hash-bound uploads, macro and external-link rejection, source text treated as untrusted input
 - Every change passes an exact-base validator with append-only admission, so a PR cannot weaken the checks that approve it
 - **Article 31 documentation product** for clinicians (v0.5.1 on ECS): release-gated deploys, on-device Whisper dictation, browser-only PDF extraction, psychotherapy-note authorship enforced end to end
@@ -150,8 +119,6 @@ Built a **security awareness training platform in 90 days** as a founding engine
 - Shipped to **5 enterprise pilots**; caching and summarization cut **LLM costs 30–80%** across all agents
 - Phishing email generation pipeline on **self-hosted 70B LLMs** with **domain-specific LoRA/QLoRA adapters** trained with **DeepSpeed** on a 1M+ email corpus
 - Reduced **deepfake phishing simulation** latency from **40s to 100–450ms** (80–400x improvement) via a multi-agent WebRTC pipeline (video render agent + voice agent); range reflects per-call workload depth
-- Input guardrails across all APIs and agents with adversarial attempt logging
-- **5 specialized PR-review agents** distilled from ~2,500 comments across ~1,000 PRs
 
 ---
 
@@ -160,9 +127,9 @@ Built a **security awareness training platform in 90 days** as a founding engine
 | Project | Description |
 |:--------|:------------|
 | [**chimeraforge**](https://pypi.org/project/chimeraforge/) | Capacity-planning CLI and MCP server (details above). 31K+ downloads. |
-| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec, with a GPU-aware preflight that refuses before a 30GB download. **QSR spec v0** release gate: Wilson-bounded verdicts that print their resolution floor instead of a bare zero, with JUnit output for CI. Apache-2.0, 14K+ downloads. |
-| [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 23 models: 11 AWQ/GPTQ 4-bit checkpoints, **6 FP8-Dynamic releases** (tagged TR171), 4 GPT-2 scaling-law runs, a [pre-registered Dr.GRPO LoRA on MedMCQA](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora), and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (**97.73%** accuracy on XSTest, ~45pp above a lexicon baseline). |
-| [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | HF Space that turns the RTSI research into a certificate: refusal screen, ModernBERT cross-check, Qwen3Guard + Granite Guardian judges, constitutional debate for contested cases, and **Ed25519-signed certificates**. LOOCV ROC AUC **0.8445**; routing the riskiest **20%** of configs recovers **76.17%** of refusal-rate gaps. |
+| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec; the **QSR spec v0** release gate gives Wilson-bounded verdicts with JUnit output for CI. Apache-2.0, 14K+ downloads. |
+| [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 23 models: 11 AWQ/GPTQ 4-bit checkpoints, 6 FP8-Dynamic releases, 4 GPT-2 scaling-law runs, a [pre-registered Dr.GRPO LoRA on MedMCQA](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora), and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (**97.73%** accuracy on XSTest). |
+| [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | HF Space that turns the RTSI research into an **Ed25519-signed certificate**: refusal screen, ModernBERT cross-check, Qwen3Guard + Granite Guardian judges, and constitutional debate for contested cases. |
 | [**vLLM PR #45207**](https://github.com/vllm-project/vllm/pull/45207) | **Merged** ([`55da232`](https://github.com/vllm-project/vllm/commit/55da232db6963613d34229dfd257236e6f3c8097), approved by benchislett): fixed a KV-cache page-size unification crash on **hybrid Mamba/attention models** by padding the Mamba page via `page_size_padded`. Regression test added. Fixes [#43626](https://github.com/vllm-project/vllm/issues/43626). |
 | [**PyTorch PR #175562**](https://github.com/pytorch/pytorch/pull/175562) | **Landed** in PyTorch Inductor ([`be90a14`](https://github.com/pytorch/pytorch/commit/be90a14953105767e3029b49cf58fec97105a2cf), approved by jansel): hardened cudagraph_trees deallocation against diagnostic-metadata divergence. Also validated jansel's follow-up fix [#184102](https://github.com/pytorch/pytorch/pull/184102) across torch 2.10 and 2.12 nightly ([gist](https://gist.github.com/Sahil170595/062d40cb18e2b2e27e99c1efbfa3ccdb)). |
 | [**PyTorch PR #190555**](https://github.com/pytorch/pytorch/pull/190555) | **Landed** in PyTorch Inductor ([`0b96f88`](https://github.com/pytorch/pytorch/commit/0b96f8816c9211cee58cefece07e49ad59fd3658), approved by jansel): split cross-device extern kernels out of CUDA-graph partitions, which were capturing CPU storage and failing memory-pool checks; same-device kernels stay graph-eligible, with regressions for custom ops, multi-output ops, `index_put`, and SDPA dropout. |
@@ -175,26 +142,11 @@ Built a **security awareness training platform in 90 days** as a founding engine
 
 **Languages:** Python, TypeScript, Rust, C#, SQL, C++
 
-**ML/AI:** PyTorch, TensorFlow/Keras, Transformers, DeepSpeed, Accelerate, Ray, RAG, LangGraph, LangSmith, MCP
+**ML & inference:** PyTorch, Transformers, DeepSpeed, vLLM, SGLang, TGI, TensorRT-LLM, llama.cpp, CUDA, Triton, FlashAttention, torch.compile, Nsight
 
-**Web Frameworks:** FastAPI, Next.js, React
+**Post-training & evals:** LoRA/QLoRA, DPO/ORPO/KTO, GRPO-family RL, RLAIF, PRM/ORM routing, TOST, bootstrap CIs
 
-**Inference & Serving:** vLLM, SGLang, TGI, TensorRT-LLM, llama.cpp (GGUF), continuous batching, KV-cache optimization, speculative decoding
-
-**GPU & Compilation:** CUDA, Triton, TensorRT, FlashAttention, ONNX Runtime, torch.compile, Nsight Systems / Nsight Compute, quantization (GPTQ, AWQ, INT4/INT8)
-
-**Post-Training:** LoRA/QLoRA, RLHF, RLAIF, DPO/ORPO/KTO, GRPO-family RL, policy optimization, PRM/ORM routing, WARM judges
-
-**Data & Analysis:** PostgreSQL, DynamoDB, Redis, ClickHouse, Qdrant, SciPy, SHAP
-
-**Cloud & Deployment:** AWS (ECS, Bedrock, Aurora), Azure, Docker, Kubernetes, Vercel
-
-**Monitoring:** Prometheus, Grafana, Datadog, OpenTelemetry, pynvml, MLflow, W&B
-
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-stable-DEA584?style=flat&logo=rust&logoColor=white)
-![CUDA](https://img.shields.io/badge/CUDA-12.x-76B900?style=flat&logo=nvidia&logoColor=white)
-![PyPI](https://img.shields.io/badge/PyPI-chimeraforge-3775A9?style=flat&logo=pypi&logoColor=white)
+**Product & infra:** FastAPI, Next.js, React, PostgreSQL, Redis, ClickHouse, AWS (ECS, Bedrock, Aurora), Terraform, Docker, Kubernetes, LiveKit, OpenTelemetry
 
 ---
 
@@ -205,6 +157,9 @@ Built a **security awareness training platform in 90 days** as a founding engine
 **A Paired Testing Protocol for Batch-Conditioned Refusal Robustness in LLM Serving**
 *Accepted, ICML 2026 Workshop on Hypothesis Testing*
 [![arXiv](https://img.shields.io/badge/arXiv-2605.27763-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2605.27763)
+
+**A Safe Prototype Is Not a Safety Direction: Reference Dependence and Prompt Confounds in Response-Safety Embeddings**
+*Accepted, NeurIPS 2026 Workshop on Foundations of Language Model Security (FLMSec)*
 
 **Quality Is Not a Safety Proxy Under Quantization: The Refusal Template Stability Index**
 *Preprint*
@@ -224,16 +179,7 @@ NeurIPS 2026 workshops: RTCA program committee (5 reviews), JUDGe (3), FLMSec (2
 
 ## Earlier Research (2022–2023)
 
-**Medical AI Imaging: Multi-Phase Clinical Pipeline**
-Led a 4-person engineering + clinical team (3 engineers, 1 physician) across a 5-institution program (state government, city university, dental hospital, 2 engineering colleges) building TensorFlow/Keras pipelines over clinical imaging: dental (POC) → retinal (Phase 2) → EEG (Phase 4+). Stack: LSTM + attention multi-classification, W&B experiment tracking, SHAP interpretability, pinned-memory CPU↔GPU transfer optimization.
-
-Registered work: **Copyright L-122721/2023**.
-
----
-
-## Reach Me
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/sahilkadadekar) [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/Sahil170595) [![YouTube](https://img.shields.io/badge/YouTube-Demo-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/IPbwLB_sZ9I)
+Led a 3-engineer, 1-physician team across a 5-institution clinical imaging program: TensorFlow/Keras pipelines over dental, retinal, and EEG data with SHAP interpretability. Registered work: **Copyright L-122721/2023**.
 
 ---
 
