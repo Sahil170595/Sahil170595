@@ -1,13 +1,31 @@
 # Sahil Kadadekar
 
-**Machine Learning Engineer | Constitutional AI | Inference Systems | Empirical Safety Research**
+**Machine Learning Engineer | LLM Inference | Post-Training & RL Environments | Evals & Safety Research**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/sahilkadadekar) [![PyPI](https://img.shields.io/badge/PyPI-chimeraforge-3775A9?style=flat&logo=pypi)](https://pypi.org/project/chimeraforge/) [![YouTube](https://img.shields.io/badge/YouTube-Demo-FF0000?style=flat&logo=youtube)](https://youtu.be/IPbwLB_sZ9I)
+[![Portfolio](https://img.shields.io/badge/Portfolio-11_live_demos-111111?style=flat)](https://chimeraforge.vercel.app/projects) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/sahilkadadekar) [![PyPI](https://img.shields.io/badge/PyPI-chimeraforge-3775A9?style=flat&logo=pypi)](https://pypi.org/project/chimeraforge/) [![YouTube](https://img.shields.io/badge/YouTube-Demo-FF0000?style=flat&logo=youtube)](https://youtu.be/IPbwLB_sZ9I)
 
 **Featured:** [Latent Space AI in Action Talk, Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, first-customer release live on AWS) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026) + 1 under peer review**, five merged fixes in **vLLM, PyTorch, Ollama, and Triton**, and two PyPI tools with **46K+ downloads**.
+I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, live on AWS in 2 pilots) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026) + 1 under peer review**, five merged fixes in **vLLM, PyTorch, Ollama, and Triton**, two PyPI tools with **53K+ downloads**, and **4 public RL environments** with interactive demos.
+
+---
+
+## Portfolio: Systems Running Live
+
+**[chimeraforge.vercel.app/projects](https://chimeraforge.vercel.app/projects)** · 11 systems I built, each rebuilt in the browser on synthetic data so you can run it yourself. Source repos are public.
+
+| RL environment | What it is | What the demo shows |
+|:---------------|:-----------|:--------------------|
+| [**Turncraft**](https://github.com/Sahil170595/turncraft-env) · [demo](https://chimeraforge.vercel.app/projects/reinforcement-learning/customer-service) | Customer-service agent environment: 9 identity-bound tools that change order records, rewarded for what the records end up saying, not what the agent said | 34 scripted controls gate 8 cases: successful runs score **0.978–1.000**, do-nothing **≤ 0.177**, forbidden **≤ −0.380**. Refunding the duplicate charge scores 1.00; refunding the real one scores −0.40 |
+| [**Patchglass**](https://github.com/Sahil170595/patchglass) · [demo](https://chimeraforge.vercel.app/projects/reinforcement-learning/code-verification) | Containerized code-repair environment: reward comes from running every test on the buggy and the patched code, with hidden tests restored | Four candidate fixes: a two-test smoke suite passes **three**, the full six-test suite passes **one** |
+| [**Gatebound**](https://github.com/Sahil170595/gatebound-rl) · [demo](https://chimeraforge.vercel.app/projects/reinforcement-learning/flight-routing) | Gymnasium flight-routing environment with masked REINFORCE and deadline-aware planning under delays and cancellations | Tight deadline: planning ahead gets **40 of 64** simulated trips to JFK on time where booking the earliest nonstop gets **0**, but 8 fewer arrive at all |
+| [**Counterledger**](https://github.com/Sahil170595/counterledger-ope) · [demo](https://chimeraforge.vercel.app/projects/reinforcement-learning/offline-policy-evaluation) | Offline policy evaluation: fitted Q, sequential doubly robust, paired bootstrap, support gates | A new policy looks **0.27** better on logged decisions; a control that ignores the situation gets **65%** of that, and a changed reward erases it |
+
+**Also live:**
+- **Agents & evaluation:** [spreadsheet reasoning inspector](https://chimeraforge.vercel.app/projects/agents-and-evaluation/spreadsheet-reasoning) · [browser-agent completion gate](https://chimeraforge.vercel.app/projects/agents-and-evaluation/browser-agent-completion) · [intake triage scorer](https://chimeraforge.vercel.app/projects/agents-and-evaluation/intake-triage)
+- **Systems:** [staged document search](https://chimeraforge.vercel.app/projects/systems/staged-search) · [send pacing scheduler](https://chimeraforge.vercel.app/projects/systems/send-pacing) · [drone mission governance](https://chimeraforge.vercel.app/projects/systems/mission-governance)
+- **Product:** [collaborative whiteboard](https://chimeraforge.vercel.app/projects/product/collaborative-whiteboard)
 
 ---
 
@@ -32,7 +50,7 @@ Independent, from-scratch reproductions of ICML 2026 submissions, produced by an
 | **Banterpacks** (core) | Multi-model constitutional debate with heat-based escalation and 3 consensus algorithms; a calibrated fast-path router with debate fallback, canaries, and rollback (its original one-class safe-centroid design failed across 3 corpora and 4 encoders, AUC 0.358–0.545, traced to topic confounding, and was replaced by a supervised safe-minus-unsafe direction); a 7-crate Rust alignment runtime (BFT consensus, Ed25519 provenance, Pedersen-commitment ZK proofs on Ristretto255, CRDT sync); an RLAIF loop that turns debate outcomes into DPO pairs. |
 | **Banterhearts** (research substrate) | The measurement and paper engine: multi-backend evaluation and serving harnesses (Transformers, Ollama, ONNX, vLLM, SGLang, TGI), per-sample JSONL provenance, pre-registered runs held to frozen gates, disagreement-aware judge triangulation, fail-closed analyzers, and frozen-byte paper packages with anonymous reviewer artifacts. |
 | **JARVIS** ([Console](https://github.com/Sahil170595/jarvis-console)) | Gateway with chat, voice (Whisper STT, TTS), PostgreSQL/pgvector graph memory, human-in-the-loop tool approval, WebSocket streaming, and durable workflows; Next.js 15 + React 19 operator console with live agent state. |
-| [**Chimeraforge**](https://github.com/Sahil170595/Chimeraforge) | Capacity-planning CLI and MCP server that ships the research as deployment decisions (below). |
+| [**Chimeraforge**](https://github.com/Sahil170595/Chimeraforge) | Capacity-planning CLI and MCP server that ships the research as deployment decisions ([Open Source](#open-source)). |
 
 Also: [Chimeradroid](https://github.com/Sahil170595/Chimeradroid) (Unity/C# JARVIS client for Android and Android XR), [Echo](https://github.com/Sahil170595/Echo) (Slack, Discord, Telegram, WhatsApp, and email relays), [ProjectWyvern](https://github.com/Sahil170595/ProjectWyvern) (constitutional drone-autonomy layer over PX4/ArduPilot, in simulation), and [Banterblogs](https://github.com/Sahil170595/Banterblogs) (write-ups).
 
@@ -40,53 +58,14 @@ Banterpacks, Banterhearts, and Muse Protocol are private during the publication 
 
 ---
 
-## Chimeraforge: Capacity Planning CLI
-
-**The tool that ships the research.** `pip install chimeraforge` · [PyPI](https://pypi.org/project/chimeraforge/) · [changelog](https://github.com/Sahil170595/Chimeraforge/blob/main/CHANGELOG.md)
-
-- Plans model × quantization × backend × GPU/TP/PP deployments, including heterogeneous fleets, against VRAM, TTFT/TPOT, throughput, KV-cache and CPU offload, prefix caching, multi-LoRA, cost, and energy; emits vLLM, TGI, SGLang, and Ollama launch commands
-- Every number carries a provenance label (measured, extrapolated, derived, estimated, or unknown), and `validate` audits predictions against measurements
-- 13-command CLI, Python API, and MCP server on the official MCP Registry; 31K+ downloads
-
----
-
 ## Research Program
 
-**55 technical reports, 47 of them public (TR 108–149, 152, 163–165, 167). 1.46M+ decision-grade measurements (curated from ~10⁹ profiler samples). 3 hypotheses overturned.**
+**55 technical reports (47 public: TR 108–149, 152, 163–165, 167) · 1.46M+ decision-grade measurements, curated from ~10⁹ profiler samples · 3 of my own pre-registered hypotheses overturned.** Every public TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports): count, read, diff. Pre-registered paired designs, bootstrap CIs, TOST equivalence, Cohen's d, Holm-Bonferroni.
 
-**Audit path:** every public TR is a markdown file in [`/reports/`](https://github.com/Sahil170595/Sahil170595/tree/main/reports). Count, read, diff. No site, no slides, no PDF wall. The folder is the source of truth.
-
-Decision-grade statistical validation: TOST equivalence testing, Cohen's d effect sizes, Holm-Bonferroni correction, bootstrap confidence intervals.
-
-### AI Safety & Alignment | 74,254 samples
-
-Quantified the **safety tax of inference optimization** across 4 model families:
-
-| Factor | Share of Safety Cost |
-|--------|---------------------|
-| Quantization | **57%** |
-| Backend | **41%** |
-| Concurrency | **2%** (null result, TOST-confirmed) |
-
-Key finding: **backend matters more than numerical precision for safety.** A 23pp safety drop traced to chat template divergence, not FP16 vs Q4 arithmetic.
-
-**First mitigation (TR163):** RTSI-gated routing recovers **~76%** of the weight-quantization refusal gap by routing the riskiest **20%** of configs to direct safety testing. LOOCV ROC-AUC **0.84**, validated across LOOCV passes during the [QuantSafe Certifier](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) buildout; the companion [arXiv preprint](https://arxiv.org/abs/2606.10154) routes 10/10 hidden-danger configs, Wilson 95% CI lower bound 0.72.
-
-### Post-Training
-
-Objectives matched to evidence shape: paired debate preferences → DPO/ORPO, unpaired constitutional verdicts → KTO, verifiable rewards → Dr.GRPO/RLOO/REINFORCE++, all behind shared eval and promotion gates. In a [pre-registered Dr.GRPO RLVR run](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora) (Qwen2.5-1.5B, MedMCQA), a null result turned out to be an environment failure: **76% of rollout groups had zero reward variance**. Changing only the prompt gained **+8.8pp held-out pass@1** (p=0.0003), with late rollout collapse reported alongside.
-
-### Inference Systems & Scaling | ~68,000 measurements
-
-- Nsight Systems tracing showed the multi-agent scaling limit is **GPU memory bandwidth**, not serving software; continuous batching (vLLM/TGI) cut kernel count **80%** and memory traffic **79–83%**, for **2.25x** throughput at N=8
-- Multi-agent scaling follows **Amdahl's Law** (R² > 0.97), with throughput plateauing at N=2; **VRAM spillover** causes 25–105x latency cliffs, the real context-length bottleneck
-- **Q4_K_M** was the best cost/quality trade-off across the tested models (30–67% cost savings)
-
-### Hypotheses Overturned
-
-1. **M/D/1 queueing theory:** deviates 20.4x from observed behavior (TR 128)
-2. **NUM_PARALLEL enables concurrent GPU inference:** confirmed no-op, 0/30 tests significant (TR 128)
-3. **Serving stack is the scaling bottleneck:** GPU memory bandwidth dominates; PyTorch Direct degrades worse than Ollama (TR 131)
+- **Safety tax of inference optimization:** normalized over two common anchor models, quantization accounts for **57%** of the safety-score cost, backend **41%**, concurrency **2%** (TOST null). Across 18 models / 10+ families, alignment type showed no detectable association (p=0.942); output instability predicted fragility best (r=0.91), and chat-template divergence sometimes exceeded precision effects.
+- **Quantization safety ([RTSI preprint](https://arxiv.org/abs/2606.10154)):** safety can degrade **13.9× faster** than quality under quantization. Offline routing across 45 configurations recovered **76%** of the refusal gap with **20%** routed to direct safety testing (leave-one-cell-out AUC **0.84**); the preprint routes 10/10 hidden-danger configs (Wilson 95% lower bound 0.72). Shipped as the [QuantSafe Certifier](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier).
+- **Post-training:** objectives matched to evidence shape (paired debate preferences → DPO/ORPO, unpaired verdicts → KTO, verifiable rewards → Dr.GRPO/RLOO/REINFORCE++) behind shared eval and promotion gates. A [pre-registered Dr.GRPO RLVR run](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora) (Qwen2.5-1.5B, MedMCQA) traced a null to **76%** zero-reward-variance rollout groups; changing only the prompt gained **+8.8pp** held-out pass@1 (p=0.0003), with late rollout collapse reported alongside.
+- **Overturned:** M/D/1 queueing missed continuous-batching latency by **20.4×**; `NUM_PARALLEL` had no detectable effect (0/30 significant); PyTorch Direct throughput degraded more than Ollama. A four-stack study isolated PyTorch Direct's N=2 dispatch breakdown, removed by TGI on the same GPU; a separate vLLM benchmark reached **2.25×** Ollama's throughput at N=8.
 
 ---
 
@@ -116,7 +95,7 @@ Clinical AI platform for psychotherapy training: social-work students run sessio
 
 Built a **security awareness training platform in 90 days** as a founding engineer. Multi-channel delivery across web, Slack, Teams, SMS/RCS, WhatsApp, Telegram, voice, and email.
 
-- Shipped to **5 enterprise pilots**; caching and summarization cut **LLM costs 30–80%** across all agents
+- Shipped to **5 enterprise pilots**; barge-in, streaming, caching, and summarization cut per-turn latency from **5–7s to 0.5–1.5s**, and caching and summarization cut **conversation LLM costs 30–80%**
 - Phishing email generation pipeline on **self-hosted 70B LLMs** with **domain-specific LoRA/QLoRA adapters** trained with **DeepSpeed** on a 1M+ email corpus
 - Reduced **deepfake phishing simulation** latency from **40s to 100–450ms** (80–400x improvement) via a multi-agent WebRTC pipeline (video render agent + voice agent); range reflects per-call workload depth
 
@@ -126,8 +105,8 @@ Built a **security awareness training platform in 90 days** as a founding engine
 
 | Project | Description |
 |:--------|:------------|
-| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | Capacity-planning CLI and MCP server (details above). 31K+ downloads. |
-| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec; the **QSR spec v0** release gate gives Wilson-bounded verdicts with JUnit output for CI. Apache-2.0, 14K+ downloads. |
+| [**chimeraforge**](https://pypi.org/project/chimeraforge/) | *The tool that ships the research.* Capacity-planning CLI, Python API, and MCP server ([MCP Registry](https://registry.modelcontextprotocol.io/v0/servers/io.github.Sahil170595%2Fchimeraforge/versions/latest)): plans model × quantization × backend × GPU/TP/PP deployments, including heterogeneous fleets, against VRAM, TTFT/TPOT, throughput, KV-cache/offload, prefix caching, multi-LoRA, cost, and energy, and emits vLLM, TGI, SGLang, and Ollama launch commands. Every number carries a provenance label (measured, extrapolated, derived, estimated, unknown); `validate` audits predictions against measurements. `pip install chimeraforge` · 35K+ downloads. |
+| [**quantfit**](https://pypi.org/project/quantfit/) | *"Quantize an LLM and check it still refuses what it should."* AWQ, GPTQ, SmoothQuant, FP8, RTN, and GGUF under one frozen calibration spec; the **QSR spec v0** release gate gives Wilson-bounded verdicts with JUnit output for CI. Apache-2.0, 18K+ downloads. |
 | [**HuggingFace model releases**](https://huggingface.co/Crusadersk) | 23 models: 11 AWQ/GPTQ 4-bit checkpoints, 6 FP8-Dynamic releases, 4 GPT-2 scaling-law runs, a [pre-registered Dr.GRPO LoRA on MedMCQA](https://huggingface.co/Crusadersk/qwen2.5-1.5b-medmcqa-drgrpo-lora), and [**quantsafe-refusal-modernbert**](https://huggingface.co/Crusadersk/quantsafe-refusal-modernbert) (**97.73%** accuracy on XSTest). |
 | [**QuantSafe Certifier**](https://huggingface.co/spaces/build-small-hackathon/quantsafe-certifier) | HF Space that turns the RTSI research into an **Ed25519-signed certificate**: refusal screen, ModernBERT cross-check, Qwen3Guard + Granite Guardian judges, and constitutional debate for contested cases. |
 | [**vLLM PR #45207**](https://github.com/vllm-project/vllm/pull/45207) | **Merged** ([`55da232`](https://github.com/vllm-project/vllm/commit/55da232db6963613d34229dfd257236e6f3c8097), approved by benchislett): fixed a KV-cache page-size unification crash on **hybrid Mamba/attention models** by padding the Mamba page via `page_size_padded`. Regression test added. Fixes [#43626](https://github.com/vllm-project/vllm/issues/43626). |
@@ -144,7 +123,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 
 **ML & inference:** PyTorch, Transformers, DeepSpeed, vLLM, SGLang, TGI, TensorRT-LLM, llama.cpp, CUDA, Triton, FlashAttention, torch.compile, Nsight
 
-**Post-training & evals:** LoRA/QLoRA, DPO/ORPO/KTO, GRPO-family RL, RLAIF, PRM/ORM routing, TOST, bootstrap CIs
+**Post-training, RL & evals:** LoRA/QLoRA, DPO/ORPO/KTO, GRPO-family RL, REINFORCE, RLAIF, Gymnasium environments, offline policy evaluation (FQE, doubly robust), PRM/ORM routing, TOST, bootstrap CIs
 
 **Product & infra:** FastAPI, Next.js, React, PostgreSQL, Redis, ClickHouse, AWS (ECS, Bedrock, Aurora), Terraform, Docker, Kubernetes, LiveKit, OpenTelemetry
 
@@ -160,6 +139,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 
 **A Safe Prototype Is Not a Safety Direction: Reference Dependence and Prompt Confounds in Response-Safety Embeddings**
 *Accepted, NeurIPS 2026 Workshop on Foundations of Language Model Security (FLMSec)*
+[![arXiv](https://img.shields.io/badge/arXiv-2610.01801-b31b1b?style=flat&logo=arxiv)](https://arxiv.org/abs/2610.01801)
 
 **Quality Is Not a Safety Proxy Under Quantization: The Refusal Template Stability Index**
 *Preprint*
