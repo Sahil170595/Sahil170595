@@ -95,7 +95,7 @@ Clinical AI platform for psychotherapy training: social-work students run sessio
 
 Built a **security awareness training platform in 90 days** as a founding engineer. Multi-channel delivery across web, Slack, Teams, SMS/RCS, WhatsApp, Telegram, voice, and email.
 
-- Shipped to **8 pilots** (5 enterprise, including a top-10 global asset manager and a Fortune-100 cloud platform); barge-in, streaming, caching, and summarization cut per-turn latency from **5–7s to 0.5–1.5s**, and caching and summarization cut **conversation LLM costs 30–80%**
+- Shipped to **8 pilots** (5 enterprise, including a top-10 global asset manager and a Fortune-100 cloud platform); barge-in, streaming, caching, and summarization cut per-turn latency from **5–7s to 0.5–1.5s**, and shared caching and summarization libraries cut **LLM costs 30–80%** across all agents
 - Phishing email generation pipeline on **self-hosted 70B LLMs** with **domain-specific LoRA/QLoRA adapters** trained with **DeepSpeed** on a 1M+ email corpus
 - Reduced **deepfake phishing simulation** latency from **40s to 100–450ms** (80–400x improvement) via a multi-agent WebRTC pipeline (video render agent + voice agent); range reflects per-call workload depth
 
