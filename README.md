@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk, Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, live on AWS in 2 pilots) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026)**, six merged fixes in **vLLM, PyTorch, Ollama, and Triton**, two PyPI tools with **57K+ downloads**, and **4 public RL/evaluation projects** with interactive demos.
+I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, live on AWS in 2 pilots) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026)**, seven merged fixes in **vLLM, PyTorch, Ollama, and Triton**, two PyPI tools with **57K+ downloads**, and **4 public RL/evaluation projects** with interactive demos.
 
 ---
 
@@ -115,6 +115,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 | [**PyTorch PR #199075**](https://github.com/pytorch/pytorch/pull/199075) | **Landed** in PyTorch Dynamo ([`0055968`](https://github.com/pytorch/pytorch/commit/0055968fd6ae682d9647179b61fad66c16276668), approved by guilhermeleobas): fixed a **high-priority silent-correctness bug** ([#198187](https://github.com/pytorch/pytorch/issues/198187)) where `random.Random` float draws reached compiled graphs at a mismatched dtype; Dynamo now traces them at the precision they are passed with. |
 | [**Ollama PR #16669**](https://github.com/ollama/ollama/pull/16669) | **Merged** (approved by dhiltgen): root-caused two Vulkan enumeration bugs that inverted iGPU/dGPU classification on Windows hybrid graphics; short requests took **3.8s** on the iGPU vs **0.42–0.8s** on the RTX 4080 across runs (**~5–9× faster**), with the same inversion confirmed on a second machine. Fixes [#16667](https://github.com/ollama/ollama/issues/16667). |
 | [**Triton PR #10819**](https://github.com/triton-lang/triton/pull/10819) | **Merged** (`b92dc43`, approved by peterbell10): fixed a `tl.flip` compile-time crash on the documented default `dim=None`, with test coverage. Fixes [#10790](https://github.com/triton-lang/triton/issues/10790). |
+| [**Triton PR #12350**](https://github.com/triton-lang/triton/pull/12350) | **Merged** ([`29ef3c3`](https://github.com/triton-lang/triton/commit/29ef3c3320e42aa0b5c2c9e24110b53526660f10), approved by Jokeren): loop-bound casts now follow each operand's source signedness, so a `uint8` bound of 200 no longer sign-extends to -56 and silently runs zero iterations; runtime regressions on A100 and H100. Fixes [#12347](https://github.com/triton-lang/triton/issues/12347). |
 
 ---
 
