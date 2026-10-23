@@ -7,7 +7,7 @@
 **Featured:** [Latent Space AI in Action Talk, Oct 2025](https://www.youtube.com/watch?v=6dSLZdvay3Q)
 **Technical Blog:** [The Third State in AI alignment](https://substack.com/home/post/p-191551029)
 
-I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, live on AWS in 2 pilots) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026)**, seven merged fixes in **vLLM, PyTorch, Ollama, and Triton**, two PyPI tools with **57K+ downloads**, and **4 public RL/evaluation projects** with interactive demos.
+I build and harden AI systems where failure is expensive. I'm Co-Founder and Head of Engineering at **Attunica** (clinical AI for psychotherapy training, live on AWS in 2 pilots) and was the first hire at **GhostEye** (YC S25). On my own I run **Chimera**, a public inference-safety research program: **55 technical reports / 1.46M+ measurements** ([47 public](https://github.com/Sahil170595/Sahil170595/tree/main/reports)), **2 workshop papers accepted (ICML 2026, NeurIPS 2026)**, eight merged fixes in **vLLM, PyTorch, Ollama, and Triton**, two PyPI tools with **57K+ downloads**, and **4 public RL/evaluation projects** with interactive demos.
 
 ---
 
@@ -116,6 +116,7 @@ Built a **security awareness training platform in 90 days** as a founding engine
 | [**Ollama PR #16669**](https://github.com/ollama/ollama/pull/16669) | **Merged** (approved by dhiltgen): root-caused two Vulkan enumeration bugs that inverted iGPU/dGPU classification on Windows hybrid graphics; short requests took **3.8s** on the iGPU vs **0.42–0.8s** on the RTX 4080 across runs (**~5–9× faster**), with the same inversion confirmed on a second machine. Fixes [#16667](https://github.com/ollama/ollama/issues/16667). |
 | [**Triton PR #10819**](https://github.com/triton-lang/triton/pull/10819) | **Merged** (`b92dc43`, approved by peterbell10): fixed a `tl.flip` compile-time crash on the documented default `dim=None`, with test coverage. Fixes [#10790](https://github.com/triton-lang/triton/issues/10790). |
 | [**Triton PR #12350**](https://github.com/triton-lang/triton/pull/12350) | **Merged** ([`29ef3c3`](https://github.com/triton-lang/triton/commit/29ef3c3320e42aa0b5c2c9e24110b53526660f10), approved by Jokeren): loop-bound casts now follow each operand's source signedness, so a `uint8` bound of 200 no longer sign-extends to -56 and silently runs zero iterations; runtime regressions on A100 and H100. Fixes [#12347](https://github.com/triton-lang/triton/issues/12347). |
+| [**Triton PR #12462**](https://github.com/triton-lang/triton/pull/12462) | **Merged** ([`389dd29`](https://github.com/triton-lang/triton/commit/389dd29e1d135b1ba4d449476dfa501c93d7148c), approved by ThomasRaoux): Ada (SM89) FP8 dots now get Hopper's nonzero imprecise-accumulation default, so a separate FP32 add is no longer folded into lower-precision FP8 accumulation (an all-ones loop returned 16,384 instead of 20,000); validated on L40S. Fixes [#12392](https://github.com/triton-lang/triton/issues/12392). |
 
 ---
 
